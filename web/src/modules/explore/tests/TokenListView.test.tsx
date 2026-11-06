@@ -7,7 +7,7 @@ import { DEFAULT_VIEW, type ExploreView } from "../lib/view";
 
 function renderList(patch: Partial<ExploreView> = {}, handlers: { onReset?: () => void } = {}) {
   const view = { ...DEFAULT_VIEW, ...patch };
-  return render(
+  const result = render(
     <TokenListView
       rows={filterTokens(TOKENS, view)}
       view={view}
@@ -17,13 +17,18 @@ function renderList(patch: Partial<ExploreView> = {}, handlers: { onReset?: () =
       {...handlers}
     />,
   );
+  // jsdom applies no CSS, so both layouts are present: the desktop table and the phone list.
+  const desktop = result.container.querySelector<HTMLElement>('[data-variant="table"]')!;
+  const phone = result.container.querySelector<HTMLElement>('[data-variant="list"]')!;
+  return { ...result, desktop, phone };
 }
 
-describe("TokenListView", () => {
+describe("TokenListView — desktop table", () => {
   it("renders the 11 columns and 10 rows with the footer count", () => {
-    renderList();
-    const table = screen.getByRole("table", { name: "Tokens" });
-    expect(within(table).getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
+    const { desktop } = renderList();
+    expect(desktop).toHaveAttribute("role", "table");
+    expect(desktop).toHaveAttribute("aria-label", "Tokens");
+    expect(within(desktop).getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
       "#",
       "Token",
       "Bonding curve",
@@ -36,22 +41,56 @@ describe("TokenListView", () => {
       "Market cap",
       "Quick buy",
     ]);
-    expect(within(table).getAllByRole("row")).toHaveLength(11);
+    expect(within(desktop).getAllByRole("row")).toHaveLength(11);
     expect(screen.getByText("Showing 10 of 8,412 tokens · refreshes every 4s")).toBeInTheDocument();
   });
 
   it("links token names to /token/<TICKER>", () => {
-    renderList();
-    expect(screen.getByRole("link", { name: "Ghosty" })).toHaveAttribute("href", "/token/GHOST");
-    expect(screen.getByRole("link", { name: "Sol Cat" })).toHaveAttribute("href", "/token/SCAT");
+    const { desktop } = renderList();
+    expect(within(desktop).getByRole("link", { name: "Ghosty" })).toHaveAttribute("href", "/token/GHOST");
+    expect(within(desktop).getByRole("link", { name: "Sol Cat" })).toHaveAttribute("href", "/token/SCAT");
   });
 
   it("labels Quick buy with the chain's amount", () => {
-    renderList();
-    expect(screen.getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" })).toHaveTextContent("0.01");
-    expect(screen.getByRole("button", { name: "Quick buy 0.5 SOL of SCAT" })).toHaveTextContent("0.5");
+    const { desktop } = renderList();
+    expect(within(desktop).getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" })).toHaveTextContent("0.01");
+    expect(within(desktop).getByRole("button", { name: "Quick buy 0.5 SOL of SCAT" })).toHaveTextContent("0.5");
+  });
+});
+
+describe("TokenListView — phone list", () => {
+  it("has four columns: Token, Market cap, 24h and Quick buy", () => {
+    const { phone } = renderList();
+    expect(phone).toHaveAttribute("aria-label", "Tokens");
+    expect(within(phone).getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
+      "Token",
+      "Market cap",
+      "24h",
+      "Quick buy",
+    ]);
+    expect(within(phone).getAllByRole("row")).toHaveLength(11);
   });
 
+  it("shows name, marks, ticker · age, market cap and change on each row", () => {
+    const { phone } = renderList();
+    const ghosty = within(phone).getByRole("link", { name: "Ghosty" }).closest('[role="row"]') as HTMLElement;
+    expect(within(ghosty).getByRole("img", { name: "Hot" })).toBeInTheDocument();
+    expect(within(ghosty).getByRole("img", { name: "Locked" })).toBeInTheDocument();
+    expect(ghosty).toHaveTextContent("GHOST·18d");
+    expect(ghosty).toHaveTextContent("$58.2K");
+    expect(ghosty).toHaveTextContent("+412.6%");
+    expect(within(ghosty).getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" })).toBeInTheDocument();
+  });
+
+  it("follows the same filtered rows as the table", () => {
+    const { phone, desktop } = renderList({ tab: "locked" });
+    const names = (el: HTMLElement) => within(el).getAllByRole("link").map((a) => a.textContent);
+    expect(names(phone)).toEqual(["Ghosty", "Orbit", "Sparky", "Tide"]);
+    expect(names(phone)).toEqual(names(desktop));
+  });
+});
+
+describe("TokenListView — toolbar and empty state", () => {
   it("marks the active tab, timeframe and launchpad", () => {
     renderList({ tab: "locked", tf: "1h", pad: "pons" });
     expect(screen.getByRole("tab", { name: "Locked Missions" })).toHaveAttribute("aria-selected", "true");

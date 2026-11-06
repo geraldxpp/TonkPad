@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ChainTrigger } from "@/modules/shell/components/ChainTrigger";
 import { HeatingUp } from "./components/HeatingUp";
 import { Hero } from "./components/Hero";
 import { LiveScope } from "./components/LiveScope";
@@ -14,7 +15,7 @@ interface ExplorePageProps {
   searchParams: SearchParams;
 }
 
-type ListData = Pick<ExploreData, "tokens" | "launchpads" | "moreLaunchpads" | "totalTokens">;
+type ListData = Pick<ExploreData, "tokens" | "launchpads" | "moreLaunchpads" | "totalTokens" | "chainCounts">;
 
 /**
  * Awaiting the request's search params makes this a request-time hole, so a
@@ -23,8 +24,7 @@ type ListData = Pick<ExploreData, "tokens" | "launchpads" | "moreLaunchpads" | "
  */
 async function RequestTokenList({ searchParams, data }: { searchParams: SearchParams; data: ListData }) {
   await searchParams;
-  const { tokens, ...list } = data;
-  return <TokenList {...list} tokens={tokens} />;
+  return <TokenList {...data} />;
 }
 
 /**
@@ -38,15 +38,26 @@ export async function ExplorePage({ searchParams }: ExplorePageProps) {
     moreLaunchpads: data.moreLaunchpads,
     totalTokens: data.totalTokens,
   };
+  const fallback = (
+    <TokenListView
+      {...list}
+      rows={filterTokens(data.tokens, DEFAULT_VIEW)}
+      view={DEFAULT_VIEW}
+      chainControl={<ChainTrigger value="all" compact aria-expanded={false} />}
+    />
+  );
   return (
     <>
-      <section aria-label="Overview" className="flex flex-wrap items-stretch gap-8">
+      <section aria-label="Overview" className="flex flex-wrap items-stretch gap-8 max-md:gap-6">
         <Hero stats={data.stats} trackedToday={data.totalTokens} pick={data.missionPick} />
         <LiveScope blips={data.blips} subtitle={data.scopeSubtitle} />
       </section>
       <HeatingUp cards={data.heating} />
-      <Suspense fallback={<TokenListView {...list} rows={filterTokens(data.tokens, DEFAULT_VIEW)} view={DEFAULT_VIEW} />}>
-        <RequestTokenList searchParams={searchParams} data={{ ...list, tokens: data.tokens }} />
+      <Suspense fallback={fallback}>
+        <RequestTokenList
+          searchParams={searchParams}
+          data={{ ...list, tokens: data.tokens, chainCounts: data.chainCounts }}
+        />
       </Suspense>
     </>
   );

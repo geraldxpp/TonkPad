@@ -11,6 +11,10 @@ import { CHAIN_OPTIONS, ChainTrigger } from "./ChainTrigger";
 
 interface ChainFilterProps {
   counts: Record<ChainFilterValue, number>;
+  /** Placement classes for the wrapper (e.g. hide it in the phone top bar). */
+  className?: string;
+  /** Marks and chevron only, for the phone list toolbar. */
+  compact?: boolean;
 }
 
 /**
@@ -18,7 +22,7 @@ interface ChainFilterProps {
  * with the arrow keys, Home and End, picks with Enter or Space and closes on
  * Escape, Tab or a click outside. Focus returns to the pill after a pick.
  */
-export function ChainFilter({ counts }: ChainFilterProps) {
+export function ChainFilter({ counts, className, compact = false }: ChainFilterProps) {
   const { params, setParams } = useUrlParams();
   const raw = params.get("chain");
   const value: ChainFilterValue = isChainId(raw) ? raw : "all";
@@ -86,7 +90,7 @@ export function ChainFilter({ counts }: ChainFilterProps) {
   return (
     <div
       ref={rootRef}
-      className="relative max-md:ml-auto"
+      className={cn("relative", className)}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           event.stopPropagation();
@@ -96,6 +100,7 @@ export function ChainFilter({ counts }: ChainFilterProps) {
     >
       <ChainTrigger
         value={value}
+        compact={compact}
         buttonRef={triggerRef}
         aria-expanded={open}
         aria-controls={open ? listId : undefined}

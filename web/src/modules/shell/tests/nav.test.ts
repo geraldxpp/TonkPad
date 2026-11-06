@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeNavId, MAIN_NAV } from "../lib/nav";
+import { activeNavId, MAIN_NAV, UTILITY_NAV } from "../lib/nav";
 
 describe("activeNavId", () => {
   it.each([
@@ -27,5 +27,10 @@ describe("activeNavId", () => {
       "Launch",
       "Docs",
     ]);
+  });
+
+  it("gives the phone tab bar seven tabs (Alerts moves to the bell, Theme is dropped)", () => {
+    const phoneTabs = [...MAIN_NAV, ...UTILITY_NAV].filter((item) => !item.hideOnMobile).map((item) => item.label);
+    expect(phoneTabs).toEqual(["Explore", "Live", "Bridge", "Portfolio", "Launch", "Docs", "More"]);
   });
 });

@@ -49,13 +49,18 @@ export function MissionPick({ token, price, updatedSecondsAgo }: MissionPickProp
           {flags.agent ? <Badge kind="agent" /> : null}
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-5">
+      {/* Phones: a three-column figure row and a full-width Buy, like a featured card. */}
+      <div className="flex flex-wrap items-center gap-5 max-md:grid max-md:basis-full max-md:grid-cols-3 max-md:gap-x-3 max-md:gap-y-4 max-md:border-t max-md:border-line max-md:pt-3.5">
         <Figure label="Price" value={formatPrice(price)} />
         <Figure label="Mkt cap" value={formatUsdCompact(token.marketCap)} />
         <Figure label="24h" value={formatChange(token.change24h)} positive={token.change24h >= 0} />
-        <Link href={href} aria-label={`Buy ${token.name}`} className={buttonClasses("buy", "lg")}>
+        <Link
+          href={href}
+          aria-label={`Buy ${token.name}`}
+          className={buttonClasses("buy", "lg", "max-md:col-span-3 max-md:h-12 max-md:w-full")}
+        >
           <Zap size={16} fill="currentColor" stroke="none" />
-          Buy
+          Buy<span className="md:hidden"> {token.name}</span>
         </Link>
       </div>
     </div>

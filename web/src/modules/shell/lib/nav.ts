@@ -17,8 +17,11 @@ export interface NavItem {
   icon: LucideIcon;
   /** Items without an href are UI-only buttons for now. */
   href?: string;
-  /** Accessible name when it differs from the visible label. */
-  ariaLabel?: string;
+  /**
+   * Left out of the phone tab bar: Alerts lives on the header bell there and
+   * Theme is UI-only, which keeps the bar to seven tabs.
+   */
+  hideOnMobile?: boolean;
 }
 
 export const MAIN_NAV: readonly NavItem[] = [
@@ -26,13 +29,13 @@ export const MAIN_NAV: readonly NavItem[] = [
   { id: "live", label: "Live", icon: Radar, href: "/live" },
   { id: "bridge", label: "Bridge", icon: ArrowRightLeft, href: "/bridge" },
   { id: "portfolio", label: "Portfolio", icon: Wallet, href: "/portfolio" },
-  { id: "alerts", label: "Alerts", icon: Bell },
+  { id: "alerts", label: "Alerts", icon: Bell, hideOnMobile: true },
   { id: "launch", label: "Launch", icon: Rocket, href: "/launch" },
   { id: "docs", label: "Docs", icon: BookOpen, href: "/docs" },
 ];
 
 export const UTILITY_NAV: readonly NavItem[] = [
-  { id: "theme", label: "Theme", icon: Sun },
+  { id: "theme", label: "Theme", icon: Sun, hideOnMobile: true },
   { id: "more", label: "More", icon: Ellipsis },
 ];
 

@@ -1,16 +1,18 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 import { cn } from "@/shared/lib/cn";
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Accessible name; icon buttons have no visible text. */
   label: string;
   size?: 36 | 40;
+  ref?: Ref<HTMLButtonElement>;
 }
 
-/** Square icon button on the surface colour (carousel arrows, bell). */
-export function IconButton({ label, size = 36, className, type = "button", children, ...rest }: IconButtonProps) {
+/** Square icon button on the surface colour (carousel arrows, bell, phone search). */
+export function IconButton({ label, size = 36, className, type = "button", children, ref, ...rest }: IconButtonProps) {
   return (
     <button
+      ref={ref}
       type={type}
       aria-label={label}
       className={cn(

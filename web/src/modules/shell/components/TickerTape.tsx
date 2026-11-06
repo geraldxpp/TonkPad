@@ -1,9 +1,11 @@
 import Image from "next/image";
+import { cn } from "@/shared/lib/cn";
 import { formatChange, formatUsdCompact } from "@/shared/lib/format";
 import type { TapeItem } from "../data/shell.mock";
 
 interface TickerTapeProps {
   items: readonly TapeItem[];
+  className?: string;
 }
 
 function TapeRun({ items, hidden }: TickerTapeProps & { hidden?: boolean }) {
@@ -27,13 +29,13 @@ function TapeRun({ items, hidden }: TickerTapeProps & { hidden?: boolean }) {
  * Right-to-left marquee. The list renders twice and slides by -50% for a
  * seamless loop; hover or keyboard focus pauses it. The edges fade out.
  */
-export function TickerTape({ items }: TickerTapeProps) {
+export function TickerTape({ items, className }: TickerTapeProps) {
   return (
     <div
       role="marquee"
       aria-label="Live ticker"
       tabIndex={0}
-      className="tk-tape h-10 min-w-0 flex-[999_1_260px] rounded-lg"
+      className={cn("tk-tape h-10 min-w-0 flex-[999_1_260px] rounded-lg", className)}
     >
       <div className="h-full overflow-hidden px-2 [mask-image:linear-gradient(90deg,transparent,#000_28px,#000_calc(100%-28px),transparent)]">
         <div className="tk-marquee flex h-full w-max items-center">

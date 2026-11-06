@@ -39,8 +39,11 @@ test("a view built by clicking round-trips through the URL", async ({ page }) =>
 });
 
 test("the server streams a shared view, so it is right before the app hydrates", async ({ page }) => {
-  // Block the app bundles: nothing hydrates, only React's inline streaming runs.
-  await page.route("**/_next/static/chunks/**", (route) => route.abort());
+  // Block the app's script bundles (CSS still loads): nothing hydrates, only
+  // React's inline streaming runs.
+  await page.route("**/_next/static/chunks/**", (route) =>
+    route.request().resourceType() === "script" ? route.abort() : route.continue(),
+  );
   await page.goto("/?chain=sol&tab=locked");
   await expect(page.getByText("Showing 1 of 8,412 tokens · refreshes every 4s")).toBeVisible();
   await expect(page.getByRole("link", { name: "Tide" })).toBeVisible();

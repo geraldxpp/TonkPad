@@ -25,9 +25,10 @@ export function AppShell({ data, children }: AppShellProps) {
       <Suspense fallback={<SideRailView activeId={null} unreadAlerts={data.unreadAlerts} />}>
         <SideRail unreadAlerts={data.unreadAlerts} />
       </Suspense>
-      <div className="relative z-[1] flex min-w-0 flex-[999_1_560px] flex-col">
+      {/* On phones the rail is a fixed bottom tab bar, so leave room for it. */}
+      <div className="relative z-[1] flex min-w-0 flex-[999_1_560px] flex-col max-md:pb-[calc(64px+env(safe-area-inset-bottom))]">
         <TopBar data={data} />
-        <main className="flex w-full max-w-[1364px] flex-auto flex-col gap-14 px-[clamp(16px,3vw,40px)] pt-8 pb-14">
+        <main className="flex w-full max-w-[1364px] flex-auto flex-col gap-14 px-[clamp(16px,3vw,40px)] pt-8 pb-14 max-md:gap-9 max-md:pt-6 max-md:pb-10">
           {children}
         </main>
         <StatusBar status={data.status} />

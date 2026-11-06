@@ -81,6 +81,9 @@ export const MORE_LAUNCHPADS = 3;
 
 export const TOTAL_TOKENS = 8_412;
 
+/** Chain counts for the chain filter that joins the list toolbar on phones. */
+export const CHAIN_COUNTS = { all: 8_412, sol: 5_941, rh: 2_471 } as const;
+
 export interface HeroStat {
   value: number;
   kind: "count" | "usd";

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { ChainFilter } from "@/modules/shell/components/ChainFilter";
 import type { Token } from "@/shared/types/token";
+import type { ExploreData } from "../data/get-explore-data";
 import { useExploreView } from "../hooks/useExploreView";
 import { filterTokens } from "../lib/filter";
 import { TOKEN_TAB_PREFIX } from "./ListToolbar";
@@ -9,10 +11,11 @@ import { TokenListView, type TokenListViewProps } from "./TokenListView";
 
 type TokenListProps = Pick<TokenListViewProps, "launchpads" | "moreLaunchpads" | "totalTokens"> & {
   tokens: Token[];
+  chainCounts: ExploreData["chainCounts"];
 };
 
 /** The token list bound to the URL: tabs, timeframe, launchpad, chain and search. */
-export function TokenList({ tokens, ...rest }: TokenListProps) {
+export function TokenList({ tokens, chainCounts, ...rest }: TokenListProps) {
   const { view, update, reset } = useExploreView();
   const rows = useMemo(() => filterTokens(tokens, view), [tokens, view]);
 
@@ -27,6 +30,7 @@ export function TokenList({ tokens, ...rest }: TokenListProps) {
       {...rest}
       rows={rows}
       view={view}
+      chainControl={<ChainFilter counts={chainCounts} compact />}
       onTab={(tab) => update({ tab })}
       onTimeframe={(tf) => update({ tf })}
       onPad={(pad) => update({ pad })}

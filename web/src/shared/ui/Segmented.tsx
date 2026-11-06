@@ -36,7 +36,8 @@ export function Segmented<T extends string>({ options, value, onChange, label, s
             onClick={() => onChange?.(option.id)}
             className={cn(
               "px-3 text-[13px] font-medium",
-              sm ? "h-[26px] rounded-lg" : "h-8 rounded-[9px]",
+              // The timeframe pills tighten a little on phones to share a row with the filters.
+              sm ? "h-[26px] rounded-lg" : "h-8 rounded-[9px] max-md:px-2.5",
               active ? "bg-input text-text" : "bg-transparent text-text-2",
             )}
           >

@@ -26,7 +26,7 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
     <Link
       href={`/token/${token.ticker}`}
       aria-label={`${token.name}, market cap ${mcap}, ${change} in 24h`}
-      className="tk-card relative block h-[320px] overflow-hidden rounded-[22px] border border-white/8 text-white"
+      className="tk-card relative block h-[320px] overflow-hidden rounded-[22px] border border-white/8 text-white max-md:h-[296px] max-md:w-[172px] max-md:flex-none max-md:snap-start max-md:rounded-[20px]"
       style={{ background: `linear-gradient(180deg, ${color}, #0A0B12)` }}
     >
       <Image
@@ -45,7 +45,7 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
         <ChainMark chain={token.chain} size={16} />
         <PadMark pad={token.launchpad} />
       </span>
-      <div className="absolute right-4 bottom-3.5 left-4 flex flex-col gap-2">
+      <div className="absolute right-4 bottom-3.5 left-4 flex flex-col gap-2 max-md:right-3 max-md:bottom-3 max-md:left-3 max-md:gap-1.5">
         <div className="flex flex-col gap-0.5">
           <span className="font-display text-[20px] leading-6 font-bold tracking-[-0.01em]">{token.name}</span>
           <span className="font-mono text-[12px] text-white/62">${token.ticker}</span>
@@ -56,13 +56,14 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
           {flags.agent ? <Badge kind="agent" tone="card" /> : null}
         </div>
         <div className="flex items-end justify-between gap-2">
-          <div className="flex items-baseline gap-2">
+          {/* Phones stack the change under the market cap to keep room for the sparkline. */}
+          <div className="flex items-baseline gap-2 max-md:flex-col max-md:items-start max-md:gap-0">
             <span className="font-mono text-[22px] leading-7 font-semibold tracking-[-0.02em] max-md:text-[18px] max-md:leading-6">
               {mcap}
             </span>
             <span className={cn("font-mono text-[12px] font-semibold", up ? "text-pos" : "text-neg")}>{change}</span>
           </div>
-          <Sparkline seed={token.spark} up={up} width={72} height={24} className="min-w-0 max-md:hidden" />
+          <Sparkline seed={token.spark} up={up} width={72} height={24} className="min-w-0" />
         </div>
         {token.curve < 1 ? (
           <div className="flex items-center gap-2">

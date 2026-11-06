@@ -17,13 +17,15 @@ interface TabsProps<T extends string> {
   /** id of the element the tabs control (role="tabpanel"). */
   panelId: string;
   idPrefix: string;
+  /** Placement classes for the tablist (e.g. a swipeable row on phones). */
+  className?: string;
 }
 
 /**
  * ARIA tablist with a roving tab stop: Tab reaches the selected tab, the arrow
  * keys, Home and End move between tabs and select them.
  */
-export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, idPrefix }: TabsProps<T>) {
+export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, idPrefix, className }: TabsProps<T>) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function move(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -44,7 +46,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
     <div
       role="tablist"
       aria-label={label}
-      className="flex flex-wrap gap-0.5 rounded-xl border border-line bg-surface p-1"
+      className={cn("flex flex-wrap gap-0.5 rounded-xl border border-line bg-surface p-1", className)}
     >
       {tabs.map((tab, index) => {
         const active = tab.id === value;

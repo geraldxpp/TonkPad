@@ -57,6 +57,12 @@ returns typed mock data today and will call the API later.
   sweep's leading edge takes to reach its blip.
 - **Reduced motion.** `prefers-reduced-motion: reduce` turns every animation and
   transition off; the countdown shows a static `0:04`.
+- **Phone layout (under 768 px).** The rail becomes a fixed seven-tab bar along
+  the bottom; the top bar is one sticky row (logo, search toggle, alerts,
+  wallet) with the ticker under it; Mission Pick becomes a featured card with a
+  full-width Buy; Heating up is a swipeable row; the token list is a compact
+  Token / Market cap / 24h / Quick buy list, and the chain filter joins its
+  toolbar. Tablet and desktop keep the design exactly.
 
 ## Deploy on Vercel
 

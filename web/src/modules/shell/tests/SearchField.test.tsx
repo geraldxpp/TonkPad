@@ -50,3 +50,30 @@ describe("SearchField", () => {
     expect(screen.getByRole("searchbox")).toHaveValue("ghost");
   });
 });
+
+describe("SearchField on phones", () => {
+  it("folds into a magnifier that opens and focuses the field", () => {
+    render(<SearchField />);
+    const toggle = screen.getByRole("button", { name: "Search" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveAttribute("aria-controls", "tk-search-box");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("searchbox")).toHaveFocus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("starts open when the URL already has a query", () => {
+    search = new URLSearchParams("q=mo");
+    render(<SearchField />);
+    expect(screen.getByRole("button", { name: "Search" })).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("opens on / as well", () => {
+    render(<SearchField />);
+    fireEvent.keyDown(document.body, { key: "/" });
+    expect(screen.getByRole("button", { name: "Search" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("searchbox")).toHaveFocus();
+  });
+});

@@ -1,8 +1,10 @@
 import { LAUNCHPADS } from "@/shared/config/launchpads";
+import type { ChainId } from "@/shared/types/chain";
 import type { Token } from "@/shared/types/token";
 import {
   BLIPS,
   type BlipSeed,
+  CHAIN_COUNTS,
   HEATING,
   HERO_STATS,
   type HeroStat,
@@ -22,6 +24,7 @@ export interface ExploreData {
   blips: Array<BlipSeed & { art: string }>;
   launchpads: Array<{ id: PadFilterId; count: number }>;
   moreLaunchpads: number;
+  chainCounts: Record<"all" | ChainId, number>;
   totalTokens: number;
   stats: HeroStat[];
   missionPick: { token: Token; price: number; updatedSecondsAgo: number };
@@ -42,6 +45,7 @@ export async function getExploreData(): Promise<ExploreData> {
     blips: BLIPS.map((blip) => ({ ...blip, art: byTicker(blip.ticker).art })),
     launchpads: [...LAUNCHPAD_COUNTS],
     moreLaunchpads: MORE_LAUNCHPADS,
+    chainCounts: { ...CHAIN_COUNTS },
     totalTokens: TOTAL_TOKENS,
     stats: [...HERO_STATS],
     missionPick: { ...MISSION_PICK, token: byTicker(MISSION_PICK.ticker) },

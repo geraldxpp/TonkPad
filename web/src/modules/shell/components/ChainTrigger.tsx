@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import type { ButtonHTMLAttributes, Ref } from "react";
+import { cn } from "@/shared/lib/cn";
 import { ChainMark } from "@/shared/ui/ChainMark";
 import type { ChainFilterValue } from "../data/shell.mock";
 
@@ -16,16 +17,21 @@ export function chainLabel(value: ChainFilterValue): string {
 interface ChainTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   value: ChainFilterValue;
   buttonRef?: Ref<HTMLButtonElement>;
+  /** Marks and chevron only; the label stays as the accessible name. */
+  compact?: boolean;
 }
 
 /** The chain pill: stacked S and R marks, the current label and a chevron. */
-export function ChainTrigger({ value, buttonRef, ...rest }: ChainTriggerProps) {
+export function ChainTrigger({ value, buttonRef, compact = false, ...rest }: ChainTriggerProps) {
   return (
     <button
       ref={buttonRef}
       type="button"
       aria-haspopup="listbox"
-      className="inline-flex h-10 items-center gap-2 rounded-xl border border-line-strong bg-surface pr-2.5 pl-2 text-text"
+      className={cn(
+        "inline-flex h-10 items-center rounded-xl border border-line-strong bg-surface pl-2 text-text",
+        compact ? "gap-1 pr-2" : "gap-2 pr-2.5",
+      )}
       {...rest}
     >
       <span className="inline-flex" aria-hidden="true">
@@ -41,7 +47,9 @@ export function ChainTrigger({ value, buttonRef, ...rest }: ChainTriggerProps) {
           />
         ) : null}
       </span>
-      <span className="text-[13px] font-semibold whitespace-nowrap">{chainLabel(value)}</span>
+      <span className={cn("text-[13px] font-semibold whitespace-nowrap", compact && "sr-only")}>
+        {chainLabel(value)}
+      </span>
       <ChevronDown size={14} strokeWidth={2} className="text-text-2" />
     </button>
   );
