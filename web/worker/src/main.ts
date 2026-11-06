@@ -1,21 +1,22 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
-import type { LiveList, LiveListQuery, LiveOverview, LiveShell, LiveStatus } from "@/shared/types/live";
+import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
+import type { LiveStatus } from "@/shared/types/live";
 import { loadConfig, log } from "./config";
-import type { TrackedToken } from "./model";
+import { PonsBook } from "./pons/book";
+import { PonsFeed } from "./pons/feed";
 import { startServer } from "./server";
+import { loadSnapshot, saveSnapshot } from "./snapshot";
 import { BATCH_SIZE, fetchMarket, RateLimitError } from "./sources/dexscreener";
 import { ASSET_BATCH, fetchAssets } from "./sources/helius";
-import { fetchGasGwei, fetchNativePrices } from "./sources/prices";
+import { NATIVE_ETH, USDG, WETH } from "./sources/pons";
+import { fetchGasGwei, fetchNativePrices, fetchQuotePrices } from "./sources/prices";
 import { connectPumpPortal } from "./sources/pumpportal";
+import { RobinhoodRpc } from "./sources/robinhood";
 import { TokenStore } from "./store";
-import { listView } from "./views/list";
-import { overviewView } from "./views/overview";
-import { shellView } from "./views/shell";
+import { createViews } from "./views/cache";
 
-/** Launchpads the worker ingests today (Robinhood Chain and the other Solana ones come next). */
-const INGESTING: readonly LaunchpadId[] = ["pump", "bonk"];
+/** Launchpads the worker ingests today, in the order the radar names them. */
+const INGESTING: readonly LaunchpadId[] = ["pons", "pump", "bonk"];
 
 /**
  * Helius lookups (art, names, mint and freeze authority) go out as one batch
@@ -23,82 +24,87 @@ const INGESTING: readonly LaunchpadId[] = ["pump", "bonk"];
  * caps the worker at about 432K credits a month (the free plan has 1M).
  */
 const ASSET_LOOKUP_EVERY = 60_000;
+/** Pons is read from Robinhood Chain's logs this often (the screen refreshes every 4 s). */
+const PONS_POLL_EVERY = 3_000;
 
 const config = loadConfig();
 const store = new TokenStore();
+const pons = new PonsBook(store);
+const ponsFeed = new PonsFeed(new RobinhoodRpc(config.robinhoodLogsRpcUrl), pons);
 const status: LiveStatus = { solUsd: null, ethUsd: null, rhGasGwei: null };
+const views = createViews(store, status, INGESTING);
+/** USD prices of the other assets Pons launches are paired with (tokenized stocks). */
+const quotePrices = new Map<string, number>();
 const startedAt = Date.now();
 let lastLaunchAt = 0;
 let marketBackoffUntil = 0;
+let quotesFetchedAt = 0;
 /** Helius calls since start, reported by /health to watch the credit budget. */
 let heliusCalls = 0;
 
-/** Views are recomputed at most once a second; the app caches them for 2 s on top. */
-function memo<T>(compute: () => T): () => T {
-  let at = 0;
-  let value: T | null = null;
-  return () => {
-    const now = Date.now();
-    if (value === null || now - at >= 1_000) {
-      value = compute();
-      at = now;
-    }
-    return value;
-  };
-}
-const overview = memo<LiveOverview>(() => overviewView(store.all(), INGESTING, Date.now()));
-const shell = memo<LiveShell>(() => shellView(store.all(), { ...status }, Date.now()));
-const lists = new Map<string, { at: number; value: LiveList }>();
-function list(query: LiveListQuery): LiveList {
-  const key = JSON.stringify(query);
+const lastFailure = new Map<string, number>();
+/** Logs a failure at most once a minute per source, so a flaky feed can't flood the logs. */
+function fail(scope: string, error: unknown): void {
   const now = Date.now();
-  const hit = lists.get(key);
-  if (hit && now - hit.at < 1_000) return hit.value;
-  const value = listView(store.all(), query, now);
-  lists.set(key, { at: now, value });
-  if (lists.size > 500) lists.clear();
-  return value;
+  if (now - (lastFailure.get(scope) ?? 0) < 60_000) return;
+  lastFailure.set(scope, now);
+  log(scope, error instanceof Error ? error.message : "request failed");
 }
 
-/** Tokens someone is likely to see, so their art loads first. */
-function visibleAddresses(): Set<string> {
-  const seen = new Set<string>();
-  const base = { chain: "all", pad: "all", q: "", limit: 30 } as const;
-  for (const tab of ["trending", "new", "graduating", "graduated", "gainers"] as const) {
-    for (const row of list({ ...base, tab, tf: "24h" }).rows) seen.add(row.address);
-  }
-  const o = overview();
-  o.heating.forEach((c) => seen.add(c.token.address));
-  o.blips.forEach((b) => seen.add(b.address));
-  if (o.missionPick) seen.add(o.missionPick.token.address);
-  shell().tape.forEach((t) => seen.add(t.address));
-  return seen;
+function quoteUsd(quote: string): number | null {
+  if (quote === NATIVE_ETH || quote === WETH) return status.ethUsd;
+  if (quote === USDG) return 1;
+  return quotePrices.get(quote) ?? null;
 }
 
-async function refreshMarkets(): Promise<void> {
+/** DexScreener: Solana tokens, and Pons tokens once they have graduated. */
+async function refreshMarkets(chain: ChainId): Promise<void> {
   const now = Date.now();
   if (now < marketBackoffUntil) return;
-  const due = store.dueForRefresh("sol", now, BATCH_SIZE);
+  const due = store.dueForRefresh(chain, now, BATCH_SIZE);
   if (due.length === 0) return;
   try {
-    const data = await fetchMarket("solana", due);
+    const data = await fetchMarket(chain === "sol" ? "solana" : "robinhood", due);
     for (const { address } of due) store.applyMarket(address, data.get(address), Date.now());
   } catch (error) {
     if (error instanceof RateLimitError) marketBackoffUntil = Date.now() + 30_000;
-    log("dexscreener", error instanceof Error ? error.message : "request failed");
+    fail("dexscreener", error);
   }
+}
+
+async function refreshQuotePrices(force: boolean): Promise<void> {
+  const quotes = [...pons.quotes()].filter((q) => q !== NATIVE_ETH && q !== WETH && q !== USDG);
+  const missing = quotes.some((q) => !quotePrices.has(q));
+  if (quotes.length === 0 || (!force && !missing) || Date.now() - quotesFetchedAt < 30_000) return;
+  quotesFetchedAt = Date.now();
+  try {
+    for (const [quote, price] of await fetchQuotePrices(quotes)) quotePrices.set(quote, price);
+  } catch (error) {
+    fail("quotes", error);
+  }
+}
+
+async function pollPons(): Promise<void> {
+  try {
+    const { launches } = await ponsFeed.poll();
+    if (launches > 0) lastLaunchAt = Date.now();
+  } catch (error) {
+    fail("pons", error);
+  }
+  await refreshQuotePrices(false);
+  pons.refresh(Date.now(), quoteUsd);
 }
 
 async function refreshAssets(): Promise<void> {
   if (!config.heliusApiKey) return;
-  const ids = store.needingAssets("sol", visibleAddresses(), ASSET_BATCH, Date.now());
+  const ids = store.needingAssets("sol", views.visibleAddresses(), ASSET_BATCH, Date.now());
   if (ids.length === 0) return;
   try {
     heliusCalls += 1;
     const info = await fetchAssets(config.heliusApiKey, ids);
     for (const id of ids) store.applyAsset(id, info.get(id), Date.now());
   } catch (error) {
-    log("helius", error instanceof Error ? error.message : "request failed");
+    fail("helius", error);
   }
 }
 
@@ -107,25 +113,19 @@ async function refreshStatus(): Promise<void> {
     if (config.jupiterApiKey) Object.assign(status, await fetchNativePrices(config.jupiterApiKey));
     if (config.robinhoodRpcUrl) status.rhGasGwei = await fetchGasGwei(config.robinhoodRpcUrl);
   } catch (error) {
-    log("status", error instanceof Error ? error.message : "request failed");
+    fail("status", error);
   }
 }
 
-async function saveSnapshot(): Promise<void> {
-  await mkdir(dirname(config.snapshotPath), { recursive: true });
-  const tmp = `${config.snapshotPath}.tmp`;
-  await writeFile(tmp, JSON.stringify(store.toJSON()));
-  await rename(tmp, config.snapshotPath);
-}
+const save = () => saveSnapshot(config.snapshotPath, { tokens: store.toJSON(), ponsBlock: ponsFeed.cursor });
 
-async function loadSnapshot(): Promise<void> {
-  try {
-    const tokens = JSON.parse(await readFile(config.snapshotPath, "utf8")) as TrackedToken[];
-    store.restore(tokens, Date.now());
-    log("worker", `restored ${store.size} tokens`);
-  } catch {
-    log("worker", "no snapshot yet; starting fresh");
-  }
+async function restore(): Promise<void> {
+  const snapshot = await loadSnapshot(config.snapshotPath);
+  if (!snapshot) return log("worker", "no snapshot yet; starting fresh");
+  store.restore(snapshot.tokens, Date.now());
+  pons.reindex();
+  ponsFeed.cursor = snapshot.ponsBlock;
+  log("worker", `restored ${store.size} tokens`);
 }
 
 /** Runs `task` every `ms`, never overlapping itself. */
@@ -143,7 +143,7 @@ function every(ms: number, task: () => Promise<void>): void {
 }
 
 async function start(): Promise<void> {
-  await loadSnapshot();
+  await restore();
   await refreshStatus();
   connectPumpPortal({
     onLaunch: (event) => {
@@ -151,32 +151,37 @@ async function start(): Promise<void> {
     },
     onGraduation: (event) => store.markGraduated(event),
   });
-  every(400, refreshMarkets);
+  every(400, () => refreshMarkets("sol"));
+  every(2_000, () => refreshMarkets("rh"));
+  every(PONS_POLL_EVERY, pollPons);
+  every(5 * 60_000, () => refreshQuotePrices(true));
   every(ASSET_LOOKUP_EVERY, refreshAssets);
   every(20_000, refreshStatus);
   every(60_000, async () => {
     const removed = store.prune(Date.now());
-    await saveSnapshot();
-    log("worker", `${store.size} tokens tracked, ${removed} pruned`);
+    pons.reindex();
+    await save();
+    log("worker", `${store.size} tokens tracked (${pons.quotes().size} Pons quote assets), ${removed} pruned`);
   });
 
   startServer(config.port, config.workerToken, {
-    list,
-    overview,
-    shell,
+    list: views.list,
+    overview: views.overview,
+    shell: views.shell,
     health: () => ({
       ok: true,
       tokens: store.size,
       lastLaunchAt,
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
       heliusCalls,
+      ponsBlock: ponsFeed.cursor,
     }),
   });
   log("worker", `listening on :${config.port}`);
 
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
-      void saveSnapshot().finally(() => process.exit(0));
+      void save().finally(() => process.exit(0));
     });
   }
 }

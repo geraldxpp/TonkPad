@@ -4,6 +4,8 @@ export interface WorkerConfig {
   heliusApiKey: string | null;
   jupiterApiKey: string | null;
   robinhoodRpcUrl: string | null;
+  /** Where Pons logs are read; Alchemy's free plan only allows 10-block log queries. */
+  robinhoodLogsRpcUrl: string;
   /** When set, every /v1 request must send it in the x-worker-token header. */
   workerToken: string | null;
   /** Where the token state is saved between restarts. */
@@ -18,6 +20,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     heliusApiKey: value(env.HELIUS_API_KEY),
     jupiterApiKey: value(env.JUPITER_API_KEY),
     robinhoodRpcUrl: value(env.ROBINHOOD_RPC_URL),
+    robinhoodLogsRpcUrl: value(env.ROBINHOOD_LOGS_RPC_URL) ?? "https://rpc.mainnet.chain.robinhood.com",
     workerToken: value(env.WORKER_TOKEN),
     snapshotPath: value(env.SNAPSHOT_PATH) ?? "worker/.state/snapshot.json",
   };

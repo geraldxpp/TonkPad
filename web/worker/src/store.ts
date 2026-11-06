@@ -7,6 +7,7 @@ import {
   type GraduationEvent,
   type LaunchEvent,
   newTrackedToken,
+  NOT_ON_DEXSCREENER,
   type TrackedToken,
 } from "./model";
 import { refreshDelay } from "./schedule";
@@ -15,7 +16,8 @@ import type { MarketRequest, MarketResult } from "./sources/dexscreener";
 
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
-const SERIES_MAX = 60;
+/** Points kept in a token's market-cap history (thinned as it grows). */
+export const SERIES_MAX = 60;
 /** DAS needs a moment to index a new mint's metadata. */
 const ASSET_FIRST_DELAY = 15_000;
 /** Art still missing is looked up again every minute while the token is young. */
@@ -43,6 +45,17 @@ export class TokenStore {
     // Pump.fun serves a token's art within a second of launch, before Helius has looked it up.
     this.tokens.set(event.address, { ...newTrackedToken(event, nativeUsd), image: launchpadArt(event.address, event.launchpad) });
     return true;
+  }
+
+  /** Adds a token built elsewhere (Pons launches); false when it is already tracked. */
+  add(token: TrackedToken): boolean {
+    if (this.tokens.has(token.address)) return false;
+    this.tokens.set(token.address, token);
+    return true;
+  }
+
+  remove(address: string): void {
+    this.tokens.delete(address);
   }
 
   markGraduated(event: GraduationEvent): void {
@@ -100,7 +113,7 @@ export class TokenStore {
       .filter((t) => t.chain === chain && t.nextRefreshAt <= now)
       .sort((a, b) => a.nextRefreshAt - b.nextRefreshAt)
       .slice(0, limit)
-      .map((t) => ({ address: t.address, launchpad: t.launchpad, launchedAt: t.createdAt }));
+      .map((t) => ({ address: t.address, launchpad: t.launchpad, launchedAt: t.createdAt, quote: t.pons?.quote }));
   }
 
   /** Tokens still without art and safety facts: visible ones first, then the newest. */
@@ -134,7 +147,8 @@ export class TokenStore {
   restore(tokens: readonly TrackedToken[], now: number): void {
     for (const t of tokens) {
       const image = t.image ? repointArt(t.image, t.launchpad) : t.assetAt > 0 ? launchpadArt(t.address, t.launchpad) : null;
-      this.tokens.set(t.address, { ...t, image, nextRefreshAt: now });
+      const nextRefreshAt = t.pons && !t.graduated ? NOT_ON_DEXSCREENER : now;
+      this.tokens.set(t.address, { ...t, image, nextRefreshAt });
     }
     this.prune(now);
   }

@@ -28,3 +28,38 @@ export async function fetchGasGwei(rpcUrl: string): Promise<number | null> {
   const body = (await res.json()) as { result?: string };
   return body.result ? parseInt(body.result, 16) / 1e9 : null;
 }
+
+interface QuotePair {
+  baseToken?: { address?: string };
+  priceUsd?: string;
+  liquidity?: { usd?: number };
+}
+
+/** The USD price of `address` from its most liquid DexScreener pair, or null. */
+export function bestQuotePrice(pairs: readonly QuotePair[], address: string): number | null {
+  const own = pairs.filter((p) => p.baseToken?.address?.toLowerCase() === address.toLowerCase());
+  const best = [...own].sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0];
+  const price = Number(best?.priceUsd);
+  return Number.isFinite(price) && price > 0 ? price : null;
+}
+
+/**
+ * USD prices of Robinhood Chain assets that Pons pairs launches with (tokenized
+ * stocks such as SPY or NVDA), up to 30 per call, from DexScreener.
+ */
+export async function fetchQuotePrices(addresses: readonly string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (addresses.length === 0) return out;
+  const res = await fetch(`https://api.dexscreener.com/tokens/v1/robinhood/${addresses.slice(0, 30).join(",")}`, {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`DexScreener HTTP ${res.status}`);
+  const pairs = (await res.json()) as QuotePair[];
+  if (!Array.isArray(pairs)) return out;
+  for (const address of addresses) {
+    const price = bestQuotePrice(pairs, address);
+    if (price !== null) out.set(address, price);
+  }
+  return out;
+}

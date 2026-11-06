@@ -1,6 +1,7 @@
 import type { LiveTimeframe } from "@/shared/types/live";
 import type { SparkSeed, Token } from "@/shared/types/token";
 import { type MarketWindow, shortAddress, type TrackedToken, type WindowKey } from "./model";
+import { ponsBuysSince } from "./pons/curve";
 import { missionScore } from "./score";
 
 const MINUTE = 60_000;
@@ -18,6 +19,8 @@ export function windowFor(token: TrackedToken, tf: LiveTimeframe): MarketWindow 
  * the 5-minute and 1-hour counts.
  */
 export function buysLast15m(token: TrackedToken, now: number): number {
+  // Pons curves are followed trade by trade, so their count is exact.
+  if (token.pons && !token.graduated) return ponsBuysSince(token.pons, now - 15 * MINUTE);
   const current = token.windows.h24.buys;
   if (now - token.createdAt <= 15 * MINUTE) return current;
   const cutoff = now - 15 * MINUTE;

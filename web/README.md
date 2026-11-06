@@ -6,8 +6,8 @@ from the approved design in `../design-reference/`. Project rules live in
 
 Built so far: **Module 1 — app shell + Explore** (`/`), in dark and light
 themes and twelve languages. Explore runs on mock data, or on **live
-Pump.fun and Bonk.fun launches** from the live-data worker (`worker/`,
-see below). The other rail screens (`/live`, `/bridge`,
+Pump.fun, Bonk.fun and Pons (Robinhood Chain) launches** from the live-data
+worker (`worker/`, see below). The other rail screens (`/live`, `/bridge`,
 `/portfolio`, `/launch`, `/docs`, `/token/[ticker]`) show a "Coming in a later
 module" panel inside the shell.
 
@@ -137,7 +137,8 @@ as JSON. The app never calls the data providers itself.
 | DexScreener `tokens/v1` | price, market cap, volume, change and trades per 5m / 1h / 6h / 24h | none |
 | Helius DAS `getAssetBatch` | art, name and ticker, mint and freeze authority | `HELIUS_API_KEY` |
 | Jupiter price v3 | SOL and ETH in the status bar | `JUPITER_API_KEY` |
-| Robinhood Chain RPC | gas in the status bar | `ROBINHOOD_RPC_URL` |
+| Robinhood Chain RPC (Alchemy) | gas in the status bar | `ROBINHOOD_RPC_URL` |
+| Robinhood Chain public RPC | every Pons launch, curve trade and graduation, and each token's name, ticker and logo | none (`ROBINHOOD_LOGS_RPC_URL` overrides it) |
 
 - **Refresh.** New tokens refresh every 8 s, busy ones every 15–30 s and quiet
   ones every 2–20 minutes, which keeps DexScreener well under its limit. Views
@@ -158,15 +159,27 @@ as JSON. The app never calls the data providers itself.
   as one batch a minute, up to 100 tokens each. A call costs 10 credits
   whatever its size, so the worker stays under about 432K credits a month,
   well inside the free plan's 1M.
+- **Pons.** DexScreener doesn't list Pons's bonding curves, so the worker
+  reads them from the chain: every 3 s it asks Robinhood Chain's public RPC
+  for new launches, trades and graduations (Alchemy's free plan only
+  allows 10-block log queries; blocks are 0.1 s apart). Each token is
+  priced from its own curve: constant product over 1B virtual tokens and
+  0.4 × the graduation amount, which reproduces every real trade exactly.
+  Launches paired with ETH use Jupiter's ETH price, USDG counts as $1, and
+  tokenized stocks (SPY, NVDA…) use their DexScreener price. A graduated
+  token moves to Uniswap v4, where DexScreener takes over. Pons tokens are
+  fixed-supply contracts with no mint or pause functions. A fresh start, or
+  a gap of more than a day, rebuilds the last day from the chain.
 - **Mission score v1** (`worker/src/score.ts`) is a placeholder built from
   what the worker knows: authorities, graduation, the creator's launch buy,
   trading mix, crashes, volume and age.
 - **Not tracked yet:** holders (shown as —), smart money and locked missions
-  (empty tabs), Robinhood Chain and Pons, and the other Solana launchpads.
+  (empty tabs), and the other Solana launchpads (Bags, Moonit, Heaven).
   Bonk.fun tokens show up in New pairs but have no market data until they
   graduate (DexScreener doesn't index their curve).
 - **Restarts.** The worker saves a snapshot every minute and on shutdown
-  (`worker/.state/`, ignored by git) and picks up where it left off.
+  (`worker/.state/`, ignored by git), including how far it has read the
+  Pons logs, and picks up where it left off.
 
 ## Deploy on Vercel
 

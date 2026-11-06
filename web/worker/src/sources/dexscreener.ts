@@ -1,12 +1,14 @@
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import { EMPTY_WINDOW, type MarketWindow, type MarketWindows, type WindowKey } from "../model";
+import { NATIVE_ETH, USDG, WETH } from "./pons";
 
 /**
  * DexScreener's free token endpoint: up to 30 addresses per call (about 300
  * calls a minute allowed). Only a launchpad's own pools are trusted: its
  * bonding curve, then the AMM it graduates to, quoted in SOL or a stablecoin.
  * Anything else (someone's side pool against a junk coin) is ignored, so a
- * fake pool can't give a token a fake price.
+ * fake pool can't give a token a fake price. Pons curves aren't listed; its
+ * tokens are looked up here once they graduate to Uniswap v4.
  */
 export const BATCH_SIZE = 30;
 const KEYS: WindowKey[] = ["m5", "h1", "h6", "h24"];
@@ -17,9 +19,19 @@ const QUOTES = new Set([
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
   "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
   "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB", // USD1 (Bonk.fun)
+  NATIVE_ETH, // Robinhood Chain
+  WETH,
+  USDG,
 ]);
 const CURVE_DEXES: Partial<Record<LaunchpadId, readonly string[]>> = { pump: ["pumpfun"], bonk: ["launchlab"] };
-const GRADUATION_DEXES: Partial<Record<LaunchpadId, readonly string[]>> = { pump: ["pumpswap"], bonk: ["raydium"] };
+const GRADUATION_DEXES: Partial<Record<LaunchpadId, readonly string[]>> = {
+  pump: ["pumpswap"],
+  bonk: ["raydium"],
+  pons: ["uniswap"],
+};
+
+/** EVM addresses compare case-insensitively (DexScreener checksums them); Solana's are exact. */
+const norm = (address: string) => (address.startsWith("0x") ? address.toLowerCase() : address);
 
 export interface DexPair {
   dexId?: string;
@@ -56,15 +68,18 @@ const busiest = (pairs: readonly DexPair[]) =>
 /**
  * The launch's trusted pair: its graduation pool (opened after the launch),
  * else its bonding curve. "invalid" when the token already traded in real
- * pools well before the reported launch (a spoofed launch event).
+ * pools well before the reported launch (a spoofed launch event). `quote` is
+ * the launch's own quote asset (Pons pairs some launches with tokenized stocks).
  */
 export function pickMainPair(
   pairs: readonly DexPair[],
   address: string,
   launchpad: LaunchpadId,
   launchedAt: number,
+  quote?: string,
 ): { pair: DexPair; onCurve: boolean } | "invalid" | null {
-  const own = pairs.filter((p) => p.baseToken?.address === address && QUOTES.has(p.quoteToken?.address ?? ""));
+  const trusted = (q: string) => QUOTES.has(norm(q)) || (quote !== undefined && norm(q) === norm(quote));
+  const own = pairs.filter((p) => norm(p.baseToken?.address ?? "") === norm(address) && trusted(p.quoteToken?.address ?? ""));
   const graduated = own.filter(
     (p) => GRADUATION_DEXES[launchpad]?.includes(p.dexId ?? "") && (p.pairCreatedAt ?? 0) >= launchedAt - 10 * MINUTE,
   );
@@ -102,6 +117,8 @@ export interface MarketRequest {
   address: string;
   launchpad: LaunchpadId;
   launchedAt: number;
+  /** The launch's quote asset, when it isn't one of the usual ones. */
+  quote?: string;
 }
 
 /** Market results for up to 30 tokens on one chain ("solana" or "robinhood"). */
@@ -117,7 +134,7 @@ export async function fetchMarket(chain: "solana" | "robinhood", requests: reado
   const pairs = (await res.json()) as DexPair[];
   if (!Array.isArray(pairs)) return out;
   for (const r of requests) {
-    const main = pickMainPair(pairs, r.address, r.launchpad, r.launchedAt);
+    const main = pickMainPair(pairs, r.address, r.launchpad, r.launchedAt, r.quote);
     out.set(r.address, main === "invalid" ? "invalid" : main ? toMarketData(main.pair, main.onCurve) : undefined);
   }
   return out;

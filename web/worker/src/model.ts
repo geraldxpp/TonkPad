@@ -1,5 +1,6 @@
 import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
+import type { PonsState } from "./pons/curve";
 
 /** DexScreener's windows; the list toolbar's 5m / 1h / 6h / 24h map onto them. */
 export type WindowKey = "m5" | "h1" | "h6" | "h24";
@@ -59,9 +60,14 @@ export interface TrackedToken {
   /** [time, buys in DexScreener's 24h window], last ~30 minutes. */
   buySamples: Array<[number, number]>;
 
-  /** When the next DexScreener refresh is due, ms. */
+  /** When the next DexScreener refresh is due, ms (NOT_ON_DEXSCREENER for Pons curves). */
   nextRefreshAt: number;
+  /** Pons tokens: their bonding curve, priced from its own trades until they graduate. */
+  pons?: PonsState;
 }
+
+/** Pons curves aren't on DexScreener; their tokens are only looked up there once they graduate. */
+export const NOT_ON_DEXSCREENER = Number.MAX_SAFE_INTEGER;
 
 /** A launch as reported by a launchpad feed. */
 export interface LaunchEvent {
