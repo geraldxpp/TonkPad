@@ -22,16 +22,21 @@ function loopWidth(track: HTMLElement): number {
  * times over, and once the first copy has passed the position wraps back by
  * one copy, so the loop is seamless. It is still a normal scroller: hover,
  * keyboard focus, touch and the wheel pause it, and `step` moves one item.
- * Off screen, in a background tab or with reduced motion it stays still.
+ * Off screen, in a background tab, with reduced motion or when `enabled` is
+ * false it stays still.
  */
-export function useAutoScroll(scrollerRef: RefObject<HTMLElement | null>, trackRef: RefObject<HTMLElement | null>) {
+export function useAutoScroll(
+  scrollerRef: RefObject<HTMLElement | null>,
+  trackRef: RefObject<HTMLElement | null>,
+  enabled = true,
+) {
   const reduced = usePrefersReducedMotion();
   const holdUntil = useRef(0);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
     const track = trackRef.current;
-    if (!scroller || !track || reduced) return;
+    if (!scroller || !track || reduced || !enabled) return;
 
     let frame = 0;
     let last = performance.now();
@@ -98,7 +103,7 @@ export function useAutoScroll(scrollerRef: RefObject<HTMLElement | null>, trackR
       scroller.removeEventListener("focusin", onFocusIn);
       scroller.removeEventListener("focusout", onFocusOut);
     };
-  }, [scrollerRef, trackRef, reduced]);
+  }, [scrollerRef, trackRef, reduced, enabled]);
 
   /** Moves one item back or forward, wrapping through the copies, and pauses the glide a moment. */
   const step = useCallback(

@@ -16,6 +16,13 @@ interface HeatingUpProps {
 /** Enough copies that the row stays full on ultrawide screens while it loops. */
 const COPIES = 3;
 
+/**
+ * The full set the worker sends. Fewer cards (a quiet spell, or just after
+ * the worker starts) would only loop into duplicates side by side, so they
+ * sit still in a single row instead.
+ */
+const LOOP_MIN_CARDS = 5;
+
 /** Bleeds the row into the page gutter so cards glide in and out at the edges. */
 const BLEED =
   "-mx-[clamp(16px,3vw,40px)] px-[clamp(16px,3vw,40px)] [mask-image:linear-gradient(90deg,transparent,#000_clamp(16px,3vw,40px),#000_calc(100%_-_clamp(16px,3vw,40px)),transparent)]";
@@ -24,7 +31,8 @@ export function HeatingUp({ cards }: HeatingUpProps) {
   const { t } = useI18n();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const { step } = useAutoScroll(scrollerRef, trackRef);
+  const loops = cards.length >= LOOP_MIN_CARDS;
+  const { step } = useAutoScroll(scrollerRef, trackRef, loops);
 
   return (
     <section aria-labelledby="hot-title" className="flex flex-col gap-4">
@@ -62,7 +70,7 @@ export function HeatingUp({ cards }: HeatingUpProps) {
         )}
       >
         <div ref={trackRef} className="flex w-max gap-4 max-md:gap-3">
-          {Array.from({ length: COPIES }, (_, copy) => (
+          {Array.from({ length: loops ? COPIES : 1 }, (_, copy) => (
             <div
               key={copy}
               className={cn("flex gap-4 max-md:gap-3", copy > 0 && "motion-reduce:hidden")}
