@@ -26,7 +26,7 @@ describe("Explore mock data", () => {
     const t = TOKENS.find((token) => token.ticker === ticker)!;
     expect(formatChange(t.change24h)).toBe(chg);
     expect(formatUsdCompact(t.volume24h, { trimZeros: true })).toBe(vol);
-    expect(formatInteger(t.holders)).toBe(holders);
+    expect(formatInteger(t.holders ?? Number.NaN)).toBe(holders);
     expect(formatUsdCompact(t.marketCap)).toBe(mcap);
     expect(formatAge(t.ageMinutes)).toBe(age);
   });
@@ -41,7 +41,7 @@ describe("Explore mock data", () => {
       ["SHRM", "#07433C"],
     ]);
     expect(data.blips.map((b) => b.ticker)).toEqual(["GHOST", "ORB", "MOON", "SCAT", "BOLT", "MOCHI", "TIDE"]);
-    expect(data.missionPick.token.name).toBe("Ghosty");
+    expect(data.missionPick?.token.name).toBe("Ghosty");
     expect(data.scope).toEqual({ pads: ["Tonkpad", "Pons", "Pump.fun"], more: 5 });
     expect(data.launchpads.map((p) => formatInteger(p.count))).toEqual(["8,412", "1,846", "624", "3,904", "1,022", "512", "304"]);
   });

@@ -72,6 +72,7 @@ export const vi: Dictionary = {
   scope: {
     title: "Radar trực tiếp",
     sweeping: "Đang quét {pads} +{more}",
+    sweepingOnly: "Đang quét {pads}",
     window: "Khung thời gian radar",
     new: "Mới",
     heating: "Đang nóng",
@@ -158,6 +159,10 @@ export const vi: Dictionary = {
   notFound: {
     title: "Không tìm thấy trang",
     body: "Trang này không tồn tại hoặc đã được chuyển đi.",
+  },
+  live: {
+    loading: "Đang tải token trực tiếp…",
+    offline: "Dữ liệu trực tiếp hiện không khả dụng. Đang thử lại…",
   },
   common: { backToExplore: "Quay lại Khám phá" },
 };

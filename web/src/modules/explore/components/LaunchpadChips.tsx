@@ -33,7 +33,9 @@ export function LaunchpadChips({ launchpads, more, active, onPick }: LaunchpadCh
           onClick={onPick ? () => onPick(id) : undefined}
         />
       ))}
-      <span className="flex-none text-[12px] whitespace-nowrap text-text-3">{fmt(t.toolbar.more, { count: more })}</span>
+      {more > 0 ? (
+        <span className="flex-none text-[12px] whitespace-nowrap text-text-3">{fmt(t.toolbar.more, { count: more })}</span>
+      ) : null}
     </div>
   );
 }

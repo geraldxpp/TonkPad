@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
@@ -12,6 +11,7 @@ import { ChainMark } from "@/shared/ui/ChainMark";
 import { CurveBar } from "@/shared/ui/CurveBar";
 import { PadMark } from "@/shared/ui/PadMark";
 import { Sparkline } from "@/shared/ui/Sparkline";
+import { TokenArt } from "@/shared/ui/TokenArt";
 
 interface TokenCardProps {
   token: Token;
@@ -32,18 +32,17 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
   const { flags } = token;
   return (
     <Link
-      href={href(`/token/${token.ticker}`)}
+      href={href(`/token/${token.address}`)}
       aria-label={fmt(t.heating.cardLabel, { name: token.name, mcap, change })}
       data-theme="dark"
       className="tk-card relative block h-[320px] w-[244px] flex-none overflow-hidden rounded-[22px] border border-white/8 text-white max-md:h-[296px] max-md:w-[172px] max-md:rounded-[20px]"
       style={{ background: `linear-gradient(180deg, ${color}, #0A0B0E)` }}
     >
-      <Image
+      <TokenArt
         src={token.art}
-        alt=""
-        width={244}
-        height={244}
-        loading="eager"
+        label={token.ticker}
+        size={244}
+        eager
         className="absolute -top-[10px] left-0 aspect-square w-full object-cover"
       />
       <div className="absolute inset-x-0 bottom-0 h-[214px] bg-[linear-gradient(180deg,rgba(10,11,14,0),rgba(10,11,14,0.86)_46%,#0A0B0E)]" />
@@ -72,7 +71,7 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
             </span>
             <span className={cn("font-mono text-[12px] font-semibold", up ? "text-pos" : "text-neg")}>{change}</span>
           </div>
-          <Sparkline seed={token.spark} up={up} width={72} height={24} className="min-w-0" />
+          <Sparkline seed={token.spark} points={token.series} up={up} width={72} height={24} className="min-w-0" />
         </div>
         {token.curve < 1 ? (
           <div className="flex items-center gap-2">

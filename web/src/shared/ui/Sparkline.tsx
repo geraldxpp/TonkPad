@@ -1,8 +1,10 @@
-import { sparklineFor } from "@/shared/lib/sparkline";
+import { sparklineFor, sparklineFromPoints } from "@/shared/lib/sparkline";
 import type { SparkSeed } from "@/shared/types/token";
 
 interface SparklineProps {
   seed: SparkSeed;
+  /** Real values (live tokens); drawn instead of the seeded line when given. */
+  points?: readonly number[];
   /** Green when the 24h change is up, red when down. */
   up: boolean;
   width?: number;
@@ -14,8 +16,8 @@ interface SparklineProps {
   className?: string;
 }
 
-export function Sparkline({ seed, up, width = 96, height = 32, className }: SparklineProps) {
-  const { line, area } = sparklineFor(seed);
+export function Sparkline({ seed, points, up, width = 96, height = 32, className }: SparklineProps) {
+  const { line, area } = points ? sparklineFromPoints(points) : sparklineFor(seed);
   return (
     <svg width={width} height={height} viewBox="0 0 96 32" fill="none" aria-hidden="true" className={className}>
       <path d={area} className={up ? "fill-pos/12" : "fill-neg/12"} />

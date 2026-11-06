@@ -1,5 +1,7 @@
+"use client";
+
 import { fmt } from "@/shared/i18n/config";
-import { getI18n } from "@/shared/i18n/server";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatInteger } from "@/shared/lib/format";
 import type { ExploreData } from "../data/get-explore-data";
 import { HeroStats } from "./HeroStats";
@@ -8,11 +10,13 @@ import { MissionPick } from "./MissionPick";
 interface HeroProps {
   stats: ExploreData["stats"];
   trackedToday: number;
-  pick: ExploreData["missionPick"];
+  /** null while the live worker has no candidate yet. */
+  pick: ExploreData["missionPick"] | null;
 }
 
-export async function Hero({ stats, trackedToday, pick }: HeroProps) {
-  const { t } = await getI18n();
+/** Live pill, headline, subtitle, the four stats and the Mission Pick. */
+export function Hero({ stats, trackedToday, pick }: HeroProps) {
+  const { t } = useI18n();
   return (
     <div className="flex min-w-0 flex-[999_1_480px] flex-col justify-center gap-6 max-md:gap-5">
       <div className="inline-flex flex-wrap items-center gap-2 self-start rounded-full border border-line bg-surface py-1.5 pr-3 pl-2.5 text-[12px]">
@@ -30,7 +34,7 @@ export async function Hero({ stats, trackedToday, pick }: HeroProps) {
         {t.hero.subtitle}
       </p>
       <HeroStats stats={stats} />
-      <MissionPick token={pick.token} price={pick.price} updatedSecondsAgo={pick.updatedSecondsAgo} />
+      {pick ? <MissionPick token={pick.token} price={pick.price} updatedSecondsAgo={pick.updatedSecondsAgo} /> : null}
     </div>
   );
 }

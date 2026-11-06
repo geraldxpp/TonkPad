@@ -72,6 +72,7 @@ export const ko: Dictionary = {
   scope: {
     title: "라이브 스코프",
     sweeping: "{pads} +{more} 스캔 중",
+    sweepingOnly: "{pads} 스캔 중",
     window: "스코프 기간",
     new: "신규",
     heating: "급상승",
@@ -158,6 +159,10 @@ export const ko: Dictionary = {
   notFound: {
     title: "페이지를 찾을 수 없습니다",
     body: "존재하지 않거나 이동된 페이지입니다.",
+  },
+  live: {
+    loading: "실시간 토큰을 불러오는 중…",
+    offline: "지금은 실시간 데이터를 사용할 수 없습니다. 다시 시도하는 중…",
   },
   common: { backToExplore: "탐색으로 돌아가기" },
 };

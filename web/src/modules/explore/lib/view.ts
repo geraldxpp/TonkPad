@@ -33,6 +33,16 @@ interface ReadableParams {
   get(key: string): string | null;
 }
 
+/** A page's searchParams record, read like URLSearchParams (the first value of a repeated key). */
+export function paramsFromRecord(record: Record<string, string | string[] | undefined>): ReadableParams {
+  return {
+    get(key) {
+      const value = record[key];
+      return (Array.isArray(value) ? value[0] : value) ?? null;
+    },
+  };
+}
+
 const isTab = (v: string | null): v is TabId => TABS.some((t) => t === v);
 const isTimeframe = (v: string | null): v is Timeframe => TIMEFRAMES.some((t) => t.id === v);
 

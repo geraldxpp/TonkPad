@@ -73,6 +73,7 @@ export const id: Dictionary = {
   scope: {
     title: "Radar live",
     sweeping: "Memindai {pads} +{more}",
+    sweepingOnly: "Memindai {pads}",
     window: "Rentang radar",
     new: "Baru",
     heating: "Memanas",
@@ -159,6 +160,10 @@ export const id: Dictionary = {
   notFound: {
     title: "Halaman tidak ditemukan",
     body: "Halaman ini tidak ada atau sudah dipindahkan.",
+  },
+  live: {
+    loading: "Memuat token live…",
+    offline: "Data live sedang tidak tersedia. Mencoba lagi…",
   },
   common: { backToExplore: "Kembali ke Jelajah" },
 };

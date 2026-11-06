@@ -70,7 +70,7 @@ export function HeatingUp({ cards }: HeatingUpProps) {
               inert={copy > 0}
             >
               {cards.map(({ token, color }, index) => (
-                <TokenCard key={token.ticker} token={token} color={color} rank={index + 1} />
+                <TokenCard key={token.address} token={token} color={color} rank={index + 1} />
               ))}
             </div>
           ))}

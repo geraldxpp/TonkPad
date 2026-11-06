@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getI18n } from "@/shared/i18n/server";
-import { formatUsd } from "@/shared/lib/format";
 import type { ShellData } from "../data/shell.mock";
+import { StatusValue } from "./StatusValue";
 import { SweepCountdown } from "./SweepCountdown";
 import { SweepFill } from "./SweepFill";
 
@@ -26,13 +26,13 @@ export async function StatusBar({ status }: StatusBarProps) {
         <SweepCountdown className={VALUE} />
       </span>
       <span>
-        SOL <span className={VALUE}>{formatUsd(status.solUsd)}</span>
+        SOL <StatusValue field="solUsd" fallback={status.solUsd} className={VALUE} />
       </span>
       <span>
-        ETH <span className={VALUE}>{formatUsd(status.ethUsd, 0)}</span>
+        ETH <StatusValue field="ethUsd" fallback={status.ethUsd} className={VALUE} />
       </span>
       <span>
-        {t.status.gas} <span className={VALUE}>{status.rhGasGwei.toFixed(2)} gwei</span>
+        {t.status.gas} <StatusValue field="rhGasGwei" fallback={status.rhGasGwei} className={VALUE} />
       </span>
       <span className="flex-auto" />
       <Link href={href("/docs")} className={LINK}>

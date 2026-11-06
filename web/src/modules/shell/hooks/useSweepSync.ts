@@ -12,8 +12,12 @@ function isSynced(animation: Animation): boolean {
   );
 }
 
-/** Pins every sweep-driven CSS animation inside `ref` to the shared sweep clock. */
-export function useSweepSync(ref: RefObject<HTMLElement | null>): void {
+/**
+ * Pins every sweep-driven CSS animation inside `ref` to the shared sweep clock.
+ * Pass a `contentKey` that changes when animated children come and go, so the
+ * new ones are pinned too.
+ */
+export function useSweepSync(ref: RefObject<HTMLElement | null>, contentKey = ""): void {
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -33,5 +37,5 @@ export function useSweepSync(ref: RefObject<HTMLElement | null>): void {
     return () => {
       cancelled = true;
     };
-  }, [ref, reduced]);
+  }, [ref, reduced, contentKey]);
 }

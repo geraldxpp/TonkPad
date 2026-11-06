@@ -30,7 +30,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except Next internals, the token art in public/tokens and the
-  // app icons. Add new public/ folders here so they are not localised.
-  matcher: ["/((?!_next/|__nextjs|_vercel/|tokens/|icon\\.png|apple-icon\\.png).*)"],
+  // Everything except the API, Next internals, the token art in public/tokens
+  // and the app icons. Add new public/ folders here so they are not localised.
+  matcher: ["/((?!api/|_next/|__nextjs|_vercel/|tokens/|icon\\.png|apple-icon\\.png).*)"],
 };

@@ -1,5 +1,6 @@
-import Image from "next/image";
+import { cn } from "@/shared/lib/cn";
 import { hexToRgba } from "@/shared/lib/color";
+import { TokenArt } from "@/shared/ui/TokenArt";
 import type { ExploreData } from "../data/get-explore-data";
 import type { BlipLayout } from "../lib/radar";
 
@@ -41,12 +42,12 @@ export function RadarBlip({ blip, layout }: RadarBlipProps) {
           className="tk-ping absolute inset-0 rounded-full border-[1.5px]"
           style={{ borderColor: hexToRgba(blip.glow, 0.75), animationDelay }}
         />
-        <Image
+        <TokenArt
           src={blip.art}
+          label={blip.ticker}
           alt={`$${blip.ticker}`}
-          width={size}
-          height={size}
-          loading="eager"
+          size={size}
+          eager
           className="tk-blip relative size-full rounded-full"
           style={{
             boxShadow: `0 0 0 1.5px rgba(255,255,255,0.85), 0 0 14px ${hexToRgba(blip.glow, 0.7)}`,
@@ -61,7 +62,9 @@ export function RadarBlip({ blip, layout }: RadarBlipProps) {
           style={{ left: layout.label.left, top: layout.label.top }}
         >
           <span className="text-[12px] font-semibold">${blip.ticker}</span>
-          <span className="font-mono text-[12px] font-semibold text-pos">{blip.label}</span>
+          <span className={cn("font-mono text-[12px] font-semibold", /^[−-]/.test(blip.label) ? "text-neg" : "text-pos")}>
+            {blip.label}
+          </span>
         </span>
       ) : null}
     </>

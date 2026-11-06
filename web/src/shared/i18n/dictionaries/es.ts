@@ -72,6 +72,7 @@ export const es: Dictionary = {
   scope: {
     title: "Radar en vivo",
     sweeping: "Escaneando {pads} +{more}",
+    sweepingOnly: "Escaneando {pads}",
     window: "Ventana del radar",
     new: "Nuevo",
     heating: "Calentándose",
@@ -158,6 +159,10 @@ export const es: Dictionary = {
   notFound: {
     title: "Página no encontrada",
     body: "Esta página no existe o se ha movido.",
+  },
+  live: {
+    loading: "Cargando tokens en vivo…",
+    offline: "Los datos en vivo no están disponibles ahora. Reintentando…",
   },
   common: { backToExplore: "Volver a Explorar" },
 };

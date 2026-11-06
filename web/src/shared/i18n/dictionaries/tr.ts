@@ -72,6 +72,7 @@ export const tr: Dictionary = {
   scope: {
     title: "Canlı radar",
     sweeping: "Taranıyor: {pads} +{more}",
+    sweepingOnly: "Taranıyor: {pads}",
     window: "Radar aralığı",
     new: "Yeni",
     heating: "Isınıyor",
@@ -158,6 +159,10 @@ export const tr: Dictionary = {
   notFound: {
     title: "Sayfa bulunamadı",
     body: "Bu sayfa yok ya da taşındı.",
+  },
+  live: {
+    loading: "Canlı tokenler yükleniyor…",
+    offline: "Canlı veriler şu anda kullanılamıyor. Yeniden deneniyor…",
   },
   common: { backToExplore: "Keşfet’e dön" },
 };

@@ -9,14 +9,17 @@ import { Badge } from "@/shared/ui/Badge";
 import { ChainMark } from "@/shared/ui/ChainMark";
 import { TokenAvatar } from "@/shared/ui/TokenAvatar";
 import type { RankedToken } from "../lib/filter";
+import type { Timeframe } from "../lib/view";
+import { tokenWindow } from "../lib/window";
 
 /** Phone list columns: Token, Market cap, 24h, Quick buy. */
 export const COMPACT_GRID = "grid grid-cols-[minmax(0,1fr)_56px_60px_32px] items-center gap-1";
 
 /** One token on the phone list: art, name and ticker, market cap, change and a round quick-buy. */
-export function TokenRowCompact({ token }: { token: RankedToken }) {
+export function TokenRowCompact({ token, tf }: { token: RankedToken; tf: Timeframe }) {
   const { t, href } = useI18n();
-  const up = token.change24h >= 0;
+  const { change } = tokenWindow(token, tf);
+  const up = change >= 0;
   const quick = CHAINS[token.chain].quickBuy;
   return (
     <div
@@ -24,10 +27,10 @@ export function TokenRowCompact({ token }: { token: RankedToken }) {
       className={cn(COMPACT_GRID, "tk-row min-h-[60px] rounded-[14px] px-2 py-2 hover:bg-raised max-[374px]:px-1")}
     >
       <div role="cell" className="flex min-w-0 items-center gap-2">
-        <TokenAvatar art={token.art} pad={token.launchpad} />
+        <TokenAvatar art={token.art} label={token.ticker} pad={token.launchpad} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex min-w-0 items-center gap-1">
-            <Link href={href(`/token/${token.ticker}`)} className="truncate text-[14px] font-semibold text-text">
+            <Link href={href(`/token/${token.address}`)} className="truncate text-[14px] font-semibold text-text">
               {token.name}
             </Link>
             {token.flags.hot ? <Badge kind="hot" /> : null}
@@ -52,7 +55,7 @@ export function TokenRowCompact({ token }: { token: RankedToken }) {
         {formatUsdCompact(token.marketCap)}
       </span>
       <span role="cell" className={cn("text-right font-mono text-[13px] font-semibold", up ? "text-pos" : "text-neg")}>
-        {formatChange(token.change24h)}
+        {formatChange(change)}
       </span>
       <div role="cell" className="flex justify-end">
         <button

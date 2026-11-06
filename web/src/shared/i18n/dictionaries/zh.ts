@@ -73,6 +73,7 @@ export const zh: Dictionary = {
   scope: {
     title: "实时雷达",
     sweeping: "正在扫描 {pads} +{more}",
+    sweepingOnly: "正在扫描 {pads}",
     window: "雷达时间窗口",
     new: "新币",
     heating: "升温中",
@@ -159,6 +160,10 @@ export const zh: Dictionary = {
   notFound: {
     title: "页面不存在",
     body: "此页面不存在或已被移动。",
+  },
+  live: {
+    loading: "正在加载实时代币…",
+    offline: "实时数据暂时不可用，正在重试…",
   },
   common: { backToExplore: "返回探索" },
 };

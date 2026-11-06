@@ -8,6 +8,7 @@ import { formatInteger } from "@/shared/lib/format";
 import { ChainMark } from "@/shared/ui/ChainMark";
 import type { ChainFilterValue } from "../data/shell.mock";
 import { useUrlParams } from "../hooks/useUrlParams";
+import { useShellLive } from "../live/ShellLive";
 import { CHAIN_OPTIONS, ChainTrigger, chainLabel } from "./ChainTrigger";
 
 interface ChainFilterProps {
@@ -23,8 +24,10 @@ interface ChainFilterProps {
  * with the arrow keys, Home and End, picks with Enter or Space and closes on
  * Escape, Tab or a click outside. Focus returns to the pill after a pick.
  */
-export function ChainFilter({ counts, className, compact = false }: ChainFilterProps) {
+export function ChainFilter({ counts: mockCounts, className, compact = false }: ChainFilterProps) {
   const { t } = useI18n();
+  const shell = useShellLive();
+  const counts = shell.live ? (shell.data?.chainCounts ?? { all: 0, sol: 0, rh: 0 }) : mockCounts;
   const { params, setParams } = useUrlParams();
   const raw = params.get("chain");
   const value: ChainFilterValue = isChainId(raw) ? raw : "all";

@@ -34,11 +34,12 @@ web/src/
     types/             token.ts and friends
   styles/              tokens.css, animations.css, globals.css
 web/public/tokens/     token art, copied from design-reference/assets/tokens
+web/worker/            live-data worker (Node + tsx): feeds in, the screens' JSON views out
 ```
 
 Rules:
 - A module owns its components, hooks, data and tests. Modules import from `shared/` and `modules/shell/` only, never from another module.
-- Components are presentational and typed; data comes in through props. Each module loads its data through one async function (Explore: `getExploreData()`) that returns typed mock data now and will call the real API later.
+- Components are presentational and typed; data comes in through props. Each module loads its data through one async function (Explore: `getExploreData()`) that returns typed mock data. When `WORKER_URL` is set, a module's live loader (Explore: `getLiveExploreData()`) returns the same shapes from the worker, and the browser refreshes them through `/api/live/*`. Mock data stays the default and is what the tests run on.
 - View state (filters, tabs, timeframe, search) lives in URL search params so any view can be shared.
 - Every user-facing string, aria-label and title comes from the dictionaries: `await getI18n()` in Server Components, `useI18n()` in Client Components. Add each new key to `en.ts` and all eleven other languages (a unit test enforces matching keys and `{placeholders}`). Internal links go through `href()` so they keep the language. Names of tokens, chains and launchpads, tickers and numbers are not translated; numbers keep en-US formatting.
 - No `any`. Named exports. Keep files short (aim for under 200 lines).

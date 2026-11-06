@@ -1,10 +1,12 @@
-import { getI18n } from "@/shared/i18n/server";
+"use client";
+
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { formatInteger, formatUsdCompact } from "@/shared/lib/format";
-import type { HeroStat } from "../data/explore.mock";
+import type { LiveStat } from "@/shared/types/live";
 
 interface HeroStatsProps {
-  stats: readonly HeroStat[];
+  stats: readonly LiveStat[];
 }
 
 /**
@@ -13,8 +15,8 @@ interface HeroStatsProps {
  * The numbers stay on one line across the row even when a translated label
  * wraps (the cell is column-reverse, so justify-end packs it to the top).
  */
-export async function HeroStats({ stats }: HeroStatsProps) {
-  const { t } = await getI18n();
+export function HeroStats({ stats }: HeroStatsProps) {
+  const { t } = useI18n();
   return (
     <dl className="m-0 flex flex-wrap gap-y-4 max-xl:grid max-xl:grid-cols-4">
       {stats.map((stat, index) => (

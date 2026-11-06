@@ -72,6 +72,7 @@ export const ja: Dictionary = {
   scope: {
     title: "ライブスコープ",
     sweeping: "{pads} +{more} をスキャン中",
+    sweepingOnly: "{pads} をスキャン中",
     window: "スコープ期間",
     new: "新規",
     heating: "急上昇",
@@ -158,6 +159,10 @@ export const ja: Dictionary = {
   notFound: {
     title: "ページが見つかりません",
     body: "このページは存在しないか、移動しました。",
+  },
+  live: {
+    loading: "ライブのトークンを読み込み中…",
+    offline: "ライブデータは現在利用できません。再試行しています…",
   },
   common: { backToExplore: "探索に戻る" },
 };

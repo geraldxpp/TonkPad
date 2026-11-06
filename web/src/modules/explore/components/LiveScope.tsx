@@ -45,7 +45,9 @@ export function LiveScope({ blips, scope }: LiveScopeProps) {
             {t.scope.title}
           </h2>
           <span className="text-[12px] text-text-3">
-            {fmt(t.scope.sweeping, { pads: scope.pads.join(", "), more: scope.more })}
+            {scope.more > 0
+              ? fmt(t.scope.sweeping, { pads: scope.pads.join(", "), more: scope.more })
+              : fmt(t.scope.sweepingOnly, { pads: scope.pads.join(", ") })}
           </span>
         </div>
         <Segmented size="sm" label={t.scope.window} options={WINDOWS} value={scopeWindow} onChange={setScopeWindow} />

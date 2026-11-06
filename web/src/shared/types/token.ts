@@ -20,7 +20,17 @@ export interface TokenFlags {
   agent: boolean;
 }
 
+/** Change and volume over one timeframe of the list toolbar. */
+export interface TokenWindow {
+  /** Change in percent. */
+  change: number;
+  /** Volume in USD. */
+  volume: number;
+}
+
 export interface Token {
+  /** Contract address: the token's unique id and its page URL. Mock tokens use the ticker. */
+  address: string;
   ticker: string;
   name: string;
   chain: ChainId;
@@ -31,11 +41,16 @@ export interface Token {
   score: number;
   level: ScoreLevel;
   spark: SparkSeed;
+  /** Real market-cap points, oldest first; drawn instead of the seeded spark when present. */
+  series?: readonly number[];
   /** 24h change in percent, e.g. 412.6 or -12.4. */
   change24h: number;
   /** 24h volume in USD. */
   volume24h: number;
-  holders: number;
+  /** Change and volume per toolbar timeframe (live data); 24h values stand in when absent. */
+  windows?: Partial<Record<"5m" | "1h" | "6h" | "24h", TokenWindow>>;
+  /** Holder count, or null when not known yet. */
+  holders: number | null;
   /** Number of tracked smart-money wallets holding the token. */
   smartWallets: number;
   /** Market cap in USD. */
@@ -44,6 +59,6 @@ export interface Token {
   /** Shortened creator address. */
   creator: string;
   ageMinutes: number;
-  /** Path to the token art under /public. */
+  /** Token art: a path under /public or a remote URL ("" when there is none yet). */
   art: string;
 }

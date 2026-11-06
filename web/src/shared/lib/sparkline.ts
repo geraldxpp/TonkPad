@@ -25,10 +25,30 @@ export function spark(seed: number, drift: number, vol: number): SparklinePath {
     y = Math.min(0.92, Math.max(0.08, y));
     pts.push([(i * WIDTH) / (POINTS - 1), (1 - y) * HEIGHT]);
   }
+  return pathThrough(pts);
+}
 
+/**
+ * The same curve through real values (a live token's market caps, oldest
+ * first), scaled into the 0.08–0.92 band the seeded lines use. Fewer than two
+ * points, or no movement, draws a flat line through the middle.
+ */
+export function sparklineFromPoints(values: readonly number[]): SparklinePath {
+  const usable = values.filter((v) => Number.isFinite(v));
+  const series = usable.length >= 2 ? usable : [0, 0];
+  const min = Math.min(...series);
+  const max = Math.max(...series);
+  const pts = series.map((v, i): [number, number] => {
+    const y = max > min ? 0.08 + ((v - min) / (max - min)) * 0.84 : 0.5;
+    return [(i * WIDTH) / (series.length - 1), (1 - y) * HEIGHT];
+  });
+  return pathThrough(pts);
+}
+
+function pathThrough(pts: ReadonlyArray<[number, number]>): SparklinePath {
   const f = (v: number) => v.toFixed(1);
   let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
-  for (let i = 0; i < POINTS - 1; i++) {
+  for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i - 1] ?? pts[i];
     const b = pts[i];
     const c = pts[i + 1];

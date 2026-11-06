@@ -18,7 +18,8 @@ interface RadarProps {
  */
 export function Radar({ blips }: RadarProps) {
   const ref = useRef<HTMLDivElement>(null);
-  useSweepSync(ref);
+  // Live data brings new blips; pin their pings to the sweep as well.
+  useSweepSync(ref, blips.map((blip) => blip.address).join());
   return (
     <div ref={ref} data-testid="radar" className="relative mx-auto mt-1 h-[300px] w-[300px] max-w-full flex-none">
       <RadarGrid />
@@ -31,7 +32,7 @@ export function Radar({ blips }: RadarProps) {
       </div>
       <div aria-hidden="true" className="absolute top-[146px] left-[146px] size-2 rounded-full bg-sweep" />
       {blips.map((blip) => (
-        <RadarBlip key={blip.ticker} blip={blip} layout={layoutBlip(blip)} />
+        <RadarBlip key={blip.address} blip={blip} layout={layoutBlip(blip)} />
       ))}
     </div>
   );

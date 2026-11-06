@@ -1,6 +1,9 @@
 import type { ChainId } from "@/shared/types/chain";
+import type { LiveStatus } from "@/shared/types/live";
 
 export interface TapeItem {
+  /** Contract address (live tokens); the ticker keys mock items. */
+  address?: string;
   ticker: string;
   art: string;
   marketCap: number;
@@ -12,7 +15,8 @@ export type ChainFilterValue = "all" | ChainId;
 export interface ShellData {
   tape: TapeItem[];
   chainCounts: Record<ChainFilterValue, number>;
-  status: { solUsd: number; ethUsd: number; rhGasGwei: number };
+  /** null while a live value hasn't arrived yet. */
+  status: LiveStatus;
   unreadAlerts: number;
 }
 

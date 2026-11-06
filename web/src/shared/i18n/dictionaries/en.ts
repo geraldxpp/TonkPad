@@ -75,6 +75,7 @@ export const en = {
   scope: {
     title: "Live scope",
     sweeping: "Sweeping {pads} +{more}",
+    sweepingOnly: "Sweeping {pads}",
     window: "Scope window",
     new: "New",
     heating: "Heating up",
@@ -161,6 +162,10 @@ export const en = {
   notFound: {
     title: "Page not found",
     body: "This page does not exist or has moved.",
+  },
+  live: {
+    loading: "Loading live tokens…",
+    offline: "Live data is unavailable right now. Retrying…",
   },
   common: { backToExplore: "Back to Explore" },
 } as const;

@@ -21,6 +21,10 @@ export interface TokenListViewProps {
   onTimeframe?: (tf: Timeframe) => void;
   onPad?: (pad: ExploreView["pad"]) => void;
   onReset?: () => void;
+  /** Live list: a new view is loading. */
+  busy?: boolean;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 }
 
 /** Toolbar, launchpad chips and table for a given view. Purely presentational. */
@@ -43,10 +47,14 @@ export function TokenListView(props: TokenListViewProps) {
       />
       <TokenTable
         rows={rows}
+        tf={view.tf}
         totalTokens={props.totalTokens}
         panelId={TOKEN_PANEL_ID}
         labelledBy={`${TOKEN_TAB_PREFIX}-${view.tab}`}
         onReset={props.onReset}
+        busy={props.busy}
+        onLoadMore={props.onLoadMore}
+        hasMore={props.hasMore}
       />
     </section>
   );

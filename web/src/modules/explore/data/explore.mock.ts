@@ -20,7 +20,8 @@ const flags = (set: Partial<TokenFlags>): TokenFlags => ({ ...NONE, ...set });
 const DAY = 24 * 60;
 const art = (ticker: string) => `/tokens/${ticker.toLowerCase()}.svg`;
 
-export const TOKENS: Token[] = [
+/** Mock tokens use their ticker as the address, so links stay /token/GHOST. */
+const ROWS: Array<Omit<Token, "address">> = [
   { ticker: "GHOST", name: "Ghosty", chain: "rh", launchpad: "tonk", curve: 0.84, score: 94, level: "Safe", spark: SPARK.upA, change24h: 412.6, volume24h: 186_000, holders: 1_204, smartWallets: 5, marketCap: 58_200, flags: flags({ hot: true, locked: true, crew: "2%", agent: true }), creator: "0x7a3c…9f2e", ageMinutes: 18 * DAY, art: art("GHOST") },
   { ticker: "SCAT", name: "Sol Cat", chain: "sol", launchpad: "bonk", curve: 1, score: 88, level: "Safe", spark: SPARK.vol, change24h: 96.4, volume24h: 842_000, holders: 5_104, smartWallets: 3, marketCap: 1_180_000, flags: flags({ og: true, crew: "1%" }), creator: "3mPq…Lw2c", ageMinutes: 5 * DAY, art: art("SCAT") },
   { ticker: "ORB", name: "Orbit", chain: "rh", launchpad: "tonk", curve: 0.91, score: 90, level: "Safe", spark: SPARK.upA, change24h: 221.0, volume24h: 148_000, holders: 988, smartWallets: 4, marketCap: 64_100, flags: flags({ hot: true, locked: true, agent: true }), creator: "0x2b81…c4d9", ageMinutes: 26, art: art("ORB") },
@@ -32,6 +33,8 @@ export const TOKENS: Token[] = [
   { ticker: "MOCHI", name: "Mochi", chain: "rh", launchpad: "pons", curve: 0.18, score: 54, level: "Caution", spark: SPARK.vol, change24h: 148.0, volume24h: 9_400, holders: 97, smartWallets: 2, marketCap: 11_600, flags: flags({ isNew: true, agent: true }), creator: "0xe85a…1b0c", ageMinutes: 9, art: art("MOCHI") },
   { ticker: "TIDE", name: "Tide", chain: "sol", launchpad: "tonk", curve: 0.07, score: 72, level: "Safe", spark: SPARK.upA, change24h: 31.5, volume24h: 2_100, holders: 41, smartWallets: 0, marketCap: 7_300, flags: flags({ isNew: true, locked: true }), creator: "Lk2j…Vv7x", ageMinutes: 4, art: art("TIDE") },
 ];
+
+export const TOKENS: Token[] = ROWS.map((row) => ({ ...row, address: row.ticker }));
 
 /** "Heating up now" cards and their art background colours (`C2`). */
 export const HEATING: ReadonlyArray<{ ticker: string; color: string }> = [

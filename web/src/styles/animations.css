@@ -103,6 +103,17 @@
   box-shadow: var(--elevation-card-hover);
 }
 
+/* Loading placeholders breathe while live data arrives. */
+@keyframes tk-skeleton {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.tk-skeleton {
+  animation: tk-skeleton 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

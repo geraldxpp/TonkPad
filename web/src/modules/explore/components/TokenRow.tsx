@@ -12,6 +12,8 @@ import { ScorePill } from "@/shared/ui/ScorePill";
 import { Sparkline } from "@/shared/ui/Sparkline";
 import { TokenAvatar } from "@/shared/ui/TokenAvatar";
 import type { RankedToken } from "../lib/filter";
+import type { Timeframe } from "../lib/view";
+import { tokenWindow } from "../lib/window";
 
 /**
  * Columns: #, Token, Bonding curve, Mission score, Last 24h, 24h, Volume,
@@ -42,9 +44,10 @@ const SMART = [
   "-ml-1.5 bg-[linear-gradient(135deg,#3BDB98,#0B5E50)]",
 ];
 
-export function TokenRow({ token }: { token: RankedToken }) {
+export function TokenRow({ token, tf }: { token: RankedToken; tf: Timeframe }) {
   const { t, href } = useI18n();
-  const up = token.change24h >= 0;
+  const { change, volume } = tokenWindow(token, tf);
+  const up = change >= 0;
   const { flags } = token;
   const quick = CHAINS[token.chain].quickBuy;
   return (
@@ -53,10 +56,10 @@ export function TokenRow({ token }: { token: RankedToken }) {
         {token.rank}
       </span>
       <div role="cell" className="flex min-w-0 items-center gap-3">
-        <TokenAvatar art={token.art} pad={token.launchpad} />
+        <TokenAvatar art={token.art} label={token.ticker} pad={token.launchpad} />
         <span className="flex min-w-0 flex-col gap-[3px]">
           <span className="flex items-center gap-[5px] whitespace-nowrap">
-            <Link href={href(`/token/${token.ticker}`)} className="text-[14px] font-semibold text-text">
+            <Link href={href(`/token/${token.address}`)} className="text-[14px] font-semibold text-text">
               {token.name}
             </Link>
             <span className="font-mono text-[12px] text-text-3">{token.ticker}</span>
@@ -96,16 +99,16 @@ export function TokenRow({ token }: { token: RankedToken }) {
         <ScorePill score={token.score} level={token.level} />
       </div>
       <div role="cell" className={COLUMN_VISIBILITY.spark}>
-        <Sparkline seed={token.spark} up={up} className="inline align-baseline" />
+        <Sparkline seed={token.spark} points={token.series} up={up} className="inline align-baseline" />
       </div>
       <span role="cell" className={cn("text-right font-mono text-[14px] font-semibold", up ? "text-pos" : "text-neg")}>
-        {formatChange(token.change24h)}
+        {formatChange(change)}
       </span>
       <span role="cell" className={cn(COLUMN_VISIBILITY.volume, "text-right font-mono text-[14px] font-medium")}>
-        {formatUsdCompact(token.volume24h, { trimZeros: true })}
+        {formatUsdCompact(volume, { trimZeros: true })}
       </span>
       <span role="cell" className={cn(COLUMN_VISIBILITY.holders, "text-right font-mono text-[14px] font-medium text-text-2")}>
-        {formatInteger(token.holders)}
+        {token.holders === null ? "—" : formatInteger(token.holders)}
       </span>
       <div role="cell" className={cn(COLUMN_VISIBILITY.smart, "items-center gap-1.5 pl-[18px]")}>
         {token.smartWallets > 0 ? (

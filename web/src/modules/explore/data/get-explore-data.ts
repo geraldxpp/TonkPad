@@ -1,35 +1,26 @@
 import { LAUNCHPADS } from "@/shared/config/launchpads";
-import type { ChainId } from "@/shared/types/chain";
+import type { LiveOverview } from "@/shared/types/live";
 import type { Token } from "@/shared/types/token";
 import {
   BLIPS,
-  type BlipSeed,
   CHAIN_COUNTS,
   HEATING,
   HERO_STATS,
-  type HeroStat,
   LAUNCHPAD_COUNTS,
   MISSION_PICK,
   MORE_LAUNCHPADS,
-  type PadFilterId,
   SCOPE_MORE,
   SCOPE_PADS,
   TOKENS,
   TOTAL_TOKENS,
 } from "./explore.mock";
 
-export interface ExploreData {
+/** Everything above the token list, plus the filter counts. Mock and live data share this shape. */
+export type ExploreOverview = Omit<LiveOverview, "updatedAt">;
+
+export interface ExploreData extends ExploreOverview {
+  /** Every token; the list filters them in the browser. */
   tokens: Token[];
-  heating: Array<{ token: Token; color: string }>;
-  blips: Array<BlipSeed & { art: string }>;
-  launchpads: Array<{ id: PadFilterId; count: number }>;
-  moreLaunchpads: number;
-  chainCounts: Record<"all" | ChainId, number>;
-  totalTokens: number;
-  stats: HeroStat[];
-  missionPick: { token: Token; price: number; updatedSecondsAgo: number };
-  /** Launchpads named in the Live scope subtitle, and how many more it sweeps. */
-  scope: { pads: string[]; more: number };
 }
 
 function byTicker(ticker: string): Token {
@@ -38,12 +29,15 @@ function byTicker(ticker: string): Token {
   return token;
 }
 
-/** Everything the Explore screen needs. Typed mock data now; the API later. */
+/**
+ * Everything the Explore screen needs, from the typed mock data. With the
+ * live-data worker switched on, getLiveExploreData() serves the screen instead.
+ */
 export async function getExploreData(): Promise<ExploreData> {
   return {
     tokens: TOKENS,
     heating: HEATING.map(({ ticker, color }) => ({ token: byTicker(ticker), color })),
-    blips: BLIPS.map((blip) => ({ ...blip, art: byTicker(blip.ticker).art })),
+    blips: BLIPS.map((blip) => ({ ...blip, address: blip.ticker, art: byTicker(blip.ticker).art })),
     launchpads: [...LAUNCHPAD_COUNTS],
     moreLaunchpads: MORE_LAUNCHPADS,
     chainCounts: { ...CHAIN_COUNTS },

@@ -72,6 +72,7 @@ export const de: Dictionary = {
   scope: {
     title: "Live-Radar",
     sweeping: "Scannt {pads} +{more}",
+    sweepingOnly: "Scannt {pads}",
     window: "Radar-Zeitfenster",
     new: "Neu",
     heating: "Wird heiß",
@@ -158,6 +159,10 @@ export const de: Dictionary = {
   notFound: {
     title: "Seite nicht gefunden",
     body: "Diese Seite existiert nicht oder wurde verschoben.",
+  },
+  live: {
+    loading: "Live-Tokens werden geladen…",
+    offline: "Live-Daten sind gerade nicht verfügbar. Neuer Versuch läuft…",
   },
   common: { backToExplore: "Zurück zu Entdecken" },
 };

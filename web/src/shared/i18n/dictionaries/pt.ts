@@ -73,6 +73,7 @@ export const pt: Dictionary = {
   scope: {
     title: "Radar ao vivo",
     sweeping: "Varrendo {pads} +{more}",
+    sweepingOnly: "Varrendo {pads}",
     window: "Janela do radar",
     new: "Novo",
     heating: "Esquentando",
@@ -159,6 +160,10 @@ export const pt: Dictionary = {
   notFound: {
     title: "Página não encontrada",
     body: "Esta página não existe ou foi movida.",
+  },
+  live: {
+    loading: "Carregando tokens ao vivo…",
+    offline: "Os dados ao vivo estão indisponíveis agora. Tentando de novo…",
   },
   common: { backToExplore: "Voltar para Explorar" },
 };

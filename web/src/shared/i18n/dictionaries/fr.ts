@@ -72,6 +72,7 @@ export const fr: Dictionary = {
   scope: {
     title: "Radar en direct",
     sweeping: "Balayage de {pads} +{more}",
+    sweepingOnly: "Balayage de {pads}",
     window: "Fenêtre du radar",
     new: "Nouveau",
     heating: "En chauffe",
@@ -158,6 +159,10 @@ export const fr: Dictionary = {
   notFound: {
     title: "Page introuvable",
     body: "Cette page n’existe pas ou a été déplacée.",
+  },
+  live: {
+    loading: "Chargement des tokens en direct…",
+    offline: "Les données en direct sont indisponibles pour le moment. Nouvelle tentative…",
   },
   common: { backToExplore: "Retour à Explorer" },
 };

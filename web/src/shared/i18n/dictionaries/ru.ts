@@ -73,6 +73,7 @@ export const ru: Dictionary = {
   scope: {
     title: "Радар",
     sweeping: "Сканирует {pads} +{more}",
+    sweepingOnly: "Сканирует {pads}",
     window: "Окно радара",
     new: "Новые",
     heating: "Набирают ход",
@@ -159,6 +160,10 @@ export const ru: Dictionary = {
   notFound: {
     title: "Страница не найдена",
     body: "Такой страницы нет, или она была перемещена.",
+  },
+  live: {
+    loading: "Загружаем токены в эфире…",
+    offline: "Данные в эфире сейчас недоступны. Пробуем снова…",
   },
   common: { backToExplore: "Вернуться к обзору" },
 };
