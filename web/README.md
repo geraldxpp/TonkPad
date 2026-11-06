@@ -188,10 +188,10 @@ as JSON. The app never calls the data providers itself.
     worker runs from TypeScript, so the Next.js build is skipped);
     **Custom Start Command** `npm run worker`; **Healthcheck Path** `/health`.
   - **Variables** `HELIUS_API_KEY`, `JUPITER_API_KEY`, `ROBINHOOD_RPC_URL`,
-    `WORKER_TOKEN` (a long random string, e.g. `openssl rand -hex 32`) and
-    `SNAPSHOT_PATH=/data/snapshot.json`. Railway sets `PORT` itself.
+    `WORKER_TOKEN` (a long random string, e.g. `openssl rand -hex 32`),
+    `SNAPSHOT_PATH=/data/snapshot.json` and `PORT=8080`.
   - **Volume** mounted at `/data`, so restarts keep the last day of tokens.
-  - **Networking** → Generate Domain. `https://<domain>/health` should answer
+  - **Networking** → Generate Domain on port 8080. `https://<domain>/health` should answer
     `{"ok":true,…}`; `/v1/*` answers 401 without the token.
 
   Then in Vercel set `WORKER_URL` (that domain, with `https://`) and the same
