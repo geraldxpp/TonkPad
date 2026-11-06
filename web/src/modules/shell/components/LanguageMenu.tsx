@@ -7,15 +7,18 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { LanguageLinks } from "./LanguageLinks";
 
+/** Desktop menu width (md:w-[320px] below must match). */
 const PANEL_WIDTH = 320;
-/** Keeps the menu clear of the 76 px rail. */
+/** Keeps the desktop menu clear of the 76 px rail. */
 const MIN_LEFT = 88;
 
 /**
- * The language button in the desktop top bar (globe and code) and the menu of
- * languages it opens. The menu lines up with the button's right edge, or its
- * left edge when the header has wrapped the button towards the rail. Escape,
- * a click outside or tabbing away closes it.
+ * The language button in the top bar (globe and code on desktop, a globe icon
+ * button on phones, like the bar's other icons) and the menu of languages it
+ * opens. On desktop the menu lines up with the button's right
+ * edge, or its left edge when the header has wrapped the button towards the
+ * rail. On phones the root isn't positioned, so the menu spans the sticky top
+ * bar just below it. Escape, a click outside or tabbing away closes it.
  */
 export function LanguageMenu({ className }: { className?: string }) {
   const { t, lang } = useI18n();
@@ -51,7 +54,7 @@ export function LanguageMenu({ className }: { className?: string }) {
   return (
     <div
       ref={rootRef}
-      className={cn("relative", className)}
+      className={cn("md:relative", className)}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           event.stopPropagation();
@@ -70,19 +73,19 @@ export function LanguageMenu({ className }: { className?: string }) {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={toggle}
-        className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-line-strong bg-surface pr-2 pl-2.5 text-[13px] font-semibold text-text"
+        className="inline-flex size-10 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-[13px] font-semibold text-text-2 md:w-auto md:border-line-strong md:pr-2 md:pl-2.5 md:text-text"
       >
-        <Globe size={16} strokeWidth={1.8} aria-hidden="true" className="text-text-2" />
-        <span className="uppercase">{lang}</span>
-        <ChevronDown size={14} strokeWidth={2} aria-hidden="true" className="text-text-2" />
+        <Globe strokeWidth={1.8} aria-hidden="true" className="size-[18px] md:size-4 md:text-text-2" />
+        <span className="uppercase max-md:hidden">{lang}</span>
+        <ChevronDown size={14} strokeWidth={2} aria-hidden="true" className="text-text-2 max-md:hidden" />
       </button>
       {open ? (
         <div
           id={panelId}
-          style={{ width: PANEL_WIDTH }}
           className={cn(
-            "absolute top-[46px] z-20 rounded-[14px] border border-line-strong bg-raised p-1.5 shadow-menu",
-            alignLeft ? "left-0" : "right-0",
+            "absolute inset-x-3 top-full z-20 mt-1.5 rounded-[14px] border border-line-strong bg-raised p-1.5 shadow-menu",
+            "md:top-[46px] md:mt-0 md:w-[320px]",
+            alignLeft ? "md:right-auto md:left-0" : "md:right-0 md:left-auto",
           )}
         >
           <LanguageLinks onStay={close} />

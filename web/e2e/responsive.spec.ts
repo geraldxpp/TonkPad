@@ -106,12 +106,14 @@ test.describe("under 768 px (phone layout)", () => {
     await expect.poll(async () => Math.round((await nav.boundingBox())!.y + (await nav.boundingBox())!.height)).toBe(844);
   });
 
-  test("the top bar is one sticky row: logo, search, alerts and wallet", async ({ page }) => {
+  test("the top bar is one sticky row: logo, search, language, theme, alerts and wallet", async ({ page }) => {
     await openExplore(page);
     const header = page.getByRole("banner");
     expect((await header.boundingBox())!.height).toBeLessThan(70);
     await expect(header.getByRole("link", { name: "Tonkpad.fun home" })).toBeVisible();
     await expect(header.getByRole("button", { name: "Search" })).toBeVisible();
+    await expect(header.getByRole("button", { name: "Language: English" })).toBeVisible();
+    await expect(header.getByRole("button", { name: "Switch to light theme" })).toBeVisible();
     await expect(header.getByRole("button", { name: "Alerts" })).toBeVisible();
     await expect(header.getByRole("button", { name: "Connect wallet" })).toHaveText("Connect", { useInnerText: true });
     await expect(header.getByRole("searchbox")).toBeHidden();

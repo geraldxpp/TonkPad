@@ -140,6 +140,40 @@ test.describe("language", () => {
   });
 });
 
+test.describe("phone top bar", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the theme button is right in the top bar", async ({ page }) => {
+    await openExplore(page);
+    const header = page.getByRole("banner");
+    await header.getByRole("button", { name: "Switch to light theme" }).tap();
+    expect(await pageTheme(page)).toEqual({ theme: "light", bg: LIGHT_BG });
+    await header.getByRole("button", { name: "Switch to dark theme" }).tap();
+    expect(await pageTheme(page)).toEqual({ theme: "dark", bg: DARK_BG });
+  });
+
+  test("the language button opens a full-width menu under the top bar", async ({ page }) => {
+    await openExplore(page);
+    const header = page.getByRole("banner");
+    await header.getByRole("button", { name: "Language: English" }).tap();
+    const english = page.getByRole("link", { name: "English" });
+    await expect(english).toHaveAttribute("aria-current", "true");
+    // The menu sits on screen, just below the bar, with every language.
+    const menuId = await header.getByRole("button", { name: "Language: English" }).getAttribute("aria-controls");
+    const menu = page.locator(`[id="${menuId}"]`);
+    const box = (await menu.boundingBox())!;
+    const bar = (await header.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    expect(box.y).toBeGreaterThanOrEqual(bar.y + bar.height);
+    await expect(menu.getByRole("link")).toHaveCount(12);
+
+    await page.getByRole("link", { name: "日本語" }).tap();
+    await expect(page).toHaveURL((url) => url.pathname === "/ja");
+    await expect(page.getByRole("banner").getByRole("button", { name: "言語：日本語" })).toBeVisible();
+  });
+});
+
 test.describe("phone settings sheet", () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
