@@ -105,6 +105,13 @@ returns typed mock data; with the worker on, Explore loads through
   give `t` (the messages), `href()` (adds the language prefix to a link) and
   `lang`. Numbers, prices and tickers keep the design's en-US formatting.
   Unknown paths render a translated 404 inside the shell.
+- **Launchpad marks** are each launchpad's own logo, as 96 px PNGs in
+  `public/launchpads/` (`logo` in `shared/config/launchpads.ts`): Tonkpad's is
+  the emblem; Bags, Moonshot (moonshot.com) and Bonk.fun come from their own
+  sites; Pump.fun, Pons and Heaven from DefiLlama's copies (pump.fun blocks
+  scripted requests, Pons's site has no icon file, heaven.xyz is down). A
+  launchpad without a file shows its letter on its colour. Chain marks stay
+  original letter stand-ins.
 - **Tonkpad's coin slot.** The hero's featured coin (Mission Pick in the
   design) is reserved for Tonkpad's own coin: until it launches it shows the
   emblem with "Coming soon" (`NativeCoin`). The worker still computes a

@@ -111,7 +111,9 @@ On token-card art, Locked, Crew and Agent use the slightly stronger fills from t
 Mission score pill: Safe = #3DDC84 on --pos at 12% with ShieldCheck. Caution = #FFB547 on rgba(255,181,71,.13) with ShieldCheck. Risky = #FF5C74 on rgba(255,92,116,.12) with TriangleAlert.
 
 ## Chain and launchpad marks
-These are original stand-ins (a letter on a colour). Never use the real logos.
+Chain marks (Solana, Robinhood Chain) are original stand-ins (a letter on a colour). Never use the real chain logos.
+
+Launchpad marks use each launchpad's own logo (the owner's decision, 6 Nov 2026, replacing the earlier stand-in rule): a 96 px PNG in `web/public/launchpads/<id>.png`, set as `logo` in `shared/config/launchpads.ts`. Tonkpad's is the owner's emblem. A launchpad without a logo file shows its letter on its colour from the table below. Add a new public folder like this one to the matcher in `proxy.ts`.
 
 | Mark | Shape | Background | Letter |
 |---|---|---|---|

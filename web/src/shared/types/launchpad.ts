@@ -3,7 +3,9 @@ export type LaunchpadId = "tonk" | "pons" | "pump" | "bonk" | "bags" | "moon" | 
 export interface Launchpad {
   id: LaunchpadId;
   name: string;
-  /** Letter(s) on the rounded-square stand-in mark (never the real logo). */
+  /** The launchpad's own logo under /public, or null to show `letter` on `background` instead. */
+  logo: string | null;
+  /** Letter(s) on the rounded-square mark used while there is no logo file. */
   letter: string;
   background: string;
   foreground: string;
