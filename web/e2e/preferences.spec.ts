@@ -270,3 +270,35 @@ test.describe("long languages on desktop", () => {
     });
   }
 });
+
+test.describe("phone top bar on any device", () => {
+  async function expectOneRow(page: Page) {
+    const header = page.getByRole("banner");
+    // One row of 32 px controls; the old wrap made the bar about 100 px tall.
+    expect((await header.boundingBox())!.height).toBeLessThan(64);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
+    return header;
+  }
+
+  for (const width of [320, 344, 384, 412]) {
+    test(`${width} px: every control on one row`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await openExplore(page);
+      const header = await expectOneRow(page);
+      for (const name of ["Search", "Language: English", "Switch to light theme", "Alerts", "Connect wallet"]) {
+        await expect(header.getByRole("button", { name })).toBeVisible();
+      }
+      // From 340 px the label is in full; below that the wallet icon carries it.
+      const label = width >= 340 ? "Connect wallet" : "";
+      await expect(header.getByRole("button", { name: "Connect wallet" })).toHaveText(label, { useInnerText: true });
+    });
+  }
+
+  test("a big system font never pushes Connect wallet onto a second row", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await openExplore(page);
+    // Android's font-size setting scales text but not the buttons around it.
+    await page.addStyleTag({ content: 'header button[aria-label="Connect wallet"] span { font-size: 20px !important; }' });
+    await expectOneRow(page);
+  });
+});

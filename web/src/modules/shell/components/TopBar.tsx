@@ -19,6 +19,19 @@ interface TopBarProps {
 }
 
 /**
+ * The wallet button on phones. Its flex basis is 0, so it can never push the
+ * row into wrapping: it grows up to its full label and, if a big system font
+ * leaves too little room, the label ends in an ellipsis instead. Under 340 px
+ * it is a 32 px wallet icon. (The 340 px split uses ranges so no two
+ * breakpoints set the same property.)
+ */
+const PHONE_CTA = [
+  "max-md:h-8 max-md:min-w-0 max-md:flex-[1_1_0%] max-md:text-[13px]",
+  "min-[340px]:max-md:max-w-max min-[340px]:max-md:px-3",
+  "max-[339px]:max-w-8 max-[339px]:px-0",
+].join(" ");
+
+/**
  * Search, live ticker, chain filter, language, theme, alerts and wallet. The
  * URL-bound controls render inside Suspense: the static shell carries their
  * default look and the request-time render fills in the URL's values.
@@ -26,11 +39,11 @@ interface TopBarProps {
  * Under 768 px it becomes a sticky one-row bar (logo, search toggle,
  * language, theme, alerts, wallet); the ticker sits just below it and scrolls
  * away and the chain filter moves into the token list's toolbar. To keep that
- * one row with "Connect wallet" in full (as on Boxa), phones use 36 px
- * buttons and 4 px gaps, the wallet button drops its icon, the logo goes
- * without the wordmark (it returns from 640 px), and under 390 px language
- * shows just the globe. Languages whose phrase is too long for the bar use
- * their short "Connect" (the `connect` message).
+ * one row with "Connect wallet" in full on any phone, the bar uses 32 px
+ * icon buttons with 16 px icons, a 28 px logo (the wordmark returns from
+ * 640 px), a globe-only language button and 4 px gaps, and the wallet button
+ * can't wrap (see PHONE_CTA). Languages whose phrase is much longer than
+ * English use their short "Connect" (the `connect` message).
  */
 export async function TopBar({ data }: TopBarProps) {
   const { t } = await getI18n();
@@ -59,20 +72,15 @@ export async function TopBar({ data }: TopBarProps) {
           <ChainFilter counts={data.chainCounts} className="max-md:hidden" />
         </Suspense>
         <LanguageMenu />
-        <ThemeToggle className="max-md:size-9" />
-        <IconButton label={t.header.alerts} size={40} className="max-md:size-9">
-          <Bell size={18} strokeWidth={1.8} />
-          <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)] max-md:top-[7px] max-md:right-[7px]" />
+        <ThemeToggle className="max-md:size-8" />
+        <IconButton label={t.header.alerts} size={40} className="max-md:size-8">
+          <Bell size={18} strokeWidth={1.8} className="max-md:size-4" />
+          <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)] max-md:top-[6px] max-md:right-[6px]" />
         </IconButton>
-        <Button
-          variant="cta"
-          size="md"
-          aria-label={t.header.connectWallet}
-          className="max-md:h-9 max-md:px-3 max-md:text-[13px]"
-        >
-          <Wallet size={16} strokeWidth={2} className="max-md:hidden" />
+        <Button variant="cta" size="md" aria-label={t.header.connectWallet} className={PHONE_CTA}>
+          <Wallet size={16} strokeWidth={2} className="hidden max-[339px]:block md:block" />
           <span className="max-md:hidden">{t.header.connectWallet}</span>
-          <span className="md:hidden">{t.header.connect}</span>
+          <span className="min-w-0 truncate md:hidden max-[339px]:hidden">{t.header.connect}</span>
         </Button>
       </header>
       <div className="border-b border-line px-2 md:hidden">

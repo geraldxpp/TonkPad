@@ -13,8 +13,8 @@ const PANEL_WIDTH = 320;
 const MIN_LEFT = 88;
 
 /**
- * The language button in the top bar (globe and code; just the globe on
- * phones under 390 px) and the menu of languages it opens. On desktop the menu lines up with the button's right
+ * The language button in the top bar (globe and code on desktop; a 32 px
+ * globe button on phones) and the menu of languages it opens. On desktop the menu lines up with the button's right
  * edge, or its left edge when the header has wrapped the button towards the
  * rail. On phones the root isn't positioned, so the menu spans the sticky top
  * bar just below it. Escape, a click outside or tabbing away closes it.
@@ -72,10 +72,10 @@ export function LanguageMenu({ className }: { className?: string }) {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={toggle}
-        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface px-2.5 text-[13px] font-semibold text-text-2 max-[389px]:w-9 max-[389px]:px-0 md:h-10 md:border-line-strong md:pr-2 md:pl-2.5 md:text-text"
+        className="inline-flex size-8 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-[13px] font-semibold text-text-2 md:h-10 md:w-auto md:border-line-strong md:pr-2 md:pl-2.5 md:text-text"
       >
-        <Globe strokeWidth={1.8} aria-hidden="true" className="size-[18px] md:size-4 md:text-text-2" />
-        <span className="uppercase max-[389px]:hidden">{lang}</span>
+        <Globe strokeWidth={1.8} aria-hidden="true" className="size-4 md:text-text-2" />
+        <span className="uppercase max-md:hidden">{lang}</span>
         <ChevronDown size={14} strokeWidth={2} aria-hidden="true" className="text-text-2 max-md:hidden" />
       </button>
       {open ? (

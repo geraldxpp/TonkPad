@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useI18n } from "@/shared/i18n/I18nProvider";
+import { cn } from "@/shared/lib/cn";
 import { IconButton } from "@/shared/ui/IconButton";
 import { useTheme } from "../hooks/useTheme";
 
@@ -9,16 +10,16 @@ import { useTheme } from "../hooks/useTheme";
  * Sun while dark (tap for light), moon while light. Chosen with the `light:`
  * CSS variant so the right icon shows from the first paint.
  */
-export function ThemeIcon({ size, strokeWidth = 1.8 }: { size: number; strokeWidth?: number }) {
+export function ThemeIcon({ size, strokeWidth = 1.8, className }: { size: number; strokeWidth?: number; className?: string }) {
   return (
     <>
-      <Sun size={size} strokeWidth={strokeWidth} aria-hidden="true" className="light:hidden" />
-      <Moon size={size} strokeWidth={strokeWidth} aria-hidden="true" className="hidden light:block" />
+      <Sun size={size} strokeWidth={strokeWidth} aria-hidden="true" className={cn("light:hidden", className)} />
+      <Moon size={size} strokeWidth={strokeWidth} aria-hidden="true" className={cn("hidden light:block", className)} />
     </>
   );
 }
 
-/** The light/dark switch in the desktop top bar. */
+/** The light/dark switch in the top bar (a 32 px button with a 16 px icon on phones). */
 export function ThemeToggle({ className }: { className?: string }) {
   const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
@@ -29,7 +30,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={toggleTheme}
       className={className}
     >
-      <ThemeIcon size={18} />
+      <ThemeIcon size={18} className="max-md:size-4" />
     </IconButton>
   );
 }

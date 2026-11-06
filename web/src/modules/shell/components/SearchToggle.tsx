@@ -21,15 +21,15 @@ export function SearchToggle({ open, active = false, onToggle, buttonRef }: Sear
     <IconButton
       ref={buttonRef}
       label={t.header.searchToggle}
-      size={36}
+      size={32}
       aria-expanded={open}
       aria-controls={SEARCH_BOX_ID}
       onClick={onToggle}
       className="md:hidden"
     >
-      <Search size={18} strokeWidth={1.8} />
+      <Search size={16} strokeWidth={1.8} />
       {active && !open ? (
-        <span className="absolute top-[7px] right-[7px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)]" />
+        <span className="absolute top-[6px] right-[6px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)]" />
       ) : null}
     </IconButton>
   );
