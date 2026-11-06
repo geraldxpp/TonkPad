@@ -1,0 +1,56 @@
+import { expect, test } from "@playwright/test";
+import { openExplore } from "./helpers";
+
+const RAIL = [
+  ["Live", "/live", "Live"],
+  ["Bridge", "/bridge", "Bridge"],
+  ["Portfolio", "/portfolio", "Portfolio"],
+  ["Launch", "/launch", "Launch (Creator Studio)"],
+  ["Docs", "/docs", "Docs"],
+] as const;
+
+for (const [label, path, title] of RAIL) {
+  test(`rail: ${label} opens ${path} with the later-module panel`, async ({ page }) => {
+    await openExplore(page);
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await nav.getByRole("link", { name: label }).click();
+    await expect(page).toHaveURL(path);
+    await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+    await expect(page.getByText("Coming in a later module")).toBeVisible();
+    await expect(nav.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Explore" })).not.toHaveAttribute("aria-current", "page");
+  });
+}
+
+test("Explore is the active rail item on /", async ({ page }) => {
+  await openExplore(page);
+  await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Explore" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByRole("button", { name: "Alerts, 3 new" })).toBeVisible();
+});
+
+test("token cards, table names and the Mission Pick Buy link to /token/<TICKER>", async ({ page }) => {
+  await openExplore(page);
+  await page.getByRole("link", { name: /^Orbit, market cap/ }).click();
+  await expect(page).toHaveURL("/token/ORB");
+  await expect(page.getByText("$ORB", { exact: true }).filter({ visible: true })).toBeVisible();
+
+  await openExplore(page);
+  await page.getByRole("table", { name: "Tokens" }).getByRole("link", { name: "Sol Cat" }).click();
+  await expect(page).toHaveURL("/token/SCAT");
+
+  await openExplore(page);
+  await page.getByRole("link", { name: "Buy Ghosty" }).click();
+  await expect(page).toHaveURL("/token/GHOST");
+  await expect(page.getByRole("heading", { level: 1, name: "Token Detail" })).toBeVisible();
+});
+
+test("the status bar links go to their placeholder pages", async ({ page }) => {
+  await openExplore(page);
+  const footer = page.getByRole("contentinfo");
+  await footer.getByRole("link", { name: "Terms" }).click();
+  await expect(page).toHaveURL("/terms");
+  await expect(page.getByRole("heading", { level: 1, name: "Terms" })).toBeVisible();
+});

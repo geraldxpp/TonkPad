@@ -1,0 +1,23 @@
+/* Local copies of the three Google Fonts the design uses (SIL Open Font License),
+   so the reference renders the same offline. In the app, load them with next/font/google. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url(./bricolage-grotesque-latin-opsz.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(./geist-latin-wght.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(./geist-mono-latin-wght.woff2) format('woff2');
+}

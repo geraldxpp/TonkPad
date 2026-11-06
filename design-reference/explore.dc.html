@@ -1,0 +1,615 @@
+<!doctype html>
+<!--
+  Tonkpad.fun design canvas source for this screen (read-only reference).
+  Markup = exact styles. The <script type="text/x-dc"> block = data + filter logic.
+  Image paths point to design-reference/assets/tokens/. Links to other .dc.html files are later modules.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Explore — Tonkpad.fun</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#07080D}
+*{box-sizing:border-box}
+a{color:#B8ACFF}a:hover{color:#D6CFFF}
+button,input{font:inherit}
+input::placeholder{color:#7E849B}
+:focus-visible{outline:2px solid #A497FF;outline-offset:2px}
+.tk-card{transition:transform .2s ease,box-shadow .2s ease}
+.tk-card:hover{transform:translateY(-4px);box-shadow:0 0 0 1.5px rgba(140,123,255,.75),0 18px 40px -12px rgba(140,123,255,.45)}
+.tk-row:hover{background:#141723}
+@keyframes tk-sweep{to{transform:rotate(360deg)}}
+@keyframes tk-pulse{0%,100%{box-shadow:0 0 0 0 rgba(54,214,140,.55)}50%{box-shadow:0 0 0 5px rgba(54,214,140,0)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #07080D; color: #F3F4FA; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 14px; display: flex; flex-wrap: wrap; align-items: stretch; position: relative; overflow: hidden">
+  <div aria-hidden="true" style="position: absolute; left: -120px; top: -330px; width: 1200px; height: 820px; background: radial-gradient(closest-side, rgba(123,102,255,0.24), rgba(123,102,255,0)); pointer-events: none"></div>
+  <div aria-hidden="true" style="position: absolute; right: -160px; top: -280px; width: 900px; height: 640px; background: radial-gradient(closest-side, rgba(63,216,240,0.09), rgba(63,216,240,0)); pointer-events: none"></div>
+
+  <nav aria-label="Main" style="flex: 1 1 76px; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 8px; background: #05060A; border-right: 1px solid #1B1F2D; position: relative; z-index: 2">
+    <a href="Main.dc.html" aria-label="Tonkpad.fun home" style="display: flex; text-decoration: none">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><defs><linearGradient id="tkMainLogo" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#B9AEFF"/><stop offset="1" stop-color="#5B47F0"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#tkMainLogo)"/><ellipse cx="20" cy="21" rx="14" ry="6.5" transform="rotate(-24 20 21)" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="1.6"/><path d="M12.5 13.5H27.5M20 13.5V29" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round"/><circle cx="32.9" cy="17.7" r="2.2" fill="#FFFFFF"/></svg>
+    </a>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%">
+      <a href="Main.dc.html" aria-current="page" style="width: 60px; height: 58px; border-radius: 14px; background: rgba(140,123,255,0.14); color: #B8ACFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.8 5.41a2 2 0 0 1-1.27 1.27L7.76 16.24l1.8-5.41a2 2 0 0 1 1.27-1.27z"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #F3F4FA">Explore</span>
+      </a>
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Live</span>
+      </button>
+      <a href="Bridge.dc.html" style="width: 60px; height: 58px; border-radius: 14px; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Bridge</span>
+      </a>
+      <a href="Portfolio.dc.html" style="width: 60px; height: 58px; border-radius: 14px; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Portfolio</span>
+      </a>
+      <button type="button" aria-label="Alerts, 3 new" style="position: relative; width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Alerts</span>
+        <span style="position: absolute; left: 34px; top: 5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #FF5C74; color: #1A0509; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center">3</span>
+      </button>
+      <a href="Launch.dc.html" style="width: 60px; height: 58px; border-radius: 14px; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Launch</span>
+      </a>
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Docs</span>
+      </button>
+    </div>
+    <div style="flex: 1 1 auto"></div>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%">
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Theme</span>
+      </button>
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">More</span>
+      </button>
+    </div>
+  </nav>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; position: relative; z-index: 1">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px clamp(16px, 2vw, 24px); border-bottom: 1px solid #1B1F2D; background: rgba(7,8,13,0.86); position: relative; z-index: 5">
+      <label for="tk-search" style="flex: 1 1 240px; max-width: 340px; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D; color: #7E849B">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Search tokens</span>
+        <input id="tk-search" type="search" placeholder="Search token, ticker or CA" value="{{ q }}" onChange="{{ onSearch }}" style="flex: 1 1 auto; min-width: 0; height: 100%; background: transparent; border: 0; outline: 0; color: #F3F4FA; font-size: 13px">
+        <kbd style="padding: 1px 7px; border-radius: 6px; background: #141723; border: 1px solid #2A2F42; color: #A2A7BE; font: 400 12px 'Geist Mono', ui-monospace, monospace">/</kbd>
+      </label>
+      <div aria-label="Live ticker" style="flex: 999 1 260px; min-width: 0; height: 40px; overflow: hidden; display: flex; align-items: center; gap: 22px; padding: 0 8px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent)">
+        <sc-for list="{{ tape }}" as="k" hint-placeholder-count="8">
+          <span style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex: 0 0 auto">
+            <img src="{{ k.art }}" alt="" style="width: 20px; height: 20px; border-radius: 6px">
+            <span style="font-size: 12px; font-weight: 600">{{ k.tick }}</span>
+            <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ k.mcap }}</span>
+            <span style="font: 500 12px 'Geist Mono', ui-monospace, monospace; color: {{ k.chgColor }}">{{ k.chg }}</span>
+          </span>
+        </sc-for>
+      </div>
+      <div style="position: relative">
+        <button type="button" aria-haspopup="listbox" aria-expanded="{{ chainOpen }}" onClick="{{ toggleChain }}" style="height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 8px; border-radius: 12px; background: #0D0F17; border: 1px solid #2A2F42; color: #F3F4FA; cursor: pointer">
+          <span style="display: inline-flex">
+            <sc-if value="{{ showSol }}" hint-placeholder-val="{{ true }}"><span title="Solana" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #0D0F17; background: linear-gradient(135deg, #9945FF, #19FB9B); display: inline-flex; align-items: center; justify-content: center; color: #0B0A1A; font-size: 9px; font-weight: 700">S</span></sc-if>
+            <sc-if value="{{ showRh }}" hint-placeholder-val="{{ true }}"><span title="Robinhood Chain" style="width: 20px; height: 20px; margin-left: -6px; border-radius: 50%; border: 2px solid #0D0F17; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 9px; font-weight: 700">R</span></sc-if>
+          </span>
+          <span style="font-size: 13px; font-weight: 600; white-space: nowrap">{{ chainLabel }}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: #A2A7BE"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <sc-if value="{{ chainOpen }}" hint-placeholder-val="{{ false }}">
+          <div role="listbox" aria-label="Chains" style="position: absolute; right: 0; top: 46px; width: 240px; padding: 6px; border-radius: 14px; background: #141723; border: 1px solid #2A2F42; box-shadow: 0 24px 48px -16px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 2px; z-index: 20">
+            <sc-for list="{{ chains }}" as="ch" hint-placeholder-count="3">
+              <button type="button" role="option" aria-selected="{{ ch.active }}" onClick="{{ ch.pick }}" style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; background: {{ ch.bg }}; border: 0; color: #F3F4FA; text-align: left; cursor: pointer">
+                <span style="display: inline-flex; width: 34px">
+                  <sc-if value="{{ ch.sol }}" hint-placeholder-val="{{ true }}"><span style="width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #9945FF, #19FB9B); display: inline-flex; align-items: center; justify-content: center; color: #0B0A1A; font-size: 9px; font-weight: 700">S</span></sc-if>
+                  <sc-if value="{{ ch.rh }}" hint-placeholder-val="{{ true }}"><span style="width: 18px; height: 18px; margin-left: {{ ch.rhShift }}; border-radius: 50%; border: 2px solid #141723; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 9px; font-weight: 700">R</span></sc-if>
+                </span>
+                <span style="flex: 1 1 auto; font-size: 13px; font-weight: 500">{{ ch.label }}</span>
+                <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ ch.count }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <button type="button" aria-label="Alerts" style="position: relative; width: 40px; height: 40px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span style="position: absolute; right: 9px; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: #8C7BFF; box-shadow: 0 0 0 2px #0D0F17"></span>
+      </button>
+      <button type="button" style="height: 40px; padding: 0 16px; border-radius: 12px; background: #A497FF; color: #0B0A1A; border: 0; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 28px -4px rgba(140,123,255,0.45); cursor: pointer; white-space: nowrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+        Connect wallet
+      </button>
+    </header>
+
+    <main style="flex: 1 1 auto; width: 100%; max-width: 1364px; padding: 32px clamp(16px, 3vw, 40px) 56px; display: flex; flex-direction: column; gap: 56px">
+      <section aria-label="Overview" style="display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch">
+        <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 24px">
+          <div style="align-self: flex-start; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; background: #0D0F17; border: 1px solid #1B1F2D; font-size: 12px">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #36D68C; animation: tk-pulse 2s ease-in-out infinite"></span>
+            <span style="font-weight: 600; color: #F3F4FA">Live on Solana &amp; Robinhood Chain</span>
+            <span style="color: #7E849B">·</span>
+            <span style="color: #A2A7BE">8,412 tokens tracked today</span>
+          </div>
+          <h1 style="margin: 0; font-family: 'Bricolage Grotesque', Geist, sans-serif; font-weight: 800; font-size: clamp(40px, 5vw, 64px); line-height: 1.03; letter-spacing: -0.03em; text-wrap: balance">Every launch,<br>on your <span style="background: linear-gradient(90deg, #B8ACFF, #3FD8F0); -webkit-background-clip: text; background-clip: text; color: transparent">radar.</span></h1>
+          <p style="margin: 0; max-width: 560px; font-size: 17px; line-height: 26px; color: #A2A7BE">Every new token across Solana and Robinhood Chain — safety-scored, fee-sharing, and one tap from your wallet.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px 0">
+            <div style="display: flex; flex-direction: column; gap: 2px; padding-right: 24px">
+              <span style="font: 600 22px/28px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">8,412</span>
+              <span style="font-size: 12px; color: #7E849B">tokens today</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 24px; border-left: 1px solid #1B1F2D">
+              <span style="font: 600 22px/28px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.02em">$41.8M</span>
+              <span style="font-size: 12px; color: #7E849B">24h volume</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 24px; border-left: 1px solid #1B1F2D">
+              <span style="font: 600 22px/28px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.02em">37</span>
+              <span style="font-size: 12px; color: #7E849B">launched · last 5m</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 24px; border-left: 1px solid #1B1F2D">
+              <span style="font: 600 22px/28px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.02em">212</span>
+              <span style="font-size: 12px; color: #7E849B">graduated today</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 14px; border-radius: 18px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <img src="assets/tokens/ghost.svg" alt="" style="width: 52px; height: 52px; border-radius: 15px; flex: 0 0 auto">
+            <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #B8ACFF">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                MISSION PICK
+                <span style="font-weight: 400; letter-spacing: 0; color: #7E849B">· updated 12s ago</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px">
+                <a href="Token.dc.html" style="font-size: 17px; font-weight: 600; color: #F3F4FA; text-decoration: none">Ghosty</a>
+                <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">$GHOST</span>
+                <span title="Robinhood Chain" style="width: 16px; height: 16px; border-radius: 50%; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 8px; font-weight: 700">R</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 7px; background: rgba(54,214,140,0.12); color: #36D68C; font: 600 12px 'Geist Mono', ui-monospace, monospace">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>94
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(20,208,143,0.14); border: 1px solid rgba(20,208,143,0.38); color: #2EE0A1; font-size: 11px; font-weight: 600; white-space: nowrap">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Locked
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(140,123,255,0.16); border: 1px solid rgba(244,197,83,0.38); color: #F4C553; font-size: 11px; font-weight: 600; white-space: nowrap">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Crew 2%
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(90,169,255,0.14); border: 1px solid rgba(90,169,255,0.38); color: #8CC4FF; font-size: 11px; font-weight: 600; white-space: nowrap">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>Agent
+                </span>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 12px; color: #7E849B">Price</span>
+                <span style="font: 600 14px 'Geist Mono', ui-monospace, monospace">$0.0000582</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 12px; color: #7E849B">Mkt cap</span>
+                <span style="font: 600 14px 'Geist Mono', ui-monospace, monospace">$58.2K</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 12px; color: #7E849B">24h</span>
+                <span style="font: 600 14px 'Geist Mono', ui-monospace, monospace; color: #36D68C">+412.6%</span>
+              </div>
+              <a href="Token.dc.html" style="height: 44px; padding: 0 20px; border-radius: 14px; background: #36D68C; color: #03150C; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Buy
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <section aria-label="Live scope" style="flex: 1 1 360px; max-width: 520px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px 24px; border-radius: 24px; background: radial-gradient(60% 60% at 50% 55%, rgba(123,102,255,0.18), rgba(123,102,255,0) 70%), #0D0F17; border: 1px solid #1B1F2D; box-shadow: 0 24px 48px -24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05); overflow: hidden">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+            <div style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 600">Live scope</span>
+              <span style="font-size: 12px; color: #7E849B">Sweeping Tonkpad, Pons, Pump.fun +5</span>
+            </div>
+            <div style="display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D">
+              <button type="button" aria-pressed="false" style="height: 26px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; color: #A2A7BE; font-size: 13px; font-weight: 500; cursor: pointer">1m</button>
+              <button type="button" aria-pressed="true" style="height: 26px; padding: 0 12px; border-radius: 8px; border: 0; background: #1A1E2C; color: #F3F4FA; font-size: 13px; font-weight: 500; cursor: pointer">5m</button>
+              <button type="button" aria-pressed="false" style="height: 26px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; color: #A2A7BE; font-size: 13px; font-weight: 500; cursor: pointer">1h</button>
+            </div>
+          </div>
+          <div style="position: relative; width: 300px; height: 300px; max-width: 100%; margin: 4px auto 0; flex: 0 0 auto">
+            <svg width="300" height="300" viewBox="0 0 300 300" fill="none" aria-hidden="true" style="position: absolute; left: 0; top: 0">
+              <circle cx="150" cy="150" r="149" fill="#8C7BFF" fill-opacity="0.04"/>
+              <circle cx="150" cy="150" r="149" stroke="#8C7BFF" stroke-opacity="0.32"/>
+              <circle cx="150" cy="150" r="112" stroke="#8C7BFF" stroke-opacity="0.22"/>
+              <circle cx="150" cy="150" r="75" stroke="#8C7BFF" stroke-opacity="0.18"/>
+              <circle cx="150" cy="150" r="38" stroke="#8C7BFF" stroke-opacity="0.16"/>
+              <path d="M1 150H299M150 1V299" stroke="#8C7BFF" stroke-opacity="0.12"/>
+              <path d="M255.36 255.36L248.29 248.29M44.64 255.36L51.71 248.29M44.64 44.64L51.71 51.71M255.36 44.64L248.29 51.71" stroke="#8C7BFF" stroke-opacity="0.4"/>
+              <circle cx="60" cy="95" r="2" fill="#3FD8F0" fill-opacity="0.55"/>
+              <circle cx="212" cy="70" r="1.8" fill="#8C7BFF" fill-opacity="0.6"/>
+              <circle cx="240" cy="190" r="2" fill="#8C7BFF" fill-opacity="0.5"/>
+              <circle cx="95" cy="215" r="1.6" fill="#3FD8F0" fill-opacity="0.5"/>
+              <circle cx="180" cy="240" r="2.2" fill="#8C7BFF" fill-opacity="0.45"/>
+              <circle cx="120" cy="60" r="1.5" fill="#8C7BFF" fill-opacity="0.6"/>
+              <circle cx="40" cy="170" r="1.6" fill="#3FD8F0" fill-opacity="0.45"/>
+            </svg>
+            <div aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 300px; height: 300px; border-radius: 50%; background: conic-gradient(from 40deg, rgba(140,123,255,0) 0deg, rgba(140,123,255,0) 276deg, rgba(140,123,255,0.42) 360deg); animation: tk-sweep 6s linear infinite">
+              <div style="position: absolute; left: 149.2px; top: 0; width: 1.6px; height: 150px; background: #C9C0FF; transform-origin: 50% 100%; transform: rotate(40deg)"></div>
+            </div>
+            <div aria-hidden="true" style="position: absolute; left: 146px; top: 146px; width: 8px; height: 8px; border-radius: 50%; background: #C9C0FF"></div>
+            <sc-for list="{{ blips }}" as="b" hint-placeholder-count="7">
+              <div style="position: absolute; left: {{ b.left }}; top: {{ b.top }}; width: {{ b.size }}; height: {{ b.size }}">
+                <sc-if value="{{ b.ping }}" hint-placeholder-val="{{ false }}">
+                  <span aria-hidden="true" style="position: absolute; inset: -15px; border-radius: 50%; border: 1.5px solid {{ b.ring2 }}"></span>
+                  <span aria-hidden="true" style="position: absolute; inset: -7px; border-radius: 50%; border: 1.5px solid {{ b.ring1 }}"></span>
+                </sc-if>
+                <img src="{{ b.art }}" alt="{{ b.tick }}" style="position: relative; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.85), 0 0 14px {{ b.glow }}">
+              </div>
+              <sc-if value="{{ b.label }}" hint-placeholder-val="{{ false }}">
+                <span style="position: absolute; left: {{ b.labelLeft }}; top: {{ b.labelTop }}; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 9px; background: #141723; border: 1px solid #2A2F42; white-space: nowrap">
+                  <span style="font-size: 12px; font-weight: 600">{{ b.tick }}</span>
+                  <span style="font: 600 12px 'Geist Mono', ui-monospace, monospace; color: #36D68C">{{ b.labelText }}</span>
+                </span>
+              </sc-if>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 12px; color: #A2A7BE">
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #8C7BFF"></span>New</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #FF7A45"></span>Heating up</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #F4C553"></span>Graduating</span>
+            <span style="flex: 1 1 auto"></span>
+            <span style="color: #7E849B">Next sweep <span style="font: 600 12px 'Geist Mono', ui-monospace, monospace; color: #B8ACFF">0:04</span></span>
+          </div>
+        </section>
+      </section>
+
+      <section aria-labelledby="hot-title" style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px">
+          <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <h2 id="hot-title" style="margin: 0; font-family: 'Bricolage Grotesque', Geist, sans-serif; font-weight: 700; font-size: 28px; line-height: 32px; letter-spacing: -0.015em">Heating up now</h2>
+            <span style="font-size: 12px; color: #7E849B">Ranked by buy velocity over the last 15 minutes</span>
+          </div>
+          <button type="button" style="height: 36px; padding: 0 10px; border-radius: 10px; background: transparent; border: 0; color: #A2A7BE; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer">View all<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+          <button type="button" aria-label="Previous" style="width: 36px; height: 36px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button type="button" aria-label="Next" style="width: 36px; height: 36px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px">
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="5">
+            <a href="Token.dc.html" class="tk-card" aria-label="{{ c.aria }}" style="position: relative; display: block; height: 320px; border-radius: 22px; overflow: hidden; text-decoration: none; color: #FFFFFF; background: linear-gradient(180deg, {{ c.c2 }}, #0A0B12); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 24px 48px -24px rgba(0,0,0,0.55)">
+              <img src="{{ c.art }}" alt="" style="position: absolute; left: 0; top: -10px; width: 100%; aspect-ratio: 1 / 1; object-fit: cover">
+              <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 214px; background: linear-gradient(180deg, rgba(10,11,18,0), rgba(10,11,18,0.86) 46%, #0A0B12)"></div>
+              <span style="position: absolute; left: 12px; top: 12px; padding: 4px 8px; border-radius: 8px; background: rgba(5,6,10,0.55); font: 600 12px 'Geist Mono', ui-monospace, monospace">#{{ c.rank }}</span>
+              <span style="position: absolute; right: 12px; top: 12px; display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 8px; background: rgba(5,6,10,0.55)">
+                <sc-if value="{{ c.sol }}" hint-placeholder-val="{{ false }}"><span title="Solana" style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #9945FF, #19FB9B)"></span></sc-if>
+                <sc-if value="{{ c.rh }}" hint-placeholder-val="{{ true }}"><span title="Robinhood Chain" style="width: 16px; height: 16px; border-radius: 50%; background: #CCFF00"></span></sc-if>
+                <span title="{{ c.padName }}" style="min-width: 16px; height: 16px; padding: 0 3px; border-radius: 5px; background: {{ c.padBg }}; color: {{ c.padFg }}; font-size: 9px; font-weight: 700; line-height: 16px; text-align: center">{{ c.padL }}</span>
+              </span>
+              <div style="position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-family: 'Bricolage Grotesque', Geist, sans-serif; font-weight: 700; font-size: 20px; line-height: 24px; letter-spacing: -0.01em">{{ c.name }}</span>
+                  <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: rgba(255,255,255,0.62)">${{ c.tick }}</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; min-height: 20px">
+                  <sc-if value="{{ c.locked }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(20,208,143,0.16); border: 1px solid rgba(20,208,143,0.42); color: #2EE0A1; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Locked</span></sc-if>
+                  <sc-if value="{{ c.crew }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(140,123,255,0.2); border: 1px solid rgba(244,197,83,0.42); color: #F4C553; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Crew {{ c.crewPct }}</span></sc-if>
+                  <sc-if value="{{ c.agent }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(90,169,255,0.16); border: 1px solid rgba(90,169,255,0.42); color: #8CC4FF; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>Agent</span></sc-if>
+                </div>
+                <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 8px">
+                  <div style="display: flex; align-items: baseline; gap: 8px">
+                    <span style="font: 600 22px/28px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.02em">{{ c.mcap }}</span>
+                    <span style="font: 600 12px 'Geist Mono', ui-monospace, monospace; color: {{ c.chgColor }}">{{ c.chg }}</span>
+                  </div>
+                  <svg width="72" height="24" viewBox="0 0 96 32" fill="none" aria-hidden="true"><path d="{{ c.area }}" fill="{{ c.areaFill }}"/><path d="{{ c.spark }}" stroke="{{ c.sparkColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <sc-if value="{{ c.onCurve }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <span style="flex: 1 1 auto; height: 5px; border-radius: 3px; background: #262A3B; overflow: hidden"><span style="display: block; width: {{ c.curveW }}; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #8C7BFF, #3FD8F0)"></span></span>
+                    <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: rgba(255,255,255,0.72)">{{ c.curveNote }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ c.grad }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(244,197,83,0.14); color: #F4C553; font-size: 11px; font-weight: 600"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z"/><path d="M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>Graduated</span>
+                    <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: rgba(255,255,255,0.62)">{{ c.gradNote }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-label="All tokens" style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+          <div role="tablist" aria-label="Token lists" style="display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="7">
+              <button type="button" role="tab" aria-selected="{{ t.active }}" onClick="{{ t.pick }}" style="height: 32px; padding: 0 14px; border-radius: 9px; border: 0; background: {{ t.bg }}; color: {{ t.color }}; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap">
+                <sc-if value="{{ t.lock }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2EE0A1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></sc-if>
+                {{ t.label }}
+              </button>
+            </sc-for>
+          </div>
+          <span style="flex: 1 1 0"></span>
+          <div role="group" aria-label="Timeframe" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <sc-for list="{{ tfs }}" as="f" hint-placeholder-count="4">
+              <button type="button" aria-pressed="{{ f.active }}" onClick="{{ f.pick }}" style="height: 32px; padding: 0 12px; border-radius: 9px; border: 0; background: {{ f.bg }}; color: {{ f.color }}; font-size: 13px; font-weight: 500; cursor: pointer">{{ f.label }}</button>
+            </sc-for>
+          </div>
+          <button type="button" style="height: 40px; padding: 0 12px 0 14px; border-radius: 12px; background: #141723; border: 1px solid #2A2F42; color: #F3F4FA; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg>
+            Filters
+            <span style="padding: 1px 6px; border-radius: 6px; background: rgba(140,123,255,0.14); color: #B8ACFF; font: 600 12px 'Geist Mono', ui-monospace, monospace">2</span>
+          </button>
+          <div role="group" aria-label="View" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <button type="button" aria-label="List view" aria-pressed="true" style="width: 32px; height: 32px; border-radius: 9px; border: 0; background: #1A1E2C; color: #F3F4FA; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h.01M3 12h.01M3 18h.01M8 6h13M8 12h13M8 18h13"/></svg></button>
+            <button type="button" aria-label="Grid view" aria-pressed="false" style="width: 32px; height: 32px; border-radius: 9px; border: 0; background: transparent; color: #7E849B; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></button>
+          </div>
+        </div>
+        <div role="group" aria-label="Launchpads" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <sc-for list="{{ pads }}" as="p" hint-placeholder-count="7">
+            <button type="button" aria-pressed="{{ p.active }}" onClick="{{ p.pick }}" style="height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 {{ p.padLeft }}; border-radius: 16px; background: {{ p.bg }}; border: 1px solid {{ p.border }}; color: {{ p.color }}; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap">
+              <sc-if value="{{ p.hasMark }}" hint-placeholder-val="{{ true }}"><span style="min-width: 16px; height: 16px; padding: 0 3px; border-radius: 5px; background: {{ p.markBg }}; color: {{ p.markFg }}; font-size: 9px; font-weight: 700; line-height: 16px; text-align: center">{{ p.markL }}</span></sc-if>
+              {{ p.label }}
+              <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ p.count }}</span>
+            </button>
+          </sc-for>
+          <span style="font-size: 12px; color: #7E849B">+3 more</span>
+        </div>
+        <div role="table" aria-label="Tokens" style="border-radius: 20px; background: #0D0F17; border: 1px solid #1B1F2D; box-shadow: 0 24px 48px -24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05); overflow-x: auto">
+          <div style="min-width: 1268px; padding: 8px">
+            <div role="row" style="display: grid; grid-template-columns: 32px minmax(380px, 1fr) 120px 84px 104px 86px 88px 72px 92px 96px 72px; align-items: center; height: 40px; padding: 0 12px; font-size: 12px; color: #7E849B">
+              <span role="columnheader">#</span>
+              <span role="columnheader">Token</span>
+              <span role="columnheader">Bonding curve</span>
+              <span role="columnheader">Mission score</span>
+              <span role="columnheader">Last 24h</span>
+              <span role="columnheader" style="text-align: right">24h</span>
+              <span role="columnheader" style="text-align: right">Volume</span>
+              <span role="columnheader" style="text-align: right">Holders</span>
+              <span role="columnheader" style="padding-left: 18px">Smart money</span>
+              <span role="columnheader" style="text-align: right">Market cap</span>
+              <span role="columnheader" style="text-align: right">Quick buy</span>
+            </div>
+            <div style="height: 1px; background: #1B1F2D"></div>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+              <div role="row" class="tk-row" style="display: grid; grid-template-columns: 32px minmax(380px, 1fr) 120px 84px 104px 86px 88px 72px 92px 96px 72px; align-items: center; height: 64px; padding: 0 12px; border-radius: 14px">
+                <span role="cell" style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ r.rank }}</span>
+                <div role="cell" style="display: flex; align-items: center; gap: 12px; min-width: 0">
+                  <span style="position: relative; width: 44px; height: 44px; flex: 0 0 auto">
+                    <img src="{{ r.art }}" alt="" style="width: 40px; height: 40px; border-radius: 12px">
+                    <span title="{{ r.padName }}" style="position: absolute; left: 26px; top: 26px; min-width: 18px; height: 18px; padding: 0 3px; border-radius: 6px; border: 2px solid #0D0F17; background: {{ r.padBg }}; color: {{ r.padFg }}; font-size: 8px; font-weight: 700; line-height: 14px; text-align: center">{{ r.padL }}</span>
+                  </span>
+                  <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                    <span style="display: flex; align-items: center; gap: 5px; white-space: nowrap">
+                      <a href="Token.dc.html" style="font-size: 14px; font-weight: 600; color: #F3F4FA; text-decoration: none">{{ r.name }}</a>
+                      <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ r.tick }}</span>
+                      <sc-if value="{{ r.hot }}" hint-placeholder-val="{{ false }}"><span title="Hot" style="display: inline-flex; padding: 2px 4px; border-radius: 6px; background: rgba(255,122,69,0.14); color: #FF7A45"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-label="Hot" role="img"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span></sc-if>
+                      <sc-if value="{{ r.og }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px 2px 5px; border-radius: 6px; background: rgba(244,197,83,0.14); color: #F4C553; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M11.56 3.27a.5.5 0 0 1 .88 0l2.95 5.6a1 1 0 0 0 1.52.3l4.27-3.66a.5.5 0 0 1 .8.52l-2.83 10.24a1 1 0 0 1-.96.73H5.81a1 1 0 0 1-.96-.73L2.02 6.02a.5.5 0 0 1 .8-.52l4.27 3.66a1 1 0 0 0 1.52-.3z"/></svg>OG</span></sc-if>
+                      <sc-if value="{{ r.isNew }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px 2px 5px; border-radius: 6px; background: rgba(140,123,255,0.14); color: #B8ACFF; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>New</span></sc-if>
+                      <sc-if value="{{ r.locked }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 5px; border-radius: 6px; background: rgba(20,208,143,0.14); border: 1px solid rgba(20,208,143,0.38); color: #2EE0A1; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Locked</span></sc-if>
+                      <sc-if value="{{ r.crew }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 5px; border-radius: 6px; background: rgba(140,123,255,0.16); border: 1px solid rgba(244,197,83,0.38); color: #F4C553; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Crew {{ r.crewPct }}</span></sc-if>
+                      <sc-if value="{{ r.agent }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 5px; border-radius: 6px; background: rgba(90,169,255,0.14); border: 1px solid rgba(90,169,255,0.38); color: #8CC4FF; font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>Agent</span></sc-if>
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 6px; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B; white-space: nowrap">
+                      <span title="{{ r.chainName }}" style="width: 10px; height: 10px; border-radius: 50%; background: {{ r.chainDot }}; flex: 0 0 auto"></span>
+                      by {{ r.creator }} · {{ r.age }}
+                    </span>
+                  </span>
+                </div>
+                <div role="cell" style="display: flex; align-items: center; gap: 8px">
+                  <sc-if value="{{ r.onCurve }}" hint-placeholder-val="{{ true }}">
+                    <span style="width: 72px; height: 6px; border-radius: 3px; background: #262A3B; overflow: hidden"><span style="display: block; width: {{ r.curveW }}; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #8C7BFF, #3FD8F0)"></span></span>
+                    <span style="font: 600 12px 'Geist Mono', ui-monospace, monospace">{{ r.curvePct }}</span>
+                  </sc-if>
+                  <sc-if value="{{ r.grad }}" hint-placeholder-val="{{ false }}">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px 2px 5px; border-radius: 6px; background: rgba(244,197,83,0.14); color: #F4C553; font-size: 11px; font-weight: 600"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z"/><path d="M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>Graduated</span>
+                  </sc-if>
+                </div>
+                <div role="cell">
+                  <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px 3px 6px; border-radius: 8px; background: {{ r.scoreBg }}; color: {{ r.scoreColor }}; font: 600 12px 'Geist Mono', ui-monospace, monospace">
+                    <sc-if value="{{ r.safeIcon }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></sc-if>
+                    <sc-if value="{{ r.risky }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></sc-if>
+                    {{ r.score }}
+                  </span>
+                </div>
+                <div role="cell"><svg width="96" height="32" viewBox="0 0 96 32" fill="none" aria-hidden="true"><path d="{{ r.area }}" fill="{{ r.areaFill }}"/><path d="{{ r.spark }}" stroke="{{ r.sparkColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <span role="cell" style="text-align: right; font: 600 14px 'Geist Mono', ui-monospace, monospace; color: {{ r.chgColor }}">{{ r.chg }}</span>
+                <span role="cell" style="text-align: right; font: 500 14px 'Geist Mono', ui-monospace, monospace">{{ r.vol }}</span>
+                <span role="cell" style="text-align: right; font: 500 14px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ r.holders }}</span>
+                <div role="cell" style="display: flex; align-items: center; gap: 6px; padding-left: 18px">
+                  <sc-if value="{{ r.hasSmart }}" hint-placeholder-val="{{ true }}">
+                    <span style="display: inline-flex">
+                      <span style="width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #FF9A4D, #E2445E); box-shadow: 0 0 0 2px #0D0F17"></span>
+                      <span style="width: 20px; height: 20px; margin-left: -6px; border-radius: 50%; background: linear-gradient(135deg, #46D9F2, #2D48F0); box-shadow: 0 0 0 2px #0D0F17"></span>
+                      <span style="width: 20px; height: 20px; margin-left: -6px; border-radius: 50%; background: linear-gradient(135deg, #3BDB98, #0B5E50); box-shadow: 0 0 0 2px #0D0F17"></span>
+                    </span>
+                    <span style="font: 600 12px 'Geist Mono', ui-monospace, monospace; color: #3FD8F0">{{ r.smartCount }}</span>
+                  </sc-if>
+                  <sc-if value="{{ r.noSmart }}" hint-placeholder-val="{{ false }}"><span style="color: #7E849B">—</span></sc-if>
+                </div>
+                <span role="cell" style="text-align: right; font: 600 14px 'Geist Mono', ui-monospace, monospace">{{ r.mcap }}</span>
+                <div role="cell" style="display: flex; justify-content: flex-end">
+                  <button type="button" aria-label="{{ r.quickLabel }}" style="height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px 0 8px; border-radius: 9px; background: rgba(140,123,255,0.14); border: 1px solid rgba(140,123,255,0.45); color: #B8ACFF; font: 600 12px 'Geist Mono', ui-monospace, monospace; cursor: pointer">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>{{ r.quick }}
+                  </button>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 16px; text-align: center">
+                <span style="font-size: 15px; font-weight: 600">No tokens match these filters</span>
+                <span style="font-size: 13px; color: #A2A7BE">Try another chain or launchpad, or clear the search.</span>
+                <button type="button" onClick="{{ resetFilters }}" style="height: 36px; padding: 0 14px; border-radius: 10px; background: #141723; border: 1px solid #2A2F42; color: #F3F4FA; font-size: 13px; font-weight: 600; cursor: pointer">Reset filters</button>
+              </div>
+            </sc-if>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 6px">
+              <span style="font-size: 12px; color: #7E849B">Showing {{ shown }} of 8,412 tokens · refreshes every 4s</span>
+              <button type="button" style="height: 40px; padding: 0 16px; border-radius: 12px; background: #141723; border: 1px solid #2A2F42; color: #F3F4FA; font-size: 14px; font-weight: 600; cursor: pointer">Load more</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 9px clamp(16px, 2vw, 24px); border-top: 1px solid #1B1F2D; background: #05060A; font-size: 12px; color: #7E849B">
+      <span style="display: inline-flex; align-items: center; gap: 6px; color: #36D68C; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #36D68C; animation: tk-pulse 2s ease-in-out infinite"></span>Live</span>
+      <span style="display: inline-flex; align-items: center; gap: 8px">Next sweep <span style="width: 64px; height: 4px; border-radius: 2px; background: #2A2F42; overflow: hidden"><span style="display: block; width: 62%; height: 100%; background: linear-gradient(90deg, #8C7BFF, #3FD8F0)"></span></span><span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">0:04</span></span>
+      <span>SOL <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">$182.40</span></span>
+      <span>ETH <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">$3,412</span></span>
+      <span>Robinhood Chain gas <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">0.02 gwei</span></span>
+      <span style="flex: 1 1 auto"></span>
+      <a href="#hot-title" style="color: #7E849B; text-decoration: none">Docs</a>
+      <a href="#hot-title" style="color: #7E849B; text-decoration: none">Status</a>
+      <a href="#hot-title" style="color: #7E849B; text-decoration: none">Terms</a>
+      <span>© 2026 Tonkpad.fun</span>
+    </footer>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'trending', tf: '24h', pad: 'all', chain: 'all', chainOpen: false, q: '' };
+    const spark = (seed, drift, vol) => {
+      let s = seed;
+      const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      let y = drift > 0 ? 0.28 : 0.72;
+      const n = 26, pts = [];
+      for (let i = 0; i < n; i++) {
+        y += (rnd() - 0.5) * vol + drift / n;
+        y = Math.min(0.92, Math.max(0.08, y));
+        pts.push([i * 96 / (n - 1), (1 - y) * 32]);
+      }
+      const f = (v) => v.toFixed(1);
+      let d = 'M' + f(pts[0][0]) + ' ' + f(pts[0][1]);
+      for (let i = 0; i < n - 1; i++) {
+        const a = pts[i - 1] || pts[i], b = pts[i], c = pts[i + 1], e = pts[i + 2] || c;
+        d += ' C' + f(b[0] + (c[0] - a[0]) / 6) + ' ' + f(b[1] + (c[1] - a[1]) / 6) + ' ' + f(c[0] - (e[0] - b[0]) / 6) + ' ' + f(c[1] - (e[1] - b[1]) / 6) + ' ' + f(c[0]) + ' ' + f(c[1]);
+      }
+      return { line: d, area: d + ' L96 32 L0 32 Z' };
+    };
+    this.SP = { upA: spark(11, 0.65, 0.22), upB: spark(29, 0.5, 0.34), downA: spark(7, -0.6, 0.24), downB: spark(53, -0.45, 0.36), vol: spark(97, 0.35, 0.55) };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const ART = {
+      GHOST: 'assets/tokens/ghost.svg', SCAT: 'assets/tokens/scat.svg', MOON: 'assets/tokens/moon.svg',
+      SHRM: 'assets/tokens/shrm.svg', ORB: 'assets/tokens/orb.svg', BOLT: 'assets/tokens/bolt.svg',
+      LUMEN: 'assets/tokens/lumen.svg', KITE: 'assets/tokens/kite.svg', MOCHI: 'assets/tokens/mochi.svg',
+      TIDE: 'assets/tokens/tide.svg'
+    };
+    const PAD = {
+      tonk: ['Tonkpad', 'T', '#8C7BFF', '#0B0A1A'], pons: ['Pons', 'Pn', '#2DD4BF', '#032A25'], pump: ['Pump.fun', 'P', '#3BE2A0', '#05261A'],
+      bonk: ['Bonk.fun', 'B', '#FF9B2F', '#2B1500'], bags: ['Bags', 'G', '#33C2FF', '#00243A'], moon: ['Moonshot', 'M', '#FFD24A', '#2B2000'], heaven: ['Heaven', 'H', '#FF7EC8', '#2E0A1F']
+    };
+    const LVL = { Safe: ['#36D68C', 'rgba(54,214,140,0.12)'], Caution: ['#FFB547', 'rgba(255,181,71,0.13)'], Risky: ['#FF5C74', 'rgba(255,92,116,0.12)'] };
+    const DATA = [
+      ['GHOST', 'Ghosty', 'rh', 'tonk', 0.84, 94, 'Safe', 'upA', '+412.6%', '$186K', '1,204', 5, '$58.2K', { hot: 1, locked: 1, crew: '2%', agent: 1 }, '0x7a3c…9f2e', '18d'],
+      ['SCAT', 'Sol Cat', 'sol', 'bonk', 1, 88, 'Safe', 'vol', '+96.4%', '$842K', '5,104', 3, '$1.18M', { og: 1, crew: '1%' }, '3mPq…Lw2c', '5d'],
+      ['ORB', 'Orbit', 'rh', 'tonk', 0.91, 90, 'Safe', 'upA', '+221.0%', '$148K', '988', 4, '$64.1K', { hot: 1, locked: 1, agent: 1 }, '0x2b81…c4d9', '26m'],
+      ['MOON', 'Moonboi', 'rh', 'pons', 1, 81, 'Safe', 'upB', '+38.2%', '$410K', '1,966', 2, '$864K', { crew: '0.5%' }, '0x9d0e…7a1b', '2d'],
+      ['SHRM', 'Shroomy', 'sol', 'bags', 0.58, 61, 'Caution', 'downA', '−12.4%', '$61K', '412', 0, '$37.4K', {}, 'Fq3z…T1aa', '1h'],
+      ['BOLT', 'Sparky', 'rh', 'tonk', 1, 58, 'Caution', 'upB', '+64.9%', '$190K', '902', 1, '$276K', { locked: 1, crew: '1%' }, '0x41f7…3e5d', '3d'],
+      ['LUMEN', 'Lumen', 'sol', 'pump', 0.33, 77, 'Safe', 'downB', '−8.1%', '$18K', '211', 0, '$21.3K', {}, 'Ar5t…eE2p', '6h'],
+      ['KITE', 'Kite', 'sol', 'heaven', 0.29, 23, 'Risky', 'upB', '+17.3%', '$12K', '158', 0, '$19.0K', {}, 'Zp0o…Mn4b', '52m'],
+      ['MOCHI', 'Mochi', 'rh', 'pons', 0.18, 54, 'Caution', 'vol', '+148.0%', '$9.4K', '97', 2, '$11.6K', { isNew: 1, agent: 1 }, '0xe85a…1b0c', '9m'],
+      ['TIDE', 'Tide', 'sol', 'tonk', 0.07, 72, 'Safe', 'upA', '+31.5%', '$2.1K', '41', 0, '$7.3K', { isNew: 1, locked: 1 }, 'Lk2j…Vv7x', '4m']
+    ];
+    const tok = (d, i) => {
+      const [tick, name, chain, pad, curve, score, lvl, trend, chg, vol, holders, smart, mcap, f, creator, age] = d;
+      const up = chg.charAt(0) === '+';
+      const p = PAD[pad];
+      return {
+        rank: i + 1, tick, name, art: ART[tick], chain, sol: chain === 'sol', rh: chain === 'rh',
+        chainName: chain === 'sol' ? 'Solana' : 'Robinhood Chain', chainDot: chain === 'sol' ? 'linear-gradient(135deg, #9945FF, #19FB9B)' : '#CCFF00',
+        pad, padName: p[0], padL: p[1], padBg: p[2], padFg: p[3],
+        onCurve: curve < 1, grad: curve >= 1, curveVal: curve, curveW: Math.round(curve * 100) + '%', curvePct: Math.round(curve * 100) + '%',
+        curveNote: Math.round(curve * 100) + '% curve', gradNote: age + ' ago',
+        score: String(score), scoreColor: LVL[lvl][0], scoreBg: LVL[lvl][1], risky: lvl === 'Risky', safeIcon: lvl !== 'Risky',
+        spark: this.SP[trend].line, area: this.SP[trend].area, sparkColor: up ? '#36D68C' : '#FF5C74', areaFill: up ? 'rgba(54,214,140,0.12)' : 'rgba(255,92,116,0.12)',
+        chg, chgColor: up ? '#36D68C' : '#FF5C74', chgNum: parseFloat(chg.replace('−', '-').replace('+', '').replace('%', '')),
+        vol, holders, hasSmart: smart > 0, noSmart: smart === 0, smartCount: '+' + smart, mcap,
+        hot: !!f.hot, og: !!f.og, isNew: !!f.isNew, locked: !!f.locked, crew: !!f.crew, crewPct: f.crew || '', agent: !!f.agent,
+        creator, age, quick: chain === 'sol' ? '0.5' : '0.01', quickLabel: 'Quick buy ' + (chain === 'sol' ? '0.5 SOL' : '0.01 ETH') + ' of ' + tick
+      };
+    };
+    const all = DATA.map(tok);
+    const byTick = {};
+    all.forEach((r) => { byTick[r.tick] = r; });
+
+    let rows = all.slice();
+    if (st.chain !== 'all') rows = rows.filter((r) => r.chain === st.chain);
+    if (st.pad !== 'all') rows = rows.filter((r) => r.pad === st.pad);
+    const q = (st.q || '').trim().toLowerCase();
+    if (q) rows = rows.filter((r) => (r.name + ' ' + r.tick).toLowerCase().indexOf(q) !== -1);
+    if (st.tab === 'new') rows = rows.filter((r) => r.isNew || /^\d+m$/.test(r.age));
+    if (st.tab === 'graduating') rows = rows.filter((r) => r.onCurve && r.curveVal >= 0.5);
+    if (st.tab === 'graduated') rows = rows.filter((r) => r.grad);
+    if (st.tab === 'gainers') rows = rows.slice().sort((a, b) => b.chgNum - a.chgNum);
+    if (st.tab === 'smart') rows = rows.filter((r) => r.hasSmart);
+    if (st.tab === 'locked') rows = rows.filter((r) => r.locked);
+    rows = rows.map((r, i) => Object.assign({}, r, { rank: i + 1 }));
+
+    const C2 = { GHOST: '#24186E', SCAT: '#7A2414', ORB: '#3A0E6C', MOON: '#0C1450', SHRM: '#07433C' };
+    const cards = ['GHOST', 'SCAT', 'ORB', 'MOON', 'SHRM'].map((k, i) => {
+      const r = byTick[k];
+      return Object.assign({}, r, { rank: i + 1, c2: C2[k], aria: r.name + ', market cap ' + r.mcap + ', ' + r.chg + ' in 24h' });
+    });
+
+    const tape = all.slice(0, 8).map((r) => ({ art: r.art, tick: r.tick, mcap: r.mcap, chg: r.chg, chgColor: r.chgColor }));
+
+    const rgba = (hex, a) => 'rgba(' + parseInt(hex.slice(1, 3), 16) + ',' + parseInt(hex.slice(3, 5), 16) + ',' + parseInt(hex.slice(5, 7), 16) + ',' + a + ')';
+    const BL = [['GHOST', -64, 0.6, 36, '+412%', '#7B66FF', 'right'], ['ORB', 200, 0.5, 30, '+221%', '#C65BFF', 'left'], ['MOON', 125, 0.72, 28, '', '#3F5DFF', ''], ['SCAT', -18, 0.86, 26, '', '#FF9A4D', ''], ['BOLT', -112, 0.84, 24, '', '#27C8F2', ''], ['MOCHI', 62, 0.42, 24, '', '#FF8FD6', ''], ['TIDE', 20, 0.36, 22, '', '#46D9F2', '']];
+    const blips = BL.map(([k, a, d, s, lab, col, side]) => {
+      const x = 150 + d * 150 * Math.cos(a * Math.PI / 180), y = 150 + d * 150 * Math.sin(a * Math.PI / 180);
+      return {
+        tick: '$' + k, art: ART[k], left: (x - s / 2).toFixed(1) + 'px', top: (y - s / 2).toFixed(1) + 'px', size: s + 'px',
+        ping: !!lab, label: !!lab, labelText: lab, glow: rgba(col, 0.7), ring1: rgba(col, 0.45), ring2: rgba(col, 0.2),
+        labelLeft: (side === 'left' ? x - s / 2 - 118 : x + s / 2 + 10).toFixed(1) + 'px', labelTop: (y - 13).toFixed(1) + 'px'
+      };
+    });
+
+    const TABS = [['trending', 'Trending'], ['new', 'New pairs'], ['graduating', 'Graduating'], ['graduated', 'Graduated'], ['gainers', 'Gainers'], ['smart', 'Smart money'], ['locked', 'Locked Missions']];
+    const tabs = TABS.map(([id, label]) => {
+      const a = st.tab === id;
+      return { label, lock: id === 'locked', active: a, bg: a ? '#1A1E2C' : 'transparent', color: a ? '#F3F4FA' : '#A2A7BE', pick: () => this.setState({ tab: id }) };
+    });
+    const tfs = ['5m', '1h', '6h', '24h'].map((id) => {
+      const a = st.tf === id;
+      return { label: id, active: a, bg: a ? '#1A1E2C' : 'transparent', color: a ? '#F3F4FA' : '#A2A7BE', pick: () => this.setState({ tf: id }) };
+    });
+    const PADC = [['all', 'All launchpads', '8,412'], ['tonk', 'Tonkpad', '1,846'], ['pons', 'Pons', '624'], ['pump', 'Pump.fun', '3,904'], ['bonk', 'Bonk.fun', '1,022'], ['bags', 'Bags', '512'], ['moon', 'Moonshot', '304']];
+    const pads = PADC.map(([id, label, count]) => {
+      const a = st.pad === id;
+      const p = PAD[id];
+      return {
+        label, count, active: a, pick: () => this.setState({ pad: id }),
+        bg: a ? 'rgba(140,123,255,0.14)' : '#0D0F17', border: a ? 'rgba(140,123,255,0.55)' : '#1B1F2D', color: a ? '#F3F4FA' : '#A2A7BE',
+        hasMark: !!p, markL: p ? p[1] : '', markBg: p ? p[2] : 'transparent', markFg: p ? p[3] : '#000000', padLeft: p ? '8px' : '12px'
+      };
+    });
+    const CH = [['all', 'All Chains', '8,412'], ['sol', 'Solana', '5,941'], ['rh', 'Robinhood Chain', '2,471']];
+    const chains = CH.map(([id, label, count]) => ({
+      label, count, active: st.chain === id, bg: st.chain === id ? 'rgba(140,123,255,0.14)' : 'transparent',
+      sol: id !== 'rh', rh: id !== 'sol', rhShift: id === 'all' ? '-6px' : '0px',
+      pick: () => this.setState({ chain: id, chainOpen: false })
+    }));
+
+    return {
+      q: st.q, onSearch: (e) => this.setState({ q: e.target.value }),
+      tape, chainOpen: st.chainOpen, toggleChain: () => this.setState({ chainOpen: !st.chainOpen }), chains,
+      chainLabel: { all: 'All Chains', sol: 'Solana', rh: 'Robinhood Chain' }[st.chain], showSol: st.chain !== 'rh', showRh: st.chain !== 'sol',
+      blips, cards, tabs, tfs, pads, rows, noRows: rows.length === 0, shown: rows.length,
+      resetFilters: () => this.setState({ tab: 'trending', pad: 'all', chain: 'all', q: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>

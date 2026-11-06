@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# Personal Claude Code settings (shared project settings stay tracked)
+.claude/settings.local.json
+
+# The app's own ignores (node_modules, .next, test output…) live in web/.gitignore

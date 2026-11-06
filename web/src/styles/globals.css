@@ -1,0 +1,82 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./animations.css";
+
+/* Only the design tokens are available as colours. */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-input: var(--input);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-cta: var(--cta);
+  --color-on-cta: var(--on-cta);
+  --color-cyan: var(--cyan);
+  --color-pos: var(--pos);
+  --color-on-pos: var(--on-pos);
+  --color-neg: var(--neg);
+  --color-warn: var(--warn);
+  --color-gold: var(--gold);
+  --color-hot: var(--hot);
+  --color-locked: var(--locked);
+  --color-agent: var(--agent);
+  --color-track: var(--track);
+  --color-sweep: var(--sweep);
+  --color-card-ink: var(--card-ink);
+
+  --font-*: initial;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-bricolage), var(--font-geist), sans-serif;
+
+  --shadow-card: var(--elevation-card);
+  --shadow-panel: var(--elevation-panel);
+  --shadow-menu: var(--elevation-menu);
+  --shadow-cta: var(--elevation-cta);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--bg);
+    /* The reference has no line-height reset; keep the browser's "normal". */
+    line-height: normal;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  [role="option"],
+  [role="tab"] {
+    cursor: pointer;
+  }
+
+  input::placeholder {
+    color: var(--text-3);
+    opacity: 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--cta);
+    outline-offset: 2px;
+  }
+}

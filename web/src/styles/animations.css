@@ -1,0 +1,113 @@
+/* All motion lives here. Everything is switched off under prefers-reduced-motion
+   at the bottom of this file. The 6 s sweep clock is shared by .tk-sweep,
+   .tk-ping, .tk-blip and .tk-fill (see modules/shell/lib/sweep-clock.ts). */
+
+@keyframes tk-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tk-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(54, 214, 140, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(54, 214, 140, 0);
+  }
+}
+
+/* A ring grows out of the blip and fades in the first 600 ms of each 6 s sweep. */
+@keyframes tk-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.95;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+  }
+  10%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+/* The blip brightens as the leading edge passes, then settles. */
+@keyframes tk-blip {
+  0% {
+    filter: brightness(1.75) saturate(1.15);
+    animation-timing-function: ease-out;
+  }
+  10%,
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+}
+
+@keyframes tk-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes tk-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.tk-sweep {
+  animation: tk-sweep 6s linear infinite;
+}
+
+.tk-pulse {
+  animation: tk-pulse 2s ease-in-out infinite;
+}
+
+.tk-ping {
+  opacity: 0;
+  animation: tk-ping 6s linear infinite;
+}
+
+.tk-blip {
+  animation: tk-blip 6s linear infinite;
+}
+
+.tk-fill {
+  transform-origin: left center;
+  animation: tk-fill 6s linear infinite;
+}
+
+.tk-marquee {
+  animation: tk-marquee 40s linear infinite;
+}
+
+.tk-tape:hover .tk-marquee,
+.tk-tape:focus-within .tk-marquee {
+  animation-play-state: paused;
+}
+
+.tk-card {
+  box-shadow: var(--elevation-card);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tk-card:hover,
+.tk-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-card-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

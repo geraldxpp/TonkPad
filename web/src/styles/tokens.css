@@ -1,0 +1,44 @@
+/* Tonkpad.fun design tokens (dark theme only). Values come from CLAUDE.md and
+   design-reference/explore.dc.html. They are mapped into Tailwind in globals.css. */
+:root {
+  --bg: #07080d;
+  --bg-deep: #05060a;
+  --surface: #0d0f17;
+  --raised: #141723;
+  --input: #1a1e2c;
+  --line: #1b1f2d;
+  --line-strong: #2a2f42;
+
+  --text: #f3f4fa;
+  --text-2: #a2a7be;
+  --text-3: #7e849b;
+
+  --accent: #8c7bff;
+  --accent-text: #b8acff;
+  --cta: #a497ff;
+  --on-cta: #0b0a1a;
+  --cyan: #3fd8f0;
+  --pos: #36d68c;
+  --on-pos: #03150c;
+  --neg: #ff5c74;
+  --warn: #ffb547;
+  --gold: #f4c553;
+  --hot: #ff7a45;
+  --locked: #2ee0a1;
+  --agent: #8cc4ff;
+  --track: #262a3b;
+
+  /* Reference-only values that repeat across components */
+  --card-ink: #0a0b12;
+  --sweep: #c9c0ff;
+  --badge-on-alert: #1a0509;
+
+  --elevation-card: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+  --elevation-panel: 0 24px 48px -24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --elevation-menu: 0 24px 48px -16px rgba(0, 0, 0, 0.6);
+  --elevation-cta: 0 8px 28px -4px rgba(140, 123, 255, 0.45);
+  --elevation-card-hover: 0 0 0 1.5px rgba(140, 123, 255, 0.75), 0 18px 40px -12px rgba(140, 123, 255, 0.45);
+
+  --gradient-brand: linear-gradient(90deg, #8c7bff, #3fd8f0);
+  --gradient-headline: linear-gradient(90deg, #b8acff, #3fd8f0);
+}
