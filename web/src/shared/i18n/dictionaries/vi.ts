@@ -35,7 +35,7 @@ export const vi: Dictionary = {
     ticker: "Bảng giá trực tiếp",
     alerts: "Cảnh báo",
     connectWallet: "Kết nối ví",
-    connect: "Kết nối",
+    connect: "Kết nối ví",
   },
   chain: { all: "Tất cả chuỗi", menu: "Chuỗi" },
   prefs: {

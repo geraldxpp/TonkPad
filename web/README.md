@@ -96,8 +96,9 @@ returns typed mock data today and will call the API later.
 - **Phone layout (under 768 px).** The rail becomes a fixed seven-tab bar along
   the bottom (More opens the theme and language sheet); the top bar is one
   sticky row (logo, search, language, theme, alerts, wallet) with the ticker
-  under it. To fit every language on that row the wordmark waits until 640 px
-  and, under 375 px, the wallet button is icon-only; Mission Pick becomes a featured card with a
+  under it. Like Boxa, the bar uses compact 36 px buttons so "Connect wallet"
+  fits in full (languages whose phrase is longer show their short "Connect");
+  the wordmark waits until 640 px and, under 390 px, language is just a globe; Mission Pick becomes a featured card with a
   full-width Buy; Heating up is a swipeable row; the token list is a compact
   Token / Market cap / 24h / Quick buy list, and the chain filter joins its
   toolbar. Tablet and desktop keep the design exactly.

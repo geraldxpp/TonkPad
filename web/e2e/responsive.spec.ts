@@ -115,7 +115,7 @@ test.describe("under 768 px (phone layout)", () => {
     await expect(header.getByRole("button", { name: "Language: English" })).toBeVisible();
     await expect(header.getByRole("button", { name: "Switch to light theme" })).toBeVisible();
     await expect(header.getByRole("button", { name: "Alerts" })).toBeVisible();
-    await expect(header.getByRole("button", { name: "Connect wallet" })).toHaveText("Connect", { useInnerText: true });
+    await expect(header.getByRole("button", { name: "Connect wallet" })).toHaveText("Connect wallet", { useInnerText: true });
     await expect(header.getByRole("searchbox")).toBeHidden();
 
     await page.evaluate(() => window.scrollTo(0, 1800));

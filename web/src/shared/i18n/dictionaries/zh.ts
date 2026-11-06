@@ -36,7 +36,7 @@ export const zh: Dictionary = {
     ticker: "实时行情",
     alerts: "提醒",
     connectWallet: "连接钱包",
-    connect: "连接",
+    connect: "连接钱包",
   },
   chain: { all: "全部链", menu: "链" },
   prefs: {

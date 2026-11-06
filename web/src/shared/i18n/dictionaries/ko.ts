@@ -35,7 +35,7 @@ export const ko: Dictionary = {
     ticker: "실시간 시세",
     alerts: "알림",
     connectWallet: "지갑 연결",
-    connect: "연결",
+    connect: "지갑 연결",
   },
   chain: { all: "모든 체인", menu: "체인" },
   prefs: {

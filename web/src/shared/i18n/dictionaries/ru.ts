@@ -36,7 +36,7 @@ export const ru: Dictionary = {
     ticker: "Бегущая строка",
     alerts: "Алерты",
     connectWallet: "Подключить кошелёк",
-    connect: "Кошелёк",
+    connect: "Подключить",
   },
   chain: { all: "Все сети", menu: "Сети" },
   prefs: {

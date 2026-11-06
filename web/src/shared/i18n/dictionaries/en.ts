@@ -37,7 +37,8 @@ export const en = {
     ticker: "Live ticker",
     alerts: "Alerts",
     connectWallet: "Connect wallet",
-    connect: "Connect",
+    /** The phone label: the full phrase when it fits a 360 px top bar, else the verb. */
+    connect: "Connect wallet",
   },
   chain: { all: "All Chains", menu: "Chains" },
   prefs: {

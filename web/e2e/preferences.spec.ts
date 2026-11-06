@@ -209,6 +209,16 @@ test.describe("phone settings sheet", () => {
 test.describe("long languages on a 360 px phone", () => {
   test.use({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true });
 
+  test("English still says Connect wallet in full, with every top-bar button", async ({ page }) => {
+    await openExplore(page);
+    const header = page.getByRole("banner");
+    expect((await header.boundingBox())!.height).toBeLessThan(70);
+    await expect(header.getByRole("button", { name: "Connect wallet" })).toHaveText("Connect wallet", { useInnerText: true });
+    for (const name of ["Search", "Language: English", "Switch to light theme", "Alerts"]) {
+      await expect(header.getByRole("button", { name })).toBeVisible();
+    }
+  });
+
   for (const lang of ["de", "fr", "ru", "vi", "id"]) {
     test(`${lang}: one-row top bar, whole tab labels, no sideways scroll`, async ({ page }) => {
       await page.goto(`/${lang}`);

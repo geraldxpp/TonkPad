@@ -39,6 +39,8 @@ test("list tabs filter the table and write ?tab=", async ({ page }) => {
 
 test("ranks restart at 1 after filtering", async ({ page }) => {
   await page.getByRole("tab", { name: "Locked Missions" }).click();
+  // Wait for the filtered list before reading it (evaluateAll doesn't retry).
+  await expectShowing(page, 4);
   const ranks = await tokenRows(page).evaluateAll((rows) => rows.map((r) => r.firstElementChild?.textContent));
   expect(ranks).toEqual(["1", "2", "3", "4"]);
 });

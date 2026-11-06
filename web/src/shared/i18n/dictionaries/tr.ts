@@ -35,7 +35,7 @@ export const tr: Dictionary = {
     ticker: "Canlı fiyat bandı",
     alerts: "Uyarılar",
     connectWallet: "Cüzdan bağla",
-    connect: "Bağla",
+    connect: "Cüzdan bağla",
   },
   chain: { all: "Tüm ağlar", menu: "Ağlar" },
   prefs: {

@@ -35,7 +35,7 @@ export const ja: Dictionary = {
     ticker: "ライブティッカー",
     alerts: "通知",
     connectWallet: "ウォレット接続",
-    connect: "接続",
+    connect: "ウォレット接続",
   },
   chain: { all: "すべてのチェーン", menu: "チェーン" },
   prefs: {

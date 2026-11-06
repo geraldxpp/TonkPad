@@ -36,7 +36,7 @@ export const id: Dictionary = {
     ticker: "Ticker live",
     alerts: "Notifikasi",
     connectWallet: "Hubungkan dompet",
-    connect: "Dompet",
+    connect: "Hubungkan",
   },
   chain: { all: "Semua chain", menu: "Chain" },
   prefs: {
