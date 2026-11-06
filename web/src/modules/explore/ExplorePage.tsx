@@ -76,7 +76,7 @@ export async function ExplorePage({ searchParams }: ExplorePageProps) {
   return (
     <>
       <section aria-label={t.hero.overview} className="flex flex-wrap items-stretch gap-8 max-md:gap-6">
-        <Hero stats={data.stats} trackedToday={data.totalTokens} pick={data.missionPick} />
+        <Hero stats={data.stats} trackedToday={data.totalTokens} />
         <LiveScope blips={data.blips} scope={data.scope} />
       </section>
       <HeatingUp cards={data.heating} />

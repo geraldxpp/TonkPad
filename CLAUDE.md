@@ -44,6 +44,7 @@ Rules:
 - Every user-facing string, aria-label and title comes from the dictionaries: `await getI18n()` in Server Components, `useI18n()` in Client Components. Add each new key to `en.ts` and all eleven other languages (a unit test enforces matching keys and `{placeholders}`). Internal links go through `href()` so they keep the language. Names of tokens, chains and launchpads, tickers and numbers are not translated; numbers keep en-US formatting.
 - No `any`. Named exports. Keep files short (aim for under 200 lines).
 - Build only what the module prompt asks for. If something is unclear, ask instead of guessing.
+- The hero's featured coin (the reference's Mission Pick) is reserved for Tonkpad's own coin: until it launches it shows the emblem with "Coming soon" (owner's request). `MissionPick` stays for when the coin goes live.
 
 ## Design tokens
 The palette follows the Tonkpad logo: gunmetal steel surfaces, the electric blue of the chain glow and the green of the lock. It replaces the violet palette in `design-reference/` (changed at the owner's request); where the two differ, these values win.

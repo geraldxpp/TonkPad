@@ -31,7 +31,7 @@ export function ExploreLive({ initial, initialListUrl }: ExploreLiveProps) {
   return (
     <>
       <section aria-label={t.hero.overview} className="flex flex-wrap items-stretch gap-8 max-md:gap-6">
-        <Hero stats={overview.stats} trackedToday={overview.totalTokens} pick={overview.missionPick} />
+        <Hero stats={overview.stats} trackedToday={overview.totalTokens} />
         <LiveScope blips={overview.blips} scope={overview.scope} />
       </section>
       {overview.heating.length > 0 ? <HeatingUp cards={overview.heating} /> : null}

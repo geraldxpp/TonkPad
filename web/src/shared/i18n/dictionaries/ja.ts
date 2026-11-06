@@ -69,6 +69,11 @@ export const ja: Dictionary = {
     buy: "購入",
     buyToken: "{name} を購入",
   },
+  native: {
+    label: "ネイティブコイン",
+    soon: "近日公開",
+    title: "Tonkpad のネイティブコイン、近日公開",
+  },
   scope: {
     title: "ライブスコープ",
     sweeping: "{pads} +{more} をスキャン中",

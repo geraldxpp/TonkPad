@@ -70,6 +70,11 @@ export const pt: Dictionary = {
     buy: "Comprar",
     buyToken: "Comprar {name}",
   },
+  native: {
+    label: "Moeda nativa",
+    soon: "Em breve",
+    title: "Moeda nativa da Tonkpad, em breve",
+  },
   scope: {
     title: "Radar ao vivo",
     sweeping: "Varrendo {pads} +{more}",

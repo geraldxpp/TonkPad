@@ -70,6 +70,11 @@ export const ru: Dictionary = {
     buy: "Купить",
     buyToken: "Купить {name}",
   },
+  native: {
+    label: "Нативная монета",
+    soon: "Скоро",
+    title: "Нативная монета Tonkpad — скоро",
+  },
   scope: {
     title: "Радар",
     sweeping: "Сканирует {pads} +{more}",

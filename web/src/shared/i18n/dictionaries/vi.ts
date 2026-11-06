@@ -69,6 +69,11 @@ export const vi: Dictionary = {
     buy: "Mua",
     buyToken: "Mua {name}",
   },
+  native: {
+    label: "Coin gốc",
+    soon: "Sắp ra mắt",
+    title: "Coin gốc của Tonkpad, sắp ra mắt",
+  },
   scope: {
     title: "Radar trực tiếp",
     sweeping: "Đang quét {pads} +{more}",

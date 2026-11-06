@@ -5,17 +5,15 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatInteger } from "@/shared/lib/format";
 import type { ExploreData } from "../data/get-explore-data";
 import { HeroStats } from "./HeroStats";
-import { MissionPick } from "./MissionPick";
+import { NativeCoin } from "./NativeCoin";
 
 interface HeroProps {
   stats: ExploreData["stats"];
   trackedToday: number;
-  /** null while the live worker has no candidate yet. */
-  pick: ExploreData["missionPick"] | null;
 }
 
-/** Live pill, headline, subtitle, the four stats and the Mission Pick. */
-export function Hero({ stats, trackedToday, pick }: HeroProps) {
+/** Live pill, headline, subtitle, the four stats and the slot reserved for Tonkpad's coin. */
+export function Hero({ stats, trackedToday }: HeroProps) {
   const { t } = useI18n();
   return (
     <div className="flex min-w-0 flex-[999_1_480px] flex-col justify-center gap-6 max-md:gap-5">
@@ -34,7 +32,7 @@ export function Hero({ stats, trackedToday, pick }: HeroProps) {
         {t.hero.subtitle}
       </p>
       <HeroStats stats={stats} />
-      {pick ? <MissionPick token={pick.token} price={pick.price} updatedSecondsAgo={pick.updatedSecondsAgo} /> : null}
+      <NativeCoin />
     </div>
   );
 }

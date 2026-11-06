@@ -69,6 +69,11 @@ export const de: Dictionary = {
     buy: "Kaufen",
     buyToken: "{name} kaufen",
   },
+  native: {
+    label: "Nativer Coin",
+    soon: "Demnächst",
+    title: "Nativer Coin von Tonkpad, demnächst verfügbar",
+  },
   scope: {
     title: "Live-Radar",
     sweeping: "Scannt {pads} +{more}",

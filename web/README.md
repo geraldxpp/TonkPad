@@ -105,6 +105,10 @@ returns typed mock data; with the worker on, Explore loads through
   give `t` (the messages), `href()` (adds the language prefix to a link) and
   `lang`. Numbers, prices and tickers keep the design's en-US formatting.
   Unknown paths render a translated 404 inside the shell.
+- **Tonkpad's coin slot.** The hero's featured coin (Mission Pick in the
+  design) is reserved for Tonkpad's own coin: until it launches it shows the
+  emblem with "Coming soon" (`NativeCoin`). The worker still computes a
+  pick; `MissionPick` can show the coin's price and Buy once it's live.
 - **Heating up carousel.** A real scroll row that glides on its own
   (`hooks/useAutoScroll.ts`): the cards render three times and the position
   wraps by one copy for a seamless loop. Hover, keyboard focus, touch and the

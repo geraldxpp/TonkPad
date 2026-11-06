@@ -70,6 +70,11 @@ export const id: Dictionary = {
     buy: "Beli",
     buyToken: "Beli {name}",
   },
+  native: {
+    label: "Koin native",
+    soon: "Segera hadir",
+    title: "Koin native Tonkpad, segera hadir",
+  },
   scope: {
     title: "Radar live",
     sweeping: "Memindai {pads} +{more}",

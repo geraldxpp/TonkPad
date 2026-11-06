@@ -122,12 +122,13 @@ test.describe("under 768 px (phone layout)", () => {
     await expect.poll(async () => (await header.boundingBox())!.y).toBe(0);
   });
 
-  test("the hero stacks above Live scope and Mission Pick has a full-width Buy", async ({ page }) => {
+  test("the hero stacks above Live scope and the Tonkpad coin's Coming soon spans the card", async ({ page }) => {
     await openExplore(page);
-    const buy = await page.getByRole("link", { name: "Buy Ghosty" }).boundingBox();
+    const coin = page.getByRole("region", { name: "Tonkpad native coin, coming soon" });
+    const soon = await coin.getByText("Coming soon").boundingBox();
     const scope = await page.getByRole("region", { name: "Live scope" }).boundingBox();
-    expect(scope!.y).toBeGreaterThan(buy!.y);
-    expect(buy!.width).toBeGreaterThan(300);
+    expect(scope!.y).toBeGreaterThan(soon!.y);
+    expect(soon!.width).toBeGreaterThan(300);
   });
 
   test("Heating up is one swipeable row of cards", async ({ page }) => {

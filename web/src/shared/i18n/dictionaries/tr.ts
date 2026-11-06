@@ -69,6 +69,11 @@ export const tr: Dictionary = {
     buy: "Satın al",
     buyToken: "{name} satın al",
   },
+  native: {
+    label: "Yerel coin",
+    soon: "Çok yakında",
+    title: "Tonkpad’in yerel coin’i, çok yakında",
+  },
   scope: {
     title: "Canlı radar",
     sweeping: "Taranıyor: {pads} +{more}",

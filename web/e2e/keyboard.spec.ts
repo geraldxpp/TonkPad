@@ -40,7 +40,6 @@ test("every Tab stop shows the focus ring, and the key controls are all reachabl
     "All Chains", // the pill's text also holds its aria-hidden S/R marks
     "button:Alerts",
     "button:Connect wallet",
-    "a:Buy Ghosty",
     "button:1m",
     "button:View all",
     "button:Previous",

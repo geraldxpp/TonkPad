@@ -69,6 +69,11 @@ export const ko: Dictionary = {
     buy: "매수",
     buyToken: "{name} 매수",
   },
+  native: {
+    label: "네이티브 코인",
+    soon: "출시 예정",
+    title: "Tonkpad 네이티브 코인, 출시 예정",
+  },
   scope: {
     title: "라이브 스코프",
     sweeping: "{pads} +{more} 스캔 중",

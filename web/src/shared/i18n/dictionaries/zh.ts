@@ -70,6 +70,11 @@ export const zh: Dictionary = {
     buy: "买入",
     buyToken: "买入 {name}",
   },
+  native: {
+    label: "原生代币",
+    soon: "即将推出",
+    title: "Tonkpad 原生代币，即将推出",
+  },
   scope: {
     title: "实时雷达",
     sweeping: "正在扫描 {pads} +{more}",

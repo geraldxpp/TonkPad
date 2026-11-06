@@ -69,6 +69,11 @@ export const fr: Dictionary = {
     buy: "Acheter",
     buyToken: "Acheter {name}",
   },
+  native: {
+    label: "Jeton natif",
+    soon: "Bientôt disponible",
+    title: "Jeton natif de Tonkpad, bientôt disponible",
+  },
   scope: {
     title: "Radar en direct",
     sweeping: "Balayage de {pads} +{more}",

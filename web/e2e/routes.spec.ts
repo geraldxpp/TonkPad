@@ -31,7 +31,7 @@ test("Explore is the active rail item on /", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Alerts, 3 new" })).toBeVisible();
 });
 
-test("token cards, table names and the Mission Pick Buy link to /token/<TICKER>", async ({ page }) => {
+test("token cards and table names link to /token/<TICKER>", async ({ page }) => {
   await openExplore(page);
   await pauseCarousel(page);
   await page.getByRole("link", { name: /^Orbit, market cap/ }).click();
@@ -41,10 +41,6 @@ test("token cards, table names and the Mission Pick Buy link to /token/<TICKER>"
   await openExplore(page);
   await page.getByRole("table", { name: "Tokens" }).getByRole("link", { name: "Sol Cat" }).click();
   await expect(page).toHaveURL("/token/SCAT");
-
-  await openExplore(page);
-  await page.getByRole("link", { name: "Buy Ghosty" }).click();
-  await expect(page).toHaveURL("/token/GHOST");
   await expect(page.getByRole("heading", { level: 1, name: "Token Detail" })).toBeVisible();
 });
 

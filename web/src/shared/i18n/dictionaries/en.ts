@@ -72,6 +72,11 @@ export const en = {
     buy: "Buy",
     buyToken: "Buy {name}",
   },
+  native: {
+    label: "Native coin",
+    soon: "Coming soon",
+    title: "Tonkpad native coin, coming soon",
+  },
   scope: {
     title: "Live scope",
     sweeping: "Sweeping {pads} +{more}",
