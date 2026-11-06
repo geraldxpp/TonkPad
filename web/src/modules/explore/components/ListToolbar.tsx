@@ -1,5 +1,7 @@
 import { LayoutGrid, List, Lock, SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
+import { fmt } from "@/shared/i18n/config";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { Segmented } from "@/shared/ui/Segmented";
 import { type TabItem, Tabs } from "@/shared/ui/Tabs";
 import { type ExploreView, TABS, type TabId, type Timeframe, TIMEFRAMES } from "../lib/view";
@@ -7,11 +9,7 @@ import { type ExploreView, TABS, type TabId, type Timeframe, TIMEFRAMES } from "
 export const TOKEN_PANEL_ID = "token-panel";
 export const TOKEN_TAB_PREFIX = "token-tab";
 
-const TAB_ITEMS: readonly TabItem<TabId>[] = TABS.map((tab) =>
-  tab.id === "locked"
-    ? { ...tab, icon: <Lock size={13} strokeWidth={2.4} className="text-locked" /> }
-    : tab,
-);
+const LOCK_ICON = <Lock size={13} strokeWidth={2.4} className="text-locked" />;
 
 interface ListToolbarProps {
   view: ExploreView;
@@ -27,35 +25,41 @@ interface ListToolbarProps {
  * joins the timeframe, and the list/grid toggle is dropped.
  */
 export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListToolbarProps) {
+  const { t } = useI18n();
+  const tabs: readonly TabItem<TabId>[] = TABS.map((id) => ({
+    id,
+    label: t.tabs[id],
+    icon: id === "locked" ? LOCK_ICON : undefined,
+  }));
   return (
     <div className="flex flex-wrap items-center gap-3 max-md:gap-2">
       <Tabs
-        tabs={TAB_ITEMS}
+        tabs={tabs}
         value={view.tab}
         onChange={onTab}
-        label="Token lists"
+        label={t.tabs.label}
         panelId={TOKEN_PANEL_ID}
         idPrefix={TOKEN_TAB_PREFIX}
         className="max-lg:w-full max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden"
       />
       <span className="flex-[1_1_0] max-md:hidden" />
-      <Segmented options={TIMEFRAMES} value={view.tf} onChange={onTimeframe} label="Timeframe" />
+      <Segmented options={TIMEFRAMES} value={view.tf} onChange={onTimeframe} label={t.toolbar.timeframe} />
       {chainControl ? <div className="md:hidden">{chainControl}</div> : null}
       <button
         type="button"
-        aria-label="Filters, 2 active"
+        aria-label={fmt(t.toolbar.filtersActive, { count: 2 })}
         className="inline-flex h-10 items-center gap-2 rounded-xl border border-line-strong bg-raised pr-3 pl-3.5 text-[14px] font-semibold text-text max-md:ml-auto max-md:pl-3"
       >
         <SlidersHorizontal size={16} strokeWidth={1.8} />
-        <span className="max-md:sr-only">Filters</span>
+        <span className="max-md:sr-only">{t.toolbar.filters}</span>
         <span className="rounded-md bg-accent/14 px-1.5 py-px font-mono text-[12px] font-semibold text-accent-text">
           2
         </span>
       </button>
-      <div role="group" aria-label="View" className="flex gap-0.5 rounded-xl border border-line bg-surface p-1 max-md:hidden">
+      <div role="group" aria-label={t.toolbar.view} className="flex gap-0.5 rounded-xl border border-line bg-surface p-1 max-md:hidden">
         <button
           type="button"
-          aria-label="List view"
+          aria-label={t.toolbar.listView}
           aria-pressed="true"
           className="inline-flex size-8 items-center justify-center rounded-[9px] bg-input text-text"
         >
@@ -63,7 +67,7 @@ export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListTool
         </button>
         <button
           type="button"
-          aria-label="Grid view"
+          aria-label={t.toolbar.gridView}
           aria-pressed="false"
           className="inline-flex size-8 items-center justify-center rounded-[9px] bg-transparent text-text-3"
         >

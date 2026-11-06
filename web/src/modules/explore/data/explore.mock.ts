@@ -85,16 +85,17 @@ export const TOTAL_TOKENS = 8_412;
 export const CHAIN_COUNTS = { all: 8_412, sol: 5_941, rh: 2_471 } as const;
 
 export interface HeroStat {
+  /** Key of the label in the `hero` messages. */
+  id: "tokensToday" | "volume24h" | "launched5m" | "graduatedToday";
   value: number;
   kind: "count" | "usd";
-  label: string;
 }
 
 export const HERO_STATS: readonly HeroStat[] = [
-  { value: 8_412, kind: "count", label: "tokens today" },
-  { value: 41_800_000, kind: "usd", label: "24h volume" },
-  { value: 37, kind: "count", label: "launched · last 5m" },
-  { value: 212, kind: "count", label: "graduated today" },
+  { id: "tokensToday", value: 8_412, kind: "count" },
+  { id: "volume24h", value: 41_800_000, kind: "usd" },
+  { id: "launched5m", value: 37, kind: "count" },
+  { id: "graduatedToday", value: 212, kind: "count" },
 ];
 
 export const MISSION_PICK = { ticker: "GHOST", price: 0.0000582, updatedSecondsAgo: 12 } as const;

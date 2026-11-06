@@ -1,6 +1,8 @@
 import { Zap } from "lucide-react";
 import Link from "next/link";
 import { CHAINS } from "@/shared/config/chains";
+import { fmt } from "@/shared/i18n/config";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { formatAge, formatChange, formatInteger, formatUsdCompact } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/Badge";
@@ -41,6 +43,7 @@ const SMART = [
 ];
 
 export function TokenRow({ token }: { token: RankedToken }) {
+  const { t, href } = useI18n();
   const up = token.change24h >= 0;
   const { flags } = token;
   const quick = CHAINS[token.chain].quickBuy;
@@ -53,7 +56,7 @@ export function TokenRow({ token }: { token: RankedToken }) {
         <TokenAvatar art={token.art} pad={token.launchpad} />
         <span className="flex min-w-0 flex-col gap-[3px]">
           <span className="flex items-center gap-[5px] whitespace-nowrap">
-            <Link href={`/token/${token.ticker}`} className="text-[14px] font-semibold text-text">
+            <Link href={href(`/token/${token.ticker}`)} className="text-[14px] font-semibold text-text">
               {token.name}
             </Link>
             <span className="font-mono text-[12px] text-text-3">{token.ticker}</span>
@@ -75,7 +78,7 @@ export function TokenRow({ token }: { token: RankedToken }) {
           </span>
           <span className="flex items-center gap-1.5 font-mono text-[12px] whitespace-nowrap text-text-3">
             <ChainMark chain={token.chain} size={10} />
-            by {token.creator} · {formatAge(token.ageMinutes)}
+            {fmt(t.table.by, { creator: token.creator })} · {formatAge(token.ageMinutes)}
           </span>
         </span>
       </div>
@@ -117,7 +120,7 @@ export function TokenRow({ token }: { token: RankedToken }) {
         ) : (
           <span className="text-text-3">
             <span aria-hidden="true">—</span>
-            <span className="sr-only">None</span>
+            <span className="sr-only">{t.table.none}</span>
           </span>
         )}
       </div>
@@ -127,7 +130,7 @@ export function TokenRow({ token }: { token: RankedToken }) {
       <div role="cell" className="flex justify-end">
         <button
           type="button"
-          aria-label={`Quick buy ${quick.amount} ${quick.unit} of ${token.ticker}`}
+          aria-label={fmt(t.table.quickBuyLabel, { amount: quick.amount, unit: quick.unit, ticker: token.ticker })}
           className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] border border-accent/45 bg-accent/14 pr-2.5 pl-2 font-mono text-[12px] font-semibold text-accent-text"
         >
           <Zap size={13} fill="currentColor" stroke="none" />

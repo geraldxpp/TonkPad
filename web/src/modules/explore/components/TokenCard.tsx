@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { fmt } from "@/shared/i18n/config";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { formatAge, formatChange, formatUsdCompact } from "@/shared/lib/format";
 import type { Token } from "@/shared/types/token";
@@ -16,16 +20,21 @@ interface TokenCardProps {
   rank: number;
 }
 
-/** Art-led card that lifts 4 px with a violet ring on hover or focus. */
+/**
+ * Art-led card that lifts 4 px with a blue ring on hover or focus. The art
+ * tile stays dark in both themes (data-theme="dark" scopes the dark tokens).
+ */
 export function TokenCard({ token, color, rank }: TokenCardProps) {
+  const { t, href } = useI18n();
   const up = token.change24h >= 0;
   const mcap = formatUsdCompact(token.marketCap);
   const change = formatChange(token.change24h);
   const { flags } = token;
   return (
     <Link
-      href={`/token/${token.ticker}`}
-      aria-label={`${token.name}, market cap ${mcap}, ${change} in 24h`}
+      href={href(`/token/${token.ticker}`)}
+      aria-label={fmt(t.heating.cardLabel, { name: token.name, mcap, change })}
+      data-theme="dark"
       className="tk-card relative block h-[320px] w-[244px] flex-none overflow-hidden rounded-[22px] border border-white/8 text-white max-md:h-[296px] max-md:w-[172px] max-md:rounded-[20px]"
       style={{ background: `linear-gradient(180deg, ${color}, #0A0B0E)` }}
     >
@@ -68,12 +77,14 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
         {token.curve < 1 ? (
           <div className="flex items-center gap-2">
             <CurveBar value={token.curve} className="h-[5px] flex-auto" />
-            <span className="font-mono text-[12px] text-white/72">{Math.round(token.curve * 100)}% curve</span>
+            <span className="font-mono text-[12px] whitespace-nowrap text-white/72">
+              {fmt(t.heating.curve, { pct: Math.round(token.curve * 100) })}
+            </span>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <Badge kind="graduated" />
-            <span className="font-mono text-[12px] text-white/62">{formatAge(token.ageMinutes)} ago</span>
+            <span className="font-mono text-[12px] text-white/62">{fmt(t.heating.ago, { age: formatAge(token.ageMinutes) })}</span>
           </div>
         )}
       </div>

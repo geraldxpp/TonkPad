@@ -3,11 +3,12 @@
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { isChainId } from "@/shared/config/chains";
 import { cn } from "@/shared/lib/cn";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatInteger } from "@/shared/lib/format";
 import { ChainMark } from "@/shared/ui/ChainMark";
 import type { ChainFilterValue } from "../data/shell.mock";
 import { useUrlParams } from "../hooks/useUrlParams";
-import { CHAIN_OPTIONS, ChainTrigger } from "./ChainTrigger";
+import { CHAIN_OPTIONS, ChainTrigger, chainLabel } from "./ChainTrigger";
 
 interface ChainFilterProps {
   counts: Record<ChainFilterValue, number>;
@@ -23,10 +24,11 @@ interface ChainFilterProps {
  * Escape, Tab or a click outside. Focus returns to the pill after a pick.
  */
 export function ChainFilter({ counts, className, compact = false }: ChainFilterProps) {
+  const { t } = useI18n();
   const { params, setParams } = useUrlParams();
   const raw = params.get("chain");
   const value: ChainFilterValue = isChainId(raw) ? raw : "all";
-  const selected = Math.max(0, CHAIN_OPTIONS.findIndex((option) => option.id === value));
+  const selected = Math.max(0, CHAIN_OPTIONS.indexOf(value));
 
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(selected);
@@ -111,41 +113,41 @@ export function ChainFilter({ counts, className, compact = false }: ChainFilterP
         <div
           id={listId}
           role="listbox"
-          aria-label="Chains"
+          aria-label={t.chain.menu}
           className="absolute top-[46px] right-0 z-20 flex w-[240px] flex-col gap-0.5 rounded-[14px] border border-line-strong bg-raised p-1.5 shadow-menu"
         >
           {CHAIN_OPTIONS.map((option, index) => (
             <button
-              key={option.id}
+              key={option}
               ref={(node) => {
                 optionRefs.current[index] = node;
               }}
               type="button"
               role="option"
-              aria-selected={option.id === value}
+              aria-selected={option === value}
               tabIndex={index === active ? 0 : -1}
-              onClick={() => pick(option.id)}
+              onClick={() => pick(option)}
               onKeyDown={(event) => onOptionKeyDown(event, index)}
               className={cn(
                 "flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-left text-text",
-                option.id === value ? "bg-accent/14" : "bg-transparent",
+                option === value ? "bg-accent/14" : "bg-transparent",
               )}
             >
               <span className="inline-flex w-[34px]" aria-hidden="true">
-                {option.id !== "rh" ? <ChainMark chain="sol" size={18} letterSize={9} decorative /> : null}
-                {option.id !== "sol" ? (
+                {option !== "rh" ? <ChainMark chain="sol" size={18} letterSize={9} decorative /> : null}
+                {option !== "sol" ? (
                   <ChainMark
                     chain="rh"
                     size={18}
                     letterSize={9}
                     ring="var(--raised)"
                     decorative
-                    className={option.id === "all" ? "-ml-1.5" : undefined}
+                    className={option === "all" ? "-ml-1.5" : undefined}
                   />
                 ) : null}
               </span>
-              <span className="flex-auto text-[13px] font-medium">{option.label}</span>
-              <span className="font-mono text-[12px] text-text-3">{formatInteger(counts[option.id])}</span>
+              <span className="flex-auto text-[13px] font-medium">{chainLabel(option, t)}</span>
+              <span className="font-mono text-[12px] text-text-3">{formatInteger(counts[option])}</span>
             </button>
           ))}
         </div>

@@ -20,7 +20,8 @@ Tonkpad.fun is a token terminal for Solana and Robinhood Chain. It has five scre
 ## Code layout
 ```
 web/src/
-  app/                 routes only; each page file just renders its module
+  app/[lang]/          routes only, one tree per language; each page file just renders its module
+  proxy.ts             language routing: English unprefixed (/live), others prefixed (/es/live)
   modules/
     shell/             chrome every screen shares: AppShell, SideRail, TopBar, TickerTape, ChainFilter, StatusBar, Logo
     explore/           module 1: components/, hooks/, lib/, data/, tests
@@ -29,6 +30,7 @@ web/src/
     ui/                Badge, ChainMark, PadMark, TokenAvatar, ScorePill, CurveBar, Sparkline, Segmented, Tabs, Button, IconButton, Chip
     lib/               format.ts, seeded-random.ts, sparkline.ts, cn.ts
     config/            chains.ts, launchpads.ts
+    i18n/              config.ts (languages, path helpers), dictionaries/ (en.ts is the source), server.ts (getI18n), I18nProvider.tsx (useI18n)
     types/             token.ts and friends
   styles/              tokens.css, animations.css, globals.css
 web/public/tokens/     token art, copied from design-reference/assets/tokens
@@ -38,6 +40,7 @@ Rules:
 - A module owns its components, hooks, data and tests. Modules import from `shared/` and `modules/shell/` only, never from another module.
 - Components are presentational and typed; data comes in through props. Each module loads its data through one async function (Explore: `getExploreData()`) that returns typed mock data now and will call the real API later.
 - View state (filters, tabs, timeframe, search) lives in URL search params so any view can be shared.
+- Every user-facing string, aria-label and title comes from the dictionaries: `await getI18n()` in Server Components, `useI18n()` in Client Components. Add each new key to `en.ts` and all eleven other languages (a unit test enforces matching keys and `{placeholders}`). Internal links go through `href()` so they keep the language. Names of tokens, chains and launchpads, tickers and numbers are not translated; numbers keep en-US formatting.
 - No `any`. Named exports. Keep files short (aim for under 200 lines).
 - Build only what the module prompt asks for. If something is unclear, ask instead of guessing.
 
@@ -70,7 +73,25 @@ The palette follows the Tonkpad logo: gunmetal steel surfaces, the electric blue
 | --agent | #B8ACFF | token agent |
 | --track | #252A31 | empty progress track |
 
-Gradients (bonding curve, sweep bar) run --accent → --neon. Focus ring everywhere: 2px solid #4A9CF5 (--cta) with a 2px offset. Dark theme only for now.
+Gradients (bonding curve, sweep bar) run --accent → --neon. Focus ring everywhere: 2px solid --cta with a 2px offset (#4A9CF5 in dark).
+
+Dark is the default theme. Light is opt-in (top-bar sun/moon, the rail's Theme item, the More sheet), saved in localStorage, applied before first paint by an inline script, and defined in `tokens.css` under `:root[data-theme="light"]`:
+
+| Token | Light | | Token | Light |
+|---|---|---|---|---|
+| --bg | #F3F5F8 | | --accent | #2B74E4 |
+| --bg-deep | #EEF1F5 | | --accent-text | #1A5FC8 |
+| --surface | #FFFFFF | | --cta | #2468D6 (text #FFFFFF) |
+| --raised | #F1F3F6 | | --neon | #18A957 |
+| --input | #E2E7EE | | --pos, --locked | #08703A (Buy text #FFFFFF) |
+| --line | #E1E5EB | | --neg | #C42339 |
+| --line-strong | #CDD3DC | | --warn | #8A5A00 |
+| --text | #0D1117 | | --gold | #876200 |
+| --text-2 | #3F4754 | | --hot | #D4561C |
+| --text-3 | #5E6675 | | --agent | #5B47C9 |
+| --track | #DCE1E8 | | --cyan | #087A8F |
+
+Light text colours keep 4.5:1 on their backgrounds and tints. Token-card art tiles stay dark in both themes (`data-theme="dark"` on the card scopes the dark tokens). Never hard-code a theme colour; use a token, and the `light:` variant only where a token can't express the difference.
 
 ## Badges
 | Badge | Text | Background | Border | Icon |
@@ -103,14 +124,14 @@ These are original stand-ins (a letter on a colour). Never use the real logos.
 | Heaven | rounded square | #FF7EC8 | H, #2E0A1F |
 
 ## Icons (lucide-react)
-Compass (Explore), Radar (Live), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme), Ellipsis (More), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (Filters), List, LayoutGrid. The logo is the owner's emblem (`web/src/modules/shell/assets/tonkpad-logo.png`, the T in a chain ring with the green lock), rendered by the `Logo` component; it replaces the inline SVG in the reference.
+Compass (Explore), Radar (Live), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme; Moon while light), Ellipsis (More), Globe (Language), Check, X (Close), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (Filters), List, LayoutGrid. The logo is the owner's emblem (`web/src/modules/shell/assets/tonkpad-logo.png`, the T in a chain ring with the green lock), rendered by the `Logo` component; it replaces the inline SVG in the reference.
 
 ## Motion
 CSS keyframes live in `styles/animations.css`. Turn every animation and transition off under `prefers-reduced-motion: reduce`. No animation library unless a module prompt asks for one.
 
 ## Done means
 - Side by side with its reference screenshot at 1440 px wide, the screen matches (fonts may anti-alias a little differently).
-- No horizontal page scroll at 390 px wide.
+- No horizontal page scroll at 390 px wide, in both themes and in a long language (German, Russian).
 - `npm run lint`, `npm run typecheck`, `npm test` and `npm run test:e2e` all pass.
 - Every control works with the keyboard and shows the focus ring.
 - You report what you built, how to run it, anything you could not match, and screenshots of the result.

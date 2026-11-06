@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import type { ExploreData } from "../data/get-explore-data";
 import type { RankedToken } from "../lib/filter";
 import type { ExploreView, TabId, Timeframe } from "../lib/view";
@@ -24,9 +25,10 @@ export interface TokenListViewProps {
 
 /** Toolbar, launchpad chips and table for a given view. Purely presentational. */
 export function TokenListView(props: TokenListViewProps) {
+  const { t } = useI18n();
   const { rows, view } = props;
   return (
-    <section aria-label="All tokens" className="flex flex-col gap-3">
+    <section aria-label={t.table.all} className="flex flex-col gap-3">
       <ListToolbar
         view={view}
         onTab={props.onTab}

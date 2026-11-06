@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ChainTrigger } from "@/modules/shell/components/ChainTrigger";
+import { getI18n } from "@/shared/i18n/server";
 import { HeatingUp } from "./components/HeatingUp";
 import { Hero } from "./components/Hero";
 import { LiveScope } from "./components/LiveScope";
@@ -32,7 +33,7 @@ async function RequestTokenList({ searchParams, data }: { searchParams: SearchPa
  * streams in at request time; the static shell carries the default view.
  */
 export async function ExplorePage({ searchParams }: ExplorePageProps) {
-  const data = await getExploreData();
+  const [data, { t }] = await Promise.all([getExploreData(), getI18n()]);
   const list = {
     launchpads: data.launchpads,
     moreLaunchpads: data.moreLaunchpads,
@@ -48,9 +49,9 @@ export async function ExplorePage({ searchParams }: ExplorePageProps) {
   );
   return (
     <>
-      <section aria-label="Overview" className="flex flex-wrap items-stretch gap-8 max-md:gap-6">
+      <section aria-label={t.hero.overview} className="flex flex-wrap items-stretch gap-8 max-md:gap-6">
         <Hero stats={data.stats} trackedToday={data.totalTokens} pick={data.missionPick} />
-        <LiveScope blips={data.blips} subtitle={data.scopeSubtitle} />
+        <LiveScope blips={data.blips} scope={data.scope} />
       </section>
       <HeatingUp cards={data.heating} />
       <Suspense fallback={fallback}>

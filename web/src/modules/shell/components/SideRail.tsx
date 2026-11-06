@@ -8,7 +8,7 @@ interface SideRailProps {
   unreadAlerts: number;
 }
 
-/** Highlights the rail item for the current route. */
+/** Highlights the rail item for the current route, in any language. */
 export function SideRail({ unreadAlerts }: SideRailProps) {
   const pathname = usePathname();
   return <SideRailView activeId={activeNavId(pathname)} unreadAlerts={unreadAlerts} />;

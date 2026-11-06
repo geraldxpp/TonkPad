@@ -4,17 +4,10 @@ import type { ParamUpdates } from "@/shared/lib/url-params";
 import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
 
-export const TABS = [
-  { id: "trending", label: "Trending" },
-  { id: "new", label: "New pairs" },
-  { id: "graduating", label: "Graduating" },
-  { id: "graduated", label: "Graduated" },
-  { id: "gainers", label: "Gainers" },
-  { id: "smart", label: "Smart money" },
-  { id: "locked", label: "Locked Missions" },
-] as const;
+/** Token list tabs, in order. Each id is also its label's key in the `tabs` messages. */
+export const TABS = ["trending", "new", "graduating", "graduated", "gainers", "smart", "locked"] as const;
 
-export type TabId = (typeof TABS)[number]["id"];
+export type TabId = (typeof TABS)[number];
 
 export const TIMEFRAMES = [
   { id: "5m", label: "5m" },
@@ -40,7 +33,7 @@ interface ReadableParams {
   get(key: string): string | null;
 }
 
-const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
+const isTab = (v: string | null): v is TabId => TABS.some((t) => t === v);
 const isTimeframe = (v: string | null): v is Timeframe => TIMEFRAMES.some((t) => t.id === v);
 
 /** Reads the view from search params. Unknown or missing values fall back to defaults. */

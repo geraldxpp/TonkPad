@@ -1,8 +1,17 @@
-/* Tonkpad.fun design tokens (dark theme only), matched to the logo: gunmetal
-   steel surfaces, the electric blue of the chain glow and the green of the
-   lock. They are mapped into Tailwind in globals.css; the *-rgb channels feed
-   the translucent tints, e.g. rgb(var(--accent-rgb) / 0.14). */
-:root {
+/* Tonkpad.fun design tokens, matched to the logo: gunmetal steel surfaces, the
+   electric blue of the chain glow and the green of the lock. They are mapped
+   into Tailwind in globals.css; the *-rgb channels feed the translucent tints,
+   e.g. rgb(var(--accent-rgb) / 0.14).
+
+   Dark is the default. <html data-theme="light"> switches the page to the
+   light palette; any element marked data-theme="dark" (the token-card art
+   tiles) keeps the dark colours inside it. */
+
+/* ---- Colours: dark ---- */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
   /* Steel */
   --bg: #07080a;
   --bg-deep: #050607;
@@ -41,12 +50,73 @@
   --card-ink: #0a0b0e;
   --sweep: #a8d1ff;
   --badge-on-alert: #1a0509;
+  --scrim: rgba(2, 3, 4, 0.62);
 
+  --glow-accent: rgb(var(--accent-rgb) / 0.2);
+  --glow-neon: rgb(var(--neon-rgb) / 0.06);
+  --gradient-brand: linear-gradient(90deg, var(--accent), var(--neon));
+}
+
+/* ---- Colours: light ----
+   Text colours keep at least 4.5:1 on --bg, --bg-deep, --surface and their
+   own 12–14% tints; the blue, green and red are deepened for white. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f3f5f8;
+  --bg-deep: #eef1f5;
+  --surface: #ffffff;
+  --raised: #f1f3f6;
+  --input: #e2e7ee;
+  --line: #e1e5eb;
+  --line-strong: #cdd3dc;
+
+  --text: #0d1117;
+  --text-2: #3f4754;
+  --text-3: #5e6675;
+
+  --accent: #2b74e4;
+  --accent-rgb: 43 116 228;
+  --accent-text: #1a5fc8;
+  --cta: #2468d6;
+  --on-cta: #ffffff;
+
+  --neon: #18a957;
+  --neon-rgb: 24 169 87;
+  --pos: #08703a;
+  --on-pos: #ffffff;
+  --locked: #08703a;
+
+  --cyan: #087a8f;
+  --neg: #c42339;
+  --warn: #8a5a00;
+  --gold: #876200;
+  --hot: #d4561c;
+  --agent: #5b47c9;
+  --track: #dce1e8;
+
+  --sweep: #2468d6;
+  --badge-on-alert: #ffffff;
+  --scrim: rgba(15, 23, 42, 0.32);
+
+  --glow-accent: rgb(var(--accent-rgb) / 0.12);
+  --glow-neon: rgb(var(--neon-rgb) / 0.08);
+}
+
+/* ---- Elevation ----
+   Set on the page only, so the dark card tiles cast the page theme's shadow. */
+:root {
   --elevation-card: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
   --elevation-panel: 0 24px 48px -24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --elevation-menu: 0 24px 48px -16px rgba(0, 0, 0, 0.6);
   --elevation-cta: 0 8px 28px -4px rgb(var(--accent-rgb) / 0.45);
   --elevation-card-hover: 0 0 0 1.5px rgb(var(--accent-rgb) / 0.75), 0 18px 40px -12px rgb(var(--accent-rgb) / 0.45);
+}
 
-  --gradient-brand: linear-gradient(90deg, var(--accent), var(--neon));
+:root[data-theme="light"] {
+  --elevation-card: 0 18px 36px -22px rgba(16, 24, 40, 0.42);
+  --elevation-panel: 0 1px 2px rgba(16, 24, 40, 0.05), 0 16px 40px -24px rgba(16, 24, 40, 0.16);
+  --elevation-menu: 0 1px 3px rgba(16, 24, 40, 0.06), 0 24px 48px -16px rgba(16, 24, 40, 0.22);
+  --elevation-cta: 0 8px 22px -6px rgb(var(--accent-rgb) / 0.42);
+  --elevation-card-hover: 0 0 0 1.5px rgb(var(--accent-rgb) / 0.75), 0 18px 40px -14px rgb(var(--accent-rgb) / 0.32);
 }

@@ -2,6 +2,17 @@
 @import "./tokens.css";
 @import "./animations.css";
 
+/* `light:` styles apply while the light theme is on (e.g. light:hidden). */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/* Bricolage has no Cyrillic, and next/font's metric fallback (Arial) would
+   catch those glyphs first. On Russian pages, Cyrillic falls through to Geist's
+   heavy weights instead; Latin text (the wordmark, tickers) keeps Bricolage.
+   Unlayered, so it beats next/font's variable class. */
+html:lang(ru) {
+  --font-bricolage: "Bricolage Grotesque", var(--font-geist);
+}
+
 /* Only the design tokens are available as colours. */
 @theme inline {
   --color-*: initial;
@@ -54,8 +65,8 @@
 }
 
 @layer base {
+  /* color-scheme comes from the theme in tokens.css. */
   html {
-    color-scheme: dark;
     background: var(--bg);
     /* The reference has no line-height reset; keep the browser's "normal". */
     line-height: normal;
@@ -67,6 +78,11 @@
     color: var(--text);
     font-family: var(--font-sans);
     font-size: 14px;
+  }
+
+  /* Keep the page still behind the open Settings sheet. */
+  html:has(dialog[open]) {
+    overflow: hidden;
   }
 
   button:not(:disabled),

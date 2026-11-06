@@ -1,5 +1,8 @@
+"use client";
+
 import { Search } from "lucide-react";
 import type { ChangeEventHandler, Ref } from "react";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 
 interface SearchBoxProps {
@@ -15,6 +18,7 @@ export const SEARCH_BOX_ID = "tk-search-box";
 
 /** The search field's look. SearchField adds the URL, "/" and phone toggle behaviour. */
 export function SearchBox({ inputRef, defaultValue, onChange, open = false }: SearchBoxProps) {
+  const { t } = useI18n();
   return (
     <label
       id={SEARCH_BOX_ID}
@@ -26,12 +30,12 @@ export function SearchBox({ inputRef, defaultValue, onChange, open = false }: Se
       )}
     >
       <Search size={16} strokeWidth={2} />
-      <span className="sr-only">Search tokens</span>
+      <span className="sr-only">{t.header.search}</span>
       <input
         ref={inputRef}
         id={SEARCH_INPUT_ID}
         type="search"
-        placeholder="Search token, ticker or CA"
+        placeholder={t.header.searchPlaceholder}
         defaultValue={defaultValue}
         onChange={onChange}
         aria-keyshortcuts="/"

@@ -28,7 +28,8 @@ export interface ExploreData {
   totalTokens: number;
   stats: HeroStat[];
   missionPick: { token: Token; price: number; updatedSecondsAgo: number };
-  scopeSubtitle: string;
+  /** Launchpads named in the Live scope subtitle, and how many more it sweeps. */
+  scope: { pads: string[]; more: number };
 }
 
 function byTicker(ticker: string): Token {
@@ -49,6 +50,6 @@ export async function getExploreData(): Promise<ExploreData> {
     totalTokens: TOTAL_TOKENS,
     stats: [...HERO_STATS],
     missionPick: { ...MISSION_PICK, token: byTicker(MISSION_PICK.ticker) },
-    scopeSubtitle: `Sweeping ${SCOPE_PADS.map((id) => LAUNCHPADS[id].name).join(", ")} +${SCOPE_MORE}`,
+    scope: { pads: SCOPE_PADS.map((id) => LAUNCHPADS[id].name), more: SCOPE_MORE },
   };
 }

@@ -10,17 +10,17 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-/** Rail + main column + status bar on --bg, with the violet and cyan glows. */
+/** Rail + main column + status bar on --bg, with the blue and green glows. */
 export function AppShell({ data, children }: AppShellProps) {
   return (
     <div className="relative flex min-h-screen flex-wrap items-stretch overflow-clip bg-bg font-sans text-[14px] text-text">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[330px] -left-[120px] h-[820px] w-[1200px] bg-[radial-gradient(closest-side,rgb(var(--accent-rgb)/0.2),transparent)]"
+        className="pointer-events-none absolute -top-[330px] -left-[120px] h-[820px] w-[1200px] bg-[radial-gradient(closest-side,var(--glow-accent),transparent)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[280px] -right-[160px] h-[640px] w-[900px] bg-[radial-gradient(closest-side,rgb(var(--neon-rgb)/0.06),transparent)]"
+        className="pointer-events-none absolute -top-[280px] -right-[160px] h-[640px] w-[900px] bg-[radial-gradient(closest-side,var(--glow-neon),transparent)]"
       />
       <Suspense fallback={<SideRailView activeId={null} unreadAlerts={data.unreadAlerts} />}>
         <SideRail unreadAlerts={data.unreadAlerts} />

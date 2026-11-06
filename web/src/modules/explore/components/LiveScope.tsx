@@ -2,6 +2,8 @@
 
 import { type ReactNode, useState } from "react";
 import { SweepCountdown } from "@/modules/shell/components/SweepCountdown";
+import { fmt } from "@/shared/i18n/config";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { Segmented } from "@/shared/ui/Segmented";
 import type { ExploreData } from "../data/get-explore-data";
 import { Radar } from "./Radar";
@@ -16,7 +18,7 @@ type ScopeWindow = (typeof WINDOWS)[number]["id"];
 
 interface LiveScopeProps {
   blips: ExploreData["blips"];
-  subtitle: string;
+  scope: ExploreData["scope"];
 }
 
 function Legend({ color, children }: { color: string; children: ReactNode }) {
@@ -28,7 +30,8 @@ function Legend({ color, children }: { color: string; children: ReactNode }) {
   );
 }
 
-export function LiveScope({ blips, subtitle }: LiveScopeProps) {
+export function LiveScope({ blips, scope }: LiveScopeProps) {
+  const { t } = useI18n();
   // The window only switches the active pill for now; the data is static.
   const [scopeWindow, setScopeWindow] = useState<ScopeWindow>("5m");
   return (
@@ -39,20 +42,22 @@ export function LiveScope({ blips, subtitle }: LiveScopeProps) {
       <div className="flex flex-wrap items-center gap-2.5">
         <div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
           <h2 id="scope-title" className="m-0 text-[14px] font-semibold">
-            Live scope
+            {t.scope.title}
           </h2>
-          <span className="text-[12px] text-text-3">{subtitle}</span>
+          <span className="text-[12px] text-text-3">
+            {fmt(t.scope.sweeping, { pads: scope.pads.join(", "), more: scope.more })}
+          </span>
         </div>
-        <Segmented size="sm" label="Scope window" options={WINDOWS} value={scopeWindow} onChange={setScopeWindow} />
+        <Segmented size="sm" label={t.scope.window} options={WINDOWS} value={scopeWindow} onChange={setScopeWindow} />
       </div>
       <Radar blips={blips} />
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2 text-[12px] text-text-2">
-        <Legend color="var(--accent)">New</Legend>
-        <Legend color="#FF7A45">Heating up</Legend>
-        <Legend color="#F4C553">Graduating</Legend>
+        <Legend color="var(--accent)">{t.scope.new}</Legend>
+        <Legend color="var(--hot)">{t.scope.heating}</Legend>
+        <Legend color="var(--gold)">{t.scope.graduating}</Legend>
         <span className="flex-auto" />
         <span className="text-text-3">
-          Next sweep <SweepCountdown className="font-mono text-[12px] font-semibold text-accent-text" />
+          {t.scope.nextSweep} <SweepCountdown className="font-mono text-[12px] font-semibold text-accent-text" />
         </span>
       </div>
     </section>

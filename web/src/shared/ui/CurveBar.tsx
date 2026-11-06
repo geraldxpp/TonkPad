@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 
 interface CurveBarProps {
@@ -7,13 +10,14 @@ interface CurveBarProps {
   className?: string;
 }
 
-/** Bonding-curve progress: violet-to-cyan fill on the empty track colour. */
+/** Bonding-curve progress: blue-to-green fill on the empty track colour. */
 export function CurveBar({ value, className }: CurveBarProps) {
+  const { t } = useI18n();
   const pct = Math.round(Math.min(1, Math.max(0, value)) * 100);
   return (
     <span
       role="meter"
-      aria-label="Bonding curve"
+      aria-label={t.table.curve}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={pct}

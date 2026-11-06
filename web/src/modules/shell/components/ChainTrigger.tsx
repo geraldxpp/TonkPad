@@ -1,17 +1,19 @@
+"use client";
+
 import { ChevronDown } from "lucide-react";
 import type { ButtonHTMLAttributes, Ref } from "react";
+import { CHAINS } from "@/shared/config/chains";
+import type { Dictionary } from "@/shared/i18n/dictionaries/en";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { ChainMark } from "@/shared/ui/ChainMark";
 import type { ChainFilterValue } from "../data/shell.mock";
 
-export const CHAIN_OPTIONS: ReadonlyArray<{ id: ChainFilterValue; label: string }> = [
-  { id: "all", label: "All Chains" },
-  { id: "sol", label: "Solana" },
-  { id: "rh", label: "Robinhood Chain" },
-];
+export const CHAIN_OPTIONS: readonly ChainFilterValue[] = ["all", "sol", "rh"];
 
-export function chainLabel(value: ChainFilterValue): string {
-  return CHAIN_OPTIONS.find((option) => option.id === value)?.label ?? "All Chains";
+/** "All Chains" in the page's language; chain names are never translated. */
+export function chainLabel(value: ChainFilterValue, t: Dictionary): string {
+  return value === "all" ? t.chain.all : CHAINS[value].name;
 }
 
 interface ChainTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -23,6 +25,7 @@ interface ChainTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /** The chain pill: stacked S and R marks, the current label and a chevron. */
 export function ChainTrigger({ value, buttonRef, compact = false, ...rest }: ChainTriggerProps) {
+  const { t } = useI18n();
   return (
     <button
       ref={buttonRef}
@@ -48,7 +51,7 @@ export function ChainTrigger({ value, buttonRef, compact = false, ...rest }: Cha
         ) : null}
       </span>
       <span className={cn("text-[13px] font-semibold whitespace-nowrap", compact && "sr-only")}>
-        {chainLabel(value)}
+        {chainLabel(value, t)}
       </span>
       <ChevronDown size={14} strokeWidth={2} className="text-text-2" />
     </button>

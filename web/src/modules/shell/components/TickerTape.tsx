@@ -8,6 +8,11 @@ interface TickerTapeProps {
   className?: string;
 }
 
+interface TickerTapeLabelProps extends TickerTapeProps {
+  /** Accessible name of the marquee ("Live ticker"). */
+  label: string;
+}
+
 function TapeRun({ items, hidden }: TickerTapeProps & { hidden?: boolean }) {
   return (
     <div className="flex flex-none items-center gap-[22px] pr-[22px]" aria-hidden={hidden} inert={hidden}>
@@ -29,11 +34,11 @@ function TapeRun({ items, hidden }: TickerTapeProps & { hidden?: boolean }) {
  * Right-to-left marquee. The list renders twice and slides by -50% for a
  * seamless loop; hover or keyboard focus pauses it. The edges fade out.
  */
-export function TickerTape({ items, className }: TickerTapeProps) {
+export function TickerTape({ items, label, className }: TickerTapeLabelProps) {
   return (
     <div
       role="marquee"
-      aria-label="Live ticker"
+      aria-label={label}
       tabIndex={0}
       className={cn("tk-tape h-10 min-w-0 flex-[999_1_260px] rounded-lg", className)}
     >

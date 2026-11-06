@@ -1,5 +1,8 @@
+"use client";
+
 import { Search } from "lucide-react";
 import type { Ref } from "react";
+import { useI18n } from "@/shared/i18n/I18nProvider";
 import { IconButton } from "@/shared/ui/IconButton";
 import { SEARCH_BOX_ID } from "./SearchBox";
 
@@ -13,10 +16,11 @@ interface SearchToggleProps {
 
 /** Phones only: the magnifier that opens the search row under the top bar. */
 export function SearchToggle({ open, active = false, onToggle, buttonRef }: SearchToggleProps) {
+  const { t } = useI18n();
   return (
     <IconButton
       ref={buttonRef}
-      label="Search"
+      label={t.header.searchToggle}
       size={40}
       aria-expanded={open}
       aria-controls={SEARCH_BOX_ID}

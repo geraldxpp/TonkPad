@@ -10,40 +10,48 @@ import {
   Sun,
   Wallet,
 } from "lucide-react";
+import { splitLocale } from "@/shared/i18n/config";
+
+/** Rail items; each id is also its label's key in the `nav` messages. */
+export type NavId = "explore" | "live" | "bridge" | "portfolio" | "alerts" | "launch" | "docs" | "theme" | "more";
 
 export interface NavItem {
-  id: string;
-  label: string;
+  id: NavId;
   icon: LucideIcon;
-  /** Items without an href are UI-only buttons for now. */
+  /** Unprefixed app path; items without one are buttons (Alerts, Theme, More). */
   href?: string;
   /**
    * Left out of the phone tab bar: Alerts lives on the header bell there and
-   * Theme is UI-only, which keeps the bar to seven tabs.
+   * Theme sits in the More sheet, which keeps the bar to seven tabs.
    */
   hideOnMobile?: boolean;
 }
 
 export const MAIN_NAV: readonly NavItem[] = [
-  { id: "explore", label: "Explore", icon: Compass, href: "/" },
-  { id: "live", label: "Live", icon: Radar, href: "/live" },
-  { id: "bridge", label: "Bridge", icon: ArrowRightLeft, href: "/bridge" },
-  { id: "portfolio", label: "Portfolio", icon: Wallet, href: "/portfolio" },
-  { id: "alerts", label: "Alerts", icon: Bell, hideOnMobile: true },
-  { id: "launch", label: "Launch", icon: Rocket, href: "/launch" },
-  { id: "docs", label: "Docs", icon: BookOpen, href: "/docs" },
+  { id: "explore", icon: Compass, href: "/" },
+  { id: "live", icon: Radar, href: "/live" },
+  { id: "bridge", icon: ArrowRightLeft, href: "/bridge" },
+  { id: "portfolio", icon: Wallet, href: "/portfolio" },
+  { id: "alerts", icon: Bell, hideOnMobile: true },
+  { id: "launch", icon: Rocket, href: "/launch" },
+  { id: "docs", icon: BookOpen, href: "/docs" },
 ];
 
 export const UTILITY_NAV: readonly NavItem[] = [
-  { id: "theme", label: "Theme", icon: Sun, hideOnMobile: true },
-  { id: "more", label: "More", icon: Ellipsis },
+  { id: "theme", icon: Sun, hideOnMobile: true },
+  { id: "more", icon: Ellipsis },
 ];
 
-/** The rail item that matches a pathname. Token pages highlight nothing. */
-export function activeNavId(pathname: string): string | null {
+/**
+ * The rail item that matches a pathname, in any language ("/es/live" → live).
+ * The prerendered English pages see "/en/…", the browser "/…"; both match.
+ * Token pages highlight nothing.
+ */
+export function activeNavId(pathname: string): NavId | null {
+  const { path } = splitLocale(pathname);
   for (const item of MAIN_NAV) {
     if (!item.href) continue;
-    if (item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`)) {
+    if (item.href === "/" ? path === "/" : path === item.href || path.startsWith(`${item.href}/`)) {
       return item.id;
     }
   }

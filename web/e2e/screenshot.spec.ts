@@ -33,3 +33,47 @@ test.describe("phone screens at 390 px", () => {
     });
   }
 });
+
+test.describe("light theme and other languages", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("tonkpad-theme", "light"));
+  });
+
+  test("full-page screenshot at 1440 px, light", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openExplore(page);
+    await page.screenshot({ path: "e2e/screenshots/explore-1440-light.png", fullPage: true });
+  });
+
+  test("top of the page at 1440 px in Spanish, light", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/es");
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
+    await page.screenshot({ path: "e2e/screenshots/explore-1440-es-light.png" });
+  });
+
+  test.describe("phone", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+
+    test("phone: top, light", async ({ page }) => {
+      await openExplore(page);
+      await page.screenshot({ path: "e2e/screenshots/explore-390-light-top.png" });
+    });
+
+    test("phone: settings sheet", async ({ page }) => {
+      await openExplore(page);
+      await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "More" }).tap();
+      await page.getByRole("dialog", { name: "Settings" }).waitFor();
+      await page.screenshot({ path: "e2e/screenshots/explore-390-settings.png" });
+    });
+
+    test("phone: German, dark", async ({ page }) => {
+      await page.addInitScript(() => localStorage.setItem("tonkpad-theme", "dark"));
+      await page.goto("/de");
+      await page.waitForLoadState("networkidle");
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({ path: "e2e/screenshots/explore-390-de.png" });
+    });
+  });
+});
