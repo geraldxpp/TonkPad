@@ -31,7 +31,7 @@ export function TokenRowCompact({ token }: { token: RankedToken }) {
             {token.flags.locked ? (
               <span
                 title="Locked"
-                className="inline-flex size-[18px] flex-none items-center justify-center rounded-md border border-[rgba(20,208,143,0.38)] bg-[rgba(20,208,143,0.14)] text-locked"
+                className="inline-flex size-[18px] flex-none items-center justify-center rounded-md border border-locked/38 bg-locked/14 text-locked"
               >
                 <Lock size={10} strokeWidth={2.8} role="img" aria-label="Locked" />
               </span>
@@ -56,7 +56,7 @@ export function TokenRowCompact({ token }: { token: RankedToken }) {
           type="button"
           aria-label={`Quick buy ${quick.amount} ${quick.unit} of ${token.ticker}`}
           title={`Quick buy ${quick.amount} ${quick.unit}`}
-          className="inline-flex size-8 items-center justify-center rounded-full border border-[rgba(140,123,255,0.45)] bg-[rgba(140,123,255,0.14)] text-accent-text"
+          className="inline-flex size-8 items-center justify-center rounded-full border border-accent/45 bg-accent/14 text-accent-text"
         >
           <Zap size={14} fill="currentColor" stroke="none" />
         </button>

@@ -57,6 +57,18 @@ returns typed mock data today and will call the API later.
   sweep's leading edge takes to reach its blip.
 - **Reduced motion.** `prefers-reduced-motion: reduce` turns every animation and
   transition off; the countdown shows a static `0:04`.
+- **Palette.** Matched to the logo: gunmetal steel surfaces, electric blue
+  (`--accent`) from the chain glow and green (`--neon`) from the lock. Tints
+  use the `--accent-rgb` / `--neon-rgb` channels, so a retheme is a
+  `tokens.css` change.
+- **Heating up carousel.** A real scroll row that glides on its own
+  (`hooks/useAutoScroll.ts`): the cards render three times and the position
+  wraps by one copy for a seamless loop. Hover, keyboard focus, touch and the
+  wheel pause it; Previous/Next step one card; reduced motion keeps it still.
+- **Token table tiers.** All 11 columns from 1440 px; Holders and Smart
+  money drop below that, Bonding curve and Volume below 1280 px, Mission
+  score and Last 24h below 1024 px. It never scrolls sideways, and Market cap
+  and Quick buy are always on screen. The page fills wide screens.
 - **Phone layout (under 768 px).** The rail becomes a fixed seven-tab bar along
   the bottom; the top bar is one sticky row (logo, search toggle, alerts,
   wallet) with the ticker under it; Mission Pick becomes a featured card with a

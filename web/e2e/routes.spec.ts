@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openExplore } from "./helpers";
+import { openExplore, pauseCarousel } from "./helpers";
 
 const RAIL = [
   ["Live", "/live", "Live"],
@@ -33,6 +33,7 @@ test("Explore is the active rail item on /", async ({ page }) => {
 
 test("token cards, table names and the Mission Pick Buy link to /token/<TICKER>", async ({ page }) => {
   await openExplore(page);
+  await pauseCarousel(page);
   await page.getByRole("link", { name: /^Orbit, market cap/ }).click();
   await expect(page).toHaveURL("/token/ORB");
   await expect(page.getByText("$ORB", { exact: true }).filter({ visible: true })).toBeVisible();

@@ -24,6 +24,7 @@
   --color-cta: var(--cta);
   --color-on-cta: var(--on-cta);
   --color-cyan: var(--cyan);
+  --color-neon: var(--neon);
   --color-pos: var(--pos);
   --color-on-pos: var(--on-pos);
   --color-neg: var(--neg);
@@ -45,6 +46,11 @@
   --shadow-panel: var(--elevation-panel);
   --shadow-menu: var(--elevation-menu);
   --shadow-cta: var(--elevation-cta);
+}
+
+/* 1440 px, between xl (1280) and 2xl (1536): where the token table shows all 11 columns. */
+@theme {
+  --breakpoint-wide: 90rem;
 }
 
 @layer base {

@@ -27,7 +27,7 @@ interface TopBarProps {
 export function TopBar({ data }: TopBarProps) {
   return (
     <>
-      <header className="relative z-[5] flex flex-wrap items-center gap-3 border-b border-line bg-[rgba(7,8,13,0.86)] px-[clamp(16px,2vw,24px)] py-3 max-md:sticky max-md:top-0 max-md:z-30 max-md:gap-2 max-md:py-2.5 max-md:backdrop-blur-md">
+      <header className="relative z-[5] flex flex-wrap items-center gap-3 border-b border-line bg-bg/86 px-[clamp(16px,2vw,24px)] py-3 max-md:sticky max-md:top-0 max-md:z-30 max-md:gap-2 max-md:py-2.5 max-md:backdrop-blur-md">
         <MobileBrand />
         <Suspense
           fallback={
@@ -51,7 +51,7 @@ export function TopBar({ data }: TopBarProps) {
         </Suspense>
         <IconButton label="Alerts" size={40}>
           <Bell size={18} strokeWidth={1.8} />
-          <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_#0D0F17]" />
+          <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)]" />
         </IconButton>
         <Button variant="cta" size="md" aria-label="Connect wallet" className="max-md:px-3">
           <Wallet size={16} strokeWidth={2} />

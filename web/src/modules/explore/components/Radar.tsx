@@ -25,7 +25,7 @@ export function Radar({ blips }: RadarProps) {
       <div
         aria-hidden="true"
         data-testid="radar-sweep"
-        className="tk-sweep absolute top-0 left-0 size-[300px] rounded-full [background:conic-gradient(from_40deg,rgba(140,123,255,0)_0deg,rgba(140,123,255,0)_276deg,rgba(140,123,255,0.42)_360deg)]"
+        className="tk-sweep absolute top-0 left-0 size-[300px] rounded-full [background:conic-gradient(from_40deg,transparent_0deg,transparent_276deg,rgb(var(--accent-rgb)/0.42)_360deg)]"
       >
         <div className="absolute top-0 left-[149.2px] h-[150px] w-[1.6px] origin-bottom rotate-[40deg] bg-sweep" />
       </div>

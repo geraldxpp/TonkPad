@@ -26,8 +26,8 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
     <Link
       href={`/token/${token.ticker}`}
       aria-label={`${token.name}, market cap ${mcap}, ${change} in 24h`}
-      className="tk-card relative block h-[320px] overflow-hidden rounded-[22px] border border-white/8 text-white max-md:h-[296px] max-md:w-[172px] max-md:flex-none max-md:snap-start max-md:rounded-[20px]"
-      style={{ background: `linear-gradient(180deg, ${color}, #0A0B12)` }}
+      className="tk-card relative block h-[320px] w-[244px] flex-none overflow-hidden rounded-[22px] border border-white/8 text-white max-md:h-[296px] max-md:w-[172px] max-md:rounded-[20px]"
+      style={{ background: `linear-gradient(180deg, ${color}, #0A0B0E)` }}
     >
       <Image
         src={token.art}
@@ -37,11 +37,11 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
         loading="eager"
         className="absolute -top-[10px] left-0 aspect-square w-full object-cover"
       />
-      <div className="absolute inset-x-0 bottom-0 h-[214px] bg-[linear-gradient(180deg,rgba(10,11,18,0),rgba(10,11,18,0.86)_46%,#0A0B12)]" />
-      <span className="absolute top-3 left-3 rounded-lg bg-[rgba(5,6,10,0.55)] px-2 py-1 font-mono text-[12px] font-semibold">
+      <div className="absolute inset-x-0 bottom-0 h-[214px] bg-[linear-gradient(180deg,rgba(10,11,14,0),rgba(10,11,14,0.86)_46%,#0A0B0E)]" />
+      <span className="absolute top-3 left-3 rounded-lg bg-bg-deep/55 px-2 py-1 font-mono text-[12px] font-semibold">
         #{rank}
       </span>
-      <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-lg bg-[rgba(5,6,10,0.55)] p-1">
+      <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-lg bg-bg-deep/55 p-1">
         <ChainMark chain={token.chain} size={16} />
         <PadMark pad={token.launchpad} />
       </span>

@@ -6,7 +6,7 @@ interface Stop {
   ring: boolean;
 }
 
-/** Tabs through the page and records whether each stop shows the 2 px #A497FF ring. */
+/** Tabs through the page and records whether each stop shows the 2 px focus ring. */
 test("every Tab stop shows the focus ring, and the key controls are all reachable", async ({ page }) => {
   await openExplore(page);
   const stops: Stop[] = [];
@@ -18,7 +18,7 @@ test("every Tab stop shows the focus ring, and the key controls are all reachabl
       // The search input draws its ring on the surrounding label.
       const target = el.matches("input[type=search]") ? (el.closest("label") as HTMLElement) : el;
       const s = getComputedStyle(target);
-      const ring = s.outlineStyle === "solid" && s.outlineWidth === "2px" && s.outlineColor === "rgb(164, 151, 255)";
+      const ring = s.outlineStyle === "solid" && s.outlineWidth === "2px" && s.outlineColor === "rgb(74, 156, 245)";
       const label = el.getAttribute("aria-label") ?? el.textContent?.trim().replace(/\s+/g, " ").slice(0, 40) ?? el.tagName;
       return { label: `${el.tagName.toLowerCase()}:${label}`, ring };
     });

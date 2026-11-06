@@ -15,16 +15,16 @@ interface BadgeProps {
 
 const BORDERED = {
   locked: {
-    default: "text-locked bg-[rgba(20,208,143,0.14)] border-[rgba(20,208,143,0.38)]",
-    card: "text-locked bg-[rgba(20,208,143,0.16)] border-[rgba(20,208,143,0.42)]",
+    default: "text-locked bg-locked/14 border-locked/38",
+    card: "text-locked bg-locked/16 border-locked/42",
   },
   crew: {
-    default: "text-gold bg-[rgba(140,123,255,0.16)] border-[rgba(244,197,83,0.38)]",
-    card: "text-gold bg-[rgba(140,123,255,0.2)] border-[rgba(244,197,83,0.42)]",
+    default: "text-gold bg-accent/16 border-[rgba(244,197,83,0.38)]",
+    card: "text-gold bg-accent/20 border-[rgba(244,197,83,0.42)]",
   },
   agent: {
-    default: "text-agent bg-[rgba(90,169,255,0.14)] border-[rgba(90,169,255,0.38)]",
-    card: "text-agent bg-[rgba(90,169,255,0.16)] border-[rgba(90,169,255,0.42)]",
+    default: "text-agent bg-agent/14 border-agent/38",
+    card: "text-agent bg-agent/16 border-agent/42",
   },
 } as const;
 
@@ -49,7 +49,7 @@ export function Badge({ kind, value, tone = "default", density = "comfortable" }
       );
     case "new":
       return (
-        <span className={cn(BASE, right, "gap-[3px] bg-[rgba(140,123,255,0.14)] text-accent-text")}>
+        <span className={cn(BASE, right, "gap-[3px] bg-accent/14 text-accent-text")}>
           <Zap size={11} fill="currentColor" stroke="none" />
           New
         </span>

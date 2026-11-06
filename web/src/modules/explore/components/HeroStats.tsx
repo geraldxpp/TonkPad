@@ -6,10 +6,13 @@ interface HeroStatsProps {
   stats: readonly HeroStat[];
 }
 
-/** The four headline numbers. Under 768 px they tighten into one four-column strip. */
+/**
+ * The four headline numbers. Below 1280 px, where the hero column is narrow,
+ * they sit in an even four-column grid so they never wrap onto a second line.
+ */
 export function HeroStats({ stats }: HeroStatsProps) {
   return (
-    <dl className="m-0 flex flex-wrap gap-y-4 max-md:grid max-md:grid-cols-4">
+    <dl className="m-0 flex flex-wrap gap-y-4 max-xl:grid max-xl:grid-cols-4">
       {stats.map((stat, index) => (
         <div
           key={stat.label}

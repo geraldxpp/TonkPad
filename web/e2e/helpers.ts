@@ -34,6 +34,11 @@ export async function expectChain(page: Page, label: "All Chains" | "Solana" | "
   await expect(chainPill(page)).toHaveAccessibleName(label);
 }
 
+/** The Heating up row glides on its own; hovering it pauses it so a card can be clicked. */
+export async function pauseCarousel(page: Page): Promise<void> {
+  await page.getByTestId("heating-cards").hover();
+}
+
 export async function expectSearch(page: Page, search: string): Promise<void> {
   await expect.poll(() => page.evaluate(() => window.location.search)).toBe(search);
 }

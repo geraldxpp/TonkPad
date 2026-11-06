@@ -11,7 +11,7 @@ for (const width of [1280, 1024, 768]) {
     await openExplore(page);
     expect(await horizontalOverflow(page)).toBe(0);
 
-    const hero = await page.getByRole("heading", { name: /Every launch/ }).boundingBox();
+    const hero = await page.getByRole("heading", { name: "Launches." }).boundingBox();
     const scope = await page.getByRole("region", { name: "Live scope" }).boundingBox();
     expect(hero && scope).toBeTruthy();
     const overlaps =
@@ -25,6 +25,58 @@ for (const width of [1280, 1024, 768]) {
       expect(label!.x).toBeGreaterThanOrEqual(scope!.x);
       expect(label!.x + label!.width).toBeLessThanOrEqual(scope!.x + scope!.width);
     }
+  });
+}
+
+/** Visible column headers, in order. */
+async function visibleColumns(page: Page): Promise<string[]> {
+  return page
+    .getByRole("table", { name: "Tokens" })
+    .getByRole("columnheader")
+    .evaluateAll((els) =>
+      els.filter((el) => (el as HTMLElement).offsetParent !== null && !el.classList.contains("sr-only")).map((el) => el.textContent ?? ""),
+    );
+}
+
+const TIERS: Array<[number, string[]]> = [
+  [1440, ["#", "Token", "Bonding curve", "Mission score", "Last 24h", "24h", "Volume", "Holders", "Smart money", "Market cap", "Quick buy"]],
+  [1366, ["#", "Token", "Bonding curve", "Mission score", "Last 24h", "24h", "Volume", "Market cap", "Quick buy"]],
+  [1280, ["#", "Token", "Bonding curve", "Mission score", "Last 24h", "24h", "Volume", "Market cap", "Quick buy"]],
+  [1024, ["#", "Token", "Mission score", "Last 24h", "24h", "Market cap", "Quick buy"]],
+  [768, ["#", "Token", "24h", "Market cap", "Quick buy"]],
+];
+
+for (const [width, columns] of TIERS) {
+  test(`at ${width} px the token table fits without sideways scrolling`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openExplore(page);
+    expect(await visibleColumns(page)).toEqual(columns);
+    const panel = page.getByRole("tabpanel");
+    expect(await panel.evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
+    // Every row stays on one line (no cell wraps under the others).
+    const lines = await tokenRows(page).evaluateAll((rows) =>
+      rows.map((row) => {
+        const cells = [...row.children].filter((c) => (c as HTMLElement).offsetParent !== null);
+        return new Set(cells.map((c) => { const b = c.getBoundingClientRect(); return Math.round((b.top + b.height / 2) / 6); })).size;
+      }),
+    );
+    expect(lines.every((n) => n === 1)).toBe(true);
+    // The table can't scroll sideways, so this only scrolls the page down to it.
+    const quickBuy = page.getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" });
+    await quickBuy.scrollIntoViewIfNeeded();
+    await expect(quickBuy).toBeInViewport({ ratio: 1 });
+  });
+}
+
+for (const width of [1745, 2560]) {
+  test(`at ${width} px the page fills the window with no empty band on the right`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await openExplore(page);
+    const main = await page.getByRole("main").boundingBox();
+    expect(Math.round(main!.x + main!.width)).toBe(width);
+    const panel = await page.getByRole("tabpanel").boundingBox();
+    expect(width - (panel!.x + panel!.width)).toBeLessThanOrEqual(41);
+    expect(await horizontalOverflow(page)).toBe(0);
   });
 }
 

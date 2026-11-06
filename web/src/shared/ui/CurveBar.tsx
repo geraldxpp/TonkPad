@@ -20,7 +20,7 @@ export function CurveBar({ value, className }: CurveBarProps) {
       className={cn("block overflow-hidden rounded-[3px] bg-track", className)}
     >
       <span
-        className="block h-full rounded-[3px] bg-[linear-gradient(90deg,#8C7BFF,#3FD8F0)]"
+        className="block h-full rounded-[3px] bg-[image:var(--gradient-brand)]"
         style={{ width: `${pct}%` }}
       />
     </span>

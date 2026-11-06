@@ -42,47 +42,50 @@ Rules:
 - Build only what the module prompt asks for. If something is unclear, ask instead of guessing.
 
 ## Design tokens
+The palette follows the Tonkpad logo: gunmetal steel surfaces, the electric blue of the chain glow and the green of the lock. It replaces the violet palette in `design-reference/` (changed at the owner's request); where the two differ, these values win.
+
 | Token | Value | Use |
 |---|---|---|
-| --bg | #07080D | page |
-| --bg-deep | #05060A | rail, status bar |
-| --surface | #0D0F17 | cards, table |
-| --raised | #141723 | inputs, menus, hovered row |
-| --input | #1A1E2C | active segment |
-| --line | #1B1F2D | borders, dividers |
-| --line-strong | #2A2F42 | stronger borders |
-| --text | #F3F4FA | primary text |
-| --text-2 | #A2A7BE | secondary text |
-| --text-3 | #7E849B | tertiary text (keeps 4.5:1 contrast on --bg) |
-| --accent | #8C7BFF | brand violet |
-| --accent-text | #B8ACFF | violet text |
-| --cta | #A497FF | primary button (text #0B0A1A) |
-| --cyan | #3FD8F0 | smart money, gradients |
-| --pos | #36D68C | gains, Buy (text #03150C) |
+| --bg | #07080A | page |
+| --bg-deep | #050607 | rail, status bar |
+| --surface | #0E1013 | cards, table |
+| --raised | #15181C | inputs, menus, hovered row |
+| --input | #1C2026 | active segment |
+| --line | #1D2127 | borders, dividers |
+| --line-strong | #2C3139 | stronger borders |
+| --text | #F2F4F6 | primary text |
+| --text-2 | #A3A9B2 | secondary text |
+| --text-3 | #7D838C | tertiary text (keeps 4.5:1 contrast on --bg) |
+| --accent | #3D8EF0 | brand electric blue (tints use `--accent-rgb`) |
+| --accent-text | #7DB8F5 | blue text |
+| --cta | #4A9CF5 | primary button (text #04101E) |
+| --neon | #3DDC84 | brand green from the lock (tints use `--neon-rgb`) |
+| --cyan | #3FD8F0 | smart money |
+| --pos | #3DDC84 | gains, Buy (text #03140B) |
 | --neg | #FF5C74 | losses |
 | --warn | #FFB547 | caution |
 | --gold | #F4C553 | crew rewards, graduated |
 | --hot | #FF7A45 | hot |
-| --locked | #2EE0A1 | locked missions |
-| --agent | #8CC4FF | token agent |
-| --track | #262A3B | empty progress track |
+| --locked | #3DDC84 | locked missions |
+| --agent | #B8ACFF | token agent |
+| --track | #252A31 | empty progress track |
 
-Focus ring everywhere: 2px solid #A497FF with a 2px offset. Dark theme only for now.
+Gradients (bonding curve, sweep bar) run --accent → --neon. Focus ring everywhere: 2px solid #4A9CF5 (--cta) with a 2px offset. Dark theme only for now.
 
 ## Badges
 | Badge | Text | Background | Border | Icon |
 |---|---|---|---|---|
-| Locked | #2EE0A1 | rgba(20,208,143,.14) | rgba(20,208,143,.38) | Lock |
-| Crew 2% | #F4C553 | rgba(140,123,255,.16) | rgba(244,197,83,.38) | Zap, filled |
-| Agent | #8CC4FF | rgba(90,169,255,.14) | rgba(90,169,255,.38) | Bot |
+| Locked | #3DDC84 | --locked at 14% | --locked at 38% | Lock |
+| Crew 2% | #F4C553 | --accent at 16% | rgba(244,197,83,.38) | Zap, filled |
+| Agent | #B8ACFF | --agent at 14% | --agent at 38% | Bot |
 | Hot | #FF7A45 | rgba(255,122,69,.14) | none | Flame, filled, icon only |
 | OG | #F4C553 | rgba(244,197,83,.14) | none | Crown, filled |
-| New | #B8ACFF | rgba(140,123,255,.14) | none | Zap, filled |
+| New | #7DB8F5 | --accent at 14% | none | Zap, filled |
 | Graduated | #F4C553 | rgba(244,197,83,.14) | none | GraduationCap |
 
 On token-card art, Locked, Crew and Agent use the slightly stronger fills from the reference (.16 / .20 / .16 backgrounds, .42 borders).
 
-Mission score pill: Safe = #36D68C on rgba(54,214,140,.12) with ShieldCheck. Caution = #FFB547 on rgba(255,181,71,.13) with ShieldCheck. Risky = #FF5C74 on rgba(255,92,116,.12) with TriangleAlert.
+Mission score pill: Safe = #3DDC84 on --pos at 12% with ShieldCheck. Caution = #FFB547 on rgba(255,181,71,.13) with ShieldCheck. Risky = #FF5C74 on rgba(255,92,116,.12) with TriangleAlert.
 
 ## Chain and launchpad marks
 These are original stand-ins (a letter on a colour). Never use the real logos.
@@ -91,7 +94,7 @@ These are original stand-ins (a letter on a colour). Never use the real logos.
 |---|---|---|---|
 | Solana | circle | linear-gradient(135deg, #9945FF, #19FB9B) | S, #0B0A1A |
 | Robinhood Chain | circle | #CCFF00 | R, #0E1400 |
-| Tonkpad | rounded square | #8C7BFF | T, #0B0A1A |
+| Tonkpad | rounded square | #3D8EF0 | T, #04101E |
 | Pons | rounded square | #2DD4BF | Pn, #032A25 |
 | Pump.fun | rounded square | #3BE2A0 | P, #05261A |
 | Bonk.fun | rounded square | #FF9B2F | B, #2B1500 |
@@ -100,7 +103,7 @@ These are original stand-ins (a letter on a colour). Never use the real logos.
 | Heaven | rounded square | #FF7EC8 | H, #2E0A1F |
 
 ## Icons (lucide-react)
-Compass (Explore), Radar (Live), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme), Ellipsis (More), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (Filters), List, LayoutGrid. The logo is the inline SVG in the reference; turn it into a `Logo` component.
+Compass (Explore), Radar (Live), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme), Ellipsis (More), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (Filters), List, LayoutGrid. The logo is the owner's emblem (`web/src/modules/shell/assets/tonkpad-logo.png`, the T in a chain ring with the green lock), rendered by the `Logo` component; it replaces the inline SVG in the reference.
 
 ## Motion
 CSS keyframes live in `styles/animations.css`. Turn every animation and transition off under `prefers-reduced-motion: reduce`. No animation library unless a module prompt asks for one.

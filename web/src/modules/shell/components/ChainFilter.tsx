@@ -128,7 +128,7 @@ export function ChainFilter({ counts, className, compact = false }: ChainFilterP
               onKeyDown={(event) => onOptionKeyDown(event, index)}
               className={cn(
                 "flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-left text-text",
-                option.id === value ? "bg-[rgba(140,123,255,0.14)]" : "bg-transparent",
+                option.id === value ? "bg-accent/14" : "bg-transparent",
               )}
             >
               <span className="inline-flex w-[34px]" aria-hidden="true">
@@ -138,7 +138,7 @@ export function ChainFilter({ counts, className, compact = false }: ChainFilterP
                     chain="rh"
                     size={18}
                     letterSize={9}
-                    ring="#141723"
+                    ring="var(--raised)"
                     decorative
                     className={option.id === "all" ? "-ml-1.5" : undefined}
                   />

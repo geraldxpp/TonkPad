@@ -20,7 +20,7 @@ export function SideRailView({ activeId, unreadAlerts }: SideRailViewProps) {
   return (
     <nav
       aria-label="Main"
-      className="relative z-[2] flex flex-[1_1_76px] flex-col items-center gap-3.5 border-r border-line bg-bg-deep px-2 py-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:flex-row max-md:items-stretch max-md:gap-0 max-md:border-r-0 max-md:border-t max-md:bg-[rgba(5,6,10,0.94)] max-md:px-1 max-md:pt-1 max-md:pb-[calc(4px+env(safe-area-inset-bottom))] max-md:backdrop-blur-md"
+      className="relative z-[2] flex flex-[1_1_76px] flex-col items-center gap-3.5 border-r border-line bg-bg-deep px-2 py-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:flex-row max-md:items-stretch max-md:gap-0 max-md:border-r-0 max-md:border-t max-md:bg-bg-deep/94 max-md:px-1 max-md:pt-1 max-md:pb-[calc(4px+env(safe-area-inset-bottom))] max-md:backdrop-blur-md"
     >
       <Link href="/" aria-label="Tonkpad.fun home" className="flex flex-none rounded-full max-md:hidden">
         <Logo />

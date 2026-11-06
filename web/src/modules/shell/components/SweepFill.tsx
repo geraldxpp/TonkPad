@@ -13,7 +13,7 @@ export function SweepFill() {
       aria-hidden="true"
       className="h-1 w-16 overflow-hidden rounded-[2px] bg-line-strong"
     >
-      <span className="tk-fill block h-full w-full bg-[linear-gradient(90deg,#8C7BFF,#3FD8F0)] motion-reduce:w-[62%]" />
+      <span className="tk-fill block h-full w-full bg-[image:var(--gradient-brand)] motion-reduce:w-[62%]" />
     </span>
   );
 }

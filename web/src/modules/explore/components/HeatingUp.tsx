@@ -1,13 +1,29 @@
+"use client";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
+import { cn } from "@/shared/lib/cn";
 import { IconButton } from "@/shared/ui/IconButton";
 import type { ExploreData } from "../data/get-explore-data";
+import { useAutoScroll } from "../hooks/useAutoScroll";
 import { TokenCard } from "./TokenCard";
 
 interface HeatingUpProps {
   cards: ExploreData["heating"];
 }
 
+/** Enough copies that the row stays full on ultrawide screens while it loops. */
+const COPIES = 3;
+
+/** Bleeds the row into the page gutter so cards glide in and out at the edges. */
+const BLEED =
+  "-mx-[clamp(16px,3vw,40px)] px-[clamp(16px,3vw,40px)] [mask-image:linear-gradient(90deg,transparent,#000_clamp(16px,3vw,40px),#000_calc(100%_-_clamp(16px,3vw,40px)),transparent)]";
+
 export function HeatingUp({ cards }: HeatingUpProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const { step } = useAutoScroll(scrollerRef, trackRef);
+
   return (
     <section aria-labelledby="hot-title" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end gap-2">
@@ -28,20 +44,35 @@ export function HeatingUp({ cards }: HeatingUpProps) {
           <ChevronRight size={16} strokeWidth={2} />
         </button>
         {/* Phones swipe the row instead. */}
-        <IconButton label="Previous" className="max-md:hidden">
+        <IconButton label="Previous" className="max-md:hidden" onClick={() => step(-1)}>
           <ChevronLeft size={18} strokeWidth={1.8} />
         </IconButton>
-        <IconButton label="Next" className="max-md:hidden">
+        <IconButton label="Next" className="max-md:hidden" onClick={() => step(1)}>
           <ChevronRight size={18} strokeWidth={1.8} />
         </IconButton>
       </div>
       <div
+        ref={scrollerRef}
         data-testid="heating-cards"
-        className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 max-md:-mx-4 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:scroll-px-4 max-md:gap-3 max-md:overflow-x-auto max-md:px-4 max-md:py-2 max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden"
+        className={cn(
+          "-my-2 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          BLEED,
+        )}
       >
-        {cards.map(({ token, color }, index) => (
-          <TokenCard key={token.ticker} token={token} color={color} rank={index + 1} />
-        ))}
+        <div ref={trackRef} className="flex w-max gap-4 max-md:gap-3">
+          {Array.from({ length: COPIES }, (_, copy) => (
+            <div
+              key={copy}
+              className={cn("flex gap-4 max-md:gap-3", copy > 0 && "motion-reduce:hidden")}
+              aria-hidden={copy > 0 || undefined}
+              inert={copy > 0}
+            >
+              {cards.map(({ token, color }, index) => (
+                <TokenCard key={token.ticker} token={token} color={color} rank={index + 1} />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

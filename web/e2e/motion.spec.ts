@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { openExplore } from "./helpers";
+import { openExplore, pauseCarousel } from "./helpers";
 
 interface AnimationInfo {
   name: string;
@@ -85,17 +85,18 @@ test.describe("with motion", () => {
 
   test("token cards lift 4 px with a violet ring on hover", async ({ page }) => {
     const card = page.getByRole("link", { name: /^Ghosty, market cap/ });
+    await pauseCarousel(page);
     await card.hover();
     await page.waitForTimeout(300);
     const style = await card.evaluate((el) => ({ transform: getComputedStyle(el).transform, shadow: getComputedStyle(el).boxShadow }));
     expect(style.transform).toBe("matrix(1, 0, 0, 1, 0, -4)");
-    expect(style.shadow).toContain("rgba(140, 123, 255, 0.75) 0px 0px 0px 1.5px");
+    expect(style.shadow).toContain("rgba(61, 142, 240, 0.75) 0px 0px 0px 1.5px");
   });
 
-  test("table rows turn #141723 on hover", async ({ page }) => {
+  test("table rows turn the raised colour on hover", async ({ page }) => {
     const row = page.getByRole("table", { name: "Tokens" }).getByRole("row").nth(1);
     await row.hover();
-    await expect.poll(() => row.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(20, 23, 35)");
+    await expect.poll(() => row.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(21, 24, 28)");
   });
 });
 

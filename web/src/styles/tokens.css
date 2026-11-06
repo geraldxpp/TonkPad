@@ -1,44 +1,52 @@
-/* Tonkpad.fun design tokens (dark theme only). Values come from CLAUDE.md and
-   design-reference/explore.dc.html. They are mapped into Tailwind in globals.css. */
+/* Tonkpad.fun design tokens (dark theme only), matched to the logo: gunmetal
+   steel surfaces, the electric blue of the chain glow and the green of the
+   lock. They are mapped into Tailwind in globals.css; the *-rgb channels feed
+   the translucent tints, e.g. rgb(var(--accent-rgb) / 0.14). */
 :root {
-  --bg: #07080d;
-  --bg-deep: #05060a;
-  --surface: #0d0f17;
-  --raised: #141723;
-  --input: #1a1e2c;
-  --line: #1b1f2d;
-  --line-strong: #2a2f42;
+  /* Steel */
+  --bg: #07080a;
+  --bg-deep: #050607;
+  --surface: #0e1013;
+  --raised: #15181c;
+  --input: #1c2026;
+  --line: #1d2127;
+  --line-strong: #2c3139;
 
-  --text: #f3f4fa;
-  --text-2: #a2a7be;
-  --text-3: #7e849b;
+  --text: #f2f4f6;
+  --text-2: #a3a9b2;
+  --text-3: #7d838c; /* 5:1 on --bg */
 
-  --accent: #8c7bff;
-  --accent-text: #b8acff;
-  --cta: #a497ff;
-  --on-cta: #0b0a1a;
+  /* Electric blue (chain glow) */
+  --accent: #3d8ef0;
+  --accent-rgb: 61 142 240;
+  --accent-text: #7db8f5;
+  --cta: #4a9cf5;
+  --on-cta: #04101e;
+
+  /* Lock green: the brand green for gains, Locked and Buy */
+  --neon: #3ddc84;
+  --neon-rgb: 61 220 132;
+  --pos: #3ddc84;
+  --on-pos: #03140b;
+  --locked: #3ddc84;
+
   --cyan: #3fd8f0;
-  --pos: #36d68c;
-  --on-pos: #03150c;
   --neg: #ff5c74;
   --warn: #ffb547;
   --gold: #f4c553;
   --hot: #ff7a45;
-  --locked: #2ee0a1;
-  --agent: #8cc4ff;
-  --track: #262a3b;
+  --agent: #b8acff;
+  --track: #252a31;
 
-  /* Reference-only values that repeat across components */
-  --card-ink: #0a0b12;
-  --sweep: #c9c0ff;
+  --card-ink: #0a0b0e;
+  --sweep: #a8d1ff;
   --badge-on-alert: #1a0509;
 
   --elevation-card: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
   --elevation-panel: 0 24px 48px -24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --elevation-menu: 0 24px 48px -16px rgba(0, 0, 0, 0.6);
-  --elevation-cta: 0 8px 28px -4px rgba(140, 123, 255, 0.45);
-  --elevation-card-hover: 0 0 0 1.5px rgba(140, 123, 255, 0.75), 0 18px 40px -12px rgba(140, 123, 255, 0.45);
+  --elevation-cta: 0 8px 28px -4px rgb(var(--accent-rgb) / 0.45);
+  --elevation-card-hover: 0 0 0 1.5px rgb(var(--accent-rgb) / 0.75), 0 18px 40px -12px rgb(var(--accent-rgb) / 0.45);
 
-  --gradient-brand: linear-gradient(90deg, #8c7bff, #3fd8f0);
-  --gradient-headline: linear-gradient(90deg, #b8acff, #3fd8f0);
+  --gradient-brand: linear-gradient(90deg, var(--accent), var(--neon));
 }

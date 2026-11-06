@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07080D",
+  themeColor: "#07080A",
   colorScheme: "dark",
   // Lets the phone tab bar pad itself for the iPhone home indicator.
   viewportFit: "cover",

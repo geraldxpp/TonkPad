@@ -36,7 +36,7 @@ export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListTool
         label="Token lists"
         panelId={TOKEN_PANEL_ID}
         idPrefix={TOKEN_TAB_PREFIX}
-        className="max-md:w-full max-md:flex-nowrap max-md:overflow-x-auto max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden"
+        className="max-lg:w-full max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden"
       />
       <span className="flex-[1_1_0] max-md:hidden" />
       <Segmented options={TIMEFRAMES} value={view.tf} onChange={onTimeframe} label="Timeframe" />
@@ -48,7 +48,7 @@ export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListTool
       >
         <SlidersHorizontal size={16} strokeWidth={1.8} />
         <span className="max-md:sr-only">Filters</span>
-        <span className="rounded-md bg-[rgba(140,123,255,0.14)] px-1.5 py-px font-mono text-[12px] font-semibold text-accent-text">
+        <span className="rounded-md bg-accent/14 px-1.5 py-px font-mono text-[12px] font-semibold text-accent-text">
           2
         </span>
       </button>

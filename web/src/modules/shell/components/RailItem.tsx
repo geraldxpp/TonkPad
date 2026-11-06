@@ -35,7 +35,7 @@ export function RailItem({ item, active, badge }: RailItemProps) {
   );
 
   const tone = active
-    ? "bg-[rgba(140,123,255,0.14)] text-accent-text max-md:bg-transparent"
+    ? "bg-accent/14 text-accent-text max-md:bg-transparent"
     : "bg-transparent text-text-2";
   const className = cn(ITEM, tone, item.hideOnMobile && "max-md:hidden");
 

@@ -25,7 +25,7 @@ export function SearchToggle({ open, active = false, onToggle, buttonRef }: Sear
     >
       <Search size={18} strokeWidth={1.8} />
       {active && !open ? (
-        <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_#0D0F17]" />
+        <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)]" />
       ) : null}
     </IconButton>
   );

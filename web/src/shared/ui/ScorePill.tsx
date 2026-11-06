@@ -4,7 +4,7 @@ import type { ScoreLevel } from "@/shared/types/token";
 
 /** Mission score colours from CLAUDE.md (the reference's LVL table). */
 export const SCORE_LEVELS: Record<ScoreLevel, string> = {
-  Safe: "text-pos bg-[rgba(54,214,140,0.12)]",
+  Safe: "text-pos bg-pos/12",
   Caution: "text-warn bg-[rgba(255,181,71,0.13)]",
   Risky: "text-neg bg-[rgba(255,92,116,0.12)]",
 };

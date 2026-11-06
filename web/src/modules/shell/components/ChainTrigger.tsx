@@ -35,13 +35,13 @@ export function ChainTrigger({ value, buttonRef, compact = false, ...rest }: Cha
       {...rest}
     >
       <span className="inline-flex" aria-hidden="true">
-        {value !== "rh" ? <ChainMark chain="sol" size={20} letterSize={9} ring="#0D0F17" decorative /> : null}
+        {value !== "rh" ? <ChainMark chain="sol" size={20} letterSize={9} ring="var(--surface)" decorative /> : null}
         {value !== "sol" ? (
           <ChainMark
             chain="rh"
             size={20}
             letterSize={9}
-            ring="#0D0F17"
+            ring="var(--surface)"
             decorative
             className={value === "all" ? "-ml-1.5" : undefined}
           />
