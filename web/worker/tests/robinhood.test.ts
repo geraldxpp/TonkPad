@@ -65,8 +65,13 @@ describe("quote-asset prices", () => {
 describe("snapshots", () => {
   it("reads both the old token list and the new format with the Pons cursor", () => {
     expect(parseSnapshot("[]")).toEqual({ tokens: [], ponsBlock: null });
-    expect(parseSnapshot('{"tokens":[],"ponsBlock":107857724}')).toEqual({ tokens: [], ponsBlock: 107_857_724 });
-    expect(parseSnapshot('{"ponsBlock":"x"}')).toEqual({ tokens: [], ponsBlock: null });
+    expect(parseSnapshot('{"tokens":[],"ponsBlock":107857724}')).toEqual({ tokens: [], ponsBlock: 107_857_724, smart: null });
+    expect(parseSnapshot('{"ponsBlock":"x"}')).toEqual({ tokens: [], ponsBlock: null, smart: null });
+  });
+
+  it("keeps smart money's graduates and wallet credits", () => {
+    const smart = { graduates: { T: { chain: "sol", creator: "C", at: 1 } }, credits: { W: ["T"] } };
+    expect(parseSnapshot(JSON.stringify({ tokens: [], ponsBlock: 1, smart })).smart).toEqual(smart);
   });
 
   it("restores Pons curves without sending them to DexScreener", () => {

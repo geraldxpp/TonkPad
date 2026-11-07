@@ -1,20 +1,24 @@
 import { ISSUERS } from "./issuers";
 import type { TrackedToken } from "./model";
-import { JUDGED_FROM } from "./score";
+import { TOP_WALLETS } from "./smart/sweep";
+import { fetchChainHolders } from "./sources/blockscout";
 import { fetchTopHolders } from "./sources/holders";
 import { fetchHolderCounts, fetchJupiterVouch, JUPITER_BATCH } from "./sources/jupiter";
 import type { TokenStore } from "./store";
 
 /**
  * Facts gathered a few tokens at a time so they fit the free plans: Jupiter's
- * word on issuer claims and its holder counts, and the top-10 holder share of
- * Solana tokens on screen worth $20K+ (Helius).
+ * word on issuer claims and its holder counts, and the largest wallets of
+ * Solana tokens on screen worth $5K+ (Helius): their top-10 share feeds the
+ * score from $20K, and the wallets feed the smart money count.
  */
 const MINUTE = 60_000;
 /** A token on screen has its top-10 share measured again after this long. */
 export const HOLDERS_EVERY = 30 * MINUTE;
 /** Holder checks per minute: 2 Helius credits each, so at most ~0.26M credits a month. */
 export const HOLDER_CHECKS_PER_MINUTE = 3;
+/** Holder checks start at this market cap; the score only counts the top-10 share from $20K (score.ts). */
+export const MEASURED_FROM = 5_000;
 /** Jupiter is asked again this long after it declined an issuer claim. */
 export const ISSUER_RECHECK_EVERY = 6 * 60 * MINUTE;
 /** Holder counts: tokens on screen refresh this often, other listed tokens less often. */
@@ -34,14 +38,28 @@ export function holderCountsDue(tokens: readonly TrackedToken[], visible: Readon
   return [...onScreen, ...listed].slice(0, limit);
 }
 
-/** Solana tokens on screen worth $20K+ whose top-10 share is missing or stale: never-measured first, then the oldest. */
+/** Graduated Pons tokens are checked on Blockscout hourly while on screen, at most 2 a minute (50 credits each). */
+export const CHAIN_HOLDERS_EVERY = 60 * MINUTE;
+export const CHAIN_CHECKS_PER_MINUTE = 2;
+/** Blockscout's free plan has 100K credits a day; the worker stops short of it. */
+export const CHAIN_CREDITS_PER_DAY = 80_000;
+
+/** Graduated Pons tokens on screen whose Blockscout check is missing or over an hour old: never-checked first. */
+export function chainHoldersDue(tokens: readonly TrackedToken[], visible: ReadonlySet<string>, limit: number, now: number): TrackedToken[] {
+  return tokens
+    .filter((t) => t.pons && t.graduated && visible.has(t.address) && now - (t.holdersAt ?? 0) >= CHAIN_HOLDERS_EVERY)
+    .sort((a, b) => (a.holdersAt ?? 0) - (b.holdersAt ?? 0) || b.marketCap - a.marketCap)
+    .slice(0, limit);
+}
+
+/** Solana tokens on screen worth $5K+ whose holder check is missing or stale: never-measured first, then the oldest. */
 export function holdersDue(tokens: readonly TrackedToken[], visible: ReadonlySet<string>, limit: number, now: number): TrackedToken[] {
   return tokens
     .filter(
       (t) =>
         t.chain === "sol" &&
         visible.has(t.address) &&
-        t.marketCap >= JUDGED_FROM &&
+        t.marketCap >= MEASURED_FROM &&
         !t.issuer &&
         now - (t.holdersAt ?? 0) >= HOLDERS_EVERY,
     )
@@ -61,6 +79,7 @@ interface SafetyDeps {
   visible: () => ReadonlySet<string>;
   heliusApiKey: string | null;
   jupiterApiKey: string | null;
+  blockscoutApiKey: string | null;
   /** Runs once per Helius call (1 credit each here). */
   onHeliusCall: () => void;
   fail: (scope: string, error: unknown) => void;
@@ -90,6 +109,7 @@ export function createSafetyChecks(deps: SafetyDeps) {
       try {
         const check = await fetchTopHolders(deps.heliusApiKey, token.address, token.supply ?? null, deps.onHeliusCall);
         token.top10Share = check.share;
+        token.topWallets = check.wallets.slice(0, TOP_WALLETS);
         if (check.supply !== null) token.supply = check.supply;
       } catch (error) {
         deps.fail("holders", error);
@@ -115,5 +135,29 @@ export function createSafetyChecks(deps: SafetyDeps) {
     }
   }
 
-  return { verifyIssuers, refreshHolders, refreshHolderCounts };
+  /** Blockscout credits used per UTC day, so the free plan's daily allowance is never run out. */
+  const chainCredits = { day: "", used: 0 };
+
+  /** Holder counts, top-10 shares and wallets of graduated Pons tokens, from Blockscout. */
+  async function refreshChainHolders(now = Date.now()): Promise<void> {
+    if (!deps.blockscoutApiKey) return;
+    const day = new Date(now).toISOString().slice(0, 10);
+    if (chainCredits.day !== day) Object.assign(chainCredits, { day, used: 0 });
+    for (const token of chainHoldersDue(deps.store.all(), deps.visible(), CHAIN_CHECKS_PER_MINUTE, now)) {
+      if (chainCredits.used >= CHAIN_CREDITS_PER_DAY) return;
+      try {
+        const holders = await fetchChainHolders(deps.blockscoutApiKey, token.address, (credits) => (chainCredits.used += credits));
+        token.holderCount = holders.count;
+        token.top10Share = holders.top10Share;
+        token.topWallets = holders.wallets.slice(0, TOP_WALLETS);
+      } catch (error) {
+        deps.fail("blockscout", error);
+        // Never checked before: the curve's count is stale, so show none rather than it.
+        if (!token.holdersAt) token.holderCount = null;
+      }
+      token.holdersAt = Date.now();
+    }
+  }
+
+  return { verifyIssuers, refreshHolders, refreshHolderCounts, refreshChainHolders, chainCredits: () => ({ ...chainCredits }) };
 }

@@ -20,20 +20,26 @@ export interface HolderCheck {
   share: number | null;
   /** Total supply in raw units, when known. */
   supply: number | null;
+  /** The wallets among the largest accounts, biggest first (for smart money). */
+  wallets: string[];
 }
 
-/** The share of `supply` held by the `top` largest wallets among `balances`. */
-export function topHolderShare(balances: readonly HolderBalance[], supply: number, top = 10): number | null {
-  if (!(supply > 0)) return null;
+/** People's wallets among `balances`, one entry per wallet, biggest first. */
+export function rankWallets(balances: readonly HolderBalance[]): HolderBalance[] {
   const byOwner = new Map<string, number>();
   for (const { owner, amount } of balances) {
     if (BURN_OWNERS.has(owner) || !isWalletAddress(owner)) continue;
     byOwner.set(owner, (byOwner.get(owner) ?? 0) + amount);
   }
-  const held = [...byOwner.values()]
-    .sort((a, b) => b - a)
+  return [...byOwner].map(([owner, amount]) => ({ owner, amount })).sort((a, b) => b.amount - a.amount);
+}
+
+/** The share of `supply` held by the `top` largest wallets among `balances`. */
+export function topHolderShare(balances: readonly HolderBalance[], supply: number, top = 10): number | null {
+  if (!(supply > 0)) return null;
+  const held = rankWallets(balances)
     .slice(0, top)
-    .reduce((sum, amount) => sum + amount, 0);
+    .reduce((sum, wallet) => sum + wallet.amount, 0);
   return Math.min(1, held / supply);
 }
 
@@ -69,7 +75,7 @@ export async function fetchTopHolders(
     const total = await rpc<{ value: { amount: string } }>(apiKey, "getTokenSupply", [mint]);
     supply = Number(total.value.amount);
   }
-  if (largest.value.length === 0) return { share: null, supply };
+  if (largest.value.length === 0) return { share: null, supply, wallets: [] };
   onCall();
   const accounts = await rpc<{ value: Array<ParsedTokenAccount | null> }>(apiKey, "getMultipleAccounts", [
     largest.value.map((account) => account.address),
@@ -79,5 +85,5 @@ export async function fetchTopHolders(
     const owner = accounts.value[i]?.data?.parsed?.info?.owner;
     return typeof owner === "string" ? [{ owner, amount: Number(account.amount) }] : [];
   });
-  return { share: topHolderShare(balances, supply), supply };
+  return { share: topHolderShare(balances, supply), supply, wallets: rankWallets(balances).map((wallet) => wallet.owner) };
 }

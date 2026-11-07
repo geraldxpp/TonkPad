@@ -55,9 +55,15 @@ export function listView(tokens: readonly TrackedToken[], query: LiveListQuery, 
         .filter((t) => t.marketAt > 0 && t.marketCap >= MIN_LISTED_MCAP && vol(t) >= 500)
         .sort((a, b) => windowFor(b, query.tf).change - windowFor(a, query.tf).change);
       break;
-    case "smart":
+    case "smart": {
+      const smart = (t: TrackedToken) => t.smartCount ?? 0;
+      rows = rows
+        .filter((t) => smart(t) > 0 && t.marketAt > 0 && t.marketCap >= MIN_LISTED_MCAP)
+        .sort((a, b) => smart(b) - smart(a) || vol(b) - vol(a));
+      break;
+    }
     case "locked":
-      // Smart-money wallets and Tonkpad's locked missions aren't tracked yet.
+      // Locks aren't tracked yet.
       rows = [];
       break;
   }

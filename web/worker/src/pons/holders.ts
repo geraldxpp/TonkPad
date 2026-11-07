@@ -11,6 +11,8 @@ import { PONS_SUPPLY, type PonsState } from "./curve";
 
 /** Below one token a wallet holds dust, not the token. */
 const DUST = 1;
+/** First buyers remembered per token; smart money credits them when it graduates (the creator is left out then). */
+export const EARLY_BUYERS = 20;
 
 export interface WalletTrade {
   buy: boolean;
@@ -25,6 +27,8 @@ export function trackHolders(s: PonsState, trade: WalletTrade): void {
   if (!balances) return;
   if (trade.buy) {
     balances[trade.recipient] = (balances[trade.recipient] ?? 0) + trade.tokens;
+    const early = s.earlyBuyers;
+    if (early && early.length <= EARLY_BUYERS && !early.includes(trade.recipient)) early.push(trade.recipient);
     return;
   }
   const seller = (balances[trade.trader] ?? 0) > 0 ? trade.trader : trade.recipient;

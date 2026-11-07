@@ -3,6 +3,8 @@ export interface WorkerConfig {
   port: number;
   heliusApiKey: string | null;
   jupiterApiKey: string | null;
+  /** Blockscout PRO API key: holders of graduated Pons tokens. */
+  blockscoutApiKey: string | null;
   robinhoodRpcUrl: string | null;
   /** Where Pons logs are read; Alchemy's free plan only allows 10-block log queries. */
   robinhoodLogsRpcUrl: string;
@@ -19,6 +21,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     port: Number(env.PORT ?? 8787),
     heliusApiKey: value(env.HELIUS_API_KEY),
     jupiterApiKey: value(env.JUPITER_API_KEY),
+    blockscoutApiKey: value(env.BLOCKSCOUT_API_KEY),
     robinhoodRpcUrl: value(env.ROBINHOOD_RPC_URL),
     robinhoodLogsRpcUrl: value(env.ROBINHOOD_LOGS_RPC_URL) ?? "https://rpc.mainnet.chain.robinhood.com",
     workerToken: value(env.WORKER_TOKEN),

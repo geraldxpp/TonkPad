@@ -1,12 +1,15 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { TrackedToken } from "./model";
+import type { SmartWalletsJSON } from "./smart/wallets";
 
 /** What the worker saves every minute and on shutdown, so a restart carries on. */
 export interface Snapshot {
   tokens: TrackedToken[];
   /** The last Robinhood Chain block the Pons feed read. */
   ponsBlock: number | null;
+  /** Smart money's graduates and wallet credits (30 days). */
+  smart?: SmartWalletsJSON | null;
 }
 
 /** Reads a snapshot; version 1 was a bare array of tokens. */
@@ -17,6 +20,7 @@ export function parseSnapshot(text: string): Snapshot {
   return {
     tokens: Array.isArray(s.tokens) ? s.tokens : [],
     ponsBlock: typeof s.ponsBlock === "number" ? s.ponsBlock : null,
+    smart: s.smart ?? null,
   };
 }
 

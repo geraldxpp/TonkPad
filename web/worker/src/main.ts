@@ -2,6 +2,7 @@ import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { LiveStatus } from "@/shared/types/live";
 import { loadConfig, log } from "./config";
+import { every, throttledFailures } from "./loop";
 import { PonsBook } from "./pons/book";
 import { PonsFeed } from "./pons/feed";
 import { startServer } from "./server";
@@ -13,6 +14,8 @@ import { fetchGasGwei, fetchNativePrices, fetchQuotePrices } from "./sources/pri
 import { connectPumpPortal } from "./sources/pumpportal";
 import { RobinhoodRpc } from "./sources/robinhood";
 import { createSafetyChecks } from "./safety";
+import { createSmartMoney } from "./smart/sweep";
+import { SmartWallets } from "./smart/wallets";
 import { TokenStore } from "./store";
 import { createViews } from "./views/cache";
 
@@ -22,8 +25,8 @@ const INGESTING: readonly LaunchpadId[] = ["pons", "pump", "bonk"];
 /**
  * Helius lookups (art, names, mint and freeze authority) go out as one batch
  * a minute. Each call costs 10 credits however many tokens it carries, so this
- * stays near 432K credits a month; holder checks (safety.ts) add at most
- * ~260K, inside the free plan's 1M.
+ * stays near 432K credits a month; holder checks (safety.ts) and smart money's
+ * graduate lookups (smart/sweep.ts) add at most ~0.3M, inside the free plan's 1M.
  */
 const ASSET_LOOKUP_EVERY = 60_000;
 /** Pons is read from Robinhood Chain's logs this often (the screen refreshes every 4 s). */
@@ -45,14 +48,7 @@ let quotesFetchedAt = 0;
 let heliusCalls = 0;
 let heliusCredits = 0;
 
-const lastFailure = new Map<string, number>();
-/** Logs a failure at most once a minute per source, so a flaky feed can't flood the logs. */
-function fail(scope: string, error: unknown): void {
-  const now = Date.now();
-  if (now - (lastFailure.get(scope) ?? 0) < 60_000) return;
-  lastFailure.set(scope, now);
-  log(scope, error instanceof Error ? error.message : "request failed");
-}
+const fail = throttledFailures();
 
 function quoteUsd(quote: string): number | null {
   if (quote === NATIVE_ETH || quote === WETH) return status.ethUsd;
@@ -121,19 +117,26 @@ async function refreshStatus(): Promise<void> {
   }
 }
 
+/** Holder lookups cost 1 credit per call. */
+function countHeliusCall(): void {
+  heliusCalls += 1;
+  heliusCredits += 1;
+}
+
 const safety = createSafetyChecks({
   store,
   visible: () => views.visibleAddresses(),
   heliusApiKey: config.heliusApiKey,
   jupiterApiKey: config.jupiterApiKey,
-  onHeliusCall: () => {
-    heliusCalls += 1;
-    heliusCredits += 1;
-  },
+  blockscoutApiKey: config.blockscoutApiKey,
+  onHeliusCall: countHeliusCall,
   fail,
 });
+const smartWallets = new SmartWallets();
+const smartMoney = createSmartMoney({ store, smart: smartWallets, heliusApiKey: config.heliusApiKey, onHeliusCall: countHeliusCall, fail });
 
-const save = () => saveSnapshot(config.snapshotPath, { tokens: store.toJSON(), ponsBlock: ponsFeed.cursor });
+const save = () =>
+  saveSnapshot(config.snapshotPath, { tokens: store.toJSON(), ponsBlock: ponsFeed.cursor, smart: smartWallets.toJSON() });
 
 async function restore(): Promise<void> {
   const snapshot = await loadSnapshot(config.snapshotPath);
@@ -141,21 +144,8 @@ async function restore(): Promise<void> {
   store.restore(snapshot.tokens, Date.now());
   pons.reindex();
   ponsFeed.cursor = snapshot.ponsBlock;
+  smartWallets.restore(snapshot.smart, Date.now());
   log("worker", `restored ${store.size} tokens`);
-}
-
-/** Runs `task` every `ms`, never overlapping itself. */
-function every(ms: number, task: () => Promise<void>): void {
-  let busy = false;
-  setInterval(async () => {
-    if (busy) return;
-    busy = true;
-    try {
-      await task();
-    } finally {
-      busy = false;
-    }
-  }, ms);
 }
 
 async function start(): Promise<void> {
@@ -175,6 +165,8 @@ async function start(): Promise<void> {
   every(60_000, safety.refreshHolders);
   every(60_000, safety.verifyIssuers);
   every(30_000, safety.refreshHolderCounts);
+  every(60_000, smartMoney.sweep);
+  every(60_000, safety.refreshChainHolders);
   every(20_000, refreshStatus);
   every(60_000, async () => {
     const removed = store.prune(Date.now());
@@ -194,6 +186,8 @@ async function start(): Promise<void> {
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
       heliusCalls,
       heliusCredits,
+      smartMoney: smartWallets.stats(),
+      blockscout: { enabled: config.blockscoutApiKey !== null, creditsToday: safety.chainCredits().used },
       ponsBlock: ponsFeed.cursor,
     }),
   });

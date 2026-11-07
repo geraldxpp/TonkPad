@@ -85,7 +85,9 @@ describe("fetchTopHolders", () => {
     expect(methods).toEqual(["getTokenLargestAccounts", "getMultipleAccounts"]);
     expect(calls).toBe(2);
     // Five wallets of 1,000 each out of 10,000; the sixth account belongs to a pool.
-    expect(known).toEqual({ share: 0.5, supply: 10_000 });
+    expect(known).toMatchObject({ share: 0.5, supply: 10_000 });
+    expect(known.wallets).toEqual(fixture.tokenAccounts.map((t) => t.owner).filter((owner) => isWalletAddress(owner)));
+    expect(known.wallets).toHaveLength(5);
     const unknown = await fetchTopHolders("key", mint, null, () => calls++);
     expect(calls).toBe(5);
     expect(unknown.supply).toBe(10_000);
@@ -98,11 +100,11 @@ describe("fetchTopHolders", () => {
 });
 
 describe("holdersDue", () => {
-  it("picks Solana tokens on screen worth $20K+: never measured first, then the stalest", () => {
+  it("picks Solana tokens on screen worth $5K+: never measured first, then the stalest", () => {
     const fresh = priced(30_000, {});
     const stale = priced(90_000, {}, { holdersAt: NOW - 40 * MIN });
     const recent = priced(25_000, {}, { holdersAt: NOW - 5 * MIN });
-    const small = priced(10_000, {});
+    const small = priced(4_000, {});
     const robinhood = priced(50_000, {}, { chain: "rh" });
     const stock = priced(60_000, {}, { issuer: "xstocks" });
     const offScreen = priced(70_000, {});

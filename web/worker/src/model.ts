@@ -74,6 +74,12 @@ export interface TrackedToken {
   holderCount?: number | null;
   /** When Jupiter last gave the count, ms (Solana). */
   holderCountAt?: number;
+  /** The largest wallets from the last holder check, biggest first (Solana; smart money counts them). */
+  topWallets?: string[];
+  /** Smart-money wallets holding the token (smart/sweep.ts). */
+  smartCount?: number;
+  /** A Solana graduate's largest wallets, read soon after it graduated; they earn credit if it holds up. */
+  graduationWallets?: string[];
 
   // Short histories for the sparkline and buy velocity.
   /** [time, market cap], oldest first, thinned as it grows. */

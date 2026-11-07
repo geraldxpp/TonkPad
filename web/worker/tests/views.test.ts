@@ -47,8 +47,13 @@ describe("listView", () => {
     expect(ids(listView(tokens, query({ tab: "gainers" }), NOW))).toEqual([busy.address, big.address]);
   });
 
-  it("has no rows for smart money or locked missions yet", () => {
-    expect(listView(all, query({ tab: "smart" }), NOW).rows).toEqual([]);
+  it("smart money: tokens smart wallets hold, the most first; locked missions are still empty", () => {
+    const one = priced(40_000, { h24: { volume: 9_000 } }, { smartCount: 1 });
+    const three = priced(10_000, { h24: { volume: 100 } }, { smartCount: 3 });
+    const oneBusier = priced(30_000, { h24: { volume: 70_000 } }, { smartCount: 1 });
+    const rows = listView([...all, one, three, oneBusier], query({ tab: "smart" }), NOW).rows;
+    expect(rows.map((t) => t.address)).toEqual([three.address, oneBusier.address, one.address]);
+    expect(rows[0].smartWallets).toBe(3);
     expect(listView(all, query({ tab: "locked" }), NOW).rows).toEqual([]);
   });
 

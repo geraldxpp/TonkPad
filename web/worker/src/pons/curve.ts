@@ -30,10 +30,12 @@ export interface PonsState {
   trades: PonsTradeRecord[];
   /** Wallet → whole tokens, from curve trades since launch (holders.ts); absent for tokens restored from older snapshots. */
   balances?: Record<string, number>;
+  /** The first wallets to buy, in order (the creator included), up to EARLY_BUYERS + 1. */
+  earlyBuyers?: string[];
 }
 
 export function newPonsState(input: Pick<PonsState, "curve" | "quote" | "quoteDecimals" | "threshold" | "launchTx">): PonsState {
-  return { ...input, virtualQuote: START_SHARE * input.threshold, virtualTokens: PONS_SUPPLY, trades: [], balances: {} };
+  return { ...input, virtualQuote: START_SHARE * input.threshold, virtualTokens: PONS_SUPPLY, trades: [], balances: {}, earlyBuyers: [] };
 }
 
 /** Quote per token right now. */

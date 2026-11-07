@@ -81,8 +81,9 @@ export function toToken(token: TrackedToken, now: number, hot = false): Token {
       "6h": { change: w.h6.change, volume: w.h6.volume },
       "24h": { change: w.h24.change, volume: w.h24.volume },
     },
-    holders: token.pons && token.graduated ? null : (token.holderCount ?? null),
-    smartWallets: 0,
+    // A graduated Pons token's curve count is stale; Blockscout's check (holdersAt) replaces it.
+    holders: token.pons && token.graduated && !token.holdersAt ? null : (token.holderCount ?? null),
+    smartWallets: token.smartCount ?? 0,
     marketCap: token.marketCap,
     flags: { hot, og: false, isNew: ageMinutes < 30, locked: false, crew: null, agent: false },
     creator: shortAddress(token.creator),

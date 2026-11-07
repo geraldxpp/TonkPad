@@ -134,6 +134,9 @@ describe("Pons holders", () => {
     book.refresh(now, () => 2_000);
     // 14 buyers, one of whom sold everything back.
     expect(token.holderCount).toBe(13);
+    // Smart money credits the first buyers when the token graduates; the creator's launch buy comes first.
+    expect(token.pons?.earlyBuyers?.[0]).toBe(launchEvent().creator);
+    expect(token.pons?.earlyBuyers).toHaveLength(14);
     expect(toToken(token, now).holders).toBe(13);
     // The creator's 12.84% is the largest stake; the 10 largest hold more than that.
     expect(token.top10Share).toBeGreaterThan(token.creatorBuyShare);

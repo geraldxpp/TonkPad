@@ -176,6 +176,7 @@ describe("toToken", () => {
   it("shows the holder count once it is known", () => {
     expect(toToken(tracked({ holderCount: 2_517 }), NOW).holders).toBe(2_517);
     expect(toToken(tracked({ holderCount: null }), NOW).holders).toBeNull();
+    expect(toToken(tracked({ smartCount: 2 }), NOW).smartWallets).toBe(2);
   });
 
   it("names a verified issuer, which shows the Verified RWA badge", () => {

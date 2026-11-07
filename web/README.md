@@ -170,10 +170,11 @@ as JSON. The app never calls the data providers itself.
   token without art shows its first letter.
 - **Helius budget.** Lookups (art, names, mint and freeze authority) go out
   as one batch a minute, up to 100 tokens each. A call costs 10 credits
-  whatever its size, so lookups stay near 432K credits a month. Top-10
-  holder checks add 2 credits a token (3 the first time, without a known
-  supply), for Solana tokens on screen worth $20K+, each every 30 minutes
-  and at most 3 a minute: about 0.26M more, inside the free plan's 1M.
+  whatever its size, so lookups stay near 432K credits a month. Holder
+  checks add 2 credits a token (3 the first time, without a known supply),
+  for Solana tokens on screen worth $5K+, each every 30 minutes and at most
+  3 a minute; smart money looks up each Solana graduate once (2 credits,
+  about 100 a day). Together that stays well inside the free plan's 1M.
   `/health` reports `heliusCalls` and an estimate of `heliusCredits`.
 - **Pons.** DexScreener doesn't list Pons's bonding curves, so the worker
   reads them from the chain: every 3 s it asks Robinhood Chain's public RPC
@@ -193,7 +194,7 @@ as JSON. The app never calls the data providers itself.
   10; under 20% earns 5), and a pool holding under 5% of the market cap
   costs 20 (never Safe); under 2% the score is capped at 30, Risky.
 - **Top-10 holders** (`worker/src/sources/holders.ts`) come from Helius's 20
-  largest token accounts and their owners. Owners off the ed25519 curve are
+  largest token accounts and their owners (the score counts them from $20K). Owners off the ed25519 curve are
   program addresses (bonding curves, pools, lock escrows, pump.fun's Mayhem
   agent) and are left out, as are burn addresses; so is a team's multisig
   vault, which is rare for launches. A supply spread over hundreds of equal
@@ -209,11 +210,25 @@ as JSON. The app never calls the data providers itself.
   20 for other listed ones (no Helius cost). Pons tokens are counted from
   their curve trades: buys credit the recipient (routers name the user
   there), sells debit the seller. That is exact on the curve but blind to
-  Uniswap after graduation, so graduated Pons tokens show — until Blockscout
-  is wired in. The same balances give Pons tokens their top-10 share.
-- **Not tracked yet:** Robinhood Chain holders after graduation (needs a
-  Blockscout key), locks, smart money and locked missions (empty tabs),
-  and the other Solana launchpads (Bags, Moonit, Heaven).
+  Uniswap after graduation, so graduated Pons tokens on screen are checked
+  on Blockscout (`worker/src/sources/blockscout.ts`, `BLOCKSCOUT_API_KEY`)
+  hourly instead: the holder count, and the 50 largest holders for the
+  top-10 share and smart money, leaving contracts such as the pool and the
+  locker out. That is 50 credits a check, at most 2 a minute, and the worker
+  stops at 80K of the free plan's 100K credits a day. Until a check, the
+  column shows —. The same curve balances give Pons tokens their top-10 share.
+- **Smart money** (`worker/src/smart/`): wallets that keep getting in early
+  on tokens that graduate. Each graduation credits wallets, never its
+  creator's: a Pons graduate its first 20 buyers (from its curve trades), a
+  Solana graduate its 20 largest wallets at graduation (one Helius lookup; a
+  stand-in for early buying, since Solana trade data costs money). A wallet
+  credited by graduates from 3 or more different creators within 30 days is
+  smart money. Each token counts the smart wallets among its holders (every
+  wallet on a Pons curve, the largest wallets elsewhere), which fills the
+  Smart money column and tab. Credits are kept in the snapshot, so the
+  count builds up over the first days. A manual add/drop list comes later.
+- **Not tracked yet:** locks and locked missions (an empty tab), and the
+  other Solana launchpads (Bags, Moonit, Heaven).
   Bonk.fun tokens show up in New pairs but have no market data until they
   graduate (DexScreener doesn't index their curve).
 - **Restarts.** The worker saves a snapshot every minute and on shutdown
