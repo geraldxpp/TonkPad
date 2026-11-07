@@ -146,6 +146,8 @@ export const vi: Dictionary = {
     og: "OG",
     new: "Mới",
     graduated: "Tốt nghiệp",
+    rwa: "RWA đã xác minh",
+    rwaTitle: "RWA đã xác minh · phát hành bởi {issuer}",
   },
   score: { title: "Điểm nhiệm vụ {score} · {level}", Safe: "An toàn", Caution: "Thận trọng", Risky: "Rủi ro" },
   status: {

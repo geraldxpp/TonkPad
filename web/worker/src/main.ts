@@ -12,6 +12,7 @@ import { NATIVE_ETH, USDG, WETH } from "./sources/pons";
 import { fetchGasGwei, fetchNativePrices, fetchQuotePrices } from "./sources/prices";
 import { connectPumpPortal } from "./sources/pumpportal";
 import { RobinhoodRpc } from "./sources/robinhood";
+import { createSafetyChecks } from "./safety";
 import { TokenStore } from "./store";
 import { createViews } from "./views/cache";
 
@@ -21,7 +22,8 @@ const INGESTING: readonly LaunchpadId[] = ["pons", "pump", "bonk"];
 /**
  * Helius lookups (art, names, mint and freeze authority) go out as one batch
  * a minute. Each call costs 10 credits however many tokens it carries, so this
- * caps the worker at about 432K credits a month (the free plan has 1M).
+ * stays near 432K credits a month; holder checks (safety.ts) add at most
+ * ~260K, inside the free plan's 1M.
  */
 const ASSET_LOOKUP_EVERY = 60_000;
 /** Pons is read from Robinhood Chain's logs this often (the screen refreshes every 4 s). */
@@ -39,8 +41,9 @@ const startedAt = Date.now();
 let lastLaunchAt = 0;
 let marketBackoffUntil = 0;
 let quotesFetchedAt = 0;
-/** Helius calls since start, reported by /health to watch the credit budget. */
+/** Helius calls and estimated credits since start, reported by /health to watch the budget. */
 let heliusCalls = 0;
+let heliusCredits = 0;
 
 const lastFailure = new Map<string, number>();
 /** Logs a failure at most once a minute per source, so a flaky feed can't flood the logs. */
@@ -101,6 +104,7 @@ async function refreshAssets(): Promise<void> {
   if (ids.length === 0) return;
   try {
     heliusCalls += 1;
+    heliusCredits += 10;
     const info = await fetchAssets(config.heliusApiKey, ids);
     for (const id of ids) store.applyAsset(id, info.get(id), Date.now());
   } catch (error) {
@@ -116,6 +120,18 @@ async function refreshStatus(): Promise<void> {
     fail("status", error);
   }
 }
+
+const safety = createSafetyChecks({
+  store,
+  visible: () => views.visibleAddresses(),
+  heliusApiKey: config.heliusApiKey,
+  jupiterApiKey: config.jupiterApiKey,
+  onHeliusCall: () => {
+    heliusCalls += 1;
+    heliusCredits += 1;
+  },
+  fail,
+});
 
 const save = () => saveSnapshot(config.snapshotPath, { tokens: store.toJSON(), ponsBlock: ponsFeed.cursor });
 
@@ -156,6 +172,8 @@ async function start(): Promise<void> {
   every(PONS_POLL_EVERY, pollPons);
   every(5 * 60_000, () => refreshQuotePrices(true));
   every(ASSET_LOOKUP_EVERY, refreshAssets);
+  every(60_000, safety.refreshHolders);
+  every(60_000, safety.verifyIssuers);
   every(20_000, refreshStatus);
   every(60_000, async () => {
     const removed = store.prune(Date.now());
@@ -174,6 +192,7 @@ async function start(): Promise<void> {
       lastLaunchAt,
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
       heliusCalls,
+      heliusCredits,
       ponsBlock: ponsFeed.cursor,
     }),
   });

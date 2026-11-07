@@ -1,5 +1,6 @@
 import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
+import type { IssuerId } from "./issuers";
 import type { PonsState } from "./pons/curve";
 
 /** DexScreener's windows; the list toolbar's 5m / 1h / 6h / 24h map onto them. */
@@ -55,6 +56,20 @@ export interface TrackedToken {
   mintRevoked: boolean | null;
   freezeRevoked: boolean | null;
   assetAt: number;
+  /** Total supply in raw units (Helius), when known. */
+  supply?: number | null;
+
+  // Mission score v2 facts (safety.ts).
+  /** An issuer whose mint and freeze authorities the token carries, before Jupiter confirms it. */
+  issuerClaim?: IssuerId | null;
+  /** The confirmed issuer of a tokenized stock or RWA. */
+  issuer?: IssuerId | null;
+  /** When Jupiter was last asked about the claim, ms. */
+  issuerCheckedAt?: number;
+  /** Share of supply the 10 largest wallets hold, 0–1 (Solana tokens on screen worth $20K+). */
+  top10Share?: number | null;
+  /** When the top-10 share was last measured, ms. */
+  holdersAt?: number;
 
   // Short histories for the sparkline and buy velocity.
   /** [time, market cap], oldest first, thinned as it grows. */

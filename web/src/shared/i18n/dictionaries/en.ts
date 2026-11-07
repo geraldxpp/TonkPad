@@ -149,6 +149,8 @@ export const en = {
     og: "OG",
     new: "New",
     graduated: "Graduated",
+    rwa: "Verified RWA",
+    rwaTitle: "Verified RWA · issued by {issuer}",
   },
   score: { title: "Mission score {score} · {level}", Safe: "Safe", Caution: "Caution", Risky: "Risky" },
   status: {

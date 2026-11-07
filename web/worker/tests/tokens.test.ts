@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { refreshDelay } from "../src/schedule";
-import { liquidityShare, missionScore } from "../src/score";
+import { holderPoints, liquidityShare, missionScore } from "../src/score";
 import { buysLast15m, sampleSeries, toToken } from "../src/tokens";
 import { HOUR, MIN, NOW, priced, SEC, tracked, windows } from "./fixtures";
 
@@ -70,6 +70,43 @@ describe("missionScore and pool liquidity", () => {
   });
 });
 
+describe("missionScore and the top-10 wallets", () => {
+  // Authorities given up, two hours old, no trading facts: 65 before holders count.
+  const held = (share: number | null, marketCap = 48_000) =>
+    priced(marketCap, {}, { mintRevoked: true, freezeRevoked: true, top10Share: share }, 2 * HOUR);
+
+  it("takes 20 points over 50%, 10 from 30% to 50%, and adds 5 under 20%", () => {
+    expect(missionScore(held(null), NOW)).toEqual({ score: 65, level: "Caution" });
+    expect(missionScore(held(0.62), NOW).score).toBe(45);
+    expect(missionScore(held(0.5), NOW).score).toBe(55);
+    expect(missionScore(held(0.3), NOW).score).toBe(55);
+    expect(missionScore(held(0.25), NOW).score).toBe(65);
+    expect(missionScore(held(0.04), NOW).score).toBe(70);
+  });
+
+  it("ignores holders under a $20K valuation, where the data is too noisy", () => {
+    expect(holderPoints(held(0.9, 15_000))).toBe(0);
+    expect(missionScore(held(0.9, 15_000), NOW).score).toBe(65);
+  });
+});
+
+describe("missionScore and verified issuers", () => {
+  // Authorities held, the creator owns 90%, the top 10 hold 95%, and the pool is tiny.
+  const risky = { mintRevoked: false, freezeRevoked: false, creatorBuyShare: 0.9, top10Share: 0.95, liquidityUsd: 1_000 };
+
+  it("counts a verified issuer's authorities +15 and skips the creator-buy, holder and pool checks", () => {
+    expect(missionScore(priced(500_000, {}, risky, 2 * HOUR), NOW)).toEqual({ score: 1, level: "Risky" });
+    expect(missionScore(priced(500_000, {}, { ...risky, issuerClaim: "xstocks", issuer: "xstocks" }, 2 * HOUR), NOW)).toEqual({
+      score: 65,
+      level: "Caution",
+    });
+  });
+
+  it("needs Jupiter's confirmation, not just matching authorities", () => {
+    expect(missionScore(priced(500_000, {}, { ...risky, issuerClaim: "ondo", issuer: null }, 2 * HOUR), NOW).score).toBe(1);
+  });
+});
+
 describe("buysLast15m", () => {
   it("counts every buy while the token is under 15 minutes old", () => {
     expect(buysLast15m(tracked({ windows: windows({ h24: { buys: 33 } }) }, 10 * MIN), NOW)).toBe(33);
@@ -133,5 +170,11 @@ describe("toToken", () => {
     });
     expect(out.name).toBe(`${token.address.slice(0, 4)}…${token.address.slice(-4)}`);
     expect(out.windows?.["5m"]).toEqual({ change: 3, volume: 900 });
+    expect(out).not.toHaveProperty("issuer");
+  });
+
+  it("names a verified issuer, which shows the Verified RWA badge", () => {
+    expect(toToken(tracked({ issuerClaim: "ondo", issuer: "ondo" }), NOW).issuer).toBe("Ondo Global Markets");
+    expect(toToken(tracked({ issuerClaim: "ondo", issuer: null }), NOW)).not.toHaveProperty("issuer");
   });
 });

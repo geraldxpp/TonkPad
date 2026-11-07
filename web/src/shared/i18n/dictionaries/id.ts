@@ -147,6 +147,8 @@ export const id: Dictionary = {
     og: "OG",
     new: "Baru",
     graduated: "Lulus",
+    rwa: "RWA terverifikasi",
+    rwaTitle: "RWA terverifikasi · diterbitkan oleh {issuer}",
   },
   score: { title: "Skor misi {score} · {level}", Safe: "Aman", Caution: "Waspada", Risky: "Berisiko" },
   status: {

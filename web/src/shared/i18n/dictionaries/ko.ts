@@ -146,6 +146,8 @@ export const ko: Dictionary = {
     og: "OG",
     new: "신규",
     graduated: "졸업",
+    rwa: "인증된 RWA",
+    rwaTitle: "인증된 RWA · 발행사 {issuer}",
   },
   score: { title: "미션 점수 {score} · {level}", Safe: "안전", Caution: "주의", Risky: "위험" },
   status: {

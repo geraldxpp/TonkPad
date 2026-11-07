@@ -60,6 +60,7 @@ export function TokenCard({ token, color, rank }: TokenCardProps) {
         </div>
         <div className="flex min-h-5 flex-wrap gap-1">
           {flags.locked ? <Badge kind="locked" tone="card" /> : null}
+          {token.issuer ? <Badge kind="rwa" value={token.issuer} tone="card" /> : null}
           {flags.crew ? <Badge kind="crew" value={flags.crew} tone="card" /> : null}
           {flags.agent ? <Badge kind="agent" tone="card" /> : null}
         </div>

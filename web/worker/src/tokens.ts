@@ -1,5 +1,6 @@
 import type { LiveTimeframe } from "@/shared/types/live";
 import type { SparkSeed, Token } from "@/shared/types/token";
+import { ISSUERS } from "./issuers";
 import { type MarketWindow, shortAddress, type TrackedToken, type WindowKey } from "./model";
 import { ponsBuysSince } from "./pons/curve";
 import { missionScore } from "./score";
@@ -87,5 +88,6 @@ export function toToken(token: TrackedToken, now: number, hot = false): Token {
     creator: shortAddress(token.creator),
     ageMinutes,
     art: token.image ?? "",
+    ...(token.issuer ? { issuer: ISSUERS[token.issuer].name } : {}),
   };
 }

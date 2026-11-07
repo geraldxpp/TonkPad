@@ -146,6 +146,8 @@ export const es: Dictionary = {
     og: "OG",
     new: "Nuevo",
     graduated: "Graduado",
+    rwa: "RWA verificado",
+    rwaTitle: "RWA verificado · emitido por {issuer}",
   },
   score: { title: "Puntuación de misión {score} · {level}", Safe: "Seguro", Caution: "Precaución", Risky: "Riesgoso" },
   status: {

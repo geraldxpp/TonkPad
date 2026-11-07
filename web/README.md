@@ -170,8 +170,11 @@ as JSON. The app never calls the data providers itself.
   token without art shows its first letter.
 - **Helius budget.** Lookups (art, names, mint and freeze authority) go out
   as one batch a minute, up to 100 tokens each. A call costs 10 credits
-  whatever its size, so the worker stays under about 432K credits a month,
-  well inside the free plan's 1M.
+  whatever its size, so lookups stay near 432K credits a month. Top-10
+  holder checks add 2 credits a token (3 the first time, without a known
+  supply), for Solana tokens on screen worth $20K+, each every 30 minutes
+  and at most 3 a minute: about 0.26M more, inside the free plan's 1M.
+  `/health` reports `heliusCalls` and an estimate of `heliusCredits`.
 - **Pons.** DexScreener doesn't list Pons's bonding curves, so the worker
   reads them from the chain: every 3 s it asks Robinhood Chain's public RPC
   for new launches, trades and graduations (Alchemy's free plan only
@@ -183,12 +186,26 @@ as JSON. The app never calls the data providers itself.
   token moves to Uniswap v4, where DexScreener takes over. Pons tokens are
   fixed-supply contracts with no mint or pause functions. A fresh start, or
   a gap of more than a day, rebuilds the last day from the chain.
-- **Mission score v1** (`worker/src/score.ts`) is a placeholder built from
-  what the worker knows: authorities, graduation, the creator's launch buy,
-  trading mix, crashes, volume, age and pool depth. A token valued at $20K+
-  whose pool holds under 5% of its market cap loses 20 points (never Safe);
-  under 2% it is capped at 30, Risky (a pool that small can't back the price).
-- **Not tracked yet:** holders (shown as —), smart money and locked missions
+- **Mission score v2** (`worker/src/score.ts`, approved 7 Nov 2026) adds up
+  authorities, graduation, the creator's launch buy, the top-10 wallets'
+  share, trading mix, crashes, volume, age and pool depth. For tokens valued
+  at $20K+: the 10 largest wallets holding over 50% cost 20 points (30–50%:
+  10; under 20% earns 5), and a pool holding under 5% of the market cap
+  costs 20 (never Safe); under 2% the score is capped at 30, Risky.
+- **Top-10 holders** (`worker/src/sources/holders.ts`) come from Helius's 20
+  largest token accounts and their owners. Owners off the ed25519 curve are
+  program addresses (bonding curves, pools, lock escrows, pump.fun's Mayhem
+  agent) and are left out, as are burn addresses; so is a team's multisig
+  vault, which is rare for launches. A supply spread over hundreds of equal
+  wallets still reads as well spread: the pool-depth cap is what catches it.
+- **Verified issuers** (`worker/src/issuers.ts`): xStocks and Ondo Global
+  Markets hold mint and freeze authority by design. A token whose two
+  authorities both match an issuer's, and which Jupiter verifies under that
+  issuer's tag, scores those as +15, skips the creator-buy, holder and pool
+  checks, and shows the Verified RWA badge. The addresses were read on-chain
+  from mints the issuers list (xstocks.com/products, Ondo's address page).
+- **Not tracked yet:** holder counts (shown as —), Robinhood Chain holders
+  (needs a Blockscout key), locks, smart money and locked missions
   (empty tabs), and the other Solana launchpads (Bags, Moonit, Heaven).
   Bonk.fun tokens show up in New pairs but have no market data until they
   graduate (DexScreener doesn't index their curve).

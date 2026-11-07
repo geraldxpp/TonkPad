@@ -67,6 +67,7 @@ export function TokenRow({ token, tf }: { token: RankedToken; tf: Timeframe }) {
             {flags.og ? <Badge kind="og" density="compact" /> : null}
             {flags.isNew ? <Badge kind="new" density="compact" /> : null}
             {flags.locked ? <Badge kind="locked" density="compact" /> : null}
+            {token.issuer ? <Badge kind="rwa" value={token.issuer} density="compact" /> : null}
             {/* The narrower tiers keep the token line short. */}
             {flags.crew ? (
               <span className="max-lg:hidden">

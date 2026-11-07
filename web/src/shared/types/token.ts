@@ -61,4 +61,6 @@ export interface Token {
   ageMinutes: number;
   /** Token art: a path under /public or a remote URL ("" when there is none yet). */
   art: string;
+  /** The verified issuer of a tokenized stock or RWA, e.g. "xStocks" (live data). Shows the Verified RWA badge. */
+  issuer?: string;
 }

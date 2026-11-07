@@ -1,0 +1,128 @@
+{
+ "_about": "Real Solana data from 7 Nov 2026: launch creators (they signed, so they are wallets), associated token accounts with their owners, and the 20 largest accounts of a $197M Pump.fun graduate.",
+ "wallets": [
+  "4WYUueY86CLNSQvkhPebBF9bPBjUXhdj1quabAUuvbgh",
+  "8a8iumX1UvkrgwQPqnZs4uUJhrn8HEGHbcwzr36QhzK5",
+  "6ZmwHWhz1rc28g4ojdQrq8F5ZM2pbyMpZbYvkZGcquPr",
+  "BMrK6sqTmmXa2uv6cfbLiX5Qk5UVN7dwAxfa7aFUg1p2",
+  "26Hn5wqYY5GtNrFezY1Mni8kxTUL3DLQnTWp7pP6vgaD",
+  "2cfa45fyBgL3gxHdThmCS6YEUt3HHYYnaKwzS5jS4TFU"
+ ],
+ "tokenAccounts": [
+  {
+   "account": "8ZUo2s6j1EEWSpWghTMgY2QfHykVDxyyVnZXgDvrygrL",
+   "owner": "ryfbhbcha1wntaPZdsVJeB8gNsZYoDpTwR89hZTyu5A"
+  },
+  {
+   "account": "DyhDGzMGx8C8eDXTwBY3bwbzdzPMoKnzJkuo9xF9d9Sn",
+   "owner": "D7dzVRQVUmCcF2QnKvhFDVjQh1KBtcNd1HNYBcfUgEGY"
+  },
+  {
+   "account": "CtEJwhC71KooFgyY7o8SdGWMouFnW5gkTVpwTSsgLC99",
+   "owner": "3bGyvbBSFN11uQNejcaZfKjKLkRacF8oFSxEDaGJBQEN"
+  },
+  {
+   "account": "3rdhuMXzSHT1xpWhfjoiPYkhYeKE7r4jjRy97t5u2LY2",
+   "owner": "CQzYoGjPRRxAAcUm2Q1d6ATE8oZHgzGiDnHH2Hbsr1Ce"
+  },
+  {
+   "account": "8RC52gGmeJ4oYxu9ixHTHcr8VT2W4zAsvTfuFqCXwS1s",
+   "owner": "CBFjCAWyxZPetwnXGcTTHaxiNUp2gceUetDS9CT3xCi7"
+  },
+  {
+   "account": "EgZF9tA9GDvAb4YCK4rAEVoETH1MwQfubvMs13Mx5sFH",
+   "owner": "3Bo3xZmozrzA9pUaq6cy5RZBqGEg4zrgSEp4FZ1pSWTo"
+  }
+ ],
+ "programOwners": [
+  "D7dzVRQVUmCcF2QnKvhFDVjQh1KBtcNd1HNYBcfUgEGY",
+  "9sHpTfmVpCfP2zexRNK6j38NBchMv1RWpdXPK5NEcZan"
+ ],
+ "largest": {
+  "mint": "z17XKTitUumeFK4Xnd4HuL6R2KenKjnEjcvEqxipump",
+  "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+  "supply": 999991491181449,
+  "accounts": [
+   {
+    "owner": "ryfbhbcha1wntaPZdsVJeB8gNsZYoDpTwR89hZTyu5A",
+    "amount": "24480558977246"
+   },
+   {
+    "owner": "D7dzVRQVUmCcF2QnKvhFDVjQh1KBtcNd1HNYBcfUgEGY",
+    "amount": "2839503188059"
+   },
+   {
+    "owner": "3bGyvbBSFN11uQNejcaZfKjKLkRacF8oFSxEDaGJBQEN",
+    "amount": "1995210010836"
+   },
+   {
+    "owner": "CQzYoGjPRRxAAcUm2Q1d6ATE8oZHgzGiDnHH2Hbsr1Ce",
+    "amount": "1995170617066"
+   },
+   {
+    "owner": "CBFjCAWyxZPetwnXGcTTHaxiNUp2gceUetDS9CT3xCi7",
+    "amount": "1994988151554"
+   },
+   {
+    "owner": "3Bo3xZmozrzA9pUaq6cy5RZBqGEg4zrgSEp4FZ1pSWTo",
+    "amount": "1994963162664"
+   },
+   {
+    "owner": "9EUYDrBuoLoPHP8qoxS25neQUKe9ByetjDAVkd5eNV6r",
+    "amount": "1994949410464"
+   },
+   {
+    "owner": "BwRtfKjcWsbgtfgppKEKahDS5SZUkqKQS5rT422mPFr2",
+    "amount": "1994922551577"
+   },
+   {
+    "owner": "G1t6ZkVZz3ZSd8LTZYLuRk4Wn4Z593KUunYMvjZRJnm9",
+    "amount": "1994903017451"
+   },
+   {
+    "owner": "FNJyXPoDt4ggKMRdYTcvQRz2oeCpnWtxEMUiJktfp65B",
+    "amount": "1994866983531"
+   },
+   {
+    "owner": "ATwCWawkJ5NmNtDYryN8VRBWZFby3fjCSwGb6AvtxCek",
+    "amount": "1994765479688"
+   },
+   {
+    "owner": "2dyEve4vuH5VDLgUBN83ie7PMWQi244bQ48nKzcGEbmY",
+    "amount": "1994739294880"
+   },
+   {
+    "owner": "GVtFVKgz2yK69f1RQkKPPjyxwMiabM1D6jtZ42chnvkE",
+    "amount": "1994712816813"
+   },
+   {
+    "owner": "A1tckCSYA2K79Xdz2C5UspSjBnhBYWcSYgY2ajRPG29d",
+    "amount": "1994671637515"
+   },
+   {
+    "owner": "2vBHnQCMcCdqR2Fx2T8uKuVtLbWifUdemN5sojGH7zRQ",
+    "amount": "1994662870770"
+   },
+   {
+    "owner": "EKJatSJwZDoRgCfEySW1TNWHmQxhJ2C4Ub8UoL7FKTvy",
+    "amount": "1994639338549"
+   },
+   {
+    "owner": "63iEbhD9d2gF3iFhpvnYaiHPivuHNwgmWG5vmYzayQnU",
+    "amount": "1994608584999"
+   },
+   {
+    "owner": "DkGqVd4oXQRjWUmcBFnBrDCxbpWnwBRwJoFrit8ccLXM",
+    "amount": "1994529905234"
+   },
+   {
+    "owner": "5yAdcu8e6MQMQN2E63Kc4bnZ3AqQYyAXvDqS3gazfvGw",
+    "amount": "1994511296450"
+   },
+   {
+    "owner": "8VxNC4c4LNzfRZrAYHUMFaKwbMwQJ4HKo8izWtazJwgp",
+    "amount": "1994403438240"
+   }
+  ]
+ }
+}

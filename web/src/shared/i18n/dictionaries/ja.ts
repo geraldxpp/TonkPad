@@ -146,6 +146,8 @@ export const ja: Dictionary = {
     og: "OG",
     new: "新規",
     graduated: "卒業",
+    rwa: "認証済みRWA",
+    rwaTitle: "認証済みRWA · 発行元 {issuer}",
   },
   score: { title: "ミッションスコア {score} · {level}", Safe: "安全", Caution: "注意", Risky: "高リスク" },
   status: {

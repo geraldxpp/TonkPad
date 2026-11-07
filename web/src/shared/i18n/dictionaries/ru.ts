@@ -147,6 +147,8 @@ export const ru: Dictionary = {
     og: "OG",
     new: "Новый",
     graduated: "Выпущен",
+    rwa: "Проверенный RWA",
+    rwaTitle: "Проверенный RWA · эмитент {issuer}",
   },
   score: { title: "Оценка миссии {score} · {level}", Safe: "Надёжно", Caution: "Осторожно", Risky: "Рискованно" },
   status: {

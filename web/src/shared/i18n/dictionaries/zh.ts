@@ -147,6 +147,8 @@ export const zh: Dictionary = {
     og: "OG",
     new: "新",
     graduated: "已毕业",
+    rwa: "已验证 RWA",
+    rwaTitle: "已验证 RWA · 发行方 {issuer}",
   },
   score: { title: "任务评分 {score} · {level}", Safe: "安全", Caution: "谨慎", Risky: "高风险" },
   status: {

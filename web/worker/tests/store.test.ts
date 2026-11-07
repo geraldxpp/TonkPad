@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
+import { ISSUERS } from "../src/issuers";
 import type { LaunchEvent } from "../src/model";
 import type { MarketData } from "../src/sources/dexscreener";
 import type { AssetInfo } from "../src/sources/helius";
@@ -28,7 +29,17 @@ function market(over: Partial<MarketData> = {}): MarketData {
   return { priceUsd: 0.00001, priceNative: 1e-7, marketCap: 10_000, liquidityUsd: 9_000, dexId: "pumpfun", onCurve: true, windows: windows({ h24: { buys: 12 } }), ...over };
 }
 
-const asset = (over: Partial<AssetInfo> = {}): AssetInfo => ({ image: null, name: null, symbol: null, mintRevoked: true, freezeRevoked: true, ...over });
+const asset = (over: Partial<AssetInfo> = {}): AssetInfo => ({
+  image: null,
+  name: null,
+  symbol: null,
+  mintRevoked: true,
+  freezeRevoked: true,
+  mintAuthority: null,
+  freezeAuthority: null,
+  supply: null,
+  ...over,
+});
 
 function storeWith(...events: LaunchEvent[]): TokenStore {
   const store = new TokenStore();
@@ -108,6 +119,19 @@ describe("TokenStore art and safety facts", () => {
       freezeRevoked: false,
       image: `${CDN}https://ipfs.filebase.io/ipfs/${CID}`,
     });
+  });
+
+  it("records the supply and an issuer claim, and forgets Jupiter's word when the claim changes", () => {
+    const { mintAuthority, freezeAuthority } = ISSUERS.ondo;
+    const store = storeWith(launch("e"));
+    store.applyAsset(address("e"), asset({ mintAuthority, freezeAuthority, supply: 1e15 }), NOW);
+    const token = store.get(address("e"));
+    expect(token).toMatchObject({ issuerClaim: "ondo", issuer: null, issuerCheckedAt: 0, supply: 1e15 });
+    if (token) token.issuer = "ondo";
+    store.applyAsset(address("e"), asset({ mintAuthority, freezeAuthority }), NOW);
+    expect(token).toMatchObject({ issuer: "ondo", supply: 1e15 });
+    store.applyAsset(address("e"), asset({ mintAuthority: "Someone else", freezeAuthority }), NOW);
+    expect(token).toMatchObject({ issuerClaim: null, issuer: null });
   });
 
   it("keeps Pump.fun's own art for its tokens, whatever the metadata says", () => {

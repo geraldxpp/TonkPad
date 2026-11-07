@@ -146,6 +146,8 @@ export const tr: Dictionary = {
     og: "OG",
     new: "Yeni",
     graduated: "Mezun",
+    rwa: "Doğrulanmış RWA",
+    rwaTitle: "Doğrulanmış RWA · ihraççı {issuer}",
   },
   score: { title: "Görev puanı {score} · {level}", Safe: "Güvenli", Caution: "Dikkat", Risky: "Riskli" },
   status: {

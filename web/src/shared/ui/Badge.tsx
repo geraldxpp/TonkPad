@@ -1,15 +1,15 @@
 "use client";
 
-import { Bot, Crown, Flame, GraduationCap, Lock, Zap } from "lucide-react";
+import { Bot, Crown, Flame, GraduationCap, Lock, ShieldCheck, Zap } from "lucide-react";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 
-export type BadgeKind = "locked" | "crew" | "agent" | "hot" | "og" | "new" | "graduated";
+export type BadgeKind = "locked" | "crew" | "agent" | "hot" | "og" | "new" | "graduated" | "rwa";
 
 interface BadgeProps {
   kind: BadgeKind;
-  /** Crew fee share, e.g. "2%". Only used by the crew badge. */
+  /** The crew badge's fee share ("2%"), or the RWA badge's issuer ("xStocks"). */
   value?: string;
   /** "card" uses the slightly stronger fills from the token-card art. */
   tone?: "default" | "card";
@@ -29,6 +29,10 @@ const BORDERED = {
   agent: {
     default: "text-agent bg-agent/14 border-agent/38",
     card: "text-agent bg-agent/16 border-agent/42",
+  },
+  rwa: {
+    default: "text-accent-text bg-accent/14 border-accent/38",
+    card: "text-accent-text bg-accent/16 border-accent/42",
   },
 } as const;
 
@@ -85,6 +89,13 @@ export function Badge({ kind, value, tone = "default", density = "comfortable" }
         <span className={cn(BASE, right, "gap-1 border", BORDERED.agent[tone])}>
           <Bot size={11} strokeWidth={2.4} />
           {t.badges.agent}
+        </span>
+      );
+    case "rwa":
+      return (
+        <span title={fmt(t.badges.rwaTitle, { issuer: value ?? "" })} className={cn(BASE, right, "gap-1 border", BORDERED.rwa[tone])}>
+          <ShieldCheck size={11} strokeWidth={2.6} />
+          {t.badges.rwa}
         </span>
       );
   }

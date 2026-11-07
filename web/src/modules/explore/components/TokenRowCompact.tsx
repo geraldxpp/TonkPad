@@ -1,4 +1,4 @@
-import { Lock, Zap } from "lucide-react";
+import { Lock, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { CHAINS } from "@/shared/config/chains";
 import { fmt } from "@/shared/i18n/config";
@@ -40,6 +40,14 @@ export function TokenRowCompact({ token, tf }: { token: RankedToken; tf: Timefra
                 className="inline-flex size-[18px] flex-none items-center justify-center rounded-md border border-locked/38 bg-locked/14 text-locked"
               >
                 <Lock size={10} strokeWidth={2.8} role="img" aria-label={t.badges.locked} />
+              </span>
+            ) : null}
+            {token.issuer ? (
+              <span
+                title={fmt(t.badges.rwaTitle, { issuer: token.issuer })}
+                className="inline-flex size-[18px] flex-none items-center justify-center rounded-md border border-accent/38 bg-accent/14 text-accent-text"
+              >
+                <ShieldCheck size={10} strokeWidth={2.8} role="img" aria-label={t.badges.rwa} />
               </span>
             ) : null}
           </span>

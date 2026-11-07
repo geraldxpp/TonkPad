@@ -1,6 +1,7 @@
 import type { ChainId } from "@/shared/types/chain";
 import { artUrl, launchpadArt, repointArt } from "./art";
 import { curveProgressFromPrice } from "./curve";
+import { issuerByAuthorities } from "./issuers";
 import {
   cleanName,
   cleanSymbol,
@@ -103,6 +104,14 @@ export class TokenStore {
     token.image = launchpadArt(address, token.launchpad) ?? (info.image ? artUrl(info.image, token.launchpad) : null);
     token.mintRevoked = info.mintRevoked;
     token.freezeRevoked = info.freezeRevoked;
+    if (info.supply !== null) token.supply = info.supply;
+    const claim = issuerByAuthorities(info.mintAuthority, info.freezeAuthority);
+    if (claim !== (token.issuerClaim ?? null)) {
+      // A new or dropped claim needs Jupiter's word again.
+      token.issuerClaim = claim;
+      token.issuer = null;
+      token.issuerCheckedAt = 0;
+    }
     // Some launch events arrive without a name or symbol; the metadata has them.
     if (!token.name && info.name) token.name = cleanName(info.name);
     if (!token.symbol && info.symbol) token.symbol = cleanSymbol(info.symbol);

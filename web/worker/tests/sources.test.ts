@@ -117,13 +117,31 @@ describe("toAssetInfo", () => {
   it("reads art, names and whether the authorities were given up", () => {
     const info = toAssetInfo({
       content: { metadata: { name: " Torch ", symbol: "TORCH" }, links: { image: "https://ipfs.io/ipfs/QmArt" } },
-      token_info: { mint_authority: null, freeze_authority: "Someone" },
+      token_info: { mint_authority: null, freeze_authority: "Someone", supply: 999_990_000_000_000 },
     });
-    expect(info).toEqual({ image: "https://ipfs.io/ipfs/QmArt", name: "Torch", symbol: "TORCH", mintRevoked: true, freezeRevoked: false });
+    expect(info).toEqual({
+      image: "https://ipfs.io/ipfs/QmArt",
+      name: "Torch",
+      symbol: "TORCH",
+      mintRevoked: true,
+      freezeRevoked: false,
+      mintAuthority: null,
+      freezeAuthority: "Someone",
+      supply: 999_990_000_000_000,
+    });
   });
 
   it("falls back to the first file and copes with missing metadata", () => {
     expect(toAssetInfo({ content: { files: [{ uri: "https://x.test/a.png" }] } }).image).toBe("https://x.test/a.png");
-    expect(toAssetInfo({})).toEqual({ image: null, name: null, symbol: null, mintRevoked: null, freezeRevoked: null });
+    expect(toAssetInfo({})).toEqual({
+      image: null,
+      name: null,
+      symbol: null,
+      mintRevoked: null,
+      freezeRevoked: null,
+      mintAuthority: null,
+      freezeAuthority: null,
+      supply: null,
+    });
   });
 });
