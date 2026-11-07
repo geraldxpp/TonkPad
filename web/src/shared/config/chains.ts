@@ -4,6 +4,7 @@ export const CHAINS: Record<ChainId, Chain> = {
   sol: {
     id: "sol",
     name: "Solana",
+    logo: "/chains/sol.png",
     letter: "S",
     background: "linear-gradient(135deg, #9945FF, #19FB9B)",
     foreground: "#0B0A1A",
@@ -12,6 +13,7 @@ export const CHAINS: Record<ChainId, Chain> = {
   rh: {
     id: "rh",
     name: "Robinhood Chain",
+    logo: "/chains/rh.png",
     letter: "R",
     background: "#CCFF00",
     foreground: "#0E1400",

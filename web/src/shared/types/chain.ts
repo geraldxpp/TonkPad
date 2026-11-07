@@ -3,7 +3,9 @@ export type ChainId = "sol" | "rh";
 export interface Chain {
   id: ChainId;
   name: string;
-  /** Letter shown on the original stand-in mark (never the real logo). */
+  /** The chain's own logo under /public, or null to show `letter` on `background` instead. */
+  logo: string | null;
+  /** Letter shown on the round mark while there is no logo file. */
   letter: string;
   /** CSS background for the round chain mark. */
   background: string;

@@ -110,8 +110,10 @@ returns typed mock data; with the worker on, Explore loads through
   the emblem; Bags, Moonshot (moonshot.com) and Bonk.fun come from their own
   sites; Pump.fun, Pons and Heaven from DefiLlama's copies (pump.fun blocks
   scripted requests, Pons's site has no icon file, heaven.xyz is down). A
-  launchpad without a file shows its letter on its colour. Chain marks stay
-  original letter stand-ins.
+  launchpad without a file shows its letter on its colour.
+- **Chain marks** are the chains' own logos too, in `public/chains/`:
+  Solana's from Solana Labs' token list on GitHub (solana.com rate-limits
+  scripted requests), Robinhood Chain's from DefiLlama's copy.
 - **Tonkpad's coin slot.** The hero's featured coin (Mission Pick in the
   design) is reserved for Tonkpad's own coin: until it launches it shows the
   emblem with "Coming soon" (`NativeCoin`). The worker still computes a
