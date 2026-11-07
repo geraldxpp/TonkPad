@@ -25,6 +25,8 @@ export interface TokenListViewProps {
   busy?: boolean;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  /** Live list: the latest refresh failed. */
+  stale?: boolean;
 }
 
 /** Toolbar, launchpad chips and table for a given view. Purely presentational. */
@@ -55,6 +57,7 @@ export function TokenListView(props: TokenListViewProps) {
         busy={props.busy}
         onLoadMore={props.onLoadMore}
         hasMore={props.hasMore}
+        stale={props.stale}
       />
     </section>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getI18n } from "@/shared/i18n/server";
 import type { ShellData } from "../data/shell.mock";
+import { LiveIndicator } from "./LiveIndicator";
 import { StatusValue } from "./StatusValue";
 import { SweepCountdown } from "./SweepCountdown";
 import { SweepFill } from "./SweepFill";
@@ -16,10 +17,7 @@ export async function StatusBar({ status }: StatusBarProps) {
   const { t, href } = await getI18n();
   return (
     <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line bg-bg-deep px-[clamp(16px,2vw,24px)] py-[9px] text-[12px] text-text-3">
-      <span className="inline-flex items-center gap-1.5 font-semibold text-pos">
-        <span className="tk-pulse size-2 rounded-full bg-pos" />
-        {t.status.live}
-      </span>
+      <LiveIndicator />
       <span className="inline-flex items-center gap-2">
         {t.status.nextSweep}
         <SweepFill />

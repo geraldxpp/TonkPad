@@ -137,6 +137,7 @@ export const ru: Dictionary = {
     emptyHint: "Попробуйте другую сеть или лаунчпад либо очистите поиск.",
     reset: "Сбросить фильтры",
     showing: "Показано {shown} из {total} · обновление каждые 4\u00a0с",
+    paused: "Показано {shown} из {total} · обновление приостановлено, повторяем…",
     loadMore: "Загрузить ещё",
   },
   badges: {
@@ -153,6 +154,7 @@ export const ru: Dictionary = {
   score: { title: "Оценка миссии {score} · {level}", Safe: "Надёжно", Caution: "Осторожно", Risky: "Рискованно" },
   status: {
     live: "В эфире",
+    reconnecting: "Переподключение…",
     nextSweep: "Следующий скан",
     gas: "Газ Robinhood Chain",
     docs: "Доки",

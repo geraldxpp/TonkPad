@@ -21,7 +21,9 @@ interface LiveTokenListProps {
 /**
  * The live token list. The worker filters and sorts; this asks for the view
  * in the URL and refreshes it every 4 s. Load more adds a page; a new view
- * starts again from one page. Searches wait for a pause in typing.
+ * starts again from one page. Searches wait for a pause in typing. When a
+ * refresh fails the last rows stay and the footer says updates are paused; a
+ * view that never loaded says live data is unavailable.
  */
 export function LiveTokenList({ initial, initialUrl, overview }: LiveTokenListProps) {
   const { view, handlers } = useListControls();
@@ -32,8 +34,13 @@ export function LiveTokenList({ initial, initialUrl, overview }: LiveTokenListPr
   const limit = Math.min(count * LIVE_PAGE_SIZE, LIVE_MAX_ROWS);
 
   const url = liveListUrl({ chain: view.chain, pad: view.pad, tab: view.tab, tf: view.tf, q, limit });
-  const { data, loading } = usePolling<LiveList | null>(url, initial, LIVE_REFRESH_MS, initialUrl);
-  const rows = useMemo<RankedToken[]>(() => (data?.rows ?? []).map((token, i) => ({ ...token, rank: i + 1 })), [data]);
+  const { data, loading, error } = usePolling<LiveList | null>(url, initial, LIVE_REFRESH_MS, initialUrl);
+  // A new view that failed to load has no rows of its own; the previous view's would mislead.
+  const failedView = loading && error;
+  const rows = useMemo<RankedToken[]>(
+    () => (failedView ? [] : (data?.rows ?? [])).map((token, i) => ({ ...token, rank: i + 1 })),
+    [data, failedView],
+  );
 
   return (
     <TokenListView
@@ -44,8 +51,9 @@ export function LiveTokenList({ initial, initialUrl, overview }: LiveTokenListPr
       moreLaunchpads={overview.moreLaunchpads}
       totalTokens={data?.total ?? 0}
       chainControl={<ChainFilter counts={overview.chainCounts} compact />}
-      busy={loading || data === null}
-      hasMore={data !== null && data.matched > rows.length && limit < LIVE_MAX_ROWS}
+      busy={(loading || data === null) && !error}
+      stale={error}
+      hasMore={!error && data !== null && data.matched > rows.length && limit < LIVE_MAX_ROWS}
       onLoadMore={() => setPages({ viewKey, count: count + 1 })}
     />
   );

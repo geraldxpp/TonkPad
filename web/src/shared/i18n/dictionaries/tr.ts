@@ -136,6 +136,7 @@ export const tr: Dictionary = {
     emptyHint: "Başka bir ağ ya da launchpad deneyin veya aramayı temizleyin.",
     reset: "Filtreleri sıfırla",
     showing: "{total} tokenden {shown} gösteriliyor · 4\u00a0sn’de bir yenilenir",
+    paused: "{total} tokenden {shown} gösteriliyor · güncelleme duraklatıldı, yeniden deneniyor…",
     loadMore: "Daha fazla yükle",
   },
   badges: {
@@ -152,6 +153,7 @@ export const tr: Dictionary = {
   score: { title: "Görev puanı {score} · {level}", Safe: "Güvenli", Caution: "Dikkat", Risky: "Riskli" },
   status: {
     live: "Canlı",
+    reconnecting: "Yeniden bağlanıyor…",
     nextSweep: "Sonraki tarama",
     gas: "Robinhood Chain gas",
     docs: "Belgeler",

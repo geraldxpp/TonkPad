@@ -137,6 +137,7 @@ export const id: Dictionary = {
     emptyHint: "Coba chain atau launchpad lain, atau hapus pencarian.",
     reset: "Atur ulang filter",
     showing: "Menampilkan {shown} dari {total} token · diperbarui tiap 4\u00a0dtk",
+    paused: "Menampilkan {shown} dari {total} token · pembaruan dijeda, mencoba lagi…",
     loadMore: "Muat lebih banyak",
   },
   badges: {
@@ -153,6 +154,7 @@ export const id: Dictionary = {
   score: { title: "Skor misi {score} · {level}", Safe: "Aman", Caution: "Waspada", Risky: "Berisiko" },
   status: {
     live: "Live",
+    reconnecting: "Menyambung ulang…",
     nextSweep: "Pindaian berikutnya",
     gas: "Gas Robinhood Chain",
     docs: "Dokumen",

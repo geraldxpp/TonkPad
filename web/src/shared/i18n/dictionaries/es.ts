@@ -136,6 +136,7 @@ export const es: Dictionary = {
     emptyHint: "Prueba otra cadena o launchpad, o borra la búsqueda.",
     reset: "Restablecer filtros",
     showing: "Mostrando {shown} de {total} tokens · se actualiza cada 4\u00a0s",
+    paused: "Mostrando {shown} de {total} tokens · actualización en pausa, reintentando…",
     loadMore: "Cargar más",
   },
   badges: {
@@ -152,6 +153,7 @@ export const es: Dictionary = {
   score: { title: "Puntuación de misión {score} · {level}", Safe: "Seguro", Caution: "Precaución", Risky: "Riesgoso" },
   status: {
     live: "En vivo",
+    reconnecting: "Reconectando…",
     nextSweep: "Próximo barrido",
     gas: "Gas de Robinhood Chain",
     docs: "Docs",

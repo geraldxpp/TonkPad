@@ -136,6 +136,7 @@ export const ja: Dictionary = {
     emptyHint: "別のチェーンやローンチパッドを選ぶか、検索をクリアしてください。",
     reset: "フィルターをリセット",
     showing: "{total} 件中 {shown} 件を表示 · 4秒ごとに更新",
+    paused: "{total} 件中 {shown} 件を表示 · 更新を一時停止中、再試行しています…",
     loadMore: "さらに読み込む",
   },
   badges: {
@@ -152,6 +153,7 @@ export const ja: Dictionary = {
   score: { title: "ミッションスコア {score} · {level}", Safe: "安全", Caution: "注意", Risky: "高リスク" },
   status: {
     live: "ライブ",
+    reconnecting: "再接続中…",
     nextSweep: "次のスキャン",
     gas: "Robinhood Chain ガス代",
     docs: "ガイド",

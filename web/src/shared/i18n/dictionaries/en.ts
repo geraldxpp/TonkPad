@@ -139,6 +139,7 @@ export const en = {
     emptyHint: "Try another chain or launchpad, or clear the search.",
     reset: "Reset filters",
     showing: "Showing {shown} of {total} tokens · refreshes every 4s",
+    paused: "Showing {shown} of {total} tokens · updates paused, retrying…",
     loadMore: "Load more",
   },
   badges: {
@@ -155,6 +156,7 @@ export const en = {
   score: { title: "Mission score {score} · {level}", Safe: "Safe", Caution: "Caution", Risky: "Risky" },
   status: {
     live: "Live",
+    reconnecting: "Reconnecting…",
     nextSweep: "Next sweep",
     gas: "Robinhood Chain gas",
     docs: "Docs",

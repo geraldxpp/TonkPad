@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { formatChange, formatUsdCompact } from "@/shared/lib/format";
+import { ExploreLoading } from "../components/ExploreLoading";
 import { LaunchpadChips } from "../components/LaunchpadChips";
 import { LiveScope } from "../components/LiveScope";
 import { TokenListView, type TokenListViewProps } from "../components/TokenListView";
@@ -64,6 +65,24 @@ describe("live token list", () => {
       <TokenListView rows={[LIVE]} view={DEFAULT_VIEW} launchpads={[...LAUNCHPAD_COUNTS]} moreLaunchpads={0} totalTokens={250} hasMore={false} />,
     );
     expect(screen.queryByRole("button", { name: "Load more" })).not.toBeInTheDocument();
+  });
+
+  it("says updates are paused when a refresh fails, and keeps the last rows", () => {
+    renderLive({ stale: true, hasMore: false });
+    expect(screen.getByText("Showing 1 of 250 tokens · updates paused, retrying…")).toBeInTheDocument();
+    expect(screen.getAllByText(LIVE.name).length).toBeGreaterThan(0);
+  });
+
+  it("says live data is unavailable, not that nothing matches, when a view never loaded", () => {
+    renderLive({ rows: [], stale: true });
+    expect(screen.getByText("Live data is unavailable right now. Retrying…").closest('[role="status"]')).not.toBeNull();
+    expect(screen.queryByText("No tokens match these filters")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reset filters" })).not.toBeInTheDocument();
+  });
+
+  it("shows the offline screen when the worker can't be reached on first load", () => {
+    render(<ExploreLoading offline />);
+    expect(screen.getByRole("status")).toHaveTextContent("Live data is unavailable right now. Retrying…");
   });
 
   it("drops '+0 more' from the chips and the scope subtitle", () => {

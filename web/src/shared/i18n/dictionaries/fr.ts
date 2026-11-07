@@ -136,6 +136,7 @@ export const fr: Dictionary = {
     emptyHint: "Essayez une autre chaîne ou un autre launchpad, ou effacez la recherche.",
     reset: "Réinitialiser les filtres",
     showing: "{shown} tokens affichés sur {total} · actualisé toutes les 4\u00a0s",
+    paused: "{shown} tokens affichés sur {total} · mise à jour en pause, nouvel essai…",
     loadMore: "Charger plus",
   },
   badges: {
@@ -152,6 +153,7 @@ export const fr: Dictionary = {
   score: { title: "Score de mission {score} · {level}", Safe: "Sûr", Caution: "Prudence", Risky: "Risqué" },
   status: {
     live: "En direct",
+    reconnecting: "Reconnexion…",
     nextSweep: "Prochain balayage",
     gas: "Gas Robinhood Chain",
     docs: "Docs",

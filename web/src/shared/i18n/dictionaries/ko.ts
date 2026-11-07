@@ -136,6 +136,7 @@ export const ko: Dictionary = {
     emptyHint: "다른 체인이나 런치패드를 선택하거나 검색어를 지우세요.",
     reset: "필터 초기화",
     showing: "{total}개 중 {shown}개 표시 · 4초마다 새로고침",
+    paused: "{total}개 중 {shown}개 표시 · 업데이트 일시 중지, 다시 시도하는 중…",
     loadMore: "더 보기",
   },
   badges: {
@@ -152,6 +153,7 @@ export const ko: Dictionary = {
   score: { title: "미션 점수 {score} · {level}", Safe: "안전", Caution: "주의", Risky: "위험" },
   status: {
     live: "라이브",
+    reconnecting: "다시 연결하는 중…",
     nextSweep: "다음 스캔",
     gas: "Robinhood Chain 가스",
     docs: "문서",

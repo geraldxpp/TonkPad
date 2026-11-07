@@ -136,6 +136,7 @@ export const de: Dictionary = {
     emptyHint: "Versuche eine andere Chain oder ein anderes Launchpad oder lösche die Suche.",
     reset: "Filter zurücksetzen",
     showing: "{shown} von {total} Tokens · aktualisiert alle 4\u00a0s",
+    paused: "{shown} von {total} Tokens · Aktualisierung pausiert, neuer Versuch…",
     loadMore: "Mehr laden",
   },
   badges: {
@@ -152,6 +153,7 @@ export const de: Dictionary = {
   score: { title: "Mission-Score {score} · {level}", Safe: "Sicher", Caution: "Vorsicht", Risky: "Riskant" },
   status: {
     live: "Live",
+    reconnecting: "Verbinde neu…",
     nextSweep: "Nächster Scan",
     gas: "Robinhood Chain Gas",
     docs: "Doku",

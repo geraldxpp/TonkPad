@@ -136,6 +136,7 @@ export const vi: Dictionary = {
     emptyHint: "Hãy thử chuỗi hoặc launchpad khác, hoặc xóa từ khóa tìm kiếm.",
     reset: "Đặt lại bộ lọc",
     showing: "Đang hiển thị {shown}/{total} token · làm mới mỗi 4\u00a0giây",
+    paused: "Đang hiển thị {shown}/{total} token · tạm dừng cập nhật, đang thử lại…",
     loadMore: "Tải thêm",
   },
   badges: {
@@ -152,6 +153,7 @@ export const vi: Dictionary = {
   score: { title: "Điểm nhiệm vụ {score} · {level}", Safe: "An toàn", Caution: "Thận trọng", Risky: "Rủi ro" },
   status: {
     live: "Trực tiếp",
+    reconnecting: "Đang kết nối lại…",
     nextSweep: "Lượt quét tiếp",
     gas: "Phí gas Robinhood Chain",
     docs: "Tài liệu",

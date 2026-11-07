@@ -137,6 +137,7 @@ export const zh: Dictionary = {
     emptyHint: "试试其他链或发射平台，或清除搜索。",
     reset: "重置筛选",
     showing: "显示 {shown} / {total} 个代币 · 每 4 秒刷新",
+    paused: "显示 {shown} / {total} 个代币 · 更新已暂停，正在重试…",
     loadMore: "加载更多",
   },
   badges: {
@@ -153,6 +154,7 @@ export const zh: Dictionary = {
   score: { title: "任务评分 {score} · {level}", Safe: "安全", Caution: "谨慎", Risky: "高风险" },
   status: {
     live: "实时",
+    reconnecting: "正在重新连接…",
     nextSweep: "下次扫描",
     gas: "Robinhood Chain Gas",
     docs: "文档",

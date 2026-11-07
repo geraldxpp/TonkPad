@@ -47,6 +47,8 @@ interface TokenTableProps {
   onLoadMore?: () => void;
   /** False hides Load more (the live list has shown every match). */
   hasMore?: boolean;
+  /** Live list: the latest refresh failed, so these rows are the last ones that arrived (or none). */
+  stale?: boolean;
 }
 
 /**
@@ -56,7 +58,7 @@ interface TokenTableProps {
  * the two is ever displayed, so assistive tech sees a single "Tokens" table.
  */
 export function TokenTable(props: TokenTableProps) {
-  const { rows, tf, totalTokens, panelId, labelledBy, onReset, busy = false, onLoadMore, hasMore = true } = props;
+  const { rows, tf, totalTokens, panelId, labelledBy, onReset, busy = false, onLoadMore, hasMore = true, stale = false } = props;
   const { t } = useI18n();
   return (
     <div
@@ -99,7 +101,12 @@ export function TokenTable(props: TokenTableProps) {
             ))}
           </div>
         </div>
-        {rows.length === 0 && !busy ? (
+        {rows.length === 0 && !busy && stale ? (
+          <div role="status" className="flex flex-col items-center px-4 py-12 text-center">
+            <span className="text-[15px] font-semibold">{t.live.offline}</span>
+          </div>
+        ) : null}
+        {rows.length === 0 && !busy && !stale ? (
           <div className="flex flex-col items-center gap-2.5 px-4 py-12 text-center">
             <span className="text-[15px] font-semibold">{t.table.emptyTitle}</span>
             <span className="text-[13px] text-text-2">{t.table.emptyHint}</span>
@@ -109,8 +116,8 @@ export function TokenTable(props: TokenTableProps) {
           </div>
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-3 px-3 pt-2.5 pb-1.5 max-md:px-2">
-          <span className="text-[12px] text-text-3" aria-live="polite">
-            {fmt(t.table.showing, { shown: rows.length, total: formatInteger(totalTokens) })}
+          <span className={cn("text-[12px]", stale ? "text-warn" : "text-text-3")} aria-live="polite">
+            {fmt(stale ? t.table.paused : t.table.showing, { shown: rows.length, total: formatInteger(totalTokens) })}
           </span>
           {hasMore ? (
             <Button variant="secondary" size="md" className="max-md:w-full" onClick={onLoadMore}>
