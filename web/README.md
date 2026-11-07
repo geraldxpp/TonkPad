@@ -204,9 +204,16 @@ as JSON. The app never calls the data providers itself.
   issuer's tag, scores those as +15, skips the creator-buy, holder and pool
   checks, and shows the Verified RWA badge. The addresses were read on-chain
   from mints the issuers list (xstocks.com/products, Ondo's address page).
-- **Not tracked yet:** holder counts (shown as —), Robinhood Chain holders
-  (needs a Blockscout key), locks, smart money and locked missions
-  (empty tabs), and the other Solana launchpads (Bags, Moonit, Heaven).
+- **Holder counts** (the Holders column): Solana tokens get Jupiter's count,
+  up to 100 tokens a request, every 2 minutes for tokens on screen and every
+  20 for other listed ones (no Helius cost). Pons tokens are counted from
+  their curve trades: buys credit the recipient (routers name the user
+  there), sells debit the seller. That is exact on the curve but blind to
+  Uniswap after graduation, so graduated Pons tokens show — until Blockscout
+  is wired in. The same balances give Pons tokens their top-10 share.
+- **Not tracked yet:** Robinhood Chain holders after graduation (needs a
+  Blockscout key), locks, smart money and locked missions (empty tabs),
+  and the other Solana launchpads (Bags, Moonit, Heaven).
   Bonk.fun tokens show up in New pairs but have no market data until they
   graduate (DexScreener doesn't index their curve).
 - **Restarts.** The worker saves a snapshot every minute and on shutdown

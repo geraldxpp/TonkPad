@@ -70,6 +70,10 @@ export interface TrackedToken {
   top10Share?: number | null;
   /** When the top-10 share was last measured, ms. */
   holdersAt?: number;
+  /** Wallets holding the token: Jupiter's count on Solana, curve trades on Pons (shown in the Holders column). */
+  holderCount?: number | null;
+  /** When Jupiter last gave the count, ms (Solana). */
+  holderCountAt?: number;
 
   // Short histories for the sparkline and buy velocity.
   /** [time, market cap], oldest first, thinned as it grows. */

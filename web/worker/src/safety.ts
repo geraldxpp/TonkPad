@@ -2,13 +2,13 @@ import { ISSUERS } from "./issuers";
 import type { TrackedToken } from "./model";
 import { JUDGED_FROM } from "./score";
 import { fetchTopHolders } from "./sources/holders";
-import { fetchJupiterVouch } from "./sources/jupiter";
+import { fetchHolderCounts, fetchJupiterVouch, JUPITER_BATCH } from "./sources/jupiter";
 import type { TokenStore } from "./store";
 
 /**
- * Mission score v2's extra facts, gathered a few tokens a minute so they fit
- * Helius's free plan: Jupiter's word on issuer claims, and the top-10 holder
- * share of Solana tokens on screen worth $20K+.
+ * Facts gathered a few tokens at a time so they fit the free plans: Jupiter's
+ * word on issuer claims and its holder counts, and the top-10 holder share of
+ * Solana tokens on screen worth $20K+ (Helius).
  */
 const MINUTE = 60_000;
 /** A token on screen has its top-10 share measured again after this long. */
@@ -17,6 +17,22 @@ export const HOLDERS_EVERY = 30 * MINUTE;
 export const HOLDER_CHECKS_PER_MINUTE = 3;
 /** Jupiter is asked again this long after it declined an issuer claim. */
 export const ISSUER_RECHECK_EVERY = 6 * 60 * MINUTE;
+/** Holder counts: tokens on screen refresh this often, other listed tokens less often. */
+export const COUNT_VISIBLE_EVERY = 2 * MINUTE;
+export const COUNT_LISTED_EVERY = 20 * MINUTE;
+/** Tokens worth less than this aren't listed in Trending or Gainers, so their counts wait until they're on screen. */
+const COUNT_LISTED_FROM = 4_000;
+
+/** Solana tokens whose holder count is stale: those on screen first (oldest count first), then listed ones by market cap. */
+export function holderCountsDue(tokens: readonly TrackedToken[], visible: ReadonlySet<string>, limit: number, now: number): TrackedToken[] {
+  const age = (t: TrackedToken) => now - (t.holderCountAt ?? 0);
+  const sol = tokens.filter((t) => t.chain === "sol");
+  const onScreen = sol.filter((t) => visible.has(t.address) && age(t) >= COUNT_VISIBLE_EVERY).sort((a, b) => age(b) - age(a));
+  const listed = sol
+    .filter((t) => !visible.has(t.address) && t.marketAt > 0 && t.marketCap >= COUNT_LISTED_FROM && age(t) >= COUNT_LISTED_EVERY)
+    .sort((a, b) => b.marketCap - a.marketCap);
+  return [...onScreen, ...listed].slice(0, limit);
+}
 
 /** Solana tokens on screen worth $20K+ whose top-10 share is missing or stale: never-measured first, then the oldest. */
 export function holdersDue(tokens: readonly TrackedToken[], visible: ReadonlySet<string>, limit: number, now: number): TrackedToken[] {
@@ -82,5 +98,22 @@ export function createSafetyChecks(deps: SafetyDeps) {
     }
   }
 
-  return { verifyIssuers, refreshHolders };
+  /** One Jupiter request for up to 100 holder counts; a token Jupiter hasn't indexed keeps its last count. */
+  async function refreshHolderCounts(): Promise<void> {
+    if (!deps.jupiterApiKey) return;
+    const due = holderCountsDue(deps.store.all(), deps.visible(), JUPITER_BATCH, Date.now());
+    if (due.length === 0) return;
+    try {
+      const counts = await fetchHolderCounts(deps.jupiterApiKey, due.map((t) => t.address));
+      const at = Date.now();
+      for (const token of due) {
+        token.holderCount = counts.get(token.address) ?? token.holderCount ?? null;
+        token.holderCountAt = at;
+      }
+    } catch (error) {
+      deps.fail("jupiter", error);
+    }
+  }
+
+  return { verifyIssuers, refreshHolders, refreshHolderCounts };
 }

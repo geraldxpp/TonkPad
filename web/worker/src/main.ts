@@ -174,6 +174,7 @@ async function start(): Promise<void> {
   every(ASSET_LOOKUP_EVERY, refreshAssets);
   every(60_000, safety.refreshHolders);
   every(60_000, safety.verifyIssuers);
+  every(30_000, safety.refreshHolderCounts);
   every(20_000, refreshStatus);
   every(60_000, async () => {
     const removed = store.prune(Date.now());

@@ -4,8 +4,10 @@ import { NOT_ON_DEXSCREENER } from "../src/model";
 import { PonsBook } from "../src/pons/book";
 import { newPonsState, PONS_SUPPLY, ponsProgress, ponsSpot, ponsWindows, trimTrades } from "../src/pons/curve";
 import { PonsFeed } from "../src/pons/feed";
+import { ponsHolders, trackHolders } from "../src/pons/holders";
 import { decodeAbiString, NATIVE_ETH, parsePonsLog, PONS_TOPICS, type PonsLaunch, type PonsTrade, SELECTORS } from "../src/sources/pons";
 import { TokenStore } from "../src/store";
+import { toToken } from "../src/tokens";
 import { HOUR, MIN } from "./fixtures";
 import { keccak256 } from "./keccak";
 import { abiString, blockOf, buyAt, CURVE, FakeRpc, LAUNCH_TIME, LOGS, timeOf, TOKEN } from "./pons-fixtures";
@@ -50,6 +52,8 @@ describe("Pons logs", () => {
   it("reads buys and sells", () => {
     const trades = tradeEvents();
     expect(trades[0]).toMatchObject({ kind: "trade", curve: CURVE, side: "buy", tx: LOGS.launch.transactionHash });
+    // The creator's buy goes through the launch router, to the creator.
+    expect(trades[0]).toMatchObject({ trader: "0xe33e9e479df8802cb0866d5d05258bec4cf62948", recipient: launchEvent().creator });
     expect(Number(trades[0].quoteAmount) / 1e18).toBeCloseTo(0.25, 12);
     const sell = trades.find((t) => t.side === "sell")!;
     // The sell dumps exactly what the third buy bought.
@@ -115,6 +119,48 @@ describe("Pons curve", () => {
     expect(s.trades.map(([, , , price]) => price)).toEqual([2, 3]);
     const w = ponsWindows(s, 1, now);
     expect([w.h24.buys, w.h24.sells, w.h1.buys + w.h1.sells]).toEqual([0, 1, 0]);
+  });
+});
+
+describe("Pons holders", () => {
+  const ROUTER = "0x" + "a".repeat(40);
+  const USER = "0x" + "b".repeat(40);
+  const fresh = () => newPonsState({ curve: CURVE, quote: NATIVE_ETH, quoteDecimals: 18, threshold: 4.2, launchTx: "0x1" });
+
+  it("counts wallets from curve trades: buys credit the recipient, a sell debits the seller", () => {
+    const { book, token } = launched();
+    tradeEvents().forEach((t) => book.trade(t));
+    const now = timeOf(blockOf(LOGS.trades.at(-1)!)) + MIN;
+    book.refresh(now, () => 2_000);
+    // 14 buyers, one of whom sold everything back.
+    expect(token.holderCount).toBe(13);
+    expect(toToken(token, now).holders).toBe(13);
+    // The creator's 12.84% is the largest stake; the 10 largest hold more than that.
+    expect(token.top10Share).toBeGreaterThan(token.creatorBuyShare);
+    expect(token.top10Share).toBeLessThan(0.5);
+  });
+
+  it("charges a router's sell to the user it sold for", () => {
+    const s = fresh();
+    trackHolders(s, { buy: true, trader: ROUTER, recipient: USER, tokens: 1_000 });
+    trackHolders(s, { buy: false, trader: ROUTER, recipient: USER, tokens: 400 });
+    expect(s.balances).toEqual({ [USER]: 600 });
+    trackHolders(s, { buy: false, trader: USER, recipient: USER, tokens: 600 });
+    expect(ponsHolders(s)).toEqual({ count: 0, top10Share: 0 });
+  });
+
+  it("gives no count for tokens restored from before tracking, nor after graduation", () => {
+    const old = fresh();
+    delete old.balances;
+    trackHolders(old, { buy: true, trader: USER, recipient: USER, tokens: 5 });
+    expect(ponsHolders(old)).toBeNull();
+
+    const { book, token } = launched();
+    tradeEvents().forEach((t) => book.trade(t));
+    book.refresh(LAUNCH_TIME * 1000 + HOUR, () => 2_000);
+    book.graduate({ kind: "graduation", token: TOKEN, curve: null, at: LAUNCH_TIME * 1000 + HOUR });
+    // Uniswap trades after graduation are out of the curve's sight; Blockscout will fill this in.
+    expect(toToken(token, LAUNCH_TIME * 1000 + HOUR).holders).toBeNull();
   });
 });
 

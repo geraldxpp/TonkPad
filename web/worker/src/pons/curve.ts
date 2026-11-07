@@ -28,10 +28,12 @@ export interface PonsState {
   virtualTokens: number;
   /** The last day of trades, plus the one before it (it sets the 24h start price). */
   trades: PonsTradeRecord[];
+  /** Wallet → whole tokens, from curve trades since launch (holders.ts); absent for tokens restored from older snapshots. */
+  balances?: Record<string, number>;
 }
 
 export function newPonsState(input: Pick<PonsState, "curve" | "quote" | "quoteDecimals" | "threshold" | "launchTx">): PonsState {
-  return { ...input, virtualQuote: START_SHARE * input.threshold, virtualTokens: PONS_SUPPLY, trades: [] };
+  return { ...input, virtualQuote: START_SHARE * input.threshold, virtualTokens: PONS_SUPPLY, trades: [], balances: {} };
 }
 
 /** Quote per token right now. */

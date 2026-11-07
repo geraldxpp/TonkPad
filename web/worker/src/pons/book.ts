@@ -3,6 +3,7 @@ import { cleanName, cleanSymbol, newTrackedToken, NOT_ON_DEXSCREENER } from "../
 import type { PonsGraduation, PonsLaunch, PonsTrade } from "../sources/pons";
 import { pushSample, SERIES_MAX, type TokenStore } from "../store";
 import { applyCurveTrade, newPonsState, PONS_SUPPLY, ponsProgress, ponsSpot, ponsWindows, trimTrades } from "./curve";
+import { ponsHolders, trackHolders } from "./holders";
 
 const MINUTE = 60_000;
 const units = (raw: bigint, decimals: number) => Number(raw) / 10 ** decimals;
@@ -90,6 +91,7 @@ export class PonsBook {
       tax: units(event.tax, d),
       at: event.at,
     });
+    trackHolders(pons, { buy: event.side === "buy", trader: event.trader, recipient: event.recipient, tokens });
     // The creator's first buy goes through the launch router, in the launch transaction.
     if (event.side === "buy" && event.tx === pons.launchTx) {
       token.creatorBuyShare = Math.min(1, token.creatorBuyShare + tokens / PONS_SUPPLY);
@@ -122,6 +124,11 @@ export class PonsBook {
       if (!pons || token.graduated) continue;
       trimTrades(pons, now);
       token.curve = ponsProgress(pons);
+      const holders = ponsHolders(pons);
+      if (holders) {
+        token.holderCount = holders.count;
+        token.top10Share = holders.top10Share;
+      }
       const usd = quoteUsd(pons.quote);
       if (usd === null) continue; // priced once the quote asset's price is known
       const spot = ponsSpot(pons);

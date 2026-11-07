@@ -173,6 +173,11 @@ describe("toToken", () => {
     expect(out).not.toHaveProperty("issuer");
   });
 
+  it("shows the holder count once it is known", () => {
+    expect(toToken(tracked({ holderCount: 2_517 }), NOW).holders).toBe(2_517);
+    expect(toToken(tracked({ holderCount: null }), NOW).holders).toBeNull();
+  });
+
   it("names a verified issuer, which shows the Verified RWA badge", () => {
     expect(toToken(tracked({ issuerClaim: "ondo", issuer: "ondo" }), NOW).issuer).toBe("Ondo Global Markets");
     expect(toToken(tracked({ issuerClaim: "ondo", issuer: null }), NOW)).not.toHaveProperty("issuer");

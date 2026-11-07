@@ -81,7 +81,7 @@ export function toToken(token: TrackedToken, now: number, hot = false): Token {
       "6h": { change: w.h6.change, volume: w.h6.volume },
       "24h": { change: w.h24.change, volume: w.h24.volume },
     },
-    holders: null,
+    holders: token.pons && token.graduated ? null : (token.holderCount ?? null),
     smartWallets: 0,
     marketCap: token.marketCap,
     flags: { hot, og: false, isNew: ageMinutes < 30, locked: false, crew: null, agent: false },

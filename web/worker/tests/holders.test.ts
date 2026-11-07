@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { holdersDue, issuerChecksDue } from "../src/safety";
+import { holderCountsDue, holdersDue, issuerChecksDue } from "../src/safety";
 import { base58Decode, base58Encode, isOnCurve, isWalletAddress } from "../src/solana";
 import { fetchTopHolders, topHolderShare } from "../src/sources/holders";
-import { HOUR, MIN, NOW, priced } from "./fixtures";
+import { holderCounts } from "../src/sources/jupiter";
+import { HOUR, MIN, NOW, priced, tracked } from "./fixtures";
 import fixture from "./fixtures/holders.json";
 import { associatedTokenAddress } from "./pda";
 
@@ -109,6 +110,30 @@ describe("holdersDue", () => {
     const visible = new Set(all.filter((t) => t !== offScreen).map((t) => t.address));
     expect(holdersDue(all, visible, 3, NOW)).toEqual([fresh, stale]);
     expect(holdersDue(all, visible, 1, NOW)).toEqual([fresh]);
+  });
+});
+
+describe("holder counts", () => {
+  it("reads Jupiter's counts and skips tokens without one", () => {
+    const results = [{ id: "A", holderCount: 11_096 }, { id: "B" }, { id: "C", holderCount: "9" }, null, { id: "D", holderCount: 12.6 }];
+    expect(holderCounts(results)).toEqual(new Map([["A", 11_096], ["D", 13]]));
+    expect(holderCounts({ id: "A" })).toEqual(new Map());
+  });
+
+  it("refreshes tokens on screen every 2 minutes first, then listed ones by market cap every 20", () => {
+    const stale = priced(10_000, {}, { holderCountAt: NOW - 3 * MIN });
+    const recent = priced(10_000, {}, { holderCountAt: NOW - MIN });
+    const never = priced(5_000, {});
+    const big = priced(500_000, {}, { holderCountAt: NOW - 25 * MIN });
+    const bigRecent = priced(400_000, {}, { holderCountAt: NOW - 10 * MIN });
+    const mid = priced(80_000, {});
+    const dust = priced(3_000, {});
+    const unpriced = tracked({ marketCap: 9_000 });
+    const pons = priced(50_000, {}, { chain: "rh" });
+    const all = [big, stale, dust, recent, unpriced, mid, never, pons, bigRecent];
+    const visible = new Set([stale, recent, never, pons].map((t) => t.address));
+    expect(holderCountsDue(all, visible, 100, NOW)).toEqual([never, stale, big, mid]);
+    expect(holderCountsDue(all, visible, 2, NOW)).toEqual([never, stale]);
   });
 });
 

@@ -58,6 +58,10 @@ export interface PonsTrade {
   kind: "trade";
   curve: string;
   side: "buy" | "sell";
+  /** The buyer or seller (topic 1); a router's address when the trade went through one. */
+  trader: string;
+  /** Who received the tokens (buys) or the quote (sells) (topic 2): the user, even through a router. */
+  recipient: string;
   /** Quote paid in (buys) or paid out (sells), in base units. */
   quoteAmount: bigint;
   /** Tokens out (buys) or in (sells), 18 decimals. */
@@ -118,6 +122,8 @@ export function parsePonsLog(log: RpcLog, timeOf: (block: number) => number): Po
       kind: "trade",
       curve: source,
       side: buy ? "buy" : "sell",
+      trader: topicAddress(log.topics[1]),
+      recipient: topicAddress(log.topics[2]),
       quoteAmount: word(log.data, buy ? 0 : 1),
       tokenAmount: word(log.data, buy ? 1 : 0),
       fee: word(log.data, 2),
