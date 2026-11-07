@@ -101,11 +101,13 @@ describe("pickMainPair", () => {
         priceNative: "1.4e-7",
         marketCap: 12_300,
         priceChange: { m5: 4.2, h24: 120 },
+        liquidity: { usd: 25_000 },
         txns: { h1: { buys: 40, sells: 12 } },
       }),
       true,
     );
-    expect(data).toMatchObject({ priceUsd: 0.0000123, priceNative: 1.4e-7, marketCap: 12_300, dexId: "pumpfun", onCurve: true });
+    expect(data).toMatchObject({ priceUsd: 0.0000123, priceNative: 1.4e-7, marketCap: 12_300, liquidityUsd: 25_000, dexId: "pumpfun", onCurve: true });
+    expect(toMarketData({ dexId: "pumpfun" }, true).liquidityUsd).toBeNull();
     expect(data.windows.m5.change).toBe(4.2);
     expect(data.windows.h1).toEqual({ change: 0, volume: 0, buys: 40, sells: 12 });
   });

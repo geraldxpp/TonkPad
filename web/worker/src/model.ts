@@ -38,6 +38,8 @@ export interface TrackedToken {
   // Market data (DexScreener, or the launch event before the first refresh).
   priceUsd: number;
   marketCap: number;
+  /** USD in the token's main pool (DexScreener); absent in older snapshots and for Pons curves. */
+  liquidityUsd?: number | null;
   windows: MarketWindows;
   /** When market data last arrived, ms; 0 before the first refresh. */
   marketAt: number;

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { refreshDelay } from "../src/schedule";
-import { missionScore } from "../src/score";
+import { liquidityShare, missionScore } from "../src/score";
 import { buysLast15m, sampleSeries, toToken } from "../src/tokens";
 import { HOUR, MIN, NOW, priced, SEC, tracked, windows } from "./fixtures";
 
@@ -38,6 +38,35 @@ describe("missionScore", () => {
     expect(missionScore(token, NOW)).toEqual({ score: 1, level: "Risky" });
     expect(missionScore(tracked({ mintRevoked: true, freezeRevoked: false }), NOW).level).toBe("Risky");
     expect(missionScore(tracked({ mintRevoked: true, freezeRevoked: true, creatorBuyShare: 0.08 }), NOW)).toEqual({ score: 57, level: "Caution" });
+  });
+});
+
+describe("missionScore and pool liquidity", () => {
+  // Graduated, authorities given up, healthy trading and volume: 90 before liquidity counts.
+  const solid = (marketCap: number, liquidityUsd: number | null) =>
+    tracked({
+      mintRevoked: true,
+      freezeRevoked: true,
+      graduated: true,
+      marketCap,
+      liquidityUsd,
+      windows: windows({ h1: { buys: 40, sells: 20 }, h24: { volume: 80_000 } }),
+    });
+
+  it("caps a valuation the pool can't back at Risky, like USDF's $1.1M pool under a $191M market cap", () => {
+    expect(missionScore(solid(191_600_000, 1_101_000), NOW)).toEqual({ score: 30, level: "Risky" });
+  });
+
+  it("takes points off a thin pool and leaves a healthy one alone", () => {
+    expect(missionScore(solid(1_000_000, 40_000), NOW)).toEqual({ score: 70, level: "Caution" });
+    expect(missionScore(solid(1_000_000, 150_000), NOW).score).toBe(90);
+  });
+
+  it("skips the check when liquidity is unknown or the token is too small to judge", () => {
+    expect(missionScore(solid(1_000_000, null), NOW).score).toBe(90);
+    expect(missionScore(solid(15_000, 100), NOW).score).toBe(90);
+    expect(liquidityShare(solid(15_000, 100))).toBeNull();
+    expect(liquidityShare(solid(100_000, 5_000))).toBeCloseTo(0.05, 12);
   });
 });
 

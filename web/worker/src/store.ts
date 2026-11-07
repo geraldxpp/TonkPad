@@ -78,6 +78,7 @@ export class TokenStore {
     if (data) {
       token.priceUsd = data.priceUsd;
       token.marketCap = data.marketCap;
+      token.liquidityUsd = data.liquidityUsd;
       token.windows = data.windows;
       token.dexId = data.dexId;
       token.marketAt = now;

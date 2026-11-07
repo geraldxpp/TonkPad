@@ -13,7 +13,22 @@ import type { TrackedToken } from "./model";
  * - fell 60% or more in the last hour: −15
  * - $50K+ volume in 24h: +7
  * - under 10 minutes old (too early to tell): −10
+ * - valued at $20K+ with a pool holding under 5% of the market cap: −20
+ *   (never Safe); under 2%: capped at 30 (Risky). A pool that small can't
+ *   back the price, so a few wallets hold nearly all of the supply.
  */
+const THIN_LIQUIDITY = 0.05;
+const CRITICAL_LIQUIDITY = 0.02;
+/** Below this market cap the pool data is too noisy to judge. */
+const LIQUIDITY_CHECK_FROM = 20_000;
+
+/** Pool liquidity as a share of market cap, or null when unknown or the token is too small to judge. */
+export function liquidityShare(token: TrackedToken): number | null {
+  const liquidity = token.liquidityUsd ?? null;
+  if (liquidity === null || token.marketCap < LIQUIDITY_CHECK_FROM) return null;
+  return liquidity / token.marketCap;
+}
+
 export function missionScore(token: TrackedToken, now: number): { score: number; level: ScoreLevel } {
   let score = 50;
   if (token.mintRevoked === true) score += 8;
@@ -32,7 +47,11 @@ export function missionScore(token: TrackedToken, now: number): { score: number;
   if (token.windows.h24.volume >= 50_000) score += 7;
   if (now - token.createdAt < 10 * 60_000) score -= 10;
 
-  const clamped = Math.round(Math.min(99, Math.max(1, score)));
+  const depth = liquidityShare(token);
+  if (depth !== null && depth < THIN_LIQUIDITY && depth >= CRITICAL_LIQUIDITY) score -= 20;
+
+  let clamped = Math.round(Math.min(99, Math.max(1, score)));
+  if (depth !== null && depth < CRITICAL_LIQUIDITY) clamped = Math.min(clamped, 30);
   const level: ScoreLevel = clamped >= 75 ? "Safe" : clamped >= 50 ? "Caution" : "Risky";
   return { score: clamped, level };
 }

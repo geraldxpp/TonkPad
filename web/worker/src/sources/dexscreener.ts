@@ -42,6 +42,7 @@ export interface DexPair {
   marketCap?: number;
   fdv?: number;
   pairCreatedAt?: number;
+  liquidity?: { usd?: number };
   volume?: Partial<Record<WindowKey, number>>;
   priceChange?: Partial<Record<WindowKey, number>>;
   txns?: Partial<Record<WindowKey, { buys?: number; sells?: number }>>;
@@ -51,6 +52,8 @@ export interface MarketData {
   priceUsd: number;
   priceNative: number;
   marketCap: number;
+  /** USD held in the pool, or null when DexScreener doesn't say. */
+  liquidityUsd: number | null;
   dexId: string;
   /** True while the token still trades on its launchpad's bonding curve. */
   onCurve: boolean;
@@ -107,6 +110,7 @@ export function toMarketData(pair: DexPair, onCurve: boolean): MarketData {
     priceUsd: safe(n(pair.priceUsd)),
     priceNative: safe(n(pair.priceNative)),
     marketCap: safe(n(pair.marketCap ?? pair.fdv)),
+    liquidityUsd: Number.isFinite(n(pair.liquidity?.usd)) ? n(pair.liquidity?.usd) : null,
     dexId: pair.dexId ?? "",
     onCurve,
     windows,

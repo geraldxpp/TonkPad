@@ -185,7 +185,9 @@ as JSON. The app never calls the data providers itself.
   a gap of more than a day, rebuilds the last day from the chain.
 - **Mission score v1** (`worker/src/score.ts`) is a placeholder built from
   what the worker knows: authorities, graduation, the creator's launch buy,
-  trading mix, crashes, volume and age.
+  trading mix, crashes, volume, age and pool depth. A token valued at $20K+
+  whose pool holds under 5% of its market cap loses 20 points (never Safe);
+  under 2% it is capped at 30, Risky (a pool that small can't back the price).
 - **Not tracked yet:** holders (shown as —), smart money and locked missions
   (empty tabs), and the other Solana launchpads (Bags, Moonit, Heaven).
   Bonk.fun tokens show up in New pairs but have no market data until they

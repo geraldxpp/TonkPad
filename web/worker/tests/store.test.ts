@@ -25,7 +25,7 @@ function launch(label: string, over: Partial<LaunchEvent> = {}): LaunchEvent {
 }
 
 function market(over: Partial<MarketData> = {}): MarketData {
-  return { priceUsd: 0.00001, priceNative: 1e-7, marketCap: 10_000, dexId: "pumpfun", onCurve: true, windows: windows({ h24: { buys: 12 } }), ...over };
+  return { priceUsd: 0.00001, priceNative: 1e-7, marketCap: 10_000, liquidityUsd: 9_000, dexId: "pumpfun", onCurve: true, windows: windows({ h24: { buys: 12 } }), ...over };
 }
 
 const asset = (over: Partial<AssetInfo> = {}): AssetInfo => ({ image: null, name: null, symbol: null, mintRevoked: true, freezeRevoked: true, ...over });
@@ -69,7 +69,7 @@ describe("TokenStore market data", () => {
   it("marks a token graduated once it trades off its curve", () => {
     const store = storeWith(launch("a"));
     store.applyMarket(address("a"), market({ onCurve: false, dexId: "pumpswap" }), NOW + MIN);
-    expect(store.get(address("a"))).toMatchObject({ graduated: true, graduatedAt: NOW + MIN, curve: 1, dexId: "pumpswap" });
+    expect(store.get(address("a"))).toMatchObject({ graduated: true, graduatedAt: NOW + MIN, curve: 1, dexId: "pumpswap", liquidityUsd: 9_000 });
   });
 
   it("leaves a token waiting when DexScreener has nothing yet", () => {
