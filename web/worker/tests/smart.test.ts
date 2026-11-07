@@ -54,6 +54,15 @@ describe("SmartWallets", () => {
     expect(smart.stats()).toEqual({ wallets: 0, graduates: 0, smart: 0 });
   });
 
+  it("forgets, on a restart, graduates that credited nobody, so they can be judged again", () => {
+    const smart = new SmartWallets();
+    smart.credit("T1", grad("C1"), ["W"]);
+    smart.credit("T2", grad("C2"), []);
+    const back = new SmartWallets();
+    back.restore(JSON.parse(JSON.stringify(smart.toJSON())), NOW);
+    expect([back.hasGraduate("T1"), back.hasGraduate("T2")]).toEqual([true, false]);
+  });
+
   it("survives a restart, and skips anything malformed", () => {
     const smart = new SmartWallets();
     ["C1", "C2", "C3"].forEach((creator, i) => smart.credit(`T${i}`, grad(creator), ["W"]));
@@ -85,7 +94,7 @@ describe("smart money sweep", () => {
     expect(heldUp(graduate(7, 45_000, 49))).toBe(false);
   });
 
-  it("reads Solana graduates' largest wallets within six hours of graduating, two a minute", async () => {
+  it("reads Solana graduates' largest wallets as they graduate, two a minute, then a missed one that held up", async () => {
     vi.stubGlobal("fetch", async (_url: string, init: { body: string }) => {
       const { method } = JSON.parse(init.body) as { method: string };
       const result =
@@ -101,14 +110,19 @@ describe("smart money sweep", () => {
     const smart = new SmartWallets();
     expect(snapshotsDue(store.all(), smart, NOW)).toEqual(recent);
     let calls = 0;
-    await createSmartMoney({ store, smart, heliusApiKey: "key", onHeliusCall: () => calls++, fail: () => {} }).sweep(NOW);
+    const money = createSmartMoney({ store, smart, heliusApiKey: "key", onHeliusCall: () => calls++, fail: () => {} });
+    await money.sweep(NOW);
     expect(GRADUATE_CHECKS_PER_MINUTE).toBe(2);
     expect(calls).toBe(4);
     expect(recent.map((t) => t.graduationWallets?.length ?? null)).toEqual([5, 5, null]);
     expect(recent[0].topWallets).toHaveLength(5);
-    // Nothing is credited before the six hours are up.
-    expect(smart.stats().graduates).toBe(1);
+    // Nothing is credited before six hours; the missed graduate waits for a lookup rather than credit nobody.
+    expect(smart.stats().graduates).toBe(0);
+    await money.sweep(NOW + MIN);
+    expect(calls).toBe(8);
+    expect(recent[2].graduationWallets).toHaveLength(5);
     expect(smart.hasGraduate(old.address)).toBe(true);
+    expect(Object.keys(smart.toJSON().credits)).toHaveLength(5);
   });
 
   it("credits wallets six hours to a day after graduation, only for graduates that held up", async () => {

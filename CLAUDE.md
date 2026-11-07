@@ -107,6 +107,8 @@ Light text colours keep 4.5:1 on their backgrounds and tints. Token-card art til
 | Graduated | #F4C553 | rgba(244,197,83,.14) | none | GraduationCap |
 | Verified RWA | #7DB8F5 | --accent at 14% | --accent at 38% | ShieldCheck |
 
+Locked marks a Locked Mission and, with the Locked Missions tab, is reserved for tokens launched on Tonkpad (the owner's call, 7 Nov 2026); locks on other launchpads only count in the Mission score.
+
 On token-card art, Locked, Crew and Agent use the slightly stronger fills from the reference (.16 / .20 / .16 backgrounds, .42 borders), and Verified RWA uses --accent at 16% with a .42 border. Verified RWA marks a tokenized stock or RWA from a verified issuer (live data only); its tooltip names the issuer.
 
 Mission score pill: Safe = #3DDC84 on --pos at 12% with ShieldCheck. Caution = #FFB547 on rgba(255,181,71,.13) with ShieldCheck. Risky = #FF5C74 on rgba(255,92,116,.12) with TriangleAlert.

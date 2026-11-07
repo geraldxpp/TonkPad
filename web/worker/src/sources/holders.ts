@@ -22,6 +22,10 @@ export interface HolderCheck {
   supply: number | null;
   /** The wallets among the largest accounts, biggest first (for smart money). */
   wallets: string[];
+  /** The same wallets with their balances in raw units. */
+  ranked: HolderBalance[];
+  /** Token accounts that own themselves: how Streamflow escrows hold locked tokens (sources/streamflow.ts). */
+  escrows: Array<{ account: string; amount: number }>;
 }
 
 /** People's wallets among `balances`, one entry per wallet, biggest first. */
@@ -47,7 +51,7 @@ interface ParsedTokenAccount {
   data?: { parsed?: { info?: { owner?: unknown } } };
 }
 
-async function rpc<T>(apiKey: string, method: string, params: unknown[]): Promise<T> {
+export async function heliusRpc<T>(apiKey: string, method: string, params: unknown): Promise<T> {
   const res = await fetch(`https://mainnet.helius-rpc.com/?api-key=${apiKey}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -68,16 +72,16 @@ export async function fetchTopHolders(
   onCall: () => void,
 ): Promise<HolderCheck> {
   onCall();
-  const largest = await rpc<{ value: Array<{ address: string; amount: string }> }>(apiKey, "getTokenLargestAccounts", [mint]);
+  const largest = await heliusRpc<{ value: Array<{ address: string; amount: string }> }>(apiKey, "getTokenLargestAccounts", [mint]);
   let supply = knownSupply;
   if (supply === null) {
     onCall();
-    const total = await rpc<{ value: { amount: string } }>(apiKey, "getTokenSupply", [mint]);
+    const total = await heliusRpc<{ value: { amount: string } }>(apiKey, "getTokenSupply", [mint]);
     supply = Number(total.value.amount);
   }
-  if (largest.value.length === 0) return { share: null, supply, wallets: [] };
+  if (largest.value.length === 0) return { share: null, supply, wallets: [], ranked: [], escrows: [] };
   onCall();
-  const accounts = await rpc<{ value: Array<ParsedTokenAccount | null> }>(apiKey, "getMultipleAccounts", [
+  const accounts = await heliusRpc<{ value: Array<ParsedTokenAccount | null> }>(apiKey, "getMultipleAccounts", [
     largest.value.map((account) => account.address),
     { encoding: "jsonParsed" },
   ]);
@@ -85,5 +89,9 @@ export async function fetchTopHolders(
     const owner = accounts.value[i]?.data?.parsed?.info?.owner;
     return typeof owner === "string" ? [{ owner, amount: Number(account.amount) }] : [];
   });
-  return { share: topHolderShare(balances, supply), supply, wallets: rankWallets(balances).map((wallet) => wallet.owner) };
+  const escrows = largest.value
+    .filter((account, i) => accounts.value[i]?.data?.parsed?.info?.owner === account.address)
+    .map((account) => ({ account: account.address, amount: Number(account.amount) }));
+  const ranked = rankWallets(balances);
+  return { share: topHolderShare(balances, supply), supply, wallets: ranked.map((wallet) => wallet.owner), ranked, escrows };
 }

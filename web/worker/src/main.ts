@@ -117,10 +117,10 @@ async function refreshStatus(): Promise<void> {
   }
 }
 
-/** Holder lookups cost 1 credit per call. */
-function countHeliusCall(): void {
+/** Holder lookups cost 1 credit per call, Streamflow lookups 10. */
+function countHeliusCall(credits = 1): void {
   heliusCalls += 1;
-  heliusCredits += 1;
+  heliusCredits += credits;
 }
 
 const safety = createSafetyChecks({

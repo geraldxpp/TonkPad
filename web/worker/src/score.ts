@@ -1,4 +1,5 @@
 import type { ScoreLevel } from "@/shared/types/token";
+import { creatorLock, poolLockedOrBurned } from "./locks";
 import type { TrackedToken } from "./model";
 
 /**
@@ -7,8 +8,10 @@ import type { TrackedToken } from "./model";
  * - mint / freeze authority given up: +8 / +7; still held: −25 each
  * - a verified tokenized stock or RWA (issuers.ts) holds both by design: +15
  *   instead, and the creator-buy, top-holder and pool-depth checks skip it
- * - graduated (liquidity locked in the AMM): +10
- * - creator bought over 15% at launch: −20 (over 5%: −8)
+ * - pool liquidity burned or locked at graduation (Pump.fun, Pons): +10
+ * - creator bought over 15% at launch: −20 (over 5%: −8), waived when the
+ *   creator has locked half that buy for 30+ days (locks.ts)
+ * - half or more of the creator's tokens locked for 30+ days: +10
  * - valued at $20K+, the 10 largest wallets hold over 50%: −20 (30–50%: −10,
  *   under 20%: +5)
  * - at least 30 trades in the last hour with a healthy buy/sell mix: +8
@@ -18,7 +21,6 @@ import type { TrackedToken } from "./model";
  * - valued at $20K+ with a pool holding under 5% of the market cap: −20
  *   (never Safe); under 2%: capped at 30 (Risky). A pool that small can't
  *   back the price, so a few wallets hold nearly all of the supply.
- * Locks (creator supply and pools) come next.
  */
 const THIN_LIQUIDITY = 0.05;
 const CRITICAL_LIQUIDITY = 0.02;
@@ -41,22 +43,26 @@ export function holderPoints(token: TrackedToken): number {
   return share < 0.2 ? 5 : 0;
 }
 
-/** Authorities, the creator's buy and the holder spread: everything a verified issuer is exempt from. */
-function launchPoints(token: TrackedToken): number {
+/** Authorities, the creator's buy and locks, and the holder spread: everything a verified issuer is exempt from. */
+function launchPoints(token: TrackedToken, now: number): number {
   if (token.issuer) return 15;
   let points = 0;
   if (token.mintRevoked === true) points += 8;
   else if (token.mintRevoked === false) points -= 25;
   if (token.freezeRevoked === true) points += 7;
   else if (token.freezeRevoked === false) points -= 25;
-  if (token.creatorBuyShare > 0.15) points -= 20;
-  else if (token.creatorBuyShare > 0.05) points -= 8;
+  const lock = creatorLock(token, now);
+  if (lock.ofLaunchBuy < 0.5) {
+    if (token.creatorBuyShare > 0.15) points -= 20;
+    else if (token.creatorBuyShare > 0.05) points -= 8;
+  }
+  if (lock.ofHoldings >= 0.5) points += 10;
   return points + holderPoints(token);
 }
 
 export function missionScore(token: TrackedToken, now: number): { score: number; level: ScoreLevel } {
-  let score = 50 + launchPoints(token);
-  if (token.graduated) score += 10;
+  let score = 50 + launchPoints(token, now);
+  if (poolLockedOrBurned(token)) score += 10;
 
   const h1 = token.windows.h1;
   const trades = h1.buys + h1.sells;

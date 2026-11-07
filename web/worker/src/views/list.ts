@@ -1,5 +1,6 @@
 import type { LiveList, LiveListQuery } from "@/shared/types/live";
 import type { TrackedToken } from "../model";
+import { isLockedMission, lockedShare } from "../locks";
 import { buysLast15m, toToken, windowFor } from "../tokens";
 
 const MINUTE = 60_000;
@@ -63,8 +64,10 @@ export function listView(tokens: readonly TrackedToken[], query: LiveListQuery, 
       break;
     }
     case "locked":
-      // Locks aren't tracked yet.
-      rows = [];
+      // Tonkpad launches with a lock, the biggest share of supply first (empty until Tonkpad launches).
+      rows = rows
+        .filter((t) => isLockedMission(t, now))
+        .sort((a, b) => lockedShare(b, now) - lockedShare(a, now) || b.marketCap - a.marketCap);
       break;
   }
 

@@ -3,6 +3,7 @@ import type { TrackedToken } from "./model";
 import { TOP_WALLETS } from "./smart/sweep";
 import { fetchChainHolders } from "./sources/blockscout";
 import { fetchTopHolders } from "./sources/holders";
+import { fetchStreamLock, type StreamLock } from "./sources/streamflow";
 import { fetchHolderCounts, fetchJupiterVouch, JUPITER_BATCH } from "./sources/jupiter";
 import type { TokenStore } from "./store";
 
@@ -19,6 +20,9 @@ export const HOLDERS_EVERY = 30 * MINUTE;
 export const HOLDER_CHECKS_PER_MINUTE = 3;
 /** Holder checks start at this market cap; the score only counts the top-10 share from $20K (score.ts). */
 export const MEASURED_FROM = 5_000;
+/** A Streamflow escrow's record is read again after this long; at most a few new records a minute (10 credits each). */
+export const LOCK_RECHECK_EVERY = 6 * 60 * MINUTE;
+export const LOCK_LOOKUPS_PER_MINUTE = 3;
 /** Jupiter is asked again this long after it declined an issuer claim. */
 export const ISSUER_RECHECK_EVERY = 6 * 60 * MINUTE;
 /** Holder counts: tokens on screen refresh this often, other listed tokens less often. */
@@ -80,8 +84,8 @@ interface SafetyDeps {
   heliusApiKey: string | null;
   jupiterApiKey: string | null;
   blockscoutApiKey: string | null;
-  /** Runs once per Helius call (1 credit each here). */
-  onHeliusCall: () => void;
+  /** Runs once per Helius call with its credits (1 unless given). */
+  onHeliusCall: (credits?: number) => void;
   fail: (scope: string, error: unknown) => void;
 }
 
@@ -102,14 +106,41 @@ export function createSafetyChecks(deps: SafetyDeps) {
     }
   }
 
-  /** Measures top-10 holder shares; a failed check waits for the next round rather than spend credits again now. */
+  /** Streamflow records by escrow (null: not a Streamflow escrow). */
+  const escrowRecords = new Map<string, { lock: StreamLock | null; at: number }>();
+
+  /** The Streamflow locks among a token's escrows, looking up records it hasn't seen lately within `budget`. */
+  async function locksOf(apiKey: string, mint: string, escrows: ReadonlyArray<{ account: string }>, budget: { left: number }) {
+    const now = Date.now();
+    const locks: StreamLock[] = [];
+    for (const { account } of escrows) {
+      let known = escrowRecords.get(account);
+      if ((!known || now - known.at >= LOCK_RECHECK_EVERY) && budget.left > 0) {
+        budget.left -= 1;
+        try {
+          known = { lock: await fetchStreamLock(apiKey, account, deps.onHeliusCall), at: now };
+          escrowRecords.set(account, known);
+        } catch (error) {
+          deps.fail("streamflow", error);
+        }
+      }
+      if (known?.lock && known.lock.mint === mint) locks.push(known.lock);
+    }
+    return locks;
+  }
+
+  /** Measures top-10 holder shares and finds locks; a failed check waits for the next round rather than spend credits again now. */
   async function refreshHolders(): Promise<void> {
     if (!deps.heliusApiKey) return;
+    const budget = { left: LOCK_LOOKUPS_PER_MINUTE };
+    for (const [escrow, known] of escrowRecords) if (Date.now() - known.at > 4 * LOCK_RECHECK_EVERY) escrowRecords.delete(escrow);
     for (const token of holdersDue(deps.store.all(), deps.visible(), HOLDER_CHECKS_PER_MINUTE, Date.now())) {
       try {
         const check = await fetchTopHolders(deps.heliusApiKey, token.address, token.supply ?? null, deps.onHeliusCall);
         token.top10Share = check.share;
         token.topWallets = check.wallets.slice(0, TOP_WALLETS);
+        token.creatorHeld = check.ranked.find((wallet) => wallet.owner === token.creator)?.amount ?? 0;
+        token.locks = await locksOf(deps.heliusApiKey, token.address, check.escrows, budget);
         if (check.supply !== null) token.supply = check.supply;
       } catch (error) {
         deps.fail("holders", error);

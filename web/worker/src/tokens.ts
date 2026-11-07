@@ -1,6 +1,7 @@
 import type { LiveTimeframe } from "@/shared/types/live";
 import type { SparkSeed, Token } from "@/shared/types/token";
 import { ISSUERS } from "./issuers";
+import { isLockedMission } from "./locks";
 import { type MarketWindow, shortAddress, type TrackedToken, type WindowKey } from "./model";
 import { ponsBuysSince } from "./pons/curve";
 import { missionScore } from "./score";
@@ -85,7 +86,7 @@ export function toToken(token: TrackedToken, now: number, hot = false): Token {
     holders: token.pons && token.graduated && !token.holdersAt ? null : (token.holderCount ?? null),
     smartWallets: token.smartCount ?? 0,
     marketCap: token.marketCap,
-    flags: { hot, og: false, isNew: ageMinutes < 30, locked: false, crew: null, agent: false },
+    flags: { hot, og: false, isNew: ageMinutes < 30, locked: isLockedMission(token, now), crew: null, agent: false },
     creator: shortAddress(token.creator),
     ageMinutes,
     art: token.image ?? "",

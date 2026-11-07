@@ -9,8 +9,10 @@ import type { SmartWallets } from "./wallets";
  * soon after it graduates (2 Helius credits); a Pons graduate's first buyers
  * are already known from its curve. Six hours later the graduate credits
  * those wallets, but only if it held up: bundles that push a token to
- * graduation and dump it right after would otherwise pass as smart money.
- * Then every token counts the smart wallets it holds.
+ * graduation and dump it right after would otherwise pass as smart money. A
+ * graduate that held up but was missed at graduation (the worker was down, or
+ * busy) credits the wallets holding it most by then instead. Then every token
+ * counts the smart wallets it holds.
  */
 const HOUR = 60 * 60_000;
 const DAY = 24 * HOUR;
@@ -88,20 +90,33 @@ interface SmartDeps {
 }
 
 export function createSmartMoney(deps: SmartDeps) {
+  /** Reads a Solana graduate's largest wallets (2 credits); a failure is skipped rather than retried at the budget's expense. */
+  async function readWallets(apiKey: string, token: TrackedToken): Promise<void> {
+    try {
+      const check = await fetchTopHolders(apiKey, token.address, token.supply ?? null, deps.onHeliusCall);
+      token.graduationWallets = check.wallets.slice(0, EARLY_BUYERS + 1);
+      token.topWallets = check.wallets.slice(0, TOP_WALLETS);
+    } catch (error) {
+      deps.fail("smart", error);
+      token.graduationWallets = [];
+    }
+  }
+
   async function sweep(now = Date.now()): Promise<void> {
-    const due = deps.heliusApiKey ? snapshotsDue(deps.store.all(), deps.smart, now).slice(0, GRADUATE_CHECKS_PER_MINUTE) : [];
-    for (const token of due) {
-      try {
-        const check = await fetchTopHolders(deps.heliusApiKey ?? "", token.address, token.supply ?? null, deps.onHeliusCall);
-        token.graduationWallets = check.wallets.slice(0, EARLY_BUYERS + 1);
-        token.topWallets = check.wallets.slice(0, TOP_WALLETS);
-      } catch (error) {
-        deps.fail("smart", error);
-        // Skipped rather than retried every minute at the credit budget's expense.
-        token.graduationWallets = [];
-      }
+    let lookups = 0;
+    const apiKey = deps.heliusApiKey;
+    for (const token of snapshotsDue(deps.store.all(), deps.smart, now)) {
+      if (!apiKey || lookups >= GRADUATE_CHECKS_PER_MINUTE) break;
+      lookups += 1;
+      await readWallets(apiKey, token);
     }
     for (const token of creditsDue(deps.store.all(), deps.smart, now)) {
+      if (!token.pons && !token.graduationWallets && heldUp(token)) {
+        // Missed at graduation: wait for a lookup rather than credit nobody.
+        if (!apiKey || lookups >= GRADUATE_CHECKS_PER_MINUTE) continue;
+        lookups += 1;
+        await readWallets(apiKey, token);
+      }
       const graduate = { chain: token.chain, creator: token.creator, at: token.graduatedAt ?? now };
       deps.smart.credit(token.address, graduate, creditedWallets(token));
     }

@@ -188,11 +188,27 @@ as JSON. The app never calls the data providers itself.
   fixed-supply contracts with no mint or pause functions. A fresh start, or
   a gap of more than a day, rebuilds the last day from the chain.
 - **Mission score v2** (`worker/src/score.ts`, approved 7 Nov 2026) adds up
-  authorities, graduation, the creator's launch buy, the top-10 wallets'
-  share, trading mix, crashes, volume, age and pool depth. For tokens valued
-  at $20K+: the 10 largest wallets holding over 50% cost 20 points (30–50%:
-  10; under 20% earns 5), and a pool holding under 5% of the market cap
-  costs 20 (never Safe); under 2% the score is capped at 30, Risky.
+  authorities, a burned or locked pool, the creator's launch buy and locks,
+  the top-10 wallets' share, trading mix, crashes, volume, age and pool
+  depth. For tokens valued at $20K+: the 10 largest wallets holding over
+  50% cost 20 points (30–50%: 10; under 20% earns 5), and a pool holding
+  under 5% of the market cap costs 20 (never Safe); under 2% the score is
+  capped at 30, Risky.
+- **Locks** (`worker/src/locks.ts`, `worker/src/sources/streamflow.ts`):
+  Solana creators lock tokens with Streamflow, whose escrow token accounts
+  own themselves. When a holder check finds one among the 20 largest
+  accounts, the worker reads its Streamflow record (10 credits, at most 3
+  new ones a minute, re-read every 6 hours) and works out how much stays
+  locked when. Locked Missions, the Locked badge and its tab, are reserved
+  for tokens launched on Tonkpad (the owner's call): a Tonkpad launch with a
+  lock nobody can cancel or speed up, 7+ days left and 1%+ of supply (the
+  biggest share first); until Tonkpad launches they stay empty. On other
+  launchpads locks count in the score only: with 30+ days left, the
+  creator's own lock earns 10 points when it holds half their tokens, and it
+  waives the launch-buy penalty when it holds half that buy. The graduation +10 now means a
+  burned or locked pool: Pump.fun burns its PumpSwap LP (checked on-chain:
+  the LP supply is 0) and Pons locks its Uniswap v4 position; Bonk.fun's
+  migration pool isn't verified yet, so its graduates don't get it.
 - **Top-10 holders** (`worker/src/sources/holders.ts`) come from Helius's 20
   largest token accounts and their owners (the score counts them from $20K). Owners off the ed25519 curve are
   program addresses (bonding curves, pools, lock escrows, pump.fun's Mayhem
@@ -225,10 +241,16 @@ as JSON. The app never calls the data providers itself.
   credited by graduates from 3 or more different creators within 30 days is
   smart money. Each token counts the smart wallets among its holders (every
   wallet on a Pons curve, the largest wallets elsewhere), which fills the
-  Smart money column and tab. Credits are kept in the snapshot, so the
-  count builds up over the first days. A manual add/drop list comes later.
-- **Not tracked yet:** locks and locked missions (an empty tab), and the
-  other Solana launchpads (Bags, Moonit, Heaven).
+  Smart money column and tab. A graduate credits its wallets six hours on,
+  and only if it held up (still worth half its graduation value and at
+  least $10K): bundles that push a token to graduation and dump it would
+  otherwise pass as smart money. One that held up but was missed at
+  graduation credits the wallets holding it most by then. Credits are kept
+  in the snapshot; after a restart, graduates that credited nobody are
+  judged again. A manual add/drop list comes later.
+- **Not tracked yet:** Jupiter Lock and pool locks on top of a launchpad's
+  own (none seen on screen yet), locks on Robinhood Chain, and the other
+  Solana launchpads (Bags, Moonit, Heaven).
   Bonk.fun tokens show up in New pairs but have no market data until they
   graduate (DexScreener doesn't index their curve).
 - **Restarts.** The worker saves a snapshot every minute and on shutdown

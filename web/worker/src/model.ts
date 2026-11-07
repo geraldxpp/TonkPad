@@ -2,6 +2,7 @@ import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { IssuerId } from "./issuers";
 import type { PonsState } from "./pons/curve";
+import type { StreamLock } from "./sources/streamflow";
 
 /** DexScreener's windows; the list toolbar's 5m / 1h / 6h / 24h map onto them. */
 export type WindowKey = "m5" | "h1" | "h6" | "h24";
@@ -80,6 +81,10 @@ export interface TrackedToken {
   smartCount?: number;
   /** A Solana graduate's largest wallets, read soon after it graduated; they earn credit if it holds up. */
   graduationWallets?: string[];
+  /** Streamflow locks of the token's supply among its largest holders (locks.ts). */
+  locks?: StreamLock[];
+  /** The creator wallet's balance at the last holder check, raw units (0 when outside the 20 largest). */
+  creatorHeld?: number;
 
   // Short histories for the sparkline and buy velocity.
   /** [time, market cap], oldest first, thinned as it grows. */

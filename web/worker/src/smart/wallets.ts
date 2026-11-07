@@ -95,6 +95,9 @@ export class SmartWallets {
     for (const [wallet, tokens] of Object.entries(json.credits ?? {})) {
       if (Array.isArray(tokens)) this.credits.set(wallet, tokens.filter((t): t is string => typeof t === "string"));
     }
+    // A graduate that credited nobody tells nothing; forgetting it lets a recent one be judged again.
+    const credited = new Set([...this.credits.values()].flat());
+    for (const token of [...this.graduates.keys()]) if (!credited.has(token)) this.graduates.delete(token);
     this.refresh(now);
   }
 }
