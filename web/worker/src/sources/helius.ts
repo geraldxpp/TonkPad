@@ -18,6 +18,7 @@ export interface AssetInfo {
   freezeAuthority: string | null;
   /** Total supply in raw units, for the top-10 holder share. */
   supply: number | null;
+  decimals?: number | null;
 }
 
 interface DasAsset {
@@ -27,13 +28,15 @@ interface DasAsset {
     links?: { image?: string };
     files?: Array<{ uri?: string }>;
   };
-  token_info?: { mint_authority?: string | null; freeze_authority?: string | null; supply?: number };
+  token_info?: { mint_authority?: string | null; freeze_authority?: string | null; supply?: number; decimals?: number };
 }
 
 const text = (value: string | undefined) => value?.trim() || null;
 
 export function toAssetInfo(asset: DasAsset): AssetInfo {
+  const decimals = asset.token_info?.decimals;
   return {
+    ...(typeof decimals === "number" && Number.isInteger(decimals) && decimals >= 0 && decimals <= 18 ? { decimals } : {}),
     image: text(asset.content?.links?.image) ?? text(asset.content?.files?.[0]?.uri),
     name: text(asset.content?.metadata?.name),
     symbol: text(asset.content?.metadata?.symbol),

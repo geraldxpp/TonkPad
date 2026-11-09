@@ -4,11 +4,17 @@ import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { LiveOverview } from "@/shared/types/live";
 import { type Api, startServer } from "../src/server";
+import { tokenView } from "../src/views/token";
+import { NOW, priced } from "./fixtures";
+
+const ADDRESS = "So11111111111111111111111111111111111111112";
+const detail = tokenView(priced(12_000, {}, { address: ADDRESS, name: "Selected token" }), { solUsd: 100, ethUsd: null, rhGasGwei: null }, NOW);
 
 const api: Api = {
   list: (query) => ({ rows: [], matched: query.limit, total: 0, updatedAt: 1 }),
   overview: () => ({ updatedAt: 1 }) as LiveOverview,
   shell: () => ({ tape: [], chainCounts: { all: 0, sol: 0, rh: 0 }, status: { solUsd: null, ethUsd: null, rhGasGwei: null }, updatedAt: 1 }),
+  token: (address) => address === ADDRESS ? detail : null,
   health: () => ({ ok: true }),
 };
 
@@ -45,5 +51,14 @@ describe("worker HTTP server", () => {
   it("answers JSON errors for unknown paths and other methods", async () => {
     expect((await get("/v1/nothing", TOKEN)).status).toBe(404);
     expect((await fetch(`${base}/health`, { method: "POST" })).status).toBe(405);
+  });
+
+  it("serves selected token details through the same authenticated API", async () => {
+    expect((await get(`/v1/token/${ADDRESS}`)).status).toBe(401);
+    const response = await get(`/v1/token/${ADDRESS}`, TOKEN);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ source: "live", contract: ADDRESS, token: { name: "Selected token" } });
+    expect((await get(`/v1/token/${"1".repeat(32)}`, TOKEN)).status).toBe(404);
+    for (const bad of ["GHOST", "%zz", "a%2Fb"]) expect((await get(`/v1/token/${bad}`, TOKEN)).status).toBe(400);
   });
 });

@@ -105,6 +105,7 @@ export class TokenStore {
     token.mintRevoked = info.mintRevoked;
     token.freezeRevoked = info.freezeRevoked;
     if (info.supply !== null) token.supply = info.supply;
+    if (info.decimals !== undefined && info.decimals !== null) token.decimals = info.decimals;
     const claim = issuerByAuthorities(info.mintAuthority, info.freezeAuthority);
     if (claim !== (token.issuerClaim ?? null)) {
       // A new or dropped claim needs Jupiter's word again.

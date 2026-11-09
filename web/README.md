@@ -4,12 +4,15 @@ The Tonkpad.fun token terminal (Solana + Robinhood Chain), built module by modul
 from the approved design in `../design-reference/`. Project rules live in
 `../CLAUDE.md`; module briefs live in `../prompts/`.
 
-Built so far: **Module 1 — app shell + Explore** (`/`), in dark and light
-themes and twelve languages. Explore runs on mock data, or on **live
+Built so far: **Module 1 — app shell + Explore** (`/`) and **Module 2 —
+Token Detail** (`/token/[address]`), in dark and light themes and
+twelve languages. Explore runs on mock data, or on **live
 Pump.fun, Bonk.fun and Pons (Robinhood Chain) launches** from the live-data
-worker (`worker/`, see below). The other rail screens (`/live`, `/bridge`,
-`/portfolio`, `/launch`, `/docs`, `/token/[ticker]`) show a "Coming in a later
-module" panel inside the shell.
+worker (`worker/`, see below). Token Detail uses that same live feed when
+`WORKER_URL` is set: click any Explore token to open its contract address.
+Without a worker, open `/token/GHOST` for the approved Ghosty design, or click
+any mock Explore token. The other rail screens (`/live`, `/bridge`, `/portfolio`, `/launch`,
+`/docs`) show a "Coming in a later module" panel inside the shell.
 
 ## Run it
 
@@ -39,6 +42,7 @@ Delete `.env.development.local` to go back to mock data. Production builds
 | `npm run typecheck` | `next typegen` (route types) then `tsc --noEmit` |
 | `npm test` | Vitest + Testing Library unit and component tests |
 | `npm run test:e2e` | Playwright against a production build on port 3100; also writes the captures in `e2e/screenshots/` |
+| `npm run test:e2e:live` | Live integration tests with a local fixture worker and a production app on port 3101; no provider credentials needed |
 | `npm run worker:dev` | The live-data worker with `.env.local`, restarting on changes |
 | `npm run worker` | The worker as it runs in production (env vars from the host) |
 
@@ -51,11 +55,12 @@ src/
   modules/
     shell/      AppShell, SideRail, TopBar (search, ticker tape, chain filter, language, theme), StatusBar, Logo, LaterPanel, SettingsDialog
     explore/    Explore: components/, hooks/, lib/ (filter, view, radar), data/, tests/
+    token/      Token Detail: components/ (chart, activity, trade, mission), hooks/, lib/, data/, tests/
   shared/       ui/ primitives, lib/ (format, seeded-random, sparkline, url-params), config/, types/,
                 i18n/ (languages, dictionaries, getI18n / useI18n)
   styles/       tokens.css (design tokens), animations.css (all motion), globals.css (Tailwind theme)
   shared/live/  the worker's JSON contract helpers: server-side fetch, usePolling, query strings
-  app/api/live/ /api/live/list|overview|shell, a CDN-cached proxy to the worker
+  app/api/live/ /api/live/list|overview|shell and /api/live/token/[address], server-side proxies to the worker
 worker/         the live-data worker (Node + tsx): src/ (sources/, views/, store, score) and tests/
 e2e/            Playwright specs and screenshots
 ```
@@ -138,6 +143,43 @@ returns typed mock data; with the worker on, Explore loads through
   Token / Market cap / 24h / Quick buy list, and the chain filter joins its
   toolbar. Tablet and desktop keep the design exactly.
 
+## Token Detail
+
+`getTokenData()` returns typed mock details for Ghosty and every token in the
+mock Explore list. The screen includes the header and watchlist, an interactive
+Lightweight Charts chart, activity tables, About, a simulated trade panel and
+bridge dialog, lock telemetry, crew payouts and scripted Captain Boo replies.
+Chart timeframe/value and activity tabs are kept in the URL. The watchlist is
+saved in the browser. Crew rewards and Locked Missions remain Tonkpad-only.
+
+In mock mode, balances, quotes, trades and bridging are simulated. No wallet
+connects and no funds move. Captain Boo answers from the selected token's
+fixture data; it does not call an AI service.
+
+With `WORKER_URL` set, `getLiveTokenData(address)` loads `/v1/token/:address`
+and the browser refreshes through `/api/live/token/[address]` every four
+seconds while visible. The worker token stays on the server. The page shows
+the selected token's identity, market figures, measured holder balances when
+available, and candles built from the worker's observed market-cap history.
+Solana addresses are case-sensitive; Robinhood Chain addresses accept either
+case. Direct links and reloads use the same address as Explore.
+
+The existing worker does not retain individual trade history, top trader P&L,
+or complete developer vesting schedules. These fields remain unavailable,
+and the chart identifies its history as observed samples rather than exchange
+trade candles. No volume is invented for those candles. An outage preserves
+the last good view with a warning; an unknown address shows an unavailable
+token state, with no fallback to a mock token. Live pages show trading as
+coming soon, without simulated balances, swaps, bridging or Captain Boo.
+Full history/lock integrations and real wallets and swaps remain later work;
+see `../prompts/02-token-detail.md`.
+
+The browser suite captures `e2e/screenshots/token-1440.png` and
+`token-1440-light.png`, plus German dark and Russian light phone views.
+The interactive chart uses the same candle recipes as the reference, with
+TradingView's axis spacing and attribution. The app keeps its approved logo,
+chain logos, theme controls, and blue/green palette.
+
 ## Live data
 
 The worker (`worker/src/main.ts`) is one small Node process that keeps every
@@ -158,7 +200,10 @@ as JSON. The app never calls the data providers itself.
   are recomputed at most once a second; `/api/live/*` responses are cached by
   the CDN for 2 s, so every visitor polling the same view shares one call.
   The browser polls the overview and the list every 4 s (the shell every
-  10 s) while the tab is visible.
+  10 s) while the tab is visible. Token Detail also polls every 4 s; its
+  successful responses share the short CDN cache, while errors use `no-store`.
+  Opening a token prioritizes its existing metadata and holder checks without
+  adding another provider polling loop.
 - **Trust.** Only a launchpad's own pools count (its bonding curve, then the
   AMM it graduates to, quoted in SOL or a stablecoin), so a side pool can't
   fake a price, and a "launch" whose pools are older than the launch is
@@ -264,8 +309,9 @@ as JSON. The app never calls the data providers itself.
   needed.
 - Use Node 22 or 24 (`engines.node` is `>=22`).
 - `/` (and `/es`, `/ja`, …) is served as a partial prerender (static shell
-  from the CDN plus a streamed request-time part); the other screens are fully
-  static in every language. `proxy.ts` runs for page requests to pick the
+  from the CDN plus a streamed request-time part). Token Detail also streams
+  its request-time data; the placeholder screens are fully static in every
+  language. `proxy.ts` runs for page requests to pick the
   language; it needs no configuration. If you add a folder to `public/`, add
   it to the proxy's `matcher` so its files aren't treated as pages. Fonts are
   self-hosted by `next/font` at build time and token art is served from

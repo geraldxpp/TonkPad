@@ -179,6 +179,7 @@ async function start(): Promise<void> {
     list: views.list,
     overview: views.overview,
     shell: views.shell,
+    token: views.token,
     health: () => ({
       ok: true,
       tokens: store.size,

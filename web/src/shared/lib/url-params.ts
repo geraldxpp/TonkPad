@@ -1,8 +1,8 @@
 /**
  * App-wide order for view-state search params, so shared URLs always read
- * the same way: ?chain=sol&pad=pons&tab=locked&tf=1h&q=mo
+ * the same way: ?chain=sol&pad=pons&tab=locked&tf=1h&q=mo (token pages add chart=price)
  */
-export const VIEW_PARAM_ORDER = ["chain", "pad", "tab", "tf", "q"] as const;
+export const VIEW_PARAM_ORDER = ["chain", "pad", "tab", "tf", "chart", "q"] as const;
 
 export type ParamUpdates = Record<string, string | null>;
 

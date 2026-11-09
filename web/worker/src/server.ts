@@ -3,11 +3,14 @@ import { createServer, type Server } from "node:http";
 import { isChainId } from "@/shared/config/chains";
 import { isLaunchpadId } from "@/shared/config/launchpads";
 import type { LiveList, LiveListQuery, LiveOverview, LiveShell, LiveTabId, LiveTimeframe } from "@/shared/types/live";
+import type { TokenDetail } from "@/shared/types/token-detail";
+import { validTokenAddress } from "./views/token";
 
 export interface Api {
   list: (query: LiveListQuery) => LiveList;
   overview: () => LiveOverview;
   shell: () => LiveShell;
+  token: (address: string) => TokenDetail | null;
   health: () => Record<string, unknown>;
 }
 
@@ -50,6 +53,14 @@ export function startServer(port: number, token: string | null, api: Api): Serve
     if (url.pathname === "/health") return send(200, api.health());
     if (token && !tokenMatches(req.headers["x-worker-token"], token)) return send(401, { error: "unauthorized" });
     try {
+      if (url.pathname.startsWith("/v1/token/")) {
+        let address: string;
+        try { address = decodeURIComponent(url.pathname.slice("/v1/token/".length)); }
+        catch { return send(400, { error: "invalid token address" }); }
+        if (!validTokenAddress(address)) return send(400, { error: "invalid token address" });
+        const detail = api.token(address);
+        return detail ? send(200, detail) : send(404, { error: "token not found" });
+      }
       switch (url.pathname) {
         case "/v1/list":
           return send(200, api.list(parseListQuery(url.searchParams)));

@@ -4,6 +4,7 @@ import type { TokenStore } from "../store";
 import { listView } from "./list";
 import { overviewView } from "./overview";
 import { shellView } from "./shell";
+import { findTrackedToken, tokenView } from "./token";
 
 function memo<T>(compute: () => T): () => T {
   let at = 0;
@@ -23,6 +24,16 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
   const overview = memo<LiveOverview>(() => overviewView(store.all(), ingesting, Date.now()));
   const shell = memo<LiveShell>(() => shellView(store.all(), { ...status }, Date.now()));
   const lists = new Map<string, { at: number; value: LiveList }>();
+  const selected = new Map<string, number>();
+
+  function token(address: string) {
+    const found = findTrackedToken(store.all(), address);
+    if (!found) return null;
+    selected.set(found.address, Date.now());
+    const oldest = selected.keys().next().value;
+    if (selected.size > 500 && oldest) selected.delete(oldest);
+    return tokenView(found, status, Date.now());
+  }
 
   function list(query: LiveListQuery): LiveList {
     const key = JSON.stringify(query);
@@ -38,6 +49,10 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
   /** Tokens someone is likely to see, so their art loads first. */
   function visibleAddresses(): Set<string> {
     const seen = new Set<string>();
+    for (const [address, at] of selected) {
+      if (Date.now() - at <= 60_000) seen.add(address);
+      else selected.delete(address);
+    }
     const base = { chain: "all", pad: "all", q: "", limit: 30 } as const;
     for (const tab of ["trending", "new", "graduating", "graduated", "gainers"] as const) {
       for (const row of list({ ...base, tab, tf: "24h" }).rows) seen.add(row.address);
@@ -50,5 +65,5 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
     return seen;
   }
 
-  return { overview, shell, list, visibleAddresses };
+  return { overview, shell, list, token, visibleAddresses };
 }

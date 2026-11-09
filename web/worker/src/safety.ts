@@ -139,6 +139,7 @@ export function createSafetyChecks(deps: SafetyDeps) {
         const check = await fetchTopHolders(deps.heliusApiKey, token.address, token.supply ?? null, deps.onHeliusCall);
         token.top10Share = check.share;
         token.topWallets = check.wallets.slice(0, TOP_WALLETS);
+        token.holderBalances = check.ranked;
         token.creatorHeld = check.ranked.find((wallet) => wallet.owner === token.creator)?.amount ?? 0;
         token.locks = await locksOf(deps.heliusApiKey, token.address, check.escrows, budget);
         if (check.supply !== null) token.supply = check.supply;
@@ -181,6 +182,8 @@ export function createSafetyChecks(deps: SafetyDeps) {
         token.holderCount = holders.count;
         token.top10Share = holders.top10Share;
         token.topWallets = holders.wallets.slice(0, TOP_WALLETS);
+        token.holderBalances = holders.balances;
+        token.decimals = 18; // Pons contracts use 18 decimals, including after graduation.
       } catch (error) {
         deps.fail("blockscout", error);
         // Never checked before: the curve's count is stale, so show none rather than it.

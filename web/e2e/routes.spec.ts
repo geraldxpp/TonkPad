@@ -41,7 +41,7 @@ test("token cards and table names link to /token/<TICKER>", async ({ page }) => 
   await openExplore(page);
   await page.getByRole("table", { name: "Tokens" }).getByRole("link", { name: "Sol Cat" }).click();
   await expect(page).toHaveURL("/token/SCAT");
-  await expect(page.getByRole("heading", { level: 1, name: "Token Detail" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Sol Cat" })).toBeVisible();
 });
 
 test("the status bar links go to their placeholder pages", async ({ page }) => {

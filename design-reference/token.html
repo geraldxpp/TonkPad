@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Detail — Tonkpad.fun (design reference)</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<script src="runtime/dc-runtime.js"></script>
+</head>
+<body>
+<template id="dc-template">
+<helmet>
+<style>
+body{margin:0;background:#07080D}
+*{box-sizing:border-box}
+a{color:#B8ACFF}a:hover{color:#D6CFFF}
+button,input{font:inherit}
+input::placeholder{color:#7E849B}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+:focus-visible{outline:2px solid #A497FF;outline-offset:2px}
+.tk-row:hover{background:#141723}
+@keyframes tk-pulse{0%,100%{box-shadow:0 0 0 0 rgba(54,214,140,.55)}50%{box-shadow:0 0 0 5px rgba(54,214,140,0)}}
+@keyframes tk-in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #07080D; color: #F3F4FA; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 14px; display: flex; flex-wrap: wrap; align-items: stretch; position: relative; overflow: hidden">
+  <div aria-hidden="true" style="position: absolute; left: -60px; top: -320px; width: 1100px; height: 760px; background: radial-gradient(closest-side, rgba(123,102,255,0.28), rgba(123,102,255,0)); pointer-events: none"></div>
+  <div aria-hidden="true" style="position: absolute; left: 520px; top: -260px; width: 700px; height: 520px; background: radial-gradient(closest-side, rgba(255,157,201,0.07), rgba(255,157,201,0)); pointer-events: none"></div>
+
+  <nav aria-label="Main" style="flex: 1 1 76px; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 8px; background: #05060A; border-right: 1px solid #1B1F2D; position: relative; z-index: 2">
+    <a href="explore.html" aria-label="Tonkpad.fun home" style="display: flex; text-decoration: none">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><defs><linearGradient id="tkTokLogo" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#B9AEFF"/><stop offset="1" stop-color="#5B47F0"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#tkTokLogo)"/><ellipse cx="20" cy="21" rx="14" ry="6.5" transform="rotate(-24 20 21)" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="1.6"/><path d="M12.5 13.5H27.5M20 13.5V29" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round"/><circle cx="32.9" cy="17.7" r="2.2" fill="#FFFFFF"/></svg>
+    </a>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%">
+      <a href="explore.html" aria-current="page" style="width: 60px; height: 58px; border-radius: 14px; background: rgba(140,123,255,0.14); color: #B8ACFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.8 5.41a2 2 0 0 1-1.27 1.27L7.76 16.24l1.8-5.41a2 2 0 0 1 1.27-1.27z"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #F3F4FA">Explore</span>
+      </a>
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Live</span>
+      </button>
+      <a href="#later" data-later="Bridge" style="width: 60px; height: 58px; border-radius: 14px; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Bridge</span>
+      </a>
+      <a href="#later" data-later="Portfolio" style="width: 60px; height: 58px; border-radius: 14px; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Portfolio</span>
+      </a>
+      <button type="button" aria-label="Alerts, 3 new" style="position: relative; width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Alerts</span>
+        <span style="position: absolute; left: 34px; top: 5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #FF5C74; color: #1A0509; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center">3</span>
+      </button>
+      <a href="#later" data-later="Launch (Creator Studio)" style="width: 60px; height: 58px; border-radius: 14px; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Launch</span>
+      </a>
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Docs</span>
+      </button>
+    </div>
+    <div style="flex: 1 1 auto"></div>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%">
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">Theme</span>
+      </button>
+      <button type="button" style="width: 60px; height: 58px; border-radius: 14px; background: transparent; border: 0; color: #A2A7BE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #7E849B">More</span>
+      </button>
+    </div>
+  </nav>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; position: relative; z-index: 1">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px clamp(16px, 2vw, 24px); border-bottom: 1px solid #1B1F2D; background: rgba(7,8,13,0.86); position: relative; z-index: 5">
+      <label for="tk-search-t" style="flex: 1 1 240px; max-width: 340px; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D; color: #7E849B">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Search tokens</span>
+        <input id="tk-search-t" type="search" placeholder="Search token, ticker or CA" style="flex: 1 1 auto; min-width: 0; height: 100%; background: transparent; border: 0; outline: 0; color: #F3F4FA; font-size: 13px">
+        <kbd style="padding: 1px 7px; border-radius: 6px; background: #141723; border: 1px solid #2A2F42; color: #A2A7BE; font: 400 12px 'Geist Mono', ui-monospace, monospace">/</kbd>
+      </label>
+      <div aria-label="Live ticker" style="flex: 999 1 260px; min-width: 0; height: 40px; overflow: hidden; display: flex; align-items: center; gap: 22px; padding: 0 8px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent)">
+        <sc-for list="{{ tape }}" as="k" hint-placeholder-count="8">
+          <span style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex: 0 0 auto">
+            <img src="{{ k.art }}" alt="" style="width: 20px; height: 20px; border-radius: 6px">
+            <span style="font-size: 12px; font-weight: 600">{{ k.tick }}</span>
+            <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ k.mcap }}</span>
+            <span style="font: 500 12px 'Geist Mono', ui-monospace, monospace; color: {{ k.chgColor }}">{{ k.chg }}</span>
+          </span>
+        </sc-for>
+      </div>
+      <button type="button" aria-haspopup="listbox" aria-expanded="false" style="height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 8px; border-radius: 12px; background: #0D0F17; border: 1px solid #2A2F42; color: #F3F4FA; cursor: pointer">
+        <span style="display: inline-flex">
+          <span title="Solana" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #0D0F17; background: linear-gradient(135deg, #9945FF, #19FB9B); display: inline-flex; align-items: center; justify-content: center; color: #0B0A1A; font-size: 9px; font-weight: 700">S</span>
+          <span title="Robinhood Chain" style="width: 20px; height: 20px; margin-left: -6px; border-radius: 50%; border: 2px solid #0D0F17; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 9px; font-weight: 700">R</span>
+        </span>
+        <span style="font-size: 13px; font-weight: 600; white-space: nowrap">All Chains</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: #A2A7BE"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <button type="button" aria-label="Alerts" style="position: relative; width: 40px; height: 40px; border-radius: 12px; background: #0D0F17; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span style="position: absolute; right: 9px; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: #8C7BFF; box-shadow: 0 0 0 2px #0D0F17"></span>
+      </button>
+      <button type="button" style="height: 40px; padding: 0 14px; border-radius: 12px; background: #141723; color: #F3F4FA; border: 1px solid #2A2F42; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap">
+        <span style="width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #FF9A4D, #E2445E)"></span>
+        <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-weight: 500">0xb4e2…19ac</span>
+      </button>
+    </header>
+
+    <main style="flex: 1 1 auto; width: 100%; max-width: 1364px; padding: 20px clamp(16px, 3vw, 40px) 56px; display: flex; flex-direction: column; gap: 16px">
+      <nav aria-label="Breadcrumb" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: #7E849B">
+        <a href="explore.html" style="display: inline-flex; align-items: center; gap: 6px; color: #7E849B; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Explore</a>
+        <span>/</span><span>Trending</span><span>/</span><span style="color: #F3F4FA; font-weight: 600">Ghosty</span>
+      </nav>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+        <div style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+          <section aria-label="Token" style="position: relative; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; padding: 28px; border-radius: 24px; background: radial-gradient(42% 110% at 10% 30%, rgba(123,102,255,0.42), rgba(123,102,255,0)), radial-gradient(35% 80% at 42% 0%, rgba(255,157,201,0.1), rgba(255,157,201,0)), #0D0F17; border: 1px solid #1B1F2D; box-shadow: 0 24px 48px -24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05); overflow: hidden">
+            <img src="assets/tokens/ghost.svg" alt="Ghosty token art" style="width: 112px; height: 112px; border-radius: 30px; flex: 0 0 auto; box-shadow: 0 12px 32px -6px rgba(123,102,255,0.55)">
+            <div style="flex: 999 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+                <h1 style="margin: 0; font-family: 'Bricolage Grotesque', Geist, sans-serif; font-weight: 800; font-size: 40px; line-height: 44px; letter-spacing: -0.02em">Ghosty</h1>
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 4px; border-radius: 999px; background: #141723; border: 1px solid #2A2F42; font-size: 12px; font-weight: 500; color: #F3F4FA">
+                  <span style="width: 18px; height: 18px; border-radius: 50%; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 9px; font-weight: 700">R</span>Robinhood Chain
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 4px; border-radius: 8px; background: #141723; border: 1px solid #2A2F42; font-size: 12px; font-weight: 500; color: #A2A7BE">
+                  <span style="width: 18px; height: 18px; border-radius: 5px; background: #8C7BFF; display: inline-flex; align-items: center; justify-content: center; color: #0B0A1A; font-size: 10px; font-weight: 700">T</span>Tonkpad Native
+                </span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: #7E849B">
+                <span style="font: 500 14px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">$GHOST</span>
+                <span>· by</span>
+                <span style="width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #FF9A4D, #E2445E)"></span>
+                <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">0x7a3c…9f2e</span>
+                <span>· launched Oct 18 (18d ago)</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 7px; border-radius: 8px; background: rgba(20,208,143,0.14); border: 1px solid rgba(20,208,143,0.4); color: #2EE0A1; font-size: 12px; font-weight: 600">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Locked Mission
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="verified" role="img"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 7px; border-radius: 8px; background: rgba(140,123,255,0.16); border: 1px solid rgba(244,197,83,0.4); color: #F4C553; font-size: 12px; font-weight: 600">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Crew Rewards 2%
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 7px; border-radius: 8px; background: rgba(90,169,255,0.14); border: 1px solid rgba(90,169,255,0.4); color: #8CC4FF; font-size: 12px; font-weight: 600">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>Agent live
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px 4px 7px; border-radius: 8px; background: rgba(54,214,140,0.12); color: #36D68C; font: 600 12px 'Geist Mono', ui-monospace, monospace">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Mission score 94
+                </span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                <button type="button" aria-label="Copy contract address 0x5e1d…a0f3" style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #F3F4FA; cursor: pointer">
+                  <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #7E849B">CA</span>
+                  <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace">0x5e1d…a0f3</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A2A7BE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                </button>
+                <button type="button" aria-label="Website" style="width: 32px; height: 32px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></button>
+                <button type="button" aria-label="Community" style="width: 32px; height: 32px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.63l-19 6.5a.5.5 0 0 0-.02.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg></button>
+                <button type="button" aria-label="Share" style="width: 32px; height: 32px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/></svg></button>
+                <button type="button" aria-label="Add to watchlist" style="width: 32px; height: 32px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></button>
+              </div>
+            </div>
+            <div style="flex: 1 1 180px; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right">
+              <span style="font-size: 12px; color: #7E849B">Market cap</span>
+              <span style="font: 600 40px/44px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.03em">$58.2K</span>
+              <span style="font: 600 14px 'Geist Mono', ui-monospace, monospace; color: #36D68C">+412.6% <span style="font-family: Geist, sans-serif; font-weight: 400; font-size: 12px; color: #7E849B">24h</span></span>
+              <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">$0.0000582 per token</span>
+            </div>
+          </section>
+
+          <section aria-label="Price chart" style="border-radius: 24px; background: #0D0F17; border: 1px solid #1B1F2D; box-shadow: 0 24px 48px -24px rgba(0,0,0,0.55); overflow: hidden">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 16px">
+              <div role="group" aria-label="Chart value" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D">
+                <button type="button" aria-pressed="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; color: #A2A7BE; font-size: 13px; font-weight: 500; cursor: pointer">Price</button>
+                <button type="button" aria-pressed="true" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 0; background: #1A1E2C; color: #F3F4FA; font-size: 13px; font-weight: 500; cursor: pointer">MCap</button>
+              </div>
+              <div role="group" aria-label="Timeframe" style="display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D">
+                <sc-for list="{{ tfs }}" as="f" hint-placeholder-count="7">
+                  <button type="button" aria-pressed="{{ f.active }}" onClick="{{ f.pick }}" style="height: 30px; padding: 0 11px; border-radius: 8px; border: 0; background: {{ f.bg }}; color: {{ f.color }}; font-size: 13px; font-weight: 500; cursor: pointer">{{ f.label }}</button>
+                </sc-for>
+              </div>
+              <span style="flex: 1 1 auto"></span>
+              <button type="button" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px 0 12px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #F3F4FA; font-size: 12px; font-weight: 600; cursor: pointer">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A2A7BE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Indicators
+                <span style="padding: 0 5px; border-radius: 5px; background: rgba(140,123,255,0.14); color: #B8ACFF; font: 600 12px 'Geist Mono', ui-monospace, monospace">2</span>
+              </button>
+              <button type="button" aria-label="Full screen chart" style="width: 36px; height: 36px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 14px; padding: 0 20px; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">
+              <span><span style="color: #7E849B">O</span> {{ ohlc.o }}</span><span><span style="color: #7E849B">H</span> {{ ohlc.h }}</span><span><span style="color: #7E849B">L</span> {{ ohlc.l }}</span><span><span style="color: #7E849B">C</span> {{ ohlc.c }}</span><span style="color: {{ ohlc.chgColor }}">{{ ohlc.chg }}</span><span><span style="color: #7E849B">Vol</span> {{ ohlc.vol }}</span>
+            </div>
+            <div style="position: relative; height: 340px; margin: 6px 0 4px">
+              <div style="position: absolute; left: 20px; right: 64px; top: 16px; height: 294px">
+                <sc-for list="{{ grid }}" as="g" hint-placeholder-count="4">
+                  <span style="position: absolute; left: 0; right: 0; top: {{ g.top }}; height: 1px; background: #1B1F2D"></span>
+                </sc-for>
+                <span style="position: absolute; left: 0; right: 0; top: {{ gradTop }}; border-top: 1px dashed rgba(244,197,83,0.75)"></span>
+                <span style="position: absolute; left: 10px; top: {{ gradLabelTop }}; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 8px; background: rgba(244,197,83,0.14); color: #F4C553; font-size: 12px; font-weight: 600; z-index: 2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z"/><path d="M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>Graduation ≈ $70K
+                </span>
+                <sc-for list="{{ candles }}" as="c" hint-placeholder-count="62">
+                  <span style="position: absolute; top: 0; bottom: 0; left: {{ c.left }}; width: {{ c.slot }}">
+                    <span style="position: absolute; left: 2px; right: 2px; max-width: 14px; margin: 0 auto; bottom: 0; height: {{ c.volH }}; background: {{ c.volColor }}; border-radius: 1px"></span>
+                    <span style="position: absolute; left: calc(50% - 0.6px); width: 1.2px; top: {{ c.wTop }}; height: {{ c.wH }}; background: {{ c.color }}"></span>
+                    <span style="position: absolute; left: 2px; right: 2px; max-width: 14px; margin: 0 auto; top: {{ c.bTop }}; height: {{ c.bH }}; background: {{ c.color }}; border-radius: 1.5px"></span>
+                  </span>
+                </sc-for>
+                <span style="position: absolute; left: 0; right: 0; top: {{ priceTop }}; border-top: 1px dashed rgba(54,214,140,0.6)"></span>
+                <sc-for list="{{ markers }}" as="mk" hint-placeholder-count="4">
+                  <span title="{{ mk.title }}" style="position: absolute; left: {{ mk.left }}; top: {{ mk.top }}; transform: translateX(-50%); width: 18px; height: 18px; border-radius: 50%; background: #0D0F17; border: 1.5px solid {{ mk.color }}; color: {{ mk.color }}; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700">{{ mk.label }}</span>
+                </sc-for>
+                <span style="position: absolute; left: {{ calloutLeft }}; top: {{ calloutTop }}; transform: translateX(-100%); margin-left: -10px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #141723; border: 1px solid rgba(63,216,240,0.5); white-space: nowrap; z-index: 3">
+                  <span style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #B8ACFF, #5B47F0)"></span>
+                  <span style="font-size: 12px; font-weight: 600">0x7f3a…e8d1 bought 0.27 ETH</span>
+                  <span style="font: 500 12px 'Geist Mono', ui-monospace, monospace; color: #36D68C">82% win</span>
+                </span>
+              </div>
+              <sc-for list="{{ yLabels }}" as="y" hint-placeholder-count="4">
+                <span style="position: absolute; right: 14px; top: {{ y.top }}; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ y.label }}</span>
+              </sc-for>
+              <span style="position: absolute; right: 8px; top: {{ priceTagTop }}; padding: 2px 6px; border-radius: 6px; background: #36D68C; color: #03150C; font: 600 12px 'Geist Mono', ui-monospace, monospace">58.2K</span>
+              <div style="position: absolute; left: 20px; right: 64px; bottom: 6px; height: 16px">
+                <sc-for list="{{ xLabels }}" as="x" hint-placeholder-count="5">
+                  <span style="position: absolute; left: {{ x.left }}; transform: translateX(-50%); font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B; white-space: nowrap">{{ x.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </section>
+
+          <section aria-label="Token stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); border-radius: 20px; background: #0D0F17; border: 1px solid #1B1F2D; overflow: hidden">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="6">
+              <div style="display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border-left: 1px solid #1B1F2D; margin-left: -1px">
+                <span style="font-size: 12px; color: #7E849B">{{ s.label }}</span>
+                <span style="font: 600 14px/20px 'Geist Mono', ui-monospace, monospace">{{ s.value }}</span>
+                <span style="font-size: 12px; color: {{ s.subColor }}">{{ s.sub }}</span>
+              </div>
+            </sc-for>
+          </section>
+
+          <section aria-label="Activity" style="border-radius: 24px; background: #0D0F17; border: 1px solid #1B1F2D; overflow: hidden">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px">
+              <div role="tablist" aria-label="Activity" style="display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D">
+                <sc-for list="{{ actTabs }}" as="t" hint-placeholder-count="3">
+                  <button type="button" role="tab" aria-selected="{{ t.active }}" onClick="{{ t.pick }}" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 0; background: {{ t.bg }}; color: {{ t.color }}; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap">{{ t.label }}</button>
+                </sc-for>
+              </div>
+              <span style="flex: 1 1 auto"></span>
+              <span style="display: inline-flex; align-items: center; gap: 8px; font: 600 12px 'Geist Mono', ui-monospace, monospace">
+                <span style="font-family: Geist, sans-serif; font-weight: 400; color: #7E849B">1h</span>
+                <span style="color: #36D68C">812 buys</span>
+                <span style="width: 96px; height: 6px; border-radius: 3px; background: #FF5C74; overflow: hidden"><span style="display: block; width: 63%; height: 100%; background: #36D68C"></span></span>
+                <span style="color: #FF5C74">472 sells</span>
+              </span>
+            </div>
+            <div style="overflow-x: auto">
+              <sc-if value="{{ isTrades }}" hint-placeholder-val="{{ true }}">
+                <div role="table" aria-label="Trades" style="min-width: 760px">
+                  <div role="row" style="display: grid; grid-template-columns: 72px 64px minmax(80px, 1fr) 80px 84px 76px minmax(220px, 2fr) 40px; align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #7E849B; border-bottom: 1px solid #1B1F2D">
+                    <span role="columnheader">Time</span><span role="columnheader">Type</span><span role="columnheader" style="text-align: right">USD</span><span role="columnheader" style="text-align: right">ETH</span><span role="columnheader" style="text-align: right">GHOST</span><span role="columnheader" style="text-align: right">MCap</span><span role="columnheader" style="padding-left: 28px">Trader</span><span role="columnheader" style="text-align: right">Tx</span>
+                  </div>
+                  <sc-for list="{{ trades }}" as="r" hint-placeholder-count="8">
+                    <div role="row" class="tk-row" style="display: grid; grid-template-columns: 72px 64px minmax(80px, 1fr) 80px 84px 76px minmax(220px, 2fr) 40px; align-items: center; height: 44px; padding: 0 20px; background: {{ r.rowBg }}">
+                      <span role="cell" style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ r.time }}</span>
+                      <span role="cell"><span style="display: inline-block; padding: 2px 8px; border-radius: 6px; background: {{ r.typeBg }}; color: {{ r.typeColor }}; font-size: 12px; font-weight: 600">{{ r.type }}</span></span>
+                      <span role="cell" style="text-align: right; font: 600 12px 'Geist Mono', ui-monospace, monospace; color: {{ r.typeColor }}">{{ r.usd }}</span>
+                      <span role="cell" style="text-align: right; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ r.eth }}</span>
+                      <span role="cell" style="text-align: right; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ r.amt }}</span>
+                      <span role="cell" style="text-align: right; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ r.mc }}</span>
+                      <span role="cell" style="display: flex; align-items: center; gap: 8px; padding-left: 28px">
+                        <span style="width: 18px; height: 18px; border-radius: 50%; background: {{ r.dot }}; flex: 0 0 auto"></span>
+                        <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace">{{ r.trader }}</span>
+                        <sc-if value="{{ r.hasTag }}" hint-placeholder-val="{{ false }}"><span style="padding: 1px 6px; border-radius: 5px; background: {{ r.tagBg }}; color: {{ r.tagColor }}; font-size: 11px; font-weight: 600">{{ r.tag }}</span></sc-if>
+                      </span>
+                      <span role="cell" style="text-align: right; color: #7E849B"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="View transaction" role="img"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isHolders }}" hint-placeholder-val="{{ false }}">
+                <div role="table" aria-label="Holders" style="min-width: 760px">
+                  <div role="row" style="display: grid; grid-template-columns: 40px minmax(240px, 2fr) 90px 90px minmax(120px, 1fr); align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #7E849B; border-bottom: 1px solid #1B1F2D">
+                    <span role="columnheader">#</span><span role="columnheader">Holder</span><span role="columnheader" style="text-align: right">Supply</span><span role="columnheader" style="text-align: right">GHOST</span><span role="columnheader" style="text-align: right">Crew rewards earned</span>
+                  </div>
+                  <sc-for list="{{ holders }}" as="h" hint-placeholder-count="6">
+                    <div role="row" class="tk-row" style="display: grid; grid-template-columns: 40px minmax(240px, 2fr) 90px 90px minmax(120px, 1fr); align-items: center; height: 44px; padding: 0 20px">
+                      <span role="cell" style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ h.rank }}</span>
+                      <span role="cell" style="display: flex; align-items: center; gap: 8px">
+                        <span style="width: 18px; height: 18px; border-radius: 50%; background: {{ h.dot }}"></span>
+                        <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace">{{ h.addr }}</span>
+                        <sc-if value="{{ h.hasTag }}" hint-placeholder-val="{{ true }}"><span style="padding: 1px 6px; border-radius: 5px; background: {{ h.tagBg }}; color: {{ h.tagColor }}; font-size: 11px; font-weight: 600">{{ h.tag }}</span></sc-if>
+                      </span>
+                      <span role="cell" style="text-align: right; font: 600 12px 'Geist Mono', ui-monospace, monospace">{{ h.pct }}</span>
+                      <span role="cell" style="text-align: right; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ h.amt }}</span>
+                      <span role="cell" style="text-align: right; font: 600 12px 'Geist Mono', ui-monospace, monospace; color: {{ h.crewColor }}">{{ h.crew }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isTraders }}" hint-placeholder-val="{{ false }}">
+                <div role="table" aria-label="Top traders" style="min-width: 760px">
+                  <div role="row" style="display: grid; grid-template-columns: minmax(240px, 2fr) 110px 100px 100px 90px; align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #7E849B; border-bottom: 1px solid #1B1F2D">
+                    <span role="columnheader">Trader</span><span role="columnheader" style="text-align: right">Realised PnL</span><span role="columnheader" style="text-align: right">Bought</span><span role="columnheader" style="text-align: right">Sold</span><span role="columnheader" style="text-align: right">Win rate</span>
+                  </div>
+                  <sc-for list="{{ traders }}" as="tr" hint-placeholder-count="5">
+                    <div role="row" class="tk-row" style="display: grid; grid-template-columns: minmax(240px, 2fr) 110px 100px 100px 90px; align-items: center; height: 44px; padding: 0 20px">
+                      <span role="cell" style="display: flex; align-items: center; gap: 8px">
+                        <span style="width: 18px; height: 18px; border-radius: 50%; background: {{ tr.dot }}"></span>
+                        <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace">{{ tr.addr }}</span>
+                        <sc-if value="{{ tr.hasTag }}" hint-placeholder-val="{{ true }}"><span style="padding: 1px 6px; border-radius: 5px; background: {{ tr.tagBg }}; color: {{ tr.tagColor }}; font-size: 11px; font-weight: 600">{{ tr.tag }}</span></sc-if>
+                      </span>
+                      <span role="cell" style="text-align: right; font: 600 12px 'Geist Mono', ui-monospace, monospace; color: #36D68C">{{ tr.pnl }}</span>
+                      <span role="cell" style="text-align: right; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ tr.bought }}</span>
+                      <span role="cell" style="text-align: right; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">{{ tr.sold }}</span>
+                      <span role="cell" style="text-align: right; font: 600 12px 'Geist Mono', ui-monospace, monospace">{{ tr.win }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display: flex; justify-content: center; padding: 8px 0 12px">
+              <button type="button" style="height: 36px; padding: 0 12px; border-radius: 10px; background: transparent; border: 0; color: #A2A7BE; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer">Show more<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+            </div>
+          </section>
+
+          <section aria-labelledby="about-title" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 24px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <h2 id="about-title" style="margin: 0; font-size: 14px; font-weight: 600">About $GHOST</h2>
+            <p style="margin: 0; max-width: 720px; font-size: 13px; line-height: 20px; color: #A2A7BE">A friendly ghost haunting the timeline, launched natively on Tonkpad. The dev allocation is locked for 180 days, holders earn 2% of every trade, and Captain Boo answers questions from live on-chain data.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px">
+              <sc-for list="{{ info }}" as="i" hint-placeholder-count="8">
+                <div style="display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 12px; background: #141723">
+                  <span style="font-size: 12px; color: #7E849B">{{ i.label }}</span>
+                  <span style="font: 600 12px 'Geist Mono', ui-monospace, monospace">{{ i.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+
+        <aside aria-label="Trade and mission" style="flex: 1 1 360px; max-width: 420px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+          <section aria-label="Trade" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 24px; background: #0D0F17; border: 1px solid #1B1F2D; box-shadow: 0 32px 64px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)">
+            <div role="group" aria-label="Side" style="display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: #141723; border: 1px solid #1B1F2D">
+              <button type="button" aria-pressed="{{ isBuy }}" onClick="{{ pickBuy }}" style="flex: 1 1 0; height: 40px; border-radius: 10px; background: {{ buyTabBg }}; border: 1px solid {{ buyTabBorder }}; color: {{ buyTabColor }}; font-size: 14px; font-weight: 600; cursor: pointer">Buy</button>
+              <button type="button" aria-pressed="{{ isSell }}" onClick="{{ pickSell }}" style="flex: 1 1 0; height: 40px; border-radius: 10px; background: {{ sellTabBg }}; border: 1px solid {{ sellTabBorder }}; color: {{ sellTabColor }}; font-size: 14px; font-weight: 600; cursor: pointer">Sell</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 18px; font-size: 14px">
+              <span style="font-weight: 600">Market</span><span style="color: #7E849B">Limit</span><span style="color: #7E849B">Auto-sell</span>
+              <span style="flex: 1 1 auto"></span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7E849B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg>
+            </div>
+            <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{ openBridge }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: linear-gradient(90deg, rgba(204,255,0,0.1), rgba(140,123,255,0.14)); border: 1px solid rgba(204,255,0,0.32); color: #F3F4FA; text-align: left; cursor: pointer">
+                <span style="width: 36px; height: 36px; border-radius: 12px; background: rgba(204,255,0,0.14); color: #CCFF00; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg></span>
+                <span style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 13px; font-weight: 600">Need funds on Robinhood Chain?</span>
+                  <span style="font-size: 12px; color: #A2A7BE">Bridge ETH/USDC/SOL in 1 click</span>
+                </span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CCFF00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </sc-if>
+            <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+              <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(54,214,140,0.12); border: 1px solid rgba(54,214,140,0.35); color: #F3F4FA; font-size: 12px; animation: tk-in .3s ease">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#36D68C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                <span>{{ toastText }}</span>
+              </div>
+            </sc-if>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; background: #141723; border: 1px solid #1B1F2D">
+              <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #7E849B">
+                <label for="tk-amount">{{ payLabel }}</label><span style="color: {{ balColor }}">Balance {{ balText }}</span>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                <input id="tk-amount" type="number" inputmode="decimal" min="0" step="0.01" value="{{ amount }}" onChange="{{ onAmount }}" style="flex: 1 1 auto; min-width: 0; background: transparent; border: 0; outline: 0; color: #F3F4FA; font: 600 36px/44px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.03em">
+                <span style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 6px; border-radius: 18px; background: #1A1E2C; border: 1px solid #2A2F42; font-size: 14px; font-weight: 600; flex: 0 0 auto">
+                  <sc-if value="{{ isBuy }}" hint-placeholder-val="{{ true }}"><span style="width: 22px; height: 22px; border-radius: 50%; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 10px; font-weight: 700">R</span></sc-if>
+                  <sc-if value="{{ isSell }}" hint-placeholder-val="{{ false }}"><img src="assets/tokens/ghost.svg" alt="" style="width: 22px; height: 22px; border-radius: 7px"></sc-if>
+                  {{ payUnit }}
+                </span>
+              </div>
+              <span style="font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #7E849B">{{ payUsd }}</span>
+            </div>
+            <div role="group" aria-label="Amount presets" style="display: flex; gap: 8px">
+              <sc-for list="{{ presets }}" as="pr" hint-placeholder-count="5">
+                <button type="button" aria-pressed="{{ pr.active }}" onClick="{{ pr.pick }}" style="flex: 1 1 0; height: 32px; border-radius: 10px; background: {{ pr.bg }}; border: 1px solid {{ pr.border }}; color: {{ pr.color }}; font: 600 12px 'Geist Mono', ui-monospace, monospace; cursor: pointer">{{ pr.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; background: #141723; border: 1px solid #1B1F2D">
+              <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #7E849B"><span>You receive</span><span>{{ minText }}</span></div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                <span style="font: 600 36px/44px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.03em">{{ receive }}</span>
+                <span style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 6px; border-radius: 18px; background: #1A1E2C; border: 1px solid #2A2F42; font-size: 14px; font-weight: 600; flex: 0 0 auto">
+                  <sc-if value="{{ isBuy }}" hint-placeholder-val="{{ true }}"><img src="assets/tokens/ghost.svg" alt="" style="width: 22px; height: 22px; border-radius: 7px"></sc-if>
+                  <sc-if value="{{ isSell }}" hint-placeholder-val="{{ false }}"><span style="width: 22px; height: 22px; border-radius: 50%; background: #CCFF00; display: inline-flex; align-items: center; justify-content: center; color: #0E1400; font-size: 10px; font-weight: 700">R</span></sc-if>
+                  {{ getUnit }}
+                </span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+              <div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D"><span style="font-size: 12px; color: #7E849B">Slippage</span><span style="font-size: 12px; font-weight: 600">15%</span></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D"><span style="font-size: 12px; color: #7E849B">Priority</span><span style="font-size: 12px; font-weight: 600; color: #B8ACFF">Fast</span></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D"><span style="font-size: 12px; color: #7E849B">MEV shield</span><span style="font-size: 12px; font-weight: 600; color: #36D68C">On</span></div>
+            </div>
+            <sc-if value="{{ canTrade }}" hint-placeholder-val="{{ false }}">
+              <button type="button" style="height: 52px; border-radius: 14px; background: {{ ctaBg }}; color: {{ ctaFg }}; border: 0; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>{{ ctaLabel }}
+              </button>
+            </sc-if>
+            <sc-if value="{{ cantTrade }}" hint-placeholder-val="{{ true }}">
+              <button type="button" aria-disabled="true" style="height: 52px; border-radius: 14px; background: #1A1E2C; color: #A2A7BE; border: 1px solid #2A2F42; font-size: 15px; font-weight: 600; cursor: not-allowed">{{ cantLabel }}</button>
+            </sc-if>
+            <span style="font-size: 12px; color: #7E849B; text-align: center">Fee 2.5% · 2% goes to the crew · routed via Tonkpad curve</span>
+          </section>
+
+          <section aria-labelledby="tele-title" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; border-radius: 24px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2EE0A1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <h2 id="tele-title" style="margin: 0; flex: 1 1 auto; font-size: 14px; font-weight: 600">Mission telemetry</h2>
+              <span style="padding: 3px 8px; border-radius: 8px; background: rgba(20,208,143,0.14); color: #2EE0A1; font-size: 12px; font-weight: 600">Verified on-chain</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: #141723; border: 1px solid #1B1F2D">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #7E849B">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2EE0A1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Dev lock status
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 15px; font-weight: 600">80% of dev allocation locked</span>
+                <span style="font-size: 12px; color: #A2A7BE">180-day linear vesting · 6 monthly unlocks · started Oct 18</span>
+              </div>
+              <div style="height: 10px; border-radius: 5px; background: rgba(20,208,143,0.22); overflow: hidden; display: flex">
+                <span style="width: 10%; height: 100%; background: #2EE0A1"></span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 8px; font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">
+                <span>Day 18 of 180 · first unlock in 12d</span><span style="color: #2EE0A1">162d left</span>
+              </div>
+              <a href="#tele-title" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #B8ACFF; text-decoration: none">Verify contract 0x91c4…b7e2<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: #141723; border: 1px solid #1B1F2D">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #7E849B">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#F4C553" stroke="none" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Crew rewards
+                <span style="flex: 1 1 auto"></span>
+                <span style="display: inline-flex; align-items: center; gap: 6px; color: #36D68C"><span style="width: 6px; height: 6px; border-radius: 50%; background: #36D68C; animation: tk-pulse 2s ease-in-out infinite"></span>Last payout 4s ago</span>
+              </div>
+              <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font: 600 28px/32px 'Geist Mono', ui-monospace, monospace; letter-spacing: -0.03em; color: #F4C553">$14,280</span>
+                  <span style="font-size: 12px; color: #A2A7BE">paid to the crew · 2% of every trade</span>
+                </div>
+                <div aria-label="Daily payouts, last 14 days" role="img" style="display: flex; align-items: flex-end; gap: 3px; height: 40px">
+                  <sc-for list="{{ payouts }}" as="b" hint-placeholder-count="14">
+                    <span style="width: 6px; height: {{ b.h }}; border-radius: 2px; background: {{ b.color }}"></span>
+                  </sc-for>
+                </div>
+              </div>
+              <span style="font-size: 12px; color: #7E849B">Auto-distributed to holder wallets · no claiming</span>
+            </div>
+          </section>
+
+          <section aria-labelledby="agent-title" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 24px; background: #0D0F17; border: 1px solid #1B1F2D">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+              <span style="position: relative; width: 40px; height: 40px; flex: 0 0 auto">
+                <img src="assets/tokens/ghost.svg" alt="" style="width: 40px; height: 40px; border-radius: 12px">
+                <span style="position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; border-radius: 6px; background: #5AA9FF; border: 2px solid #0D0F17; color: #04121F; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/></svg></span>
+              </span>
+              <div style="flex: 1 1 140px; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+                <h2 id="agent-title" style="margin: 0; font-size: 14px; font-weight: 600">Captain Boo</h2>
+                <span style="font-size: 12px; color: #7E849B">Ghosty's mission agent · Tactical</span>
+              </div>
+              <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; background: rgba(54,214,140,0.12); border: 1px solid rgba(54,214,140,0.35); color: #36D68C; font-size: 11px; font-weight: 600; white-space: nowrap"><span style="width: 6px; height: 6px; border-radius: 50%; background: #36D68C"></span>Grounded in on-chain data</span>
+            </div>
+            <div ref="{{ chatRef }}" role="log" aria-live="polite" aria-label="Chat with Captain Boo" style="display: flex; flex-direction: column; gap: 10px; height: 300px; overflow-y: auto; padding: 12px; border-radius: 16px; background: #07080D; border: 1px solid #1B1F2D">
+              <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="3">
+                <div style="align-self: {{ m.align }}; max-width: 88%; display: flex; flex-direction: column; gap: 4px; animation: tk-in .25s ease">
+                  <span style="font-size: 11px; color: #7E849B; align-self: {{ m.align }}">{{ m.who }}</span>
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 12px; border-radius: {{ m.radius }}; background: {{ m.bg }}; border: 1px solid {{ m.border }}; font-size: 13px; line-height: 19px">
+                    <sc-for list="{{ m.parts }}" as="p" hint-placeholder-count="2">
+                      <sc-if value="{{ p.isText }}" hint-placeholder-val="{{ true }}"><span>{{ p.v }}</span></sc-if>
+                      <sc-if value="{{ p.isChip }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 7px; background: {{ p.bg }}; border: 1px solid {{ p.border }}; color: {{ p.color }}; font: 500 11px/16px 'Geist Mono', ui-monospace, monospace; white-space: nowrap">{{ p.v }}</span></sc-if>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div role="group" aria-label="Quick questions" style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{ asks }}" as="a" hint-placeholder-count="3">
+                <button type="button" onClick="{{ a.pick }}" style="height: 30px; padding: 0 10px; border-radius: 15px; background: #141723; border: 1px solid #2A2F42; color: #F3F4FA; font-size: 12px; cursor: pointer; white-space: nowrap">{{ a.label }}</button>
+              </sc-for>
+            </div>
+            <form onSubmit="{{ send }}" style="display: flex; gap: 8px">
+              <label for="tk-ask" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Ask Captain Boo</label>
+              <input id="tk-ask" type="text" placeholder="Ask Captain Boo about this token" value="{{ draft }}" onChange="{{ onDraft }}" style="flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; background: #141723; border: 1px solid #2A2F42; color: #F3F4FA; font-size: 13px; outline: 0">
+              <button type="submit" aria-label="Send" style="width: 44px; height: 44px; border-radius: 12px; background: #A497FF; border: 0; color: #0B0A1A; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.63l-19 6.5a.5.5 0 0 0-.02.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg></button>
+            </form>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 9px clamp(16px, 2vw, 24px); border-top: 1px solid #1B1F2D; background: #05060A; font-size: 12px; color: #7E849B">
+      <span style="display: inline-flex; align-items: center; gap: 6px; color: #36D68C; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #36D68C; animation: tk-pulse 2s ease-in-out infinite"></span>Live</span>
+      <span style="display: inline-flex; align-items: center; gap: 8px">Next sweep <span style="width: 64px; height: 4px; border-radius: 2px; background: #2A2F42; overflow: hidden"><span style="display: block; width: 62%; height: 100%; background: linear-gradient(90deg, #8C7BFF, #3FD8F0)"></span></span><span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">0:04</span></span>
+      <span>SOL <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">$182.40</span></span>
+      <span>ETH <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">$3,412</span></span>
+      <span>Robinhood Chain gas <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #A2A7BE">0.02 gwei</span></span>
+      <span style="flex: 1 1 auto"></span>
+      <a href="#about-title" style="color: #7E849B; text-decoration: none">Docs</a>
+      <a href="#about-title" style="color: #7E849B; text-decoration: none">Status</a>
+      <a href="#about-title" style="color: #7E849B; text-decoration: none">Terms</a>
+      <span>© 2026 Tonkpad.fun</span>
+    </footer>
+  </div>
+
+  <sc-if value="{{ bridgeOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(5,6,10,0.72); display: flex; justify-content: center; align-items: flex-start; padding: 120px 16px 16px">
+      <div role="dialog" aria-modal="true" aria-labelledby="bm-title" style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 24px; background: #0D0F17; border: 1px solid #2A2F42; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.8); animation: tk-in .25s ease">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="width: 36px; height: 36px; border-radius: 12px; background: rgba(204,255,0,0.14); color: #CCFF00; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg></span>
+          <div style="flex: 1 1 auto; display: flex; flex-direction: column">
+            <h2 id="bm-title" style="margin: 0; font-size: 16px; font-weight: 600">Bridge to Robinhood Chain</h2>
+            <span style="font-size: 12px; color: #7E849B">Your spot on Ghosty stays open</span>
+          </div>
+          <button type="button" aria-label="Close" onClick="{{ closeBridge }}" style="width: 32px; height: 32px; border-radius: 10px; background: #141723; border: 1px solid #1B1F2D; color: #A2A7BE; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; color: #7E849B">From</span>
+          <div role="group" aria-label="Source chain" style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{ bChains }}" as="bc" hint-placeholder-count="4">
+              <button type="button" aria-pressed="{{ bc.active }}" onClick="{{ bc.pick }}" style="height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 6px; border-radius: 17px; background: {{ bc.bg }}; border: 1px solid {{ bc.border }}; color: #F3F4FA; font-size: 13px; cursor: pointer">
+                <span style="width: 20px; height: 20px; border-radius: 50%; background: {{ bc.dot }}; display: inline-flex; align-items: center; justify-content: center; color: {{ bc.fg }}; font-size: 9px; font-weight: 700">{{ bc.l }}</span>{{ bc.label }}
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 16px; background: #141723; border: 1px solid #1B1F2D">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 12px; color: #7E849B">You send</span>
+            <span style="font: 600 24px/30px 'Geist Mono', ui-monospace, monospace">{{ bSend }}</span>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7E849B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+            <span style="font-size: 12px; color: #7E849B">You get on Robinhood Chain</span>
+            <span style="font: 600 24px/30px 'Geist Mono', ui-monospace, monospace">0.25 ETH</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: #141723; border: 1px solid #1B1F2D; font-size: 12px; color: #A2A7BE">
+          <span style="padding: 2px 8px; border-radius: 6px; background: rgba(140,123,255,0.14); color: #B8ACFF; font-weight: 600">{{ bProvider }}</span>
+          <span>{{ bRoute }}</span>
+          <span style="flex: 1 1 auto"></span>
+          <span style="font-family: 'Geist Mono', ui-monospace, monospace; color: #36D68C">{{ bEta }}</span>
+        </div>
+        <button type="button" onClick="{{ doBridge }}" style="height: 52px; border-radius: 14px; background: #A497FF; color: #0B0A1A; border: 0; font-size: 16px; font-weight: 700; cursor: pointer">Bridge &amp; Ready Wallet</button>
+        <span style="font-size: 12px; color: #7E849B; text-align: center">Funds land as ETH on Robinhood Chain, ready to buy $GHOST</span>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</template>
+<div id="dc-root"></div>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1880}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      side: 'buy', amount: '0.05', bal: 0, bridgeOpen: false, toast: false, bChain: 'base', tab: 'trades', tf: '15m', draft: '',
+      msgs: [
+        { from: 'agent', parts: [['t', 'Mission control online. Ghosty is 84% up the bonding curve and the crew gets paid on every trade.'], ['c', 'Curve: 84%', 'price'], ['c', 'Crew paid: $14.2K', 'crew'], ['c', 'Holders: 1,204', 'holders']] },
+        { from: 'user', parts: [['t', 'Is the dev wallet locked?']] },
+        { from: 'agent', parts: [['t', 'Affirmative. 80% of the dev allocation sits in a 180-day linear vest. Nothing has unlocked early.'], ['c', 'Dev lock: 80% locked (162d left)', 'lock'], ['c', 'Lock contract: 0x91c4…b7e2', 'plain']] }
+      ]
+    };
+    this.chatRef = (el) => { this.chatEl = el; };
+    const gen = (seed, n, anchors, dips, noise, dip) => {
+      let s = seed;
+      const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      const at = (t) => {
+        for (let j = 1; j < anchors.length; j++) {
+          const a = anchors[j - 1], b = anchors[j];
+          if (t <= b[0]) return a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]);
+        }
+        return anchors[anchors.length - 1][1];
+      };
+      const out = [];
+      let v = anchors[0][1] * (1 - noise / 2);
+      for (let i = 0; i < n; i++) {
+        const o = v;
+        let c = i === n - 1 ? 58.2 : at(i / (n - 1)) * (1 + (rnd() - 0.5) * noise);
+        if (dips.indexOf(i) !== -1) c = o * (1 - dip * (0.6 + rnd() * 0.4));
+        const h = Math.max(o, c) * (1.003 + rnd() * noise * 0.35);
+        const l = Math.min(o, c) * (0.997 - rnd() * noise * 0.35);
+        out.push({ o, h, l, c, r: rnd() });
+        v = c;
+      }
+      return out;
+    };
+    this.CH = {
+      '1m': gen(11, 62, [[0, 50.6], [0.25, 52.4], [0.5, 54.1], [0.75, 56.3], [1, 58.2]], [9, 21, 22, 37, 50], 0.012, 0.02),
+      '5m': gen(23, 62, [[0, 34.2], [0.3, 41.8], [0.6, 48.9], [0.85, 55.1], [1, 58.2]], [12, 26, 27, 44, 55], 0.02, 0.035),
+      '15m': gen(7, 62, [[0, 12.8], [0.3, 19.6], [0.55, 31.5], [0.8, 47.2], [1, 58.2]], [14, 27, 28, 41, 49, 57], 0.05, 0.07),
+      '1h': gen(31, 62, [[0, 6.3], [0.4, 8.4], [0.613, 11.4], [0.8, 33.6], [1, 58.2]], [10, 23, 35, 44, 53], 0.05, 0.08),
+      '4h': gen(43, 62, [[0, 4.4], [0.5, 7.2], [0.85, 9.6], [0.903, 11.4], [0.95, 31], [1, 58.2]], [8, 19, 31, 42, 50], 0.05, 0.09),
+      '1D': gen(5, 19, [[0, 2.4], [0.35, 6.1], [0.7, 8.2], [0.944, 11.4], [1, 58.2]], [4, 9, 13], 0.06, 0.12)
+    };
+  }
+
+  componentDidMount() {
+    try { if (this.chatEl) this.chatEl.scrollTop = this.chatEl.scrollHeight; } catch (e) {}
+  }
+
+  componentDidUpdate() {
+    try { if (this.chatEl) this.chatEl.scrollTop = this.chatEl.scrollHeight; } catch (e) {}
+  }
+
+  reply(q) {
+    const R = {
+      lock: [['t', 'Affirmative. 80% of the dev allocation is locked in a 180-day linear vest that started Oct 18. Nothing has unlocked yet; the first monthly unlock is in 12 days.'], ['c', 'Dev lock: 80% locked (162d left)', 'lock'], ['c', 'Next unlock: 12d', 'lock']],
+      crew: [['t', 'The crew has pocketed $14,280 so far. 2% of every trade goes straight to holder wallets, no claiming.'], ['c', 'Crew paid: $14.2K', 'crew'], ['c', 'Fee share: 2%', 'crew'], ['c', 'Last payout: 4s ago', 'plain']],
+      brief: [['t', 'Mission brief: haunt the timeline, clear the bonding curve and keep the crew paid. Current status:'], ['c', 'Price: $0.0000582', 'price'], ['c', 'Holders: 1,204', 'holders'], ['c', 'Curve: 84%', 'price'], ['c', 'Dev lock: 80%', 'lock']],
+      other: [['t', 'I only answer from live on-chain data. Ask me about the lock, the crew rewards or the curve.'], ['c', 'Holders: 1,204', 'holders']]
+    };
+    return R[q];
+  }
+
+  ask(text, key) {
+    const msgs = this.state.msgs.concat([{ from: 'user', parts: [['t', text]] }, { from: 'agent', parts: this.reply(key) }]);
+    this.setState({ msgs, draft: '' });
+  }
+
+  renderVals() {
+    const st = this.state;
+    const ART = {
+      GHOST: 'assets/tokens/ghost.svg', SCAT: 'assets/tokens/scat.svg', MOON: 'assets/tokens/moon.svg',
+      SHRM: 'assets/tokens/shrm.svg', ORB: 'assets/tokens/orb.svg', BOLT: 'assets/tokens/bolt.svg',
+      LUMEN: 'assets/tokens/lumen.svg', KITE: 'assets/tokens/kite.svg'
+    };
+    const G = '#36D68C', RD = '#FF5C74';
+    const tape = [['GHOST', '$58.2K', '+412%'], ['SCAT', '$1.18M', '+96.4%'], ['ORB', '$64.1K', '+221%'], ['MOON', '$864K', '+38.2%'], ['SHRM', '$37.4K', '−12.4%'], ['BOLT', '$276K', '+64.9%'], ['LUMEN', '$21.3K', '−8.1%'], ['KITE', '$19.0K', '+17.3%']]
+      .map(([k, m, c]) => ({ art: ART[k], tick: k, mcap: m, chg: c, chgColor: c.charAt(0) === '+' ? G : RD }));
+
+    // ---- chart: per-timeframe candles, price scale and labels ----
+    const TF = st.tf;
+    const C = this.CH[TF];
+    const n = C.length;
+    const last = C[n - 1];
+    const lo = Math.min.apply(null, C.map((k) => k.l));
+    const bottom = Math.max(0, Math.floor(lo * 0.92 / 5) * 5);
+    const TOP = 76, PA = 240;
+    const y = (val) => (TOP - val) / (TOP - bottom) * PA;
+    const candles = C.map((k, i) => {
+      const up = k.c >= k.o;
+      return {
+        left: (i / n * 100).toFixed(3) + '%', slot: (100 / n).toFixed(3) + '%',
+        wTop: y(k.h).toFixed(1) + 'px', wH: Math.max(1, y(k.l) - y(k.h)).toFixed(1) + 'px',
+        bTop: Math.min(y(k.o), y(k.c)).toFixed(1) + 'px', bH: Math.max(1.6, Math.abs(y(k.o) - y(k.c))).toFixed(1) + 'px',
+        color: up ? G : RD,
+        volH: Math.min(44, 5 + k.r * 20 + Math.abs(k.c - k.o) / k.o * 140).toFixed(1) + 'px',
+        volColor: up ? 'rgba(54,214,140,0.24)' : 'rgba(255,92,116,0.24)'
+      };
+    });
+    const range = TOP - bottom;
+    const step = [1, 2, 2.5, 5, 10, 20, 25, 50].find((s) => s >= range / 5);
+    const ticks = [];
+    for (let v = Math.ceil((bottom + 0.01) / step) * step; v < TOP - 2; v += step) ticks.push(v);
+    const grid = ticks.map((v) => ({ top: y(v).toFixed(1) + 'px' }));
+    const yLabels = ticks.map((v) => ({ label: '$' + v + 'K', top: (16 + y(v) - 8).toFixed(1) + 'px' }));
+    const mkAt = (f, label, color, title) => {
+      const i = Math.round(f * (n - 1));
+      return { left: ((i + 0.5) / n * 100).toFixed(3) + '%', top: Math.min(y(C[i].l) + 8, PA - 4).toFixed(1) + 'px', label, color, title };
+    };
+    const markers = [mkAt(0.18, 'W', '#F4C553', 'Whale buy'), mkAt(0.42, 'S', '#3FD8F0', 'Smart wallet buy'), mkAt(0.66, 'S', '#3FD8F0', 'Smart wallet buy'), mkAt(1, 'S', '#3FD8F0', 'Smart wallet 0x7f3a…e8d1 bought 0.27 ETH')];
+    const XL = {
+      '1m': [['20:30', 3.2], ['20:45', 27.4], ['21:00', 51.6], ['21:15', 75.8]],
+      '5m': [['17:00', 12.9], ['18:00', 32.3], ['19:00', 51.6], ['20:00', 71.0], ['21:00', 90.3]],
+      '15m': [['09:00', 19.4], ['12:00', 38.7], ['15:00', 58.1], ['18:00', 77.4]],
+      '1h': [['Nov 4', 26.6], ['12:00', 46.0], ['Nov 5', 65.3], ['12:00', 84.7]],
+      '4h': [['Oct 27', 5.8], ['Oct 29', 25.2], ['Oct 31', 44.5], ['Nov 2', 63.9], ['Nov 4', 83.2]],
+      '1D': [['Oct 18', 2.6], ['Oct 22', 23.7], ['Oct 26', 44.7], ['Oct 30', 65.8], ['Nov 3', 86.8]]
+    };
+    const xLabels = XL[TF].map(([label, p]) => ({ label, left: p + '%' }));
+    const tfs = ['1m', '5m', '15m', '1h', '4h', '1D'].map((id) => {
+      const a = TF === id;
+      return { label: id, active: a, bg: a ? '#1A1E2C' : 'transparent', color: a ? '#F3F4FA' : '#A2A7BE', pick: () => this.setState({ tf: id }) };
+    });
+    const VOL = { '1m': '0.18 ETH', '5m': '0.74 ETH', '15m': '2.14 ETH', '1h': '6.92 ETH', '4h': '21.6 ETH', '1D': '54.5 ETH' };
+    const fk = (v) => '$' + v.toFixed(1) + 'K';
+    const chg = (last.c - last.o) / last.o * 100;
+    const ohlc = { o: fk(last.o), h: fk(last.h), l: fk(last.l), c: fk(last.c), chg: (chg >= 0 ? '+' : '−') + Math.abs(chg).toFixed(2) + '%', chgColor: chg >= 0 ? G : RD, vol: VOL[TF] };
+
+    // ---- stats + activity tables ----
+    const stats = [
+      ['Market cap', '$58.2K', '+412.6% 24h', G], ['24h volume', '$186K', '1,284 txns', '#7E849B'], ['Liquidity', '8.4 ETH', 'in curve', '#7E849B'],
+      ['Holders', '1,204', '+96 · 1h', G], ['Top 10', '18.2%', 'healthy', G], ['Dev locked', '80%', '180-day vest', '#2EE0A1']
+    ].map(([label, value, sub, subColor]) => ({ label, value, sub, subColor }));
+    const TAG = { Smart: ['rgba(63,216,240,0.12)', '#3FD8F0'], Sniper: ['rgba(255,181,71,0.13)', '#FFB547'], Whale: ['rgba(244,197,83,0.14)', '#F4C553'], 'Dev lock': ['rgba(20,208,143,0.14)', '#2EE0A1'], Curve: ['rgba(140,123,255,0.14)', '#B8ACFF'] };
+    const DOTS = ['linear-gradient(135deg, #46D9F2, #2D48F0)', 'linear-gradient(135deg, #FF9A4D, #E2445E)', 'linear-gradient(135deg, #3BDB98, #0B5E50)', 'linear-gradient(135deg, #B8ACFF, #5B47F0)', 'linear-gradient(135deg, #FFB547, #E2445E)', 'linear-gradient(135deg, #FF8FD6, #8B3BFF)', 'linear-gradient(135deg, #46D9F2, #0B5E50)', 'linear-gradient(135deg, #F4C553, #FF7A45)'];
+    const tagged = (tag) => ({ hasTag: !!tag, tag: tag || '', tagBg: tag ? TAG[tag][0] : 'transparent', tagColor: tag ? TAG[tag][1] : '#7E849B' });
+    const trades = [
+      ['2s', 'Buy', '$182.40', '0.0535', '3.13M', '$58.2K', '0x4f2a…9b1c', 'Smart'], ['6s', 'Buy', '$45.60', '0.0134', '784K', '$58.0K', '0x9a1e…71d4', ''],
+      ['11s', 'Sell', '$364.80', '0.1069', '6.27M', '$57.6K', '0xb27c…02e5', ''], ['14s', 'Buy', '$912.00', '0.2673', '15.7M', '$57.9K', '0x7f3a…e8d1', 'Smart'],
+      ['21s', 'Buy', '$18.24', '0.0053', '313K', '$56.8K', '0xcc1e…4a6f', ''], ['38s', 'Buy', '$273.60', '0.0802', '4.81M', '$56.4K', '0x2e9b…7f30', 'Sniper'],
+      ['52s', 'Sell', '$54.72', '0.0160', '963K', '$55.9K', '0xd4e1…3b9a', ''], ['1m', 'Buy', '$637.00', '0.1867', '11.4M', '$55.6K', '0xa0f5…e9c2', 'Whale']
+    ].map(([time, type, usd, eth, amt, mc, trader, tag], i) => Object.assign({
+      time: time + ' ago', type, usd, eth, amt, mc, trader, dot: DOTS[i], rowBg: i === 3 ? '#141723' : 'transparent',
+      typeBg: type === 'Buy' ? 'rgba(54,214,140,0.12)' : 'rgba(255,92,116,0.12)', typeColor: type === 'Buy' ? G : RD
+    }, tagged(tag)));
+    const holders = [
+      ['1', 'Bonding curve', 'Curve', '58.0%', '580.0M', '—'], ['2', '0x91c4…b7e2', 'Dev lock', '8.0%', '80.0M', '—'],
+      ['3', '0x7f3a…e8d1', 'Smart', '2.9%', '29.4M', '$412.10'], ['4', '0xa0f5…e9c2', 'Whale', '2.4%', '24.1M', '$338.60'],
+      ['5', '0x4f2a…9b1c', 'Smart', '1.6%', '16.2M', '$227.40'], ['6', '0x2e9b…7f30', 'Sniper', '1.1%', '11.3M', '$158.70']
+    ].map(([rank, addr, tag, pct, amt, crew], i) => Object.assign({ rank, addr, pct, amt, crew, crewColor: crew === '—' ? '#7E849B' : '#F4C553', dot: DOTS[(i + 2) % 8] }, tagged(tag)));
+    const traders = [
+      ['0x7f3a…e8d1', 'Smart', '+$4,812', '$912', '$5,724', '82%'], ['0xa0f5…e9c2', 'Whale', '+$2,906', '$1,840', '$4,746', '74%'],
+      ['0x4f2a…9b1c', 'Smart', '+$1,377', '$364', '$1,741', '76%'], ['0x2e9b…7f30', 'Sniper', '+$904', '$274', '$1,178', '61%'],
+      ['0x9a1e…71d4', '', '+$212', '$46', '$258', '55%']
+    ].map(([addr, tag, pnl, bought, sold, win], i) => Object.assign({ addr, pnl, bought, sold, win, dot: DOTS[(i + 3) % 8] }, tagged(tag)));
+    const actTabs = [['trades', 'Live trades'], ['holders', 'Holders · 1,204'], ['traders', 'Top traders']].map(([id, label]) => {
+      const a = st.tab === id;
+      return { label, active: a, bg: a ? '#1A1E2C' : 'transparent', color: a ? '#F3F4FA' : '#A2A7BE', pick: () => this.setState({ tab: id }) };
+    });
+    const info = [['Supply', '1,000,000,000'], ['Chain', 'Robinhood Chain'], ['Launchpad', 'Tonkpad Native'], ['Launched', 'Oct 18 · 14:22'], ['Token', '0x5e1d…a0f3'], ['Curve', '0x3c0b…77e4'], ['Lock contract', '0x91c4…b7e2'], ['Trade fee', '2.5% (2% to crew)']]
+      .map(([label, value]) => ({ label, value }));
+    const PAY = [378, 549, 342, 801, 1089, 684, 846, 1242, 1008, 882, 1314, 1548, 1377, 1719];
+    const payouts = PAY.map((v, i) => ({ h: Math.max(4, Math.round(v / 1719 * 40)) + 'px', color: i === PAY.length - 1 ? '#F4C553' : 'rgba(244,197,83,0.45)' }));
+
+    // ---- trade box: balance on Robinhood Chain decides the bridge banner ----
+    const isBuy = st.side === 'buy';
+    const bal = st.bal;
+    const amt = parseFloat(st.amount) || 0;
+    const fmtTok = (x) => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : x >= 1e3 ? (x / 1e3).toFixed(1) + 'K' : x.toFixed(0);
+    const receive = isBuy ? fmtTok(amt * 3412 / 0.0000582) : (amt * 1e6 * 0.0000582 / 3412).toFixed(4);
+    const enough = amt > 0 && (isBuy ? amt <= bal + 1e-9 : amt <= 3.13);
+    const showBanner = isBuy && (bal === 0 || amt > bal);
+    const presetVals = isBuy ? ['0.01', '0.05', '0.1', '0.5', 'Max'] : ['0.5', '1', '2', '3', 'Max'];
+    const presets = presetVals.map((p) => {
+      const val = p === 'Max' ? (isBuy ? String(+bal.toFixed(4)) : '3.13') : p;
+      const a = st.amount === val;
+      return { label: p, active: a, bg: a ? 'rgba(140,123,255,0.14)' : '#141723', border: a ? 'rgba(140,123,255,0.55)' : '#1B1F2D', color: a ? '#B8ACFF' : '#A2A7BE', pick: () => this.setState({ amount: val }) };
+    });
+
+    // ---- Captain Boo chat ----
+    const TONE = {
+      lock: ['rgba(20,208,143,0.14)', 'rgba(20,208,143,0.38)', '#2EE0A1'], crew: ['rgba(140,123,255,0.16)', 'rgba(244,197,83,0.38)', '#F4C553'],
+      holders: ['rgba(90,169,255,0.14)', 'rgba(90,169,255,0.38)', '#8CC4FF'], price: ['rgba(63,216,240,0.12)', 'rgba(63,216,240,0.35)', '#7FE6F5'],
+      plain: ['#1A1E2C', '#2A2F42', '#A2A7BE']
+    };
+    const msgs = st.msgs.map((m) => {
+      const agent = m.from === 'agent';
+      return {
+        who: agent ? 'Captain Boo' : 'You', align: agent ? 'flex-start' : 'flex-end',
+        bg: agent ? '#141723' : 'rgba(140,123,255,0.16)', border: agent ? '#1B1F2D' : 'rgba(140,123,255,0.4)', radius: agent ? '4px 14px 14px 14px' : '14px 4px 14px 14px',
+        parts: m.parts.map((p) => {
+          const tone = TONE[p[2] || 'plain'];
+          return { isText: p[0] === 't', isChip: p[0] === 'c', v: p[1], bg: tone[0], border: tone[1], color: tone[2] };
+        })
+      };
+    });
+    const asks = [['Is the dev wallet locked?', 'lock'], ['How much has the crew earned?', 'crew'], ['Give me the mission brief.', 'brief']]
+      .map(([label, key]) => ({ label, pick: () => this.ask(label, key) }));
+
+    // ---- in-place bridge modal ----
+    const BCH = {
+      base: ['Base', 'B', '#2A5BFF', '#FFFFFF', '853.40 USDC', 'Relay', 'Base → Robinhood Chain', '~15 sec'],
+      arb: ['Arbitrum', 'A', '#2D86D9', '#FFFFFF', '853.40 USDC', 'Across', 'Arbitrum → Robinhood Chain', '~15 sec'],
+      eth: ['Ethereum', 'E', '#6F7CF6', '#FFFFFF', '0.2512 ETH', 'Relay', 'Ethereum → Robinhood Chain', '~30 sec'],
+      sol: ['Solana', 'S', 'linear-gradient(135deg, #9945FF, #19FB9B)', '#0B0A1A', '4.68 SOL', 'Relay', 'Solana → Robinhood Chain', '~20 sec']
+    };
+    const bc = BCH[st.bChain];
+    const bChains = Object.keys(BCH).map((id) => {
+      const a = st.bChain === id;
+      return { label: BCH[id][0], l: BCH[id][1], dot: BCH[id][2], fg: BCH[id][3], active: a, bg: a ? 'rgba(140,123,255,0.14)' : '#141723', border: a ? 'rgba(140,123,255,0.55)' : '#1B1F2D', pick: () => this.setState({ bChain: id }) };
+    });
+
+    return {
+      tape, candles, markers, grid, yLabels, xLabels, tfs, ohlc,
+      gradTop: y(70).toFixed(1) + 'px', gradLabelTop: (y(70) + 8).toFixed(1) + 'px', priceTop: y(58.2).toFixed(1) + 'px', priceTagTop: (16 + y(58.2) - 10).toFixed(1) + 'px',
+      calloutLeft: ((n - 0.5) / n * 100).toFixed(3) + '%', calloutTop: Math.max(-6, y(last.h) - 42).toFixed(1) + 'px',
+      stats, actTabs, isTrades: st.tab === 'trades', isHolders: st.tab === 'holders', isTraders: st.tab === 'traders', trades, holders, traders, info, payouts,
+      isBuy, isSell: !isBuy,
+      pickBuy: () => this.setState({ side: 'buy', amount: '0.05' }), pickSell: () => this.setState({ side: 'sell', amount: '1' }),
+      buyTabBg: isBuy ? 'rgba(54,214,140,0.12)' : 'transparent', buyTabBorder: isBuy ? 'rgba(54,214,140,0.45)' : 'transparent', buyTabColor: isBuy ? G : '#A2A7BE',
+      sellTabBg: !isBuy ? 'rgba(255,92,116,0.12)' : 'transparent', sellTabBorder: !isBuy ? 'rgba(255,92,116,0.45)' : 'transparent', sellTabColor: !isBuy ? RD : '#A2A7BE',
+      showBanner, openBridge: () => this.setState({ bridgeOpen: true }), closeBridge: () => this.setState({ bridgeOpen: false }),
+      toast: st.toast && isBuy && !showBanner, toastText: 'Bridged 0.25 ETH to Robinhood Chain via ' + bc[5] + '. Ready to buy.',
+      payLabel: isBuy ? 'You pay' : 'You sell', balText: isBuy ? (+bal.toFixed(4)) + ' ETH on Robinhood Chain' : '3.13M GHOST', balColor: isBuy && bal === 0 ? RD : '#7E849B',
+      amount: st.amount, onAmount: (e) => this.setState({ amount: e.target.value }), payUnit: isBuy ? 'ETH' : 'M GHOST', getUnit: isBuy ? 'GHOST' : 'ETH',
+      payUsd: isBuy ? '≈ $' + (amt * 3412).toFixed(2) : '≈ $' + (amt * 1e6 * 0.0000582).toFixed(2), presets, receive,
+      minText: isBuy ? 'Min. ' + fmtTok(amt * 3412 / 0.0000582 * 0.85) + ' at 15% slippage' : 'Min. ' + (amt * 1e6 * 0.0000582 / 3412 * 0.85).toFixed(4) + ' ETH',
+      canTrade: enough, cantTrade: !enough, ctaBg: isBuy ? G : RD, ctaFg: isBuy ? '#03150C' : '#1A0509', ctaLabel: isBuy ? 'Buy $GHOST · ' + st.amount + ' ETH' : 'Sell ' + st.amount + 'M $GHOST',
+      cantLabel: amt <= 0 ? 'Enter an amount' : isBuy ? 'Not enough ETH on Robinhood Chain' : 'Not enough $GHOST',
+      bridgeOpen: st.bridgeOpen, bChains, bSend: bc[4], bProvider: bc[5], bRoute: bc[6] + ' · auto-selected', bEta: bc[7],
+      doBridge: () => this.setState({ bridgeOpen: false, bal: +(this.state.bal + 0.25).toFixed(4), toast: true }),
+      msgs, asks, chatRef: this.chatRef, draft: st.draft, onDraft: (e) => this.setState({ draft: e.target.value }),
+      send: (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const text = (this.state.draft || '').trim();
+        if (!text) return;
+        const low = text.toLowerCase();
+        const key = /lock|vest|dev|unlock/.test(low) ? 'lock' : /crew|reward|earn|fee|paid/.test(low) ? 'crew' : /brief|mission|status|summary/.test(low) ? 'brief' : 'other';
+        this.ask(text, key);
+      }
+    };
+  }
+}
+</script>
+<script>TonkpadDC.boot();</script>
+</body>
+</html>

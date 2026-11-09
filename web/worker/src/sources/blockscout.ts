@@ -16,6 +16,8 @@ export interface ChainHolders {
   top10Share: number | null;
   /** Wallets among the largest holders, biggest first, lowercase. */
   wallets: string[];
+  /** Same measured wallets and raw balances for the token detail table. */
+  balances: Array<{ owner: string; amount: number }>;
 }
 
 type Raw = Record<string, unknown>;
@@ -57,6 +59,7 @@ export function summarize(count: number | null, supply: number | null, holders: 
     count,
     top10Share: supply && supply > 0 ? Math.min(1, top10 / supply) : null,
     wallets: wallets.map((h) => h.address),
+    balances: wallets.map((h) => ({ owner: h.address, amount: h.value })),
   };
 }
 

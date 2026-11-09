@@ -121,7 +121,7 @@ test.describe("language", () => {
     ["/ru", "ru", "Запуски."],
     ["/zh", "zh-CN", "新币发射."],
     ["/de/live", "de", "Live"],
-    ["/fr/token/ghost", "fr", "Détail du token"],
+    ["/fr/token/ghost", "fr", "Ghosty"],
   ] as const) {
     test(`${path} is served in its language`, async ({ page }) => {
       const response = await page.goto(path);

@@ -5,13 +5,7 @@ import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import type { ScoreLevel } from "@/shared/types/token";
-
-/** Mission score colours from CLAUDE.md (the reference's LVL table), as theme tints. */
-export const SCORE_LEVELS: Record<ScoreLevel, string> = {
-  Safe: "text-pos bg-pos/12",
-  Caution: "text-warn bg-warn/13",
-  Risky: "text-neg bg-neg/12",
-};
+import { SCORE_LEVELS } from "./score-levels";
 
 interface ScorePillProps {
   score: number;

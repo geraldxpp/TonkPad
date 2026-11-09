@@ -59,6 +59,10 @@ export interface TrackedToken {
   assetAt: number;
   /** Total supply in raw units (Helius), when known. */
   supply?: number | null;
+  /** Token decimals, so raw supply and balances can be displayed in whole units. */
+  decimals?: number | null;
+  /** Largest measured wallet balances in raw units; absent in older snapshots. */
+  holderBalances?: Array<{ owner: string; amount: number }>;
 
   // Mission score v2 facts (safety.ts).
   /** An issuer whose mint and freeze authorities the token carries, before Jupiter confirms it. */

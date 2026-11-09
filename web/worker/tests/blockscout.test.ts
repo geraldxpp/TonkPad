@@ -8,6 +8,7 @@ import { fetchChainHolders, parseHolders, parseTokenInfo, summarize } from "../s
 import { NATIVE_ETH } from "../src/sources/pons";
 import { TokenStore } from "../src/store";
 import { toToken } from "../src/tokens";
+import { tokenView } from "../src/views/token";
 import { HOUR, MIN, NOW, priced } from "./fixtures";
 
 const WALLET = "0xAbCd000000000000000000000000000000000001";
@@ -114,6 +115,9 @@ describe("graduated Pons holders", () => {
     expect(toToken(token, NOW).holders).toBe(1204);
     expect(token.top10Share).toBeCloseTo(0.1, 12);
     expect(walletsOf(token)).toEqual([WALLET.toLowerCase(), "0x00000000000000000000000000000000000000b2"]);
+    expect(tokenView(token, { solUsd: null, ethUsd: 3_000, rhGasGwei: null }, NOW).holders[0]).toMatchObject({
+      address: WALLET.toLowerCase(), tokens: 80_000_000, share: 0.08, crewEarned: null,
+    });
     expect(safety.chainCredits()).toEqual({ day: new Date(NOW).toISOString().slice(0, 10), used: 50 });
   });
 

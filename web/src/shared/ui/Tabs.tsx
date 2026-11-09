@@ -19,13 +19,15 @@ interface TabsProps<T extends string> {
   idPrefix: string;
   /** Placement classes for the tablist (e.g. a swipeable row on phones). */
   className?: string;
+  /** "panel" is the token screen's activity tabs: a raised group with 30 px tabs. */
+  size?: "md" | "panel";
 }
 
 /**
  * ARIA tablist with a roving tab stop: Tab reaches the selected tab, the arrow
  * keys, Home and End move between tabs and select them.
  */
-export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, idPrefix, className }: TabsProps<T>) {
+export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, idPrefix, className, size = "md" }: TabsProps<T>) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function move(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -46,7 +48,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
     <div
       role="tablist"
       aria-label={label}
-      className={cn("flex flex-wrap gap-0.5 rounded-xl border border-line bg-surface p-1", className)}
+      className={cn("flex flex-wrap gap-0.5 rounded-xl border border-line p-1", size === "panel" ? "bg-raised" : "bg-surface", className)}
     >
       {tabs.map((tab, index) => {
         const active = tab.id === value;
@@ -65,7 +67,8 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
             onClick={() => onChange?.(tab.id)}
             onKeyDown={(event) => move(event, index)}
             className={cn(
-              "inline-flex h-8 items-center gap-1.5 rounded-[9px] px-3.5 text-[13px] font-medium whitespace-nowrap",
+              "inline-flex items-center gap-1.5 text-[13px] font-medium whitespace-nowrap",
+              size === "panel" ? "h-[30px] rounded-lg px-3" : "h-8 rounded-[9px] px-3.5",
               active ? "bg-input text-text" : "bg-transparent text-text-2",
             )}
           >
