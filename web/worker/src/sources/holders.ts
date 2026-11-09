@@ -26,6 +26,8 @@ export interface HolderCheck {
   ranked: HolderBalance[];
   /** Token accounts that own themselves: how Streamflow escrows hold locked tokens (sources/streamflow.ts). */
   escrows: Array<{ account: string; amount: number }>;
+  /** The mint's decimals as the largest accounts report them; null when there were none. */
+  decimals: number | null;
 }
 
 /** People's wallets among `balances`, one entry per wallet, biggest first. */
@@ -72,14 +74,16 @@ export async function fetchTopHolders(
   onCall: () => void,
 ): Promise<HolderCheck> {
   onCall();
-  const largest = await heliusRpc<{ value: Array<{ address: string; amount: string }> }>(apiKey, "getTokenLargestAccounts", [mint]);
+  const largest = await heliusRpc<{ value: Array<{ address: string; amount: string; decimals?: number }> }>(apiKey, "getTokenLargestAccounts", [mint]);
+  const reported = largest.value[0]?.decimals;
+  const decimals = typeof reported === "number" && Number.isInteger(reported) && reported >= 0 && reported <= 18 ? reported : null;
   let supply = knownSupply;
   if (supply === null) {
     onCall();
     const total = await heliusRpc<{ value: { amount: string } }>(apiKey, "getTokenSupply", [mint]);
     supply = Number(total.value.amount);
   }
-  if (largest.value.length === 0) return { share: null, supply, wallets: [], ranked: [], escrows: [] };
+  if (largest.value.length === 0) return { share: null, supply, wallets: [], ranked: [], escrows: [], decimals };
   onCall();
   const accounts = await heliusRpc<{ value: Array<ParsedTokenAccount | null> }>(apiKey, "getMultipleAccounts", [
     largest.value.map((account) => account.address),
@@ -93,5 +97,5 @@ export async function fetchTopHolders(
     .filter((account, i) => accounts.value[i]?.data?.parsed?.info?.owner === account.address)
     .map((account) => ({ account: account.address, amount: Number(account.amount) }));
   const ranked = rankWallets(balances);
-  return { share: topHolderShare(balances, supply), supply, wallets: ranked.map((wallet) => wallet.owner), ranked, escrows };
+  return { share: topHolderShare(balances, supply), supply, wallets: ranked.map((wallet) => wallet.owner), ranked, escrows, decimals };
 }

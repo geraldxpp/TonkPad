@@ -20,7 +20,7 @@ export function AboutCard({ detail }: { detail: TokenDetail }) {
     [a.launched, formatDayTime(detail.launchedAt, lang)],
     [a.token, shortAddress(detail.contract)],
   ];
-  if (detail.curve) facts.push([a.curve, detail.curve]);
+  if (detail.curve) facts.push([a.curve, shortAddress(detail.curve)]);
   if (detail.devLock) facts.push([a.lock, detail.devLock.contract]);
   if (feePct !== null) {
     facts.push([a.fee, crew ? fmt(a.feeCrew, { fee: feePct, crew: crew.sharePct }) : fmt(a.feeOnly, { fee: feePct })]);

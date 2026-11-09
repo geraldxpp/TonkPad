@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { TokenDetail } from "../../src/shared/types/token-detail";
-import { FIXTURE_WORKER_URL, FRESH_ADDRESS, LIVE_ROBINHOOD, LIVE_SOLANA, UNKNOWN_ADDRESS } from "./fixtures";
+import { FIXTURE_TRADERS, FIXTURE_WORKER_URL, FRESH_ADDRESS, LIVE_ROBINHOOD, LIVE_SOLANA, UNKNOWN_ADDRESS } from "./fixtures";
 
 test("each Explore selection opens its own live detail and survives reload", async ({ page }, testInfo) => {
   for (const token of [LIVE_SOLANA, LIVE_ROBINHOOD]) {
@@ -40,6 +40,31 @@ test("observed charts show the selected market history without mock trades or ba
   await expect(page.getByText("Crew Rewards 2%", { exact: true })).toHaveCount(0);
 });
 
+test("live trades and top traders come from the worker's trade book", async ({ page }) => {
+  await page.goto(`/token/${LIVE_ROBINHOOD.address}`);
+  const activity = page.getByRole("region", { name: "Activity" });
+  const trades = activity.getByRole("table", { name: "Trades" });
+  // A header row and the three curve trades, newest first.
+  await expect(trades.getByRole("row")).toHaveCount(4);
+  const newest = trades.getByRole("row").nth(1);
+  await expect(newest.getByText("Sell", { exact: true })).toBeVisible();
+  await expect(newest.getByText("$45.00", { exact: true })).toBeVisible();
+  await expect(newest.getByText("0.0150", { exact: true })).toBeVisible();
+  await expect(newest.getByText("0xaaaa…aaaa", { exact: true })).toBeVisible();
+  await expect(newest.getByRole("link", { name: "View transaction" })).toHaveAttribute(
+    "href",
+    `https://robinhoodchain.blockscout.com/tx/0x${"3".padStart(64, "0")}`,
+  );
+
+  await activity.getByRole("tab", { name: "Top traders" }).click();
+  const traders = activity.getByRole("table", { name: "Top traders" });
+  // Only the wallet that has sold ranks: it bought for $30 and sold for $45.
+  await expect(traders.getByRole("row")).toHaveCount(2);
+  const top = traders.getByRole("row").nth(1);
+  await expect(top.getByText("0xaaaa…aaaa", { exact: true })).toHaveAttribute("title", FIXTURE_TRADERS[0]);
+  for (const text of ["+$15", "$30", "$45", "100%"]) await expect(top.getByText(text, { exact: true })).toBeVisible();
+});
+
 test("a fresh token shows unavailable facts instead of invented candles", async ({ page }) => {
   await page.goto(`/token/${FRESH_ADDRESS}`);
   await expect(page.getByRole("heading", { level: 1, name: "Fresh Launch" })).toBeVisible();
@@ -71,7 +96,8 @@ test("worker auth and public unknown-token handling are preserved", async ({ req
   const unknown = await request.get(`/api/live/token/${UNKNOWN_ADDRESS}`);
   expect(unknown.status()).toBe(404);
   await page.goto(`/token/${UNKNOWN_ADDRESS}`);
-  await expect(page.getByText("This token is no longer available in the live feed.")).toBeVisible();
+  // While the page streams in, a hidden copy can sit beside the shown one for a moment.
+  await expect(page.getByText("This token is no longer available in the live feed.").filter({ visible: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ghosty", exact: true })).toHaveCount(0);
 });
 

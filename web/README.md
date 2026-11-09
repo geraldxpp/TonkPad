@@ -160,14 +160,29 @@ With `WORKER_URL` set, `getLiveTokenData(address)` loads `/v1/token/:address`
 and the browser refreshes through `/api/live/token/[address]` every four
 seconds while visible. The worker token stays on the server. The page shows
 the selected token's identity, market figures, measured holder balances when
-available, and candles built from the worker's observed market-cap history.
+available, live trades and top traders, and candles built from the worker's
+observed market-cap history.
 Solana addresses are case-sensitive; Robinhood Chain addresses accept either
 case. Direct links and reloads use the same address as Explore.
 
-The existing worker does not retain individual trade history, top trader P&L,
-or complete developer vesting schedules. These fields remain unavailable,
-and the chart identifies its history as observed samples rather than exchange
-trade candles. No volume is invented for those candles. An outage preserves
+**Live trades and top traders.** Pons tokens on their curve keep their last
+100 curve trades and every wallet's totals since launch (`pons.book`, saved in
+the snapshot). Solana tokens get theirs from Helius `getTransactionsForAddress`
+while someone has the page open (`worker/src/trades/solana.ts`): the last 300
+transactions on opening, then newer ones every 30 s, read as buys and sells
+from the fee payer's balance changes. That costs 10 credits per 100
+transactions, and a daily cap (`HELIUS_TRADES_DAILY_CREDITS`, 15,000 by default)
+stops it until the next UTC day; `/health` shows the day's spend under
+`trades`. Top traders rank wallets by what they sold minus what they bought, in
+USD; win rate is the share of a wallet's sells above its average buy on this
+token. Graduated Robinhood Chain tokens have no trade feed yet.
+
+**Holders.** A Solana token someone opens is measured within a minute, whatever
+its size, and keeps the decimals the holder check reports, so its rows can show.
+
+The worker does not keep complete developer vesting schedules. These fields
+remain unavailable, and the chart identifies its history as observed samples
+rather than exchange trade candles. No volume is invented for those candles. An outage preserves
 the last good view with a warning; an unknown address shows an unavailable
 token state, with no fallback to a mock token. Live pages show trading as
 coming soon, without simulated balances, swaps, bridging or Captain Boo.
@@ -194,6 +209,7 @@ as JSON. The app never calls the data providers itself.
 | Jupiter price v3 | SOL and ETH in the status bar | `JUPITER_API_KEY` |
 | Robinhood Chain RPC (Alchemy) | gas in the status bar | `ROBINHOOD_RPC_URL` |
 | Robinhood Chain public RPC | every Pons launch, curve trade and graduation, and each token's name, ticker and logo | none (`ROBINHOOD_LOGS_RPC_URL` overrides it) |
+| Helius `getTransactionsForAddress` | live trades of Solana tokens with an open page, capped per day | `HELIUS_API_KEY` (`HELIUS_TRADES_DAILY_CREDITS`) |
 
 - **Refresh.** New tokens refresh every 8 s, busy ones every 15–30 s and quiet
   ones every 2–20 minutes, which keeps DexScreener well under its limit. Views

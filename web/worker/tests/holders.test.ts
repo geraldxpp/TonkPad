@@ -62,14 +62,14 @@ describe("topHolderShare", () => {
 describe("fetchTopHolders", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  function stubHelius() {
+  function stubHelius(decimals?: number) {
     const methods: string[] = [];
     vi.stubGlobal("fetch", async (_url: string, init: { body: string }) => {
       const { method } = JSON.parse(init.body) as { method: string };
       methods.push(method);
       const result =
         method === "getTokenLargestAccounts"
-          ? { value: fixture.tokenAccounts.map((t) => ({ address: t.account, amount: "1000" })) }
+          ? { value: fixture.tokenAccounts.map((t) => ({ address: t.account, amount: "1000", decimals })) }
           : method === "getTokenSupply"
             ? { value: { amount: "10000" } }
             : { value: fixture.tokenAccounts.map((t) => ({ data: { parsed: { info: { owner: t.owner } } } })) };
@@ -93,6 +93,13 @@ describe("fetchTopHolders", () => {
     expect(unknown.supply).toBe(10_000);
   });
 
+  it("keeps the decimals the largest accounts report, so older tokens can list holders", async () => {
+    stubHelius(6);
+    expect((await fetchTopHolders("key", mint, 10_000, () => {})).decimals).toBe(6);
+    stubHelius();
+    expect((await fetchTopHolders("key", mint, 10_000, () => {})).decimals).toBeNull();
+  });
+
   it("reports an RPC error instead of a share", async () => {
     vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ jsonrpc: "2.0", id: 1, error: { message: "boom" } })));
     await expect(fetchTopHolders("key", mint, 1, () => {})).rejects.toThrow("getTokenLargestAccounts: boom");
@@ -112,6 +119,29 @@ describe("holdersDue", () => {
     const visible = new Set(all.filter((t) => t !== offScreen).map((t) => t.address));
     expect(holdersDue(all, visible, 3, NOW)).toEqual([fresh, stale]);
     expect(holdersDue(all, visible, 1, NOW)).toEqual([fresh]);
+  });
+
+  it("measures a token someone has open whatever its size, ahead of the rest", () => {
+    const listed = priced(90_000, {});
+    const small = priced(4_000, {});
+    const stock = priced(60_000, {}, { issuer: "xstocks" });
+    const all = [listed, small, stock];
+    const visible = new Set(all.map((t) => t.address));
+    const opened = new Set([small.address, stock.address]);
+    // Both open tokens come first (the bigger of the two first), then the listed one.
+    expect(holdersDue(all, visible, 3, NOW, opened)).toEqual([stock, small, listed]);
+    expect(holdersDue(all, visible, 1, NOW, opened)).toEqual([stock]);
+  });
+
+  it("checks an open token again soon when it was measured before decimals were kept", () => {
+    const old = priced(20_000, {}, { holdersAt: NOW - 3 * MIN, decimals: null });
+    const known = priced(20_000, {}, { holdersAt: NOW - 3 * MIN, decimals: 6 });
+    const justNow = priced(20_000, {}, { holdersAt: NOW - MIN, decimals: null });
+    const all = [old, known, justNow];
+    const visible = new Set(all.map((t) => t.address));
+    expect(holdersDue(all, visible, 3, NOW, visible)).toEqual([old]);
+    // Not open: it waits for the usual half hour.
+    expect(holdersDue(all, visible, 3, NOW)).toEqual([]);
   });
 });
 

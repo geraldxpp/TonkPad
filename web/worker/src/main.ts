@@ -14,6 +14,7 @@ import { fetchGasGwei, fetchNativePrices, fetchQuotePrices } from "./sources/pri
 import { connectPumpPortal } from "./sources/pumpportal";
 import { RobinhoodRpc } from "./sources/robinhood";
 import { createSafetyChecks } from "./safety";
+import { createSolanaTrades } from "./trades/solana";
 import { createSmartMoney } from "./smart/sweep";
 import { SmartWallets } from "./smart/wallets";
 import { TokenStore } from "./store";
@@ -34,10 +35,11 @@ const PONS_POLL_EVERY = 3_000;
 
 const config = loadConfig();
 const store = new TokenStore();
-const pons = new PonsBook(store);
+const pons = new PonsBook(store, (quote) => quoteUsd(quote));
 const ponsFeed = new PonsFeed(new RobinhoodRpc(config.robinhoodLogsRpcUrl), pons);
 const status: LiveStatus = { solUsd: null, ethUsd: null, rhGasGwei: null };
-const views = createViews(store, status, INGESTING);
+// Token pages read Solana trades from Helius (trades/solana.ts) and Pons trades from the curve; smart money tags both.
+const views = createViews(store, status, INGESTING, { tradesOf: (a) => solanaTrades.bookOf(a), isSmart: (w) => smartWallets.count([w]) > 0 });
 /** USD prices of the other assets Pons launches are paired with (tokenized stocks). */
 const quotePrices = new Map<string, number>();
 const startedAt = Date.now();
@@ -126,6 +128,7 @@ function countHeliusCall(credits = 1): void {
 const safety = createSafetyChecks({
   store,
   visible: () => views.visibleAddresses(),
+  opened: () => views.openedAddresses(),
   heliusApiKey: config.heliusApiKey,
   jupiterApiKey: config.jupiterApiKey,
   blockscoutApiKey: config.blockscoutApiKey,
@@ -133,6 +136,10 @@ const safety = createSafetyChecks({
   fail,
 });
 const smartWallets = new SmartWallets();
+const solanaTrades = createSolanaTrades({
+  store, apiKey: config.heliusApiKey, opened: () => views.openedAddresses(), solUsd: () => status.solUsd,
+  dailyCredits: config.tradesDailyCredits, onCredits: countHeliusCall, fail,
+});
 const smartMoney = createSmartMoney({ store, smart: smartWallets, heliusApiKey: config.heliusApiKey, onHeliusCall: countHeliusCall, fail });
 
 const save = () =>
@@ -167,6 +174,7 @@ async function start(): Promise<void> {
   every(30_000, safety.refreshHolderCounts);
   every(60_000, smartMoney.sweep);
   every(60_000, safety.refreshChainHolders);
+  every(5_000, solanaTrades.refresh);
   every(20_000, refreshStatus);
   every(60_000, async () => {
     const removed = store.prune(Date.now());
@@ -189,6 +197,7 @@ async function start(): Promise<void> {
       heliusCredits,
       smartMoney: smartWallets.stats(),
       blockscout: { enabled: config.blockscoutApiKey !== null, creditsToday: safety.chainCredits().used },
+      trades: solanaTrades.usage(),
       ponsBlock: ponsFeed.cursor,
     }),
   });

@@ -4,6 +4,7 @@ import type { TrackedToken } from "../model";
 import { PONS_SUPPLY } from "../pons/curve";
 import { toToken } from "../tokens";
 import { observedChart } from "./token-chart";
+import { type ActivityContext, tradersView, tradesView } from "./token-activity";
 
 /** Addresses are single path segments. Solana case matters; EVM case does not. */
 export function validTokenAddress(address: string): boolean {
@@ -26,23 +27,25 @@ function wholeSupply(token: TrackedToken): number | null {
   return Number.isFinite(whole) && whole > 0 ? whole : null;
 }
 
+const NO_ACTIVITY: ActivityContext = { book: null, isSmart: () => false };
+
 /** Measured holder rows; curve balances stop being authoritative after graduation. */
-function holders(token: TrackedToken, supply: number | null): TokenHolder[] {
+function holders(token: TrackedToken, supply: number | null, isSmart: (wallet: string) => boolean): TokenHolder[] {
   if (token.pons && !token.graduated) {
     return Object.entries(token.pons.balances ?? {}).filter(([, amount]) => amount > 1)
       .sort((a, b) => b[1] - a[1]).slice(0, 50)
-      .map(([address, amount]) => ({ address, tag: null, share: amount / PONS_SUPPLY, tokens: amount, crewEarned: null }));
+      .map(([address, amount]) => ({ address, tag: isSmart(address) ? "smart" : null, share: amount / PONS_SUPPLY, tokens: amount, crewEarned: null }));
   }
   const decimals = token.decimals;
   if (supply === null || decimals === undefined || decimals === null) return [];
   return (token.holderBalances ?? []).slice(0, 50).map(({ owner, amount }) => {
     const tokens = amount / 10 ** decimals;
-    return { address: owner, tag: null, share: tokens / supply, tokens, crewEarned: null };
+    return { address: owner, tag: isSmart(owner) ? "smart" : null, share: tokens / supply, tokens, crewEarned: null };
   });
 }
 
 /** Same contract as the mock page, using only facts retained by the live worker. */
-export function tokenView(token: TrackedToken, status: LiveStatus, now: number): TokenDetail {
+export function tokenView(token: TrackedToken, status: LiveStatus, now: number, activity: ActivityContext = NO_ACTIVITY): TokenDetail {
   const market = token.marketAt > 0;
   const native = token.chain === "sol" ? status.solUsd : status.ethUsd;
   const nativeUsd = native !== null && Number.isFinite(native) && native > 0 ? native : null;
@@ -68,9 +71,9 @@ export function tokenView(token: TrackedToken, status: LiveStatus, now: number):
     },
     chart: observedChart(token.mcapSeries),
     flow1h: market ? { buys: token.windows.h1.buys, sells: token.windows.h1.sells } : null,
-    trades: [],
-    holders: holders(token, supply),
-    topTraders: [],
+    trades: tradesView(token, activity, nativeUsd, now),
+    holders: holders(token, supply, activity.isSmart),
+    topTraders: tradersView(token, activity, nativeUsd),
     curve: token.pons && !token.graduated ? token.pons.curve : null,
     feePct: null,
     devLock: null,

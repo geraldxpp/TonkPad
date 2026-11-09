@@ -46,15 +46,17 @@ export type WalletTag = "smart" | "sniper" | "whale" | "devLock" | "curve";
 
 export interface TokenTrade {
   id: string;
-  /** Seconds before `TokenDetail.updatedAt`. */
+  /** Seconds before `TokenDetail.updatedAt` (mock) or before the response (live). */
   ageSeconds: number;
   side: "buy" | "sell";
-  usd: number;
-  /** In the chain's coin. */
-  native: number;
+  /** Null when no price was known for it (live). */
+  usd: number | null;
+  /** In the chain's coin; null when it can't be told (a Pons curve quoted in another asset, unpriced). */
+  native: number | null;
   tokens: number;
-  marketCap: number;
-  /** Shortened address. */
+  /** Market cap just after the trade; null when unknown (live). */
+  marketCap: number | null;
+  /** The wallet's address: shortened in mock data, full in live data (the table shortens it). */
   trader: string;
   tag: WalletTag | null;
   txUrl: string | null;
@@ -77,8 +79,8 @@ export interface TopTrader {
   pnlUsd: number;
   boughtUsd: number;
   soldUsd: number;
-  /** 0–1. */
-  winRate: number;
+  /** 0–1: the share of the wallet's sells that beat its average buy (live); null before it has sold. */
+  winRate: number | null;
 }
 
 /** The creator's locked allocation, read from its lock contract. */

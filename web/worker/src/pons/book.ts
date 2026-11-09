@@ -2,6 +2,7 @@ import { artUrl } from "../art";
 import { cleanName, cleanSymbol, newTrackedToken, NOT_ON_DEXSCREENER } from "../model";
 import type { PonsGraduation, PonsLaunch, PonsTrade } from "../sources/pons";
 import { pushSample, SERIES_MAX, type TokenStore } from "../store";
+import { newTradeBook, recordTrades } from "../trades/book";
 import { applyCurveTrade, newPonsState, PONS_SUPPLY, ponsProgress, ponsSpot, ponsWindows, trimTrades } from "./curve";
 import { ponsHolders, trackHolders } from "./holders";
 
@@ -23,7 +24,11 @@ export class PonsBook {
   /** Curve contract → token address, so trades from unknown contracts are ignored. */
   private readonly curves = new Map<string, string>();
 
-  constructor(private readonly store: TokenStore) {
+  /** `quoteUsd` prices each trade in USD as it happens, when the quote asset's price is known. */
+  constructor(
+    private readonly store: TokenStore,
+    private readonly quoteUsd: (quote: string) => number | null = () => null,
+  ) {
     this.reindex();
   }
 
@@ -83,6 +88,8 @@ export class PonsBook {
     if (!token || !pons || token.graduated) return false;
     const d = pons.quoteDecimals;
     const tokens = units(event.tokenAmount, 18);
+    // Buys credit the recipient (routers name the user there); a sell is the trader's when it held tokens, else the recipient's.
+    const wallet = event.side === "buy" || !((pons.balances?.[event.trader] ?? 0) > 0) ? event.recipient : event.trader;
     applyCurveTrade(pons, {
       buy: event.side === "buy",
       quote: units(event.quoteAmount, d),
@@ -92,6 +99,19 @@ export class PonsBook {
       at: event.at,
     });
     trackHolders(pons, { buy: event.side === "buy", trader: event.trader, recipient: event.recipient, tokens });
+    const quote = units(event.quoteAmount, d);
+    const usd = this.quoteUsd(pons.quote);
+    recordTrades((pons.book ??= newTradeBook()), [{
+      id: `${event.tx}:${event.side}:${event.tokenAmount}`,
+      tx: event.tx,
+      at: event.at,
+      side: event.side,
+      wallet,
+      tokens,
+      native: quote,
+      usd: usd === null ? null : quote * usd,
+      marketCap: usd === null ? null : ponsSpot(pons) * PONS_SUPPLY * usd,
+    }]);
     // The creator's first buy goes through the launch router, in the launch transaction.
     if (event.side === "buy" && event.tx === pons.launchTx) {
       token.creatorBuyShare = Math.min(1, token.creatorBuyShare + tokens / PONS_SUPPLY);

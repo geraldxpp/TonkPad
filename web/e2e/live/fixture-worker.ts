@@ -2,8 +2,9 @@ import { emptyWindows, newTrackedToken, type TrackedToken } from "../../worker/s
 import { newPonsState } from "../../worker/src/pons/curve";
 import { startServer } from "../../worker/src/server";
 import { TokenStore } from "../../worker/src/store";
+import { newTradeBook, recordTrades } from "../../worker/src/trades/book";
 import { createViews } from "../../worker/src/views/cache";
-import { FIXTURE_WORKER_TOKEN, FRESH_ADDRESS, LIVE_ROBINHOOD, LIVE_SOLANA } from "./fixtures";
+import { FIXTURE_TRADERS, FIXTURE_WORKER_TOKEN, FRESH_ADDRESS, LIVE_ROBINHOOD, LIVE_SOLANA } from "./fixtures";
 
 const now = Date.now();
 const minute = 60_000;
@@ -35,6 +36,18 @@ robinhood.pons = newPonsState({
   quoteDecimals: 18, threshold: 10, launchTx: "fixture-transaction",
 });
 robinhood.pons.balances = { [LIVE_ROBINHOOD.address]: 100_000_000 };
+// Curve trades as the Pons feed records them: one wallet buys and sells at a profit, another only buys.
+const [first, second] = FIXTURE_TRADERS;
+const curveTrade = (n: number, side: "buy" | "sell", wallet: string, tokens: number, eth: number) => ({
+  id: `0x${String(n).padStart(64, "0")}:${side}`, tx: `0x${String(n).padStart(64, "0")}`, at: now - (4 - n) * minute,
+  side, wallet, tokens, native: eth, usd: eth * 3_000, marketCap: 41_200,
+});
+robinhood.pons.book = newTradeBook();
+recordTrades(robinhood.pons.book, [
+  curveTrade(1, "buy", first, 1_000_000, 0.01),
+  curveTrade(2, "buy", second, 2_000_000, 0.02),
+  curveTrade(3, "sell", first, 1_000_000, 0.015),
+]);
 store.add(robinhood);
 store.add(newTrackedToken({
   address: FRESH_ADDRESS, name: "Fresh Launch", symbol: "FRESH", chain: "sol", launchpad: "pump",

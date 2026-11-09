@@ -1,3 +1,4 @@
+import type { TradeBook } from "../trades/book";
 import { emptyWindows, type MarketWindows, type WindowKey } from "../model";
 
 /**
@@ -32,6 +33,8 @@ export interface PonsState {
   balances?: Record<string, number>;
   /** The first wallets to buy, in order (the creator included), up to EARLY_BUYERS + 1. */
   earlyBuyers?: string[];
+  /** Latest curve trades and each wallet's totals, for the token's page; absent in older snapshots. */
+  book?: TradeBook;
 }
 
 export function newPonsState(input: Pick<PonsState, "curve" | "quote" | "quoteDecimals" | "threshold" | "launchTx">): PonsState {

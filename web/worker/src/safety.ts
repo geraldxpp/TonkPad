@@ -57,17 +57,23 @@ export function chainHoldersDue(tokens: readonly TrackedToken[], visible: Readon
 }
 
 /** Solana tokens on screen worth $5K+ whose holder check is missing or stale: never-measured first, then the oldest. */
-export function holdersDue(tokens: readonly TrackedToken[], visible: ReadonlySet<string>, limit: number, now: number): TrackedToken[] {
+export function holdersDue(
+  tokens: readonly TrackedToken[],
+  visible: ReadonlySet<string>,
+  limit: number,
+  now: number,
+  opened: ReadonlySet<string> = new Set(),
+): TrackedToken[] {
+  // A token someone has open is measured whatever its size, so its page can list holders; it goes first.
+  // One checked before decimals were kept is checked again soon, since its rows can't be shown without them.
+  const wanted = (t: TrackedToken) => opened.has(t.address) || (visible.has(t.address) && t.marketCap >= MEASURED_FROM && !t.issuer);
+  const due = (t: TrackedToken) => {
+    const since = now - (t.holdersAt ?? 0);
+    return since >= HOLDERS_EVERY || (opened.has(t.address) && t.decimals == null && since >= 2 * MINUTE);
+  };
   return tokens
-    .filter(
-      (t) =>
-        t.chain === "sol" &&
-        visible.has(t.address) &&
-        t.marketCap >= MEASURED_FROM &&
-        !t.issuer &&
-        now - (t.holdersAt ?? 0) >= HOLDERS_EVERY,
-    )
-    .sort((a, b) => (a.holdersAt ?? 0) - (b.holdersAt ?? 0) || b.marketCap - a.marketCap)
+    .filter((t) => t.chain === "sol" && wanted(t) && due(t))
+    .sort((a, b) => Number(opened.has(b.address)) - Number(opened.has(a.address)) || (a.holdersAt ?? 0) - (b.holdersAt ?? 0) || b.marketCap - a.marketCap)
     .slice(0, limit);
 }
 
@@ -81,6 +87,8 @@ export function issuerChecksDue(tokens: readonly TrackedToken[], limit: number, 
 interface SafetyDeps {
   store: TokenStore;
   visible: () => ReadonlySet<string>;
+  /** Tokens someone has open on their detail page right now. */
+  opened?: () => ReadonlySet<string>;
   heliusApiKey: string | null;
   jupiterApiKey: string | null;
   blockscoutApiKey: string | null;
@@ -134,7 +142,7 @@ export function createSafetyChecks(deps: SafetyDeps) {
     if (!deps.heliusApiKey) return;
     const budget = { left: LOCK_LOOKUPS_PER_MINUTE };
     for (const [escrow, known] of escrowRecords) if (Date.now() - known.at > 4 * LOCK_RECHECK_EVERY) escrowRecords.delete(escrow);
-    for (const token of holdersDue(deps.store.all(), deps.visible(), HOLDER_CHECKS_PER_MINUTE, Date.now())) {
+    for (const token of holdersDue(deps.store.all(), deps.visible(), HOLDER_CHECKS_PER_MINUTE, Date.now(), deps.opened?.() ?? new Set())) {
       try {
         const check = await fetchTopHolders(deps.heliusApiKey, token.address, token.supply ?? null, deps.onHeliusCall);
         token.top10Share = check.share;
@@ -143,6 +151,8 @@ export function createSafetyChecks(deps: SafetyDeps) {
         token.creatorHeld = check.ranked.find((wallet) => wallet.owner === token.creator)?.amount ?? 0;
         token.locks = await locksOf(deps.heliusApiKey, token.address, check.escrows, budget);
         if (check.supply !== null) token.supply = check.supply;
+        // Tokens tracked before decimals were kept have none; their holder rows need them.
+        if (check.decimals !== null) token.decimals = check.decimals;
       } catch (error) {
         deps.fail("holders", error);
       }

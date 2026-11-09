@@ -31,7 +31,7 @@ export function TradersTable({ traders }: { traders: readonly TopTrader[] }) {
           <span role="cell" className={cn(NUM, "font-semibold", trader.pnlUsd < 0 ? "text-neg" : "text-pos")}>{signedUsd(trader.pnlUsd)}</span>
           <span role="cell" className={cn(NUM, "text-text-2")}>{formatUsd(trader.boughtUsd, 0)}</span>
           <span role="cell" className={cn(NUM, "text-text-2")}>{formatUsd(trader.soldUsd, 0)}</span>
-          <span role="cell" className={cn(NUM, "font-semibold")}>{Math.round(trader.winRate * 100)}%</span>
+          <span role="cell" className={cn(NUM, "font-semibold")}>{trader.winRate === null ? "—" : `${Math.round(trader.winRate * 100)}%`}</span>
         </div>
       ))}
     </div>

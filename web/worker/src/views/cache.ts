@@ -4,7 +4,17 @@ import type { TokenStore } from "../store";
 import { listView } from "./list";
 import { overviewView } from "./overview";
 import { shellView } from "./shell";
+import type { TradeBook } from "../trades/book";
 import { findTrackedToken, tokenView } from "./token";
+
+/** Where a token page's trades come from, and who counts as smart money. */
+export interface ActivitySources {
+  /** Helius trade books for Solana tokens people have open. */
+  tradesOf: (address: string) => TradeBook | null;
+  isSmart: (wallet: string) => boolean;
+}
+
+const NO_SOURCES: ActivitySources = { tradesOf: () => null, isSmart: () => false };
 
 function memo<T>(compute: () => T): () => T {
   let at = 0;
@@ -20,7 +30,7 @@ function memo<T>(compute: () => T): () => T {
 }
 
 /** The views the server answers with, recomputed at most once a second (the app caches them for 2 s on top). */
-export function createViews(store: TokenStore, status: LiveStatus, ingesting: readonly LaunchpadId[]) {
+export function createViews(store: TokenStore, status: LiveStatus, ingesting: readonly LaunchpadId[], sources: ActivitySources = NO_SOURCES) {
   const overview = memo<LiveOverview>(() => overviewView(store.all(), ingesting, Date.now()));
   const shell = memo<LiveShell>(() => shellView(store.all(), { ...status }, Date.now()));
   const lists = new Map<string, { at: number; value: LiveList }>();
@@ -32,7 +42,8 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
     selected.set(found.address, Date.now());
     const oldest = selected.keys().next().value;
     if (selected.size > 500 && oldest) selected.delete(oldest);
-    return tokenView(found, status, Date.now());
+    const book = found.pons?.book ?? sources.tradesOf(found.address);
+    return tokenView(found, status, Date.now(), { book, isSmart: sources.isSmart });
   }
 
   function list(query: LiveListQuery): LiveList {
@@ -46,13 +57,19 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
     return value;
   }
 
-  /** Tokens someone is likely to see, so their art loads first. */
-  function visibleAddresses(): Set<string> {
-    const seen = new Set<string>();
+  /** Tokens someone has open on their detail page (asked for in the last minute). */
+  function openedAddresses(): Set<string> {
+    const open = new Set<string>();
     for (const [address, at] of selected) {
-      if (Date.now() - at <= 60_000) seen.add(address);
+      if (Date.now() - at <= 60_000) open.add(address);
       else selected.delete(address);
     }
+    return open;
+  }
+
+  /** Tokens someone is likely to see, so their art loads first. */
+  function visibleAddresses(): Set<string> {
+    const seen = openedAddresses();
     const base = { chain: "all", pad: "all", q: "", limit: 30 } as const;
     for (const tab of ["trending", "new", "graduating", "graduated", "gainers"] as const) {
       for (const row of list({ ...base, tab, tf: "24h" }).rows) seen.add(row.address);
@@ -65,5 +82,5 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
     return seen;
   }
 
-  return { overview, shell, list, token, visibleAddresses };
+  return { overview, shell, list, token, visibleAddresses, openedAddresses };
 }

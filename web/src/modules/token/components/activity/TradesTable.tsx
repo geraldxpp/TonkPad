@@ -46,10 +46,10 @@ export function TradesTable({ trades, coin, ticker }: TradesTableProps) {
                 {buy ? h.buy : h.sell}
               </span>
             </span>
-            <span role="cell" className={cn(NUM, "font-semibold", buy ? "text-pos" : "text-neg")}>{formatUsd(trade.usd)}</span>
-            <span role="cell" className={cn(NUM, "text-text-2")}>{formatCoin(trade.native)}</span>
+            <span role="cell" className={cn(NUM, "font-semibold", buy ? "text-pos" : "text-neg")}>{trade.usd === null ? "—" : formatUsd(trade.usd)}</span>
+            <span role="cell" className={cn(NUM, "text-text-2")}>{trade.native === null ? "—" : formatCoin(trade.native)}</span>
             <span role="cell" className={cn(NUM, "text-text-2")}>{formatAmount(trade.tokens)}</span>
-            <span role="cell" className={cn(NUM, "text-text-3")}>{formatUsdCompact(trade.marketCap)}</span>
+            <span role="cell" className={cn(NUM, "text-text-3")}>{trade.marketCap === null ? "—" : formatUsdCompact(trade.marketCap)}</span>
             <WalletCell address={trade.trader} tag={trade.tag} className="pl-7" />
             <span role="cell" className="flex justify-end text-text-3">
               {tx ? (
