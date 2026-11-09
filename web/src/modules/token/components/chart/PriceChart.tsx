@@ -6,7 +6,7 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { hexToRgba } from "@/shared/lib/color";
 import type { Candle, ChartCallout, ChartMark } from "@/shared/types/token-detail";
 import type { ChartTheme } from "../../hooks/useChartTheme";
-import { type ChartValue, formatAxisValue, formatChartValue, scaleCandle } from "../../lib/chart-data";
+import { type ChartValue, formatAxisTicks, formatChartValue, scaleCandle } from "../../lib/chart-data";
 import { type ChartLib, chartOptions } from "./chart-options";
 import { type ChartLayout, ChartOverlays } from "./ChartOverlays";
 
@@ -135,7 +135,7 @@ export function PriceChart(props: PriceChartProps) {
         type: "custom",
         minMove: value === "mcap" ? 1 : 1e-12,
         formatter: (price: number) => formatChartValue(price, value),
-        tickmarksFormatter: (prices: number[]) => prices.map((price) => formatAxisValue(price, value)),
+        tickmarksFormatter: (prices: number[]) => formatAxisTicks(prices, value),
       },
       // Keep the graduation line on screen with the candles.
       autoscaleInfoProvider: (original: () => AutoscaleInfo | null) => {

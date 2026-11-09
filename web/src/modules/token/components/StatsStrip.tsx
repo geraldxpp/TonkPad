@@ -46,7 +46,8 @@ export function StatsStrip({ detail }: { detail: TokenDetail }) {
     {
       label: s.devLocked,
       value: devLock ? `${Math.round(devLock.share * 100)}%` : "—",
-      sub: devLock ? fmt(s.vest, { days: devLock.vestDays }) : detail.source === "live" ? t.token.live.unknownLock : s.noLock,
+      // The full "lock data is unavailable" sentence is for Mission telemetry; a stat cell has room for the short form.
+      sub: devLock ? fmt(s.vest, { days: devLock.vestDays }) : detail.source === "live" ? t.token.live.unavailable : s.noLock,
       tone: devLock ? "text-locked" : "text-text-3",
     },
   ];

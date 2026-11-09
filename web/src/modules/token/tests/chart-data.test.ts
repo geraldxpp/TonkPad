@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GHOSTY } from "../data/ghosty.mock";
-import { formatAxisValue, formatChartValue, formatVolume, graduationInView, parseChartValue, parseTimeframe, readoutOf, scaleCandle } from "../lib/chart-data";
+import { formatAxisTicks, formatAxisValue, formatChartValue, formatVolume, graduationInView, parseChartValue, parseTimeframe, readoutOf, scaleCandle } from "../lib/chart-data";
 
 const LAST_15M = GHOSTY.chart.candles["15m"].at(-1)!;
 
@@ -54,5 +54,26 @@ describe("chart data mapping", () => {
     expect(graduationInView(candles, 70_000)).toBe(true);
     expect(graduationInView(candles, 500_000)).toBe(false);
     expect(graduationInView(candles, null)).toBe(false);
+  });
+});
+
+describe("price-axis labels", () => {
+  it("keep the short labels while they differ", () => {
+    expect(formatAxisTicks([20_000, 40_000, 60_000], "mcap")).toEqual(["$20K", "$40K", "$60K"]);
+    expect(formatAxisTicks([0.00002, 0.00004], "price")).toEqual(["$0.00002", "$0.00004"]);
+  });
+
+  it("add decimals when a token barely moves, so no two labels repeat", () => {
+    // The live screen showed "$33.4K" three times for a token moving between $33.4K and $33.44K.
+    expect(formatAxisTicks([33_400, 33_420, 33_440], "mcap")).toEqual(["$33.40K", "$33.42K", "$33.44K"]);
+    expect(formatAxisTicks([1_180_000, 1_181_000, 1_182_000], "mcap")).toEqual(["$1.180M", "$1.181M", "$1.182M"]);
+    expect(formatAxisTicks([0.0000334, 0.00003342, 0.00003344], "price")).toEqual(["$0.00003340", "$0.00003342", "$0.00003344"]);
+    expect(formatAxisTicks([2.001, 2.002, 2.003], "price")).toEqual(["$2.001", "$2.002", "$2.003"]);
+  });
+
+  it("never returns fewer labels than ticks", () => {
+    const ticks = [33_400, 33_400.5, 33_401];
+    expect(formatAxisTicks(ticks, "mcap")).toHaveLength(3);
+    expect(new Set(formatAxisTicks(ticks, "mcap")).size).toBe(3);
   });
 });
