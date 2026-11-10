@@ -1,4 +1,5 @@
 import { formatInteger, formatUsdCompact } from "@/shared/lib/format";
+import { coinAmount, MONEY_UNIT } from "./money";
 
 /** Token amounts as the export shows them: "3.13M", "784K", "15.7M". */
 export function formatAmount(value: number): string {
@@ -12,11 +13,13 @@ export function formatHolding(value: number): string {
 
 /** Coin amounts: "0.0535" in the trades, "8.4" for liquidity. */
 export function formatCoin(value: number, decimals = 4): string {
-  return value.toFixed(decimals);
+  // Test amounts are a thousand times smaller than the real ones: four fixed decimals would show them as zero.
+  return MONEY_UNIT ? coinAmount(value) : value.toFixed(decimals);
 }
 
 /** Coin balances such as liquidity: "8.4" ETH, "0.35" SOL, "1,240" SOL. */
 export function formatNative(value: number): string {
+  if (MONEY_UNIT) return coinAmount(value);
   if (value >= 100) return formatInteger(value);
   return value.toFixed(value >= 1 ? 1 : 2);
 }
@@ -46,6 +49,11 @@ export function formatDay(ms: number, lang: string): string {
   return new Intl.DateTimeFormat(lang, { month: "short", day: "numeric", timeZone: "UTC" }).format(ms);
 }
 
+/** "Oct 18, 2026": a date far enough off to need its year (a lock's end). */
+export function formatDate(ms: number, lang: string): string {
+  return new Intl.DateTimeFormat(lang, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(ms);
+}
+
 /** "Oct 18 · 14:22" */
 export function formatDayTime(ms: number, lang: string): string {
   const time = new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" }).format(ms);
@@ -53,4 +61,4 @@ export function formatDayTime(ms: number, lang: string): string {
 }
 
 /** The chain's coin. */
-export const coinOf = (chain: "sol" | "rh") => (chain === "sol" ? "SOL" : "ETH");
+export const coinOf = (chain: "sol" | "rh") => (chain === "sol" ? "SOL" : (MONEY_UNIT ?? "ETH"));

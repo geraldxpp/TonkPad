@@ -1,5 +1,6 @@
 import type { CurveSettings } from "./curve";
 import type { AgentSettings } from "./metadata";
+import type { TxEventJson } from "./mission";
 import type { LockType } from "./rules";
 
 /** The launchpad's live settings as JSON: wei amounts are decimal strings. */
@@ -87,6 +88,8 @@ export interface LaunchStatus {
   state: LaunchTxState;
   /** The mission it launched; null while unconfirmed, or when the transaction isn't a launch. */
   mission: LaunchedMission | null;
+  /** What else it did once confirmed: a trade, a claim, an extension… (empty until then). */
+  events: TxEventJson[];
 }
 
 export const isTxHash = (value: string) => /^0x[0-9a-fA-F]{64}$/.test(value);

@@ -4,7 +4,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { referralLink } from "@/shared/tonk/referral";
-import { Sheet } from "./Sheet";
+import { Sheet } from "@/shared/ui/Sheet";
 
 interface ReferDialogProps {
   open: boolean;

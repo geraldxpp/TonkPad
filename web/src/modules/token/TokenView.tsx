@@ -1,6 +1,5 @@
 "use client";
 
-import { formatPrice, formatUsdCompact } from "@/shared/lib/format";
 import type { TokenDetail } from "@/shared/types/token-detail";
 import { ActivityCard } from "./components/activity/ActivityCard";
 import { InsightsCard } from "./components/InsightsCard";
@@ -9,6 +8,7 @@ import { TokenAside, tradeTokenOf } from "./components/TokenAside";
 import { TokenBreadcrumb } from "./components/TokenBreadcrumb";
 import { TokenHeader } from "./components/TokenHeader";
 import { TradeDock } from "./components/trade/TradeDock";
+import { moneyCompact, moneyPrice } from "./lib/money";
 
 /**
  * The token screen, for mock and refreshing live data alike: the identity,
@@ -17,7 +17,7 @@ import { TradeDock } from "./components/trade/TradeDock";
  */
 export function TokenView({ detail }: { detail: TokenDetail }) {
   const marketAvailable = detail.marketAvailable !== false;
-  const price = !marketAvailable ? "—" : detail.priceUsd !== null ? formatPrice(detail.priceUsd) : formatUsdCompact(detail.token.marketCap);
+  const price = !marketAvailable ? "—" : detail.priceUsd !== null ? moneyPrice(detail.priceUsd) : moneyCompact(detail.token.marketCap);
   return (
     <div className="flex w-full min-w-0 flex-col gap-5 max-md:gap-4 max-md:pb-2">
       <TokenBreadcrumb name={detail.token.name} />

@@ -1,0 +1,73 @@
+"use client";
+
+import { ArrowUpRight, Check, LoaderCircle, TriangleAlert } from "lucide-react";
+import { fmt } from "@/shared/i18n/config";
+import { useI18n } from "@/shared/i18n/I18nProvider";
+import { formatEth, formatTokens } from "@/shared/tonk/format";
+import type { TxEventJson } from "@/shared/tonk/mission";
+import type { TonkNetwork } from "@/shared/tonk/networks";
+import { explorerTxUrl } from "@/shared/tonk/networks";
+import type { SentTrade } from "../../hooks/useSentTrade";
+import { runError } from "../../lib/curve-text";
+
+interface CurveStatusProps {
+  sent: SentTrade;
+  token: string;
+  ticker: string;
+  network: TonkNetwork;
+  onDismiss: () => void;
+}
+
+/** What a seller receives: the event's gross ETH less the three fees. */
+const netOf = (trade: Extract<TxEventJson, { kind: "trade" }>) => BigInt(trade.eth) - BigInt(trade.protocolFee) - BigInt(trade.crewFee) - BigInt(trade.creatorFee);
+
+/**
+ * A sent trade, watched by its hash: confirming, then what the chain
+ * recorded (the CurveTrade event's own amounts), or why it failed. A hash
+ * alone is never success.
+ */
+export function CurveStatus({ sent, token, ticker, network, onDismiss }: CurveStatusProps) {
+  const { t } = useI18n();
+  const m = t.mission.trade;
+  const { hash, tx, waiting } = sent;
+  const trade = tx.events.find((event): event is Extract<TxEventJson, { kind: "trade" }> => event.kind === "trade" && event.token.toLowerCase() === token.toLowerCase());
+  const graduated = tx.events.some((event) => event.kind === "graduated");
+  let title = fmt(t.swap.steps.confirming, { chain: network.name });
+  let body: string | null = tx.unreachable ? t.mission.stale : null;
+  if (tx.state === "confirmed") {
+    title = trade ? (trade.side === "buy" ? fmt(m.doneBuy, { amount: formatTokens(BigInt(trade.tokens)), ticker }) : fmt(m.doneSell, { amount: formatEth(netOf(trade)), unit: network.unit })) : m.errors.other;
+    body = trade && graduated ? m.graduated : null;
+  } else if (!waiting) {
+    title = m.failedTitle;
+    body = runError(t, tx.state === "failed" ? "reverted" : "replaced", network.unit);
+  }
+  const ok = tx.state === "confirmed" && trade !== undefined;
+  return (
+    <div role="status" aria-live="polite" className="flex flex-col gap-2 rounded-xl border border-line bg-raised p-3.5">
+      <div className="flex items-start gap-2.5">
+        {waiting ? (
+          <LoaderCircle size={17} strokeWidth={2} className="tk-spin mt-0.5 flex-none text-accent-text" aria-hidden="true" />
+        ) : ok ? (
+          <Check size={17} strokeWidth={2.6} className="mt-0.5 flex-none text-pos" aria-hidden="true" />
+        ) : (
+          <TriangleAlert size={17} strokeWidth={2.2} className="mt-0.5 flex-none text-neg" aria-hidden="true" />
+        )}
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <strong className="text-[13px] font-semibold [overflow-wrap:anywhere]">{title}</strong>
+          {body ? <span className="text-[12px] leading-[1.6] text-text-2">{body}</span> : null}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <a href={explorerTxUrl(network, hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
+          {t.swap.viewTx}
+          <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
+        </a>
+        {waiting ? null : (
+          <button type="button" onClick={onDismiss} className="min-h-8 rounded-lg border border-line-strong bg-surface px-3 text-[12px] font-semibold hover:bg-input">
+            {t.swap.done}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

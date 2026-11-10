@@ -77,7 +77,12 @@ const printable = (character: string) => {
   const code = character.charCodeAt(0);
   return code >= 32 ? code !== 127 : code === 9 || code === 10;
 };
-const text = (value: unknown, max: number) => (typeof value === "string" ? [...value].filter(printable).join("").trim().slice(0, max) : "");
+/** Text read from the chain, made safe to show: printable characters only, trimmed, at most `max` of them. */
+export function chainText(value: unknown, max: number): string {
+  // Bounded before it is walked: the contract sets no maximum on what it stores.
+  return typeof value === "string" ? [...value.slice(0, max * 8)].filter(printable).join("").trim().slice(0, max) : "";
+}
+const text = chainText;
 const record = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
 function parse(json: string): Record<string, unknown> | null {

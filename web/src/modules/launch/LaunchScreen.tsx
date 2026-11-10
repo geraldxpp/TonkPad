@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatEth } from "@/shared/tonk/format";
+import { isTestnetSite } from "@/shared/tonk/networks";
 import { isTxHash, type TonkSettingsJson } from "@/shared/tonk/types";
 import { useWalletBalances } from "@/shared/wallet/useWalletBalances";
 import { wallet } from "@/shared/wallet/wallet";
@@ -19,7 +20,7 @@ import { PreviewCard, TokenPreview } from "./components/PreviewCard";
 import { ReferDialog } from "./components/ReferDialog";
 import { ReviewDialog } from "./components/ReviewDialog";
 import { ScoreCard } from "./components/ScoreCard";
-import { Sheet } from "./components/Sheet";
+import { Sheet } from "@/shared/ui/Sheet";
 import { StepNav } from "./components/StepNav";
 import { SummaryCard } from "./components/SummaryCard";
 import { ChainPill, ReferButton, TopBarActions } from "./components/TopBarActions";
@@ -44,7 +45,7 @@ const SECONDARY = "inline-flex min-h-9 items-center gap-2 rounded-lg border bord
  * the wallet, and the receipt read back from the chain.
  */
 export function LaunchScreen({ data }: { data: LaunchData }) {
-  const { t } = useI18n();
+  const { t, href } = useI18n();
   const l = t.launch;
   const { params, setParams } = useUrlParams();
   const [fresh, setFresh] = useState<TonkSettingsJson | null>(null);
@@ -106,6 +107,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
         chainName={data.chainName}
         unit={unit}
         explorerUrl={data.explorerUrl}
+        tokenHref={isTestnetSite() ? (token) => href(`/token/${token}`) : undefined}
         onBack={(launched) => {
           if (launched) state.reset();
           resetRun();

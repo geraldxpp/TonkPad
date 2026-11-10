@@ -8,13 +8,17 @@ import { formatUsd, formatUsdCompact } from "@/shared/lib/format";
 import type { TokenTrade } from "@/shared/types/token-detail";
 import { safeUrl } from "../../lib/display";
 import { formatAmount, formatCoin, formatSeconds } from "../../lib/format";
+import { coinAmount, MONEY_UNIT } from "../../lib/money";
 import { WalletCell } from "./WalletCell";
 
 /** Trader, type, USD, coin, tokens, market cap, time and the transaction; phones keep trader, type, USD and time. */
 const GRID = cn(
   "grid items-center px-5 max-md:px-3.5",
   "grid-cols-[minmax(0,1fr)_52px_78px_56px] gap-x-2",
-  "md:grid-cols-[minmax(200px,2fr)_64px_minmax(84px,1fr)_76px_80px_76px_76px_28px] md:gap-x-0",
+  // The testnet site counts in the coin alone, so the dollar column and the coin column are one.
+  MONEY_UNIT
+    ? "md:grid-cols-[minmax(200px,2fr)_64px_minmax(96px,1fr)_88px_minmax(96px,1fr)_76px_28px] md:gap-x-0"
+    : "md:grid-cols-[minmax(200px,2fr)_64px_minmax(84px,1fr)_76px_80px_76px_76px_28px] md:gap-x-0",
 );
 const NUM = "text-right font-mono text-[12px]";
 const WIDE = "max-md:hidden";
@@ -34,8 +38,8 @@ export function TradesTable({ trades, coin, ticker }: TradesTableProps) {
       <div role="row" className={cn(GRID, "h-9 border-b border-line text-[11px] text-text-3")}>
         <span role="columnheader">{h.trader}</span>
         <span role="columnheader">{h.type}</span>
-        <span role="columnheader" className="text-right">{h.usd}</span>
-        <span role="columnheader" className={cn("text-right", WIDE)}>{coin}</span>
+        <span role="columnheader" className="text-right">{MONEY_UNIT ? coin : h.usd}</span>
+        {MONEY_UNIT ? null : <span role="columnheader" className={cn("text-right", WIDE)}>{coin}</span>}
         <span role="columnheader" className={cn("truncate text-right", WIDE)}>{ticker}</span>
         <span role="columnheader" className={cn("text-right", WIDE)}>{h.mcap}</span>
         <span role="columnheader" className="text-right">{h.time}</span>
@@ -54,10 +58,16 @@ export function TradesTable({ trades, coin, ticker }: TradesTableProps) {
                 {buy ? h.buy : h.sell}
               </span>
             </span>
-            <span role="cell" className={cn(NUM, "text-text")}>{trade.usd === null ? "—" : formatUsd(trade.usd)}</span>
-            <span role="cell" className={cn(NUM, "text-text-2", WIDE)}>{trade.native === null ? "—" : formatCoin(trade.native)}</span>
+            {MONEY_UNIT ? (
+              <span role="cell" className={cn(NUM, "text-text")}>{trade.native === null ? "—" : formatCoin(trade.native)}</span>
+            ) : (
+              <>
+                <span role="cell" className={cn(NUM, "text-text")}>{trade.usd === null ? "—" : formatUsd(trade.usd)}</span>
+                <span role="cell" className={cn(NUM, "text-text-2", WIDE)}>{trade.native === null ? "—" : formatCoin(trade.native)}</span>
+              </>
+            )}
             <span role="cell" className={cn(NUM, "text-text-2", WIDE)}>{formatAmount(trade.tokens)}</span>
-            <span role="cell" className={cn(NUM, "text-text-3", WIDE)}>{trade.marketCap === null ? "—" : formatUsdCompact(trade.marketCap)}</span>
+            <span role="cell" className={cn(NUM, "text-text-3", WIDE)}>{trade.marketCap === null ? "—" : MONEY_UNIT ? coinAmount(trade.marketCap) : formatUsdCompact(trade.marketCap)}</span>
             <span role="cell" className={cn(NUM, "text-text-3")}>{fmt(h.ago, { time: formatSeconds(trade.ageSeconds) })}</span>
             <span role="cell" className={cn("flex justify-end text-text-3", WIDE)}>
               {tx ? (

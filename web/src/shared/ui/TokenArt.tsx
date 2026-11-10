@@ -12,6 +12,8 @@ interface TokenArtProps {
   /** Rendered size in px. */
   size: number;
   alt?: string;
+  /** The letter tile in tonkfun.fun's teal: its own launches, which have no images yet. */
+  brand?: boolean;
   eager?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -23,7 +25,7 @@ interface TokenArtProps {
  * the worker already points at a resized CDN copy. When there is no art, or
  * it fails to load, a letter tile takes its place.
  */
-export function TokenArt({ src, label, size, alt = "", eager = false, className, style }: TokenArtProps) {
+export function TokenArt({ src, label, size, alt = "", brand = false, eager = false, className, style }: TokenArtProps) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
     return (
@@ -31,7 +33,7 @@ export function TokenArt({ src, label, size, alt = "", eager = false, className,
         role={alt ? "img" : undefined}
         aria-label={alt || undefined}
         aria-hidden={alt ? undefined : true}
-        className={cn("inline-flex items-center justify-center bg-raised font-display font-bold text-text-2", className)}
+        className={cn("inline-flex items-center justify-center font-display", brand ? "font-extrabold text-art-ink [background:var(--art-tile)]" : "bg-raised font-bold text-text-2", className)}
         style={{ fontSize: Math.round(size * 0.42), ...style }}
       >
         {label.trim().charAt(0).toUpperCase() || "?"}

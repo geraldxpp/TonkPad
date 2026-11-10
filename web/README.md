@@ -14,7 +14,9 @@ worker (`worker/`, see below). Token Detail uses that same live feed when
 Without a worker, open `/token/GHOST` for the approved Ghosty design, or click
 any mock Explore token. **Module 3 — Swap** (`/swap`) and **Module 4 — Launch,
 the Creator Studio** (`/launch`, on the testnet site; "coming soon" on
-production) have their own sections below. The other rail screens (`/live`,
+production) have their own sections below, and so does the **token page on
+the testnet site**, where a launched token is traded on its curve and its
+creator manages the lock. The other rail screens (`/live`,
 `/bridge`, `/portfolio`, `/docs`) show a "Coming in a later module" panel
 inside the shell.
 
@@ -47,7 +49,7 @@ Delete `.env.development.local` to go back to mock data. Production builds
 | `npm test` | Vitest + Testing Library unit and component tests |
 | `npm run test:e2e` | Playwright against a production build on port 3100; also writes the captures in `e2e/screenshots/` |
 | `npm run test:e2e:live` | Live integration tests with a local fixture worker and a production app on port 3101; no provider credentials needed |
-| `npm run test:e2e:testnet` | The testnet site: a production build in `testnet` mode on port 3102, reading a local stand-in for the chain's RPC |
+| `npm run test:e2e:testnet` | The testnet site (Launch, Explore's placeholder and the token page): a production build in `testnet` mode on port 3102, reading a local stand-in for the chain's RPC |
 | `npm run worker:dev` | The live-data worker with `.env.local`, restarting on changes |
 | `npm run worker` | The worker as it runs in production (env vars from the host) |
 
@@ -340,7 +342,7 @@ public addresses, so it may be public):
 | Value | What the site does |
 |---|---|
 | unset | Production. Launch stays "coming soon" and `/api/tonk/*` answer 404 `{ error: "closed" }`. |
-| `testnet` | The testnet site: real launches on Robinhood Chain Testnet (chain 46630). `rh` means the testnet everywhere, a TESTNET badge shows, the wallet offers only that network, and Solana and swaps are off (the swap routes refuse). Explore, token pages and Swap say "Not on testnet yet". |
+| `testnet` | The testnet site: real launches on Robinhood Chain Testnet (chain 46630). `rh` means the testnet everywhere, a TESTNET badge shows, the wallet offers only that network, and Solana and swaps are off (the swap routes refuse). Token pages read the launchpad (next section); Explore opens a token by its address and lists the latest launches; Swap says "Not on testnet yet". |
 | `mock` | The demo: the studio on the contract's mainnet defaults (0.005 ETH fee, 6 ETH reserve). No contract is called and a real wallet is never asked to sign. Put it in `web/.env.local` to work on the screen locally; the e2e tests set it themselves. |
 
 **The contract is the source of truth.** `GET /api/tonk/settings` reads the
@@ -368,13 +370,13 @@ reload while it confirms keeps watching and sends nothing.
 
 **Kept in the browser.** A draft is saved only by "Save draft"
 (`tonkpad-launch-draft:<chainId>`). A referrer's address from `?ref=` is
-remembered per network (`tonkpad-ref:<chainId>`) for when curve trading opens
-on the site. Token images wait for hosting: until then a token shows its
-letter.
+remembered per network (`tonkpad-ref:<chainId>`) and named on that wallet's
+curve trades (never the trader's own address). Token images wait for hosting:
+until then a token shows its letter.
 
 **Settings.** `NEXT_PUBLIC_TONK_NETWORK` (above). `TONK_RPC_URL` (server only,
 optional) replaces the testnet's public RPC; it is used only if it answers
-with chain 46630. The three routes have their own allowances in
+with chain 46630. Every `/api/tonk/*` route has its own allowance in
 `src/shared/lib/rate-limit.ts`.
 
 **The testnet site on Vercel.** A `testnet` branch gets its own preview
@@ -396,10 +398,125 @@ closed. `npm run test:e2e:testnet` builds the app in `testnet` mode (the only
 run that does) and reads a local stand-in for the chain's RPC
 (`e2e/testnet/fixture-rpc.ts`): the launchpad's settings on screen, the other
 screens' "Not on testnet yet", the closed swap routes, a launch through to
-its receipt with the explorer's links, and the faucet link. The stand-in
-refuses anything but those reads, so nothing is simulated or sent. The three
+its receipt with the explorer's links, and the faucet link; and the token
+page (next section). The stand-in answers reads only and refuses to simulate,
+estimate or send, so nothing is ever built or sent through it. The three
 e2e runs build into the same `.next`, so run them one after another. Real
 launches are only ever made by a person, in their own wallet.
+
+## Token page on the testnet site
+
+On the testnet site `/token/<address>` opens a token launched on
+tonkfun.fun's launchpad (a "mission"): module 2's layout, with every figure
+read from the chain and counted in test ETH (faucet ETH has no price, so
+nothing there wears a dollar sign). Production and the demo are unchanged:
+their token page is module 2's. The brief is section 14 of
+`../prompts/04-launch-creator-studio.md`.
+
+**What it shows.** `TokenMission` (the page's wrapper) reads
+`GET /api/tonk/token/<address>` every 5 s while the tab is visible, and again
+as soon as something of the visitor's confirms. `lib/mission-detail.ts` turns
+that read into the shapes module 2's cards already take:
+
+- price = `vEth ÷ vTokens`, market cap = price × 1B, curve filled =
+  (800M − left) ÷ 800M, liquidity = the ETH really in the curve;
+- the trades and the chart come from the token's `CurveTrade` events (the
+  newest 500), each candle from the reserves its event carries;
+- the Mission score comes from what the chain can answer (the creator's buy
+  and lock, Crew Rewards, the first ten minutes), held to the worker's score
+  over a lock's life by `worker/tests/launch-score.test.ts`;
+- the holder count, Holders, Top traders and the top-10 share say "Not on
+  testnet yet": they wait for the indexer, and nothing stands in for them.
+
+An address the launchpad doesn't know is "not found". When the chain can't be
+reached the page keeps its last figures and says so.
+
+Everything a token says about itself is untrusted. The contract checks only
+that a name and ticker aren't empty and sets no maximum on the texts it
+stores, and anyone can call it directly. So `server/mission.ts` shows at most
+64 characters of a name and 16 of a ticker (printable characters only), and
+doesn't pass on a stored text over 4,096 characters; `metadata.ts` reads the
+rest back field by field, keeps links to http(s), and nothing is rendered as
+HTML.
+
+**Buy and Sell.** The contract has no quote function, so `shared/tonk/curve.ts`
+mirrors its maths in integers (`buyQuote`, `sellQuote`, `minimumOut`) and the
+panel quotes as you type from the page's latest read. Buys are typed in test
+ETH, sells in tokens. The minimum the contract must deliver follows the Swap
+screen's slippage (0.5%, 1% or 3%) and is never zero. The fees shown are the
+ones the contract charges: 1% protocol, the token's Creator fee, and its Crew
+fee only while someone eligible holds the token. A trade then runs like this:
+
+1. "Review buy" / "Review sell" opens "One last look.".
+2. `POST /api/tonk/trade` reads the mission at one block, checks it isn't
+   graduated, paused or (for a buy) inside the launch-block shield, simulates
+   the exact call at that block and requires the contract's answer to equal
+   the mirrored quote. It returns one of three things: `moved` (the fresh
+   quote is under the minimum the review showed, so the figures update and
+   nothing is sent), `approve` (a sell the launchpad may not take yet: an
+   approval for exactly the amount sold, never unlimited), or `trade` (the
+   unsigned transaction). The server holds no key.
+3. The wallet sends it. The hash goes into the URL (`?tx=`), so a reload goes
+   on watching the same transaction and never sends another.
+4. The result counts only from the confirmed receipt: `GET /api/tonk/tx`
+   returns the transaction's own events, and the page shows the amounts the
+   `CurveTrade` event recorded.
+
+A buy bigger than what is left on the curve is allowed, as the contract
+allows it: the review says it is cut to fit, how much comes back, and that
+the token graduates and curve trading ends. Trading the graduated pool is a
+later phase; until then a graduated token's button says so.
+
+**Rewards and the creator's tools.** `POST /api/tonk/action` builds and
+simulates each of these the same way, and each counts only from its event:
+
+| Who | Action | Call | Event |
+|---|---|---|---|
+| a holder | Claim unpaid Crew Rewards | `sweepMyCrewRewards()` on the token | `CrewRewardPaid` |
+| a wallet the launchpad owes | Withdraw undelivered ETH | `withdrawAccruedEth()` | `FallbackEthWithdrawn` |
+| the creator | Claim unlocked tokens | `claimDevTokens(token)` | `DevTokensClaimed` |
+| the creator | Extend the lock by 7 days or more | `extendDevLock(token, seconds)` | `LockExtended` |
+| the creator | Edit the description, links and agent brief | `updateMissionMetadata(token, …)` | `MetadataUpdated` |
+
+Rewards are sent whenever a holder's tokens move, so "unpaid" is only what is
+still waiting. The creator's tools show only to the wallet that launched the
+token (the server refuses anyone else). Extending a linear vest restarts it:
+what has unlocked stays claimable and the rest vests again from now to the new
+end; the dialog says so, and that a lock can never be shortened
+(`shared/tonk/lock.ts` mirrors the contract). An edit always sends both stored
+texts, starting from what is on-chain, because the contract replaces both.
+
+**Routes** (all closed with 404 `{ error: "closed" }` off the testnet site,
+rate-limited, input checked, errors never cached):
+
+| Route | Answers |
+|---|---|
+| `GET /api/tonk/token/<address>` | the mission's state and its newest trades |
+| `GET /api/tonk/account?token=&owner=` | a wallet's test ETH, tokens, allowance to the launchpad, unpaid rewards and undelivered ETH |
+| `POST /api/tonk/trade` | `moved`, `approve` or `trade` (above) |
+| `POST /api/tonk/action` | an unsigned claim, extension, edit, reward claim or withdrawal |
+| `GET /api/tonk/missions` | the launchpad's newest 20 launches, from its `MissionLaunched` events |
+| `GET /api/tonk/tx?hash=` | where a transaction stands and, once confirmed, what it did |
+
+**Finding a token** before Explore lists testnet tokens: the launch receipt
+has **Open token page**, and Explore on the testnet site has an address box
+and the latest launches.
+
+**Tests.** `src/shared/tests/tonk-trade.test.ts` holds the maths to check
+values simulated against the deployed contract on 10 Nov 2026;
+`tonk-mission-server.test.ts` covers the reads, every answer and refusal of
+the two builders, and the receipt's events, with the RPC mocked, and pins the
+selectors and topics to the contract build; `src/modules/token/tests/mission*`
+cover the mapper and the panels. `e2e/testnet/token.testnet.ts` runs the page
+against the stand-in chain (`fixture-chain.ts` holds its four missions): the
+figures, a buy to its receipt and across a reload, a sell with its approval,
+the reward claim and withdrawal, the creator's claim, extension and edit, what
+stops a trade, Explore's address box and list, the keyboard, and 390 px in
+German and Russian. The stand-in refuses to simulate, so the builds are
+answered in the browser and the stub wallet "sends" them. Its captures go to
+`e2e/screenshots/testnet/`, which isn't committed: they show the moment of
+the run (ages, what has unlocked). No test or script ever sends a
+transaction.
 
 ## Live data
 

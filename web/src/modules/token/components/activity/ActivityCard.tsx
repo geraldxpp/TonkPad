@@ -48,9 +48,10 @@ function FlowSummary({ flow }: { flow: TokenDetail["flow1h"] }) {
 
 /**
  * Live trades (with the last hour's flow), holders, top traders and About, in
- * underlined tabs kept in the URL; long lists open with Show more.
+ * underlined tabs kept in the URL; long lists open with Show more. `empty`
+ * lets a page say in its own words why one of its lists has nothing in it.
  */
-export function ActivityCard({ detail }: { detail: TokenDetail }) {
+export function ActivityCard({ detail, empty: emptyNotes }: { detail: TokenDetail; empty?: Partial<Record<ListTab, string>> }) {
   const { t } = useI18n();
   const a = t.token.activity;
   const { params, setParams } = useUrlParams();
@@ -63,7 +64,7 @@ export function ActivityCard({ detail }: { detail: TokenDetail }) {
   const limit = tab === "about" ? 0 : open ? rows : FIRST[tab];
   const holdersLabel = fmt(a.holders, { count: token.holders === null ? "—" : formatInteger(token.holders) });
   const empty = tab !== "about" && detail.source === "live" && rows === 0;
-  const emptyText = tab === "about" ? "" : { trades: t.token.live.emptyTrades, holders: t.token.live.emptyHolders, traders: t.token.live.emptyTraders }[tab];
+  const emptyText = tab === "about" ? "" : (emptyNotes?.[tab] ?? { trades: t.token.live.emptyTrades, holders: t.token.live.emptyHolders, traders: t.token.live.emptyTraders }[tab]);
   return (
     <section aria-label={a.label} className="min-w-0 overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="flex min-w-0 items-center border-b border-line px-4 max-md:px-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Check, Lock, ShieldCheck, Zap } from "lucide-react";
+import { ArrowUpRight, Bot, Check, Lock, ShieldCheck, Zap } from "lucide-react";
 import type { ReactNode } from "react";
 import { CHAINS } from "@/shared/config/chains";
 import { fmt } from "@/shared/i18n/config";
@@ -16,7 +16,8 @@ import { CopyAddress, HeaderActions } from "./HeaderActions";
 
 const TAG = "inline-flex items-center gap-1 rounded px-1.5 py-[3px] text-[11px] leading-4 font-semibold whitespace-nowrap";
 
-function Tag({ tone, title, children }: { tone: string; title?: string; children: ReactNode }) {
+/** One of the header's marks: tinted, without a border. */
+export function Tag({ tone, title, children }: { tone: string; title?: string; children: ReactNode }) {
   return (
     <span title={title} className={cn(TAG, tone)}>
       {children}
@@ -27,15 +28,16 @@ function Tag({ tone, title, children }: { tone: string; title?: string; children
 /**
  * The token's identity, without a card: art, name and ticker, chain and age,
  * the links, star and Share; then the contract, the launchpad and its marks.
+ * A page that knows more adds its own marks (`tags`) and the explorer's link.
  */
-export function TokenHeader({ detail }: { detail: TokenDetail }) {
+export function TokenHeader({ detail, explorerUrl, tags }: { detail: TokenDetail; explorerUrl?: string; tags?: ReactNode }) {
   const { t } = useI18n();
   const { token } = detail;
   return (
     <section aria-labelledby="token-name" className="flex min-w-0 flex-col gap-4 max-md:gap-3">
       <div className="flex min-w-0 items-center gap-3.5 max-md:gap-3">
         <span data-theme="dark" className="flex size-14 flex-none overflow-hidden rounded-[14px] border border-line bg-raised max-md:size-12 max-md:rounded-xl">
-          <TokenArt src={token.art} label={token.ticker} size={56} eager alt={fmt(t.token.artAlt, { name: token.name })} className="size-full object-cover" />
+          <TokenArt src={token.art} label={token.ticker} size={56} brand={token.launchpad === "tonk"} eager alt={fmt(t.token.artAlt, { name: token.name })} className="size-full object-cover" />
         </span>
         <div className="flex min-w-0 flex-auto flex-col gap-1.5 max-md:gap-1">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
@@ -60,6 +62,11 @@ export function TokenHeader({ detail }: { detail: TokenDetail }) {
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2">
         <CopyAddress contract={detail.contract} />
+        {explorerUrl ? (
+          <a href={explorerUrl} target="_blank" rel="noopener noreferrer" aria-label={t.launch.receipt.viewToken} title={t.launch.receipt.viewToken} className="inline-flex rounded text-text-3 hover:text-text">
+            <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
+          </a>
+        ) : null}
         <span aria-hidden="true" className="h-3 w-px bg-line-strong" />
         <span className="inline-flex items-center gap-1.5 text-[12px] text-text-2">
           <PadMark pad={token.launchpad} size={16} decorative />
@@ -91,6 +98,7 @@ export function TokenHeader({ detail }: { detail: TokenDetail }) {
             {t.badges.rwa}
           </Tag>
         ) : null}
+        {tags}
       </div>
     </section>
   );

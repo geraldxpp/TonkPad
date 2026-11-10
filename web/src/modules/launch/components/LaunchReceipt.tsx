@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRight, Check, Copy, LoaderCircle, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
@@ -14,6 +15,8 @@ interface LaunchReceiptProps {
   chainName: string;
   unit: string;
   explorerUrl: string | null;
+  /** Where the launched token's own page is, on a site that has one (the testnet site). */
+  tokenHref?: (token: string) => string;
   /** Leaves the receipt: back to the form after a failure, or to a fresh one after a launch. */
   onBack: (launched: boolean) => void;
 }
@@ -25,7 +28,7 @@ const BUTTON = "inline-flex min-h-11 items-center justify-center rounded-lg bord
  * confirming, launched (with the mission's own figures), failed, or replaced
  * in the wallet. A hash alone is never shown as a launch.
  */
-export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, onBack }: LaunchReceiptProps) {
+export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHref, onBack }: LaunchReceiptProps) {
   const { t } = useI18n();
   const l = t.launch;
   const c = l.receipt;
@@ -106,6 +109,11 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, onBack }
         {link(`/tx/${hash}`, t.swap.viewTx)}
         {mission ? link(`/address/${mission.token}`, c.viewToken) : null}
         <span className="flex-auto" />
+        {mission && tokenHref ? (
+          <Link href={tokenHref(mission.token)} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-cta px-4 text-[13px] font-semibold text-on-cta shadow-cta hover:brightness-110">
+            {t.mission.find.openPage}
+          </Link>
+        ) : null}
         {waiting ? null : (
           <button type="button" onClick={() => onBack(mission !== null)} className={BUTTON}>
             {mission ? c.again : c.backToStudio}

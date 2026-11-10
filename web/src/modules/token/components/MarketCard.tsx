@@ -4,11 +4,12 @@ import { GraduationCap } from "lucide-react";
 import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
-import { formatChange, formatPrice, formatUsdCompact } from "@/shared/lib/format";
+import { formatChange } from "@/shared/lib/format";
 import type { TokenDetail } from "@/shared/types/token-detail";
 import { CurveBar } from "@/shared/ui/CurveBar";
 import { Segmented } from "@/shared/ui/Segmented";
 import { type ChartValue, DEFAULT_CHART_VALUE, parseChartValue } from "../lib/chart-data";
+import { coinAmount, moneyCompact, moneyPrice, MONEY_UNIT } from "../lib/money";
 import { ChartCard } from "./chart/ChartCard";
 import { StatsStrip } from "./StatsStrip";
 
@@ -55,13 +56,9 @@ export function MarketCard({ detail }: { detail: TokenDetail }) {
   const value: ChartValue = hasSupply ? parseChartValue(params.get("chart")) : "mcap";
   const marketAvailable = detail.marketAvailable !== false;
   const up = token.change24h >= 0;
-  const figure = !marketAvailable
-    ? "—"
-    : value === "price"
-      ? detail.priceUsd === null
-        ? "—"
-        : formatPrice(detail.priceUsd)
-      : formatUsdCompact(token.marketCap);
+  const amount = !marketAvailable ? null : value === "price" ? detail.priceUsd : token.marketCap;
+  // On the testnet site the coin's name sits small beside the figure: "test ETH" at full size would crowd it.
+  const figure = amount === null ? "—" : MONEY_UNIT ? coinAmount(amount) : value === "price" ? moneyPrice(amount) : moneyCompact(amount);
   return (
     <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4 max-md:px-3.5 max-md:pt-4 max-md:pb-3.5">
@@ -71,6 +68,7 @@ export function MarketCard({ detail }: { detail: TokenDetail }) {
             <span className="font-mono text-[30px] leading-9 font-semibold tracking-[-0.045em] [overflow-wrap:anywhere] max-md:text-[26px] max-md:leading-8">
               {figure}
             </span>
+            {MONEY_UNIT && amount !== null ? <span className="font-mono text-[13px] font-semibold text-text-2">{MONEY_UNIT}</span> : null}
             <span className={cn("font-mono text-[12px] font-semibold", !marketAvailable ? "text-text-3" : up ? "text-pos" : "text-neg")}>
               {marketAvailable ? formatChange(token.change24h) : "—"}
             </span>

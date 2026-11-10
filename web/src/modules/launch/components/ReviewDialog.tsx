@@ -8,7 +8,7 @@ import { cn } from "@/shared/lib/cn";
 import { bpsText, formatEth, formatTokens, percentText } from "@/shared/tonk/format";
 import type { RunState } from "../hooks/useLaunchRun";
 import { agentLabel, feeLabel, lockLabel } from "../lib/labels";
-import { Sheet } from "./Sheet";
+import { Sheet } from "@/shared/ui/Sheet";
 import { LETTER_TILE, pairText, type StudioProps, tokenLetter } from "./types";
 
 interface ReviewDialogProps extends Pick<StudioProps, "state" | "view" | "settings" | "unit"> {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ExplorePage } from "@/modules/explore/ExplorePage";
 import { pageTitle } from "@/modules/shell/lib/meta";
-import { TestnetLater } from "@/modules/shell/components/TestnetLater";
+import { TestnetExplore } from "@/modules/shell/components/TestnetExplore";
 import { getI18n } from "@/shared/i18n/server";
 import { isTestnetSite } from "@/shared/tonk/networks";
 
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: { absolute: pageTitle(t.meta.explore) } };
 }
 
-export default async function Page({ searchParams }: PageProps<"/[lang]">) {
-  if (isTestnetSite()) return <TestnetLater title={(await getI18n()).t.meta.explore} />;
+export default function Page({ searchParams }: PageProps<"/[lang]">) {
+  if (isTestnetSite()) return <TestnetExplore />;
   return <ExplorePage searchParams={searchParams} />;
 }

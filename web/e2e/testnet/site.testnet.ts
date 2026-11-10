@@ -26,7 +26,8 @@ test("Launch reads the launchpad's own settings, and the site says it is the tes
 });
 
 test("screens that aren't on the testnet yet say so, and swaps are closed", async ({ page, request }) => {
-  for (const path of ["/", "/swap", "/token/GHOST"]) {
+  // Explore says so above its address box and latest launches; the token page is on testnet (token.testnet.ts).
+  for (const path of ["/", "/swap"]) {
     await page.goto(path);
     await expect(page.getByText("Not on testnet yet"), path).toBeVisible();
     await expect(page.getByRole("link", { name: "Open Launch" }), path).toBeVisible();
@@ -68,7 +69,7 @@ test("a launch runs to its receipt, with the testnet explorer's links", async ({
     token: TOKEN, creator: STUB_WALLET, name: "Tonk Test One", symbol: "TTONE", crewBps: 200, creatorBps: 100, lockType: "linear", lockedBps: 8000,
     lockEnd: 1_800_000_000, devBuy: "62500000000000", bought, locked, protocolFee: "625000000000", creatorFee: "625000000000", block: 151_200_000,
   };
-  await page.route("**/api/tonk/tx?**", (route) => route.fulfill({ json: { state: "confirmed", mission } }));
+  await page.route("**/api/tonk/tx?**", (route) => route.fulfill({ json: { state: "confirmed", mission, events: [] } }));
 
   await page.goto("/launch");
   await page.getByLabel("Token name").fill("Tonk Test One");
@@ -86,6 +87,8 @@ test("a launch runs to its receipt, with the testnet explorer's links", async ({
   await expect(page.getByText("Tonk Test One is live on Robinhood Chain Testnet.")).toBeVisible();
   await expect(page.getByRole("link", { name: "View transaction" })).toHaveAttribute("href", `${EXPLORER}/tx/${STUB_EVM_HASH}`);
   await expect(page.getByRole("link", { name: "View token on the explorer" })).toHaveAttribute("href", `${EXPLORER}/address/${TOKEN}`);
+  // The launched token has a page on this site.
+  await expect(page.getByRole("link", { name: "Open token page" })).toHaveAttribute("href", `/token/${TOKEN}`);
 });
 
 test("a wallet short of test ETH is pointed to the faucet", async ({ page }) => {

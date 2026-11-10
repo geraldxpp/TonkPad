@@ -2,9 +2,14 @@
 // The launchpad's server code runs on viem, which needs Node's own Uint8Array.
 import { BaseError, ContractFunctionRevertedError, decodeFunctionData, encodeAbiParameters, encodeEventTopics, InsufficientFundsError, type Log, toEventSelector, toFunctionSelector } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GET as settingsRoute } from "@/app/api/tonk/settings/route";
-import { GET as txRoute } from "@/app/api/tonk/tx/route";
+import { GET as accountRoute } from "@/app/api/tonk/account/route";
+import { POST as actionRoute } from "@/app/api/tonk/action/route";
 import { POST as launchRoute } from "@/app/api/tonk/launch/route";
+import { GET as missionsRoute } from "@/app/api/tonk/missions/route";
+import { GET as settingsRoute } from "@/app/api/tonk/settings/route";
+import { GET as tokenRoute } from "@/app/api/tonk/token/[address]/route";
+import { POST as tradeRoute } from "@/app/api/tonk/trade/route";
+import { GET as txRoute } from "@/app/api/tonk/tx/route";
 import { TONK_TESTNET } from "@/shared/tonk/networks";
 import { LAUNCHPAD_ABI } from "@/shared/tonk/server/abi";
 import { TonkError, tonkClient } from "@/shared/tonk/server/client";
@@ -173,6 +178,12 @@ describe("the launchpad's routes where no network is connected", () => {
       settingsRoute(new Request("http://x/api/tonk/settings")),
       txRoute(new Request(`http://x/api/tonk/tx?hash=0x${"a".repeat(64)}`)),
       launchRoute(new Request("http://x/api/tonk/launch", { method: "POST", body: JSON.stringify(REQUEST) })),
+      // The token page's routes: there is no mission to read, trade or manage here either.
+      tokenRoute(new Request(`http://x/api/tonk/token/${TOKEN}`), { params: Promise.resolve({ address: TOKEN }) }),
+      accountRoute(new Request(`http://x/api/tonk/account?token=${TOKEN}&owner=${CREATOR}`)),
+      missionsRoute(new Request("http://x/api/tonk/missions")),
+      tradeRoute(new Request("http://x/api/tonk/trade", { method: "POST", body: JSON.stringify({ token: TOKEN, trader: CREATOR, side: "buy", amount: "1", minOut: "1", referrer: null }) })),
+      actionRoute(new Request("http://x/api/tonk/action", { method: "POST", body: JSON.stringify({ kind: "claim", token: TOKEN, owner: CREATOR }) })),
     ]);
     for (const response of responses) {
       expect(response.status).toBe(404);
@@ -180,5 +191,6 @@ describe("the launchpad's routes where no network is connected", () => {
       expect(await response.json()).toEqual({ error: "closed" });
     }
     expect(readSettings).not.toHaveBeenCalled();
+    expect(tonkClient).not.toHaveBeenCalled();
   });
 });

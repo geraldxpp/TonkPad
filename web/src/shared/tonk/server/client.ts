@@ -4,7 +4,20 @@ import type { TonkNetwork } from "../networks";
 /** Why a Tonk route refused, as a code the browser turns into words; never the upstream detail. */
 export class TonkError extends Error {
   constructor(
-    readonly code: "invalid" | "unavailable" | "closed" | "paused" | "funds" | "refused",
+    readonly code:
+      | "invalid"
+      | "unavailable"
+      | "closed"
+      | "paused"
+      | "funds"
+      | "refused"
+      // Phase 2: not a mission; curve trading over; inside the launch-block shield; not enough tokens; not the creator; nothing to claim.
+      | "missing"
+      | "graduated"
+      | "early"
+      | "tokens"
+      | "forbidden"
+      | "nothing",
     message: string,
     readonly status = 502,
   ) {
@@ -30,7 +43,7 @@ let current: { url: string; client: PublicClient; verified: Promise<void> | null
 export async function tonkClient(network: TonkNetwork): Promise<PublicClient> {
   const url = tonkRpcUrl(network);
   if (!current || current.url !== url) {
-    current = { url, client: createPublicClient({ transport: http(url, { timeout: RPC_TIMEOUT_MS, retryCount: 1 }) }), verified: null };
+    current = { url, client: createPublicClient({ transport: http(url, { timeout: RPC_TIMEOUT_MS, retryCount: 1, batch: { batchSize: 100 } }) }), verified: null };
   }
   const entry = current;
   entry.verified ??= entry.client.getChainId().then((chainId) => {

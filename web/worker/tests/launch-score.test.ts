@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { TOTAL_SUPPLY, WEI } from "@/shared/tonk/curve";
+import { type DevLockState, lockedAt } from "@/shared/tonk/lock";
 import { lockedAmount, type LockSettings } from "@/shared/tonk/rules";
-import { launchScore, scoreLevel } from "@/shared/tonk/score";
+import { isLockedMission as pageLockedMission, launchScore, missionScore as pageScore, scoreLevel } from "@/shared/tonk/score";
 import { isLockedMission } from "../src/locks";
 import { missionScore } from "../src/score";
 import type { StreamLock } from "../src/sources/streamflow";
@@ -95,5 +96,47 @@ describe("a launch's Mission score: the Creator Studio's preview and the worker 
       expect(launchScore({ bought, lock, crewBps: 200 }).lockedBadge, JSON.stringify(lock)).toBe(badge);
       expect(isLockedMission(token, NOW + MIN), JSON.stringify(lock)).toBe(badge);
     }
+  });
+});
+
+/** The same lock as the launchpad stores it, for the token page's maths. */
+function onChain(bought: bigint, lock: LockSettings): DevLockState | null {
+  if (lock.type === "none" || bought === BigInt(0)) return null;
+  const start = NOW / SEC;
+  return { type: lock.type, lockedBps: lock.sharePct * 100, start, end: start + lock.days * DAY, total: lockedAmount(bought, lock), claimed: BigInt(0), checkpoint: BigInt(0) };
+}
+
+/** Days after launch, chosen off the exact moments a lock crosses a threshold (where float and integer maths may round apart). */
+const AGES = [1 / 1440, 0.5, 1.5, 29.5, 30.5, 59.5, 89.5, 90.5, 149.5, 179.5, 180.5, 400];
+
+describe("a live mission's Mission score: the token page and the worker agree over a lock's life", () => {
+  it.each([0, 0.0172, 0.0421, 0.0814, 0.2])("for a creator buy of %s of supply, as its lock runs down", (share) => {
+    for (const lock of LOCKS) {
+      for (const crewBps of [0, 200]) {
+        const { bought, token } = launched(share, lock, crewBps);
+        const state = onChain(bought, lock);
+        const held = bought - (state?.total ?? BigInt(0));
+        for (const days of AGES) {
+          const ageSeconds = Math.round(days * DAY);
+          const t = NOW / SEC + ageSeconds;
+          const zero = BigInt(0);
+          const page = pageScore({ launchBuy: bought, creatorHeld: held, lockedNow: state ? lockedAt(state, t) : zero, lockedIn30Days: state ? lockedAt(state, t + 30 * DAY) : zero, crewBps, ageSeconds });
+          const label = `${lock.sharePct}% ${lock.type} ${lock.days}d, crew ${crewBps}, day ${days}`;
+          expect(page.score, label).toBe(missionScore(token, NOW + ageSeconds * SEC).score);
+          expect(pageLockedMission(state ? lockedAt(state, t + 7 * DAY) : zero), `${label}, Locked badge`).toBe(isLockedMission(token, NOW + ageSeconds * SEC));
+        }
+      }
+    }
+  });
+
+  it("scores the owner's first test launch as the page shows it: 80, and 70 in its first ten minutes", () => {
+    const bought = BigInt("124002358490566037735849057");
+    const lock: DevLockState = { type: "linear", lockedBps: 8000, start: 0, end: 180 * DAY, total: BigInt("99201886792452830188679245"), claimed: BigInt(0), checkpoint: BigInt(0) };
+    const at = (seconds: number) => pageScore({ launchBuy: bought, creatorHeld: bought - lock.total, lockedNow: lockedAt(lock, seconds), lockedIn30Days: lockedAt(lock, seconds + 30 * DAY), crewBps: 200, ageSeconds: seconds });
+    expect([at(60).score, at(4_200).score, at(4_200).level]).toEqual([70, 80, "Safe"]);
+    // 37.5 days in, less than half the launch buy is still locked 30 days out: the buy's penalty returns.
+    expect([at(37 * DAY).score, at(38 * DAY).score]).toEqual([80, 72]);
+    // From day 75 the lock is under half the creator's tokens 30 days out, so its points go too.
+    expect([at(74 * DAY).score, at(76 * DAY).score]).toEqual([72, 62]);
   });
 });

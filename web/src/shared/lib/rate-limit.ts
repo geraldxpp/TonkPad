@@ -31,6 +31,13 @@ export const ALLOWANCES = {
   tonkSettings: { burst: 20, perSecond: 0.5 },
   tonkLaunch: { burst: 6, perSecond: 0.1 },
   tonkTx: { burst: 60, perSecond: 1 },
+  // A token page re-reads its mission every 5 s and a connected wallet's standing with it; a trade or an action builds once
+  // (twice for a sell that needs an approval), and the latest launches refresh every 15 s.
+  tonkToken: { burst: 40, perSecond: 1 },
+  tonkAccount: { burst: 40, perSecond: 1 },
+  tonkTrade: { burst: 12, perSecond: 0.2 },
+  tonkAction: { burst: 8, perSecond: 0.1 },
+  tonkMissions: { burst: 20, perSecond: 0.5 },
 } as const satisfies Record<string, Allowance>;
 
 export type RouteGroup = keyof typeof ALLOWANCES;

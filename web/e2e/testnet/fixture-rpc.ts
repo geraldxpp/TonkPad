@@ -1,29 +1,155 @@
 import { createServer } from "node:http";
-import { toFunctionSelector } from "viem";
+import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, encodeFunctionResult, type Hex, toEventSelector } from "viem";
+import { TONK_TESTNET } from "../../src/shared/tonk/networks";
+import { ARBSYS, ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "../../src/shared/tonk/server/abi";
+import { BLOCK, type FixtureMission, type FixtureTrade, MISSIONS, ZERO } from "./fixture-chain";
 import { FIXTURE_LAUNCHPAD, STUB_BALANCE, STUB_WALLET, TESTNET_RPC_PORT } from "./fixtures";
 
 /**
- * A local JSON-RPC stand-in for Robinhood Chain Testnet: the chain id, the
- * gas price, a wallet's balance, and the launchpad's four settings. Anything
- * else is refused, so a test can't simulate or send a launch through it.
+ * A local JSON-RPC stand-in for Robinhood Chain Testnet. It answers what the
+ * app reads: the chain id, gas price and block, a wallet's balance, the
+ * launchpad's settings, its missions with their locks and trades, and each
+ * token's balances and Crew figures. Anything that would simulate, estimate
+ * or send a transaction is refused, so no test can trade or launch through
+ * it: those answers are given in the browser, by the test itself.
  */
-const hex = (value: string | number) => `0x${BigInt(value).toString(16)}`;
-const word = (value: string | number) => `0x${BigInt(value).toString(16).padStart(64, "0")}`;
+const hex = (value: string | number | bigint): Hex => `0x${BigInt(value).toString(16)}`;
+const same = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
+const PAD = TONK_TESTNET.launchpad;
+const missionOf = (token: unknown) => MISSIONS.find((mission) => same(mission.token, String(token)));
+const big = (value: string | number) => BigInt(value);
 
-const CALLS: Record<string, string> = {
-  [toFunctionSelector("function launchFee()")]: word(FIXTURE_LAUNCHPAD.launchFee),
-  [toFunctionSelector("function defaultVirtualEth()")]: word(FIXTURE_LAUNCHPAD.virtualEth),
-  [toFunctionSelector("function defaultVirtualTokens()")]: word(FIXTURE_LAUNCHPAD.virtualTokens),
-  [toFunctionSelector("function paused()")]: word(0),
+/** The launchpad's view functions, by name; a transaction's function finds no answer here. */
+function launchpadCall(data: Hex): Hex {
+  const { functionName, args } = decodeFunctionData({ abi: LAUNCHPAD_ABI, data });
+  const result = (value: unknown) => encodeFunctionResult({ abi: LAUNCHPAD_ABI, functionName, result: value } as never);
+  const mission = missionOf(args?.[0]);
+  switch (functionName) {
+    case "launchFee":
+      return result(big(FIXTURE_LAUNCHPAD.launchFee));
+    case "defaultVirtualEth":
+      return result(big(FIXTURE_LAUNCHPAD.virtualEth));
+    case "defaultVirtualTokens":
+      return result(big(FIXTURE_LAUNCHPAD.virtualTokens));
+    case "paused":
+      return result(false);
+    case "missions": {
+      // An address the launchpad has never launched comes back as an empty record.
+      if (!mission) return result([ZERO, ZERO, big(0), big(0), 0, 0, false, big(0), big(0), big(0), big(0), ZERO, "", ""]);
+      const m = mission;
+      return result([m.token, m.creator, big(m.launchedAt), big(m.launchBlock), m.crewBps, m.creatorBps, m.graduated, big(m.virtualEth), big(m.virtualTokens), big(m.realEth), big(m.tokensLeft), ZERO, m.metadata, m.agentPrompt]);
+    }
+    case "devLocks": {
+      const [type, bps, start, end, total, claimed] = mission?.lock ?? [0, 0, 0, 0, "0", "0"];
+      return result([type, bps, big(start), big(end), big(total), big(claimed)]);
+    }
+    case "devVestedCheckpoint":
+    case "claimableEth":
+      return result(big(0));
+    default:
+      throw new Error(`the fixture won't run ${functionName}`);
+  }
+}
+
+/** A mission token's view functions. The stub wallet's standing is the mission's own; the creator holds `creatorHeld`. */
+function tokenCall(mission: FixtureMission, data: Hex): Hex {
+  const { functionName, args } = decodeFunctionData({ abi: TOKEN_ABI, data });
+  const result = (value: unknown) => encodeFunctionResult({ abi: TOKEN_ABI, functionName, result: value } as never);
+  const holder = String(args?.[0] ?? "");
+  const stub = same(holder, STUB_WALLET);
+  switch (functionName) {
+    case "name":
+      return result(mission.name);
+    case "symbol":
+      return result(mission.symbol);
+    case "eligibleSupply":
+      return result(big(mission.eligibleSupply));
+    case "totalCrewRewardsPaid":
+      return result(big(mission.crewPaid));
+    case "balanceOf":
+      return result(big(stub ? mission.stub.tokens : same(holder, mission.creator) ? mission.creatorHeld : 0));
+    case "allowance":
+      return result(big(stub && same(String(args?.[1]), PAD) ? mission.stub.allowance : 0));
+    case "viewUnpaidRewards":
+      return result(big(stub ? mission.stub.unpaidRewards : 0));
+    default:
+      throw new Error(`the fixture won't run ${functionName}`);
+  }
+}
+
+function call(to: string, data: Hex): Hex {
+  if (same(to, PAD)) return launchpadCall(data);
+  if (same(to, ARBSYS)) return encodeFunctionResult({ abi: ARBSYS_ABI, functionName: "arbBlockNumber", result: big(BLOCK) });
+  const mission = missionOf(to);
+  if (mission) return tokenCall(mission, data);
+  throw new Error(`no contract at ${to}`);
+}
+
+const TOPIC = { launched: toEventSelector(LAUNCHPAD_ABI.find((item) => item.type === "event" && item.name === "MissionLaunched") as never), trade: toEventSelector(LAUNCHPAD_ABI.find((item) => item.type === "event" && item.name === "CurveTrade") as never) };
+const plain = (eventName: string) => {
+  const event = LAUNCHPAD_ABI.find((item) => item.type === "event" && item.name === eventName);
+  if (!event || event.type !== "event") throw new Error(`no event ${eventName}`);
+  return event.inputs.filter((input) => !("indexed" in input && input.indexed));
 };
 
-function answer(method: string, params: unknown[]): string {
+/** A log as a node returns it. */
+function log(topics: readonly unknown[], data: Hex, block: number, tx: string, index: number) {
+  return { address: PAD, topics, data, blockNumber: hex(block), blockHash: `0x${"b".repeat(64)}`, transactionHash: tx, transactionIndex: "0x0", logIndex: hex(index), removed: false };
+}
+const launchedLog = (m: FixtureMission) =>
+  log(
+    encodeEventTopics({ abi: LAUNCHPAD_ABI, eventName: "MissionLaunched", args: { token: m.token, creator: m.creator } } as never),
+    encodeAbiParameters(plain("MissionLaunched"), [m.name, m.symbol, m.metadata, m.crewBps, m.creatorBps, m.lock[0], m.lock[1], big(m.lock[3]), big(m.trades[0]?.eth ?? 0)] as never),
+    m.launchBlock,
+    m.trades[0]?.tx ?? `0x${m.token.slice(2, 4).repeat(32)}`,
+    0,
+  );
+const tradeLog = (m: FixtureMission, t: FixtureTrade, index: number) =>
+  log(
+    encodeEventTopics({ abi: LAUNCHPAD_ABI, eventName: "CurveTrade", args: { token: m.token, trader: t.trader } } as never),
+    encodeAbiParameters(plain("CurveTrade"), [t.isBuy, big(t.eth), big(t.tokens), big(t.protocolFee), big(t.crewFee), big(t.creatorFee), big(t.virtualEth), big(t.virtualTokens), big(t.left)] as never),
+    t.block,
+    t.tx,
+    index + 1,
+  );
+
+/** eth_getLogs for the launchpad's two events, within the block range asked for. */
+function logs(filter: { address?: string; topics?: (string | null)[]; fromBlock?: string; toBlock?: string }) {
+  if (filter.address && !same(filter.address, PAD)) return [];
+  const [topic, token] = filter.topics ?? [];
+  const from = Number(BigInt(filter.fromBlock ?? "0x0"));
+  const to = filter.toBlock && filter.toBlock.startsWith("0x") ? Number(BigInt(filter.toBlock)) : BLOCK;
+  const inRange = (entry: { blockNumber: Hex }) => Number(BigInt(entry.blockNumber)) >= from && Number(BigInt(entry.blockNumber)) <= to;
+  if (topic === TOPIC.launched) return MISSIONS.map(launchedLog).filter(inRange);
+  if (topic === TOPIC.trade) return MISSIONS.filter((mission) => !token || same(`0x${token.slice(-40)}`, mission.token)).flatMap((mission) => mission.trades.map((trade, index) => tradeLog(mission, trade, index))).filter(inRange);
+  throw new Error("unexpected log filter");
+}
+
+/** When each block the fixture knows was made: a mission's launch block, or one of its trades. */
+function blockTime(block: number): number {
+  for (const mission of MISSIONS) {
+    if (mission.launchBlock === block) return mission.launchedAt;
+    const trade = mission.trades.find((entry) => entry.block === block);
+    if (trade) return trade.time;
+  }
+  return Math.floor(Date.now() / 1000);
+}
+const WORD = `0x${"0".repeat(64)}`;
+const blockAt = (block: number) => ({
+  number: hex(block), hash: `0x${"b".repeat(64)}`, parentHash: WORD, timestamp: hex(blockTime(block)), nonce: "0x0000000000000000", difficulty: "0x0", totalDifficulty: "0x0", gasLimit: "0x1", gasUsed: "0x0",
+  miner: ZERO, extraData: "0x", logsBloom: `0x${"0".repeat(512)}`, mixHash: WORD, receiptsRoot: WORD, stateRoot: WORD, transactionsRoot: WORD, sha3Uncles: WORD, size: "0x0", baseFeePerGas: "0x0", transactions: [], uncles: [],
+});
+
+function answer(method: string, params: unknown[]): unknown {
   if (method === "eth_chainId") return hex(FIXTURE_LAUNCHPAD.chainId);
   if (method === "eth_gasPrice") return hex(FIXTURE_LAUNCHPAD.gasPrice);
-  if (method === "eth_getBalance") return hex(String(params[0]).toLowerCase() === STUB_WALLET ? STUB_BALANCE : 0);
+  if (method === "eth_blockNumber") return hex(BLOCK);
+  if (method === "eth_getBalance") return hex(same(String(params[0]), STUB_WALLET) ? STUB_BALANCE : 0);
+  if (method === "eth_getBlockByNumber") return blockAt(String(params[0]).startsWith("0x") ? Number(BigInt(String(params[0]))) : BLOCK);
+  if (method === "eth_getLogs") return logs(params[0] as Parameters<typeof logs>[0]);
   if (method === "eth_call") {
-    const result = CALLS[String((params[0] as { data?: string }).data).slice(0, 10)];
-    if (result) return result;
+    const { to, data } = params[0] as { to?: string; data?: Hex; input?: Hex };
+    return call(String(to), (data ?? (params[0] as { input?: Hex }).input ?? "0x") as Hex);
   }
   throw new Error(`unexpected ${method}`);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRight, Lock, type LucideIcon, ShieldCheck, TriangleAlert, Users, Wallet } from "lucide-react";
+import type { ReactNode } from "react";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
@@ -8,11 +9,13 @@ import type { DevLock, TokenDetail } from "@/shared/types/token-detail";
 import { SCORE_LEVELS } from "@/shared/ui/score-levels";
 import { safeUrl, top10Band } from "../lib/display";
 
-interface Insight {
+export interface Insight {
   icon: LucideIcon;
   title: string;
   sub: string;
   tone?: string;
+  /** The title is an address: set in the mono face, like every address. */
+  mono?: boolean;
 }
 
 /** The dev lock's vesting: how far along it is, what's left and the lock contract. */
@@ -54,6 +57,60 @@ function LockStatus({ lock }: { lock: DevLock }) {
   );
 }
 
+interface InsightsFrameProps {
+  score: number;
+  level: TokenDetail["token"]["level"];
+  items: readonly Insight[];
+  /** Under the three facts: the lock's detail. */
+  children?: ReactNode;
+}
+
+/** The insights card's frame: the heading with the Mission score, three facts across, then whatever the lock has to say. */
+export function InsightsFrame({ score, level, items, children }: InsightsFrameProps) {
+  const { t } = useI18n();
+  const i = t.token.insights;
+  const Level = level === "Risky" ? TriangleAlert : ShieldCheck;
+  return (
+    <section aria-labelledby="insights-title" className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-5 max-md:p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-[11px] text-text-3">{i.eyebrow}</span>
+          <h2 id="insights-title" className="font-display text-[20px] leading-6 font-bold tracking-[-0.02em]">
+            {i.title}
+          </h2>
+        </div>
+        <p
+          title={fmt(t.score.title, { score, level: t.score[level] })}
+          className={cn("m-0 inline-flex flex-none items-center gap-1.5 rounded-lg border border-current/20 px-2.5 py-1.5", SCORE_LEVELS[level])}
+        >
+          <Level size={14} strokeWidth={2.3} aria-hidden="true" />
+          <span className="sr-only">{fmt(i.score, { score })}</span>
+          <span aria-hidden="true" className="font-mono text-[15px] leading-5 font-semibold">
+            {score}
+          </span>
+          <span aria-hidden="true" className="font-mono text-[11px] opacity-70">
+            / 100
+          </span>
+        </p>
+      </div>
+      <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3">
+        {items.map(({ icon: Icon, title, sub, tone, mono }) => (
+          <li key={sub} className="flex min-w-0 items-center gap-3">
+            <span className="flex size-[30px] flex-none items-center justify-center rounded-lg bg-raised text-text-3">
+              <Icon size={15} strokeWidth={1.9} aria-hidden="true" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <strong className={cn("text-[12px] font-semibold [overflow-wrap:anywhere]", mono && "font-mono", tone)}>{title}</strong>
+              <span className="text-[11px] text-text-3">{sub}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {children}
+    </section>
+  );
+}
+
 /**
  * "Token insights": the Mission score, then the dev lock, the top 10 holders'
  * share and smart money. A live token without lock data says so rather than
@@ -85,44 +142,9 @@ export function InsightsCard({ detail }: { detail: TokenDetail }) {
       tone: token.smartWallets > 0 ? "text-cyan" : undefined,
     },
   ];
-  const Level = token.level === "Risky" ? TriangleAlert : ShieldCheck;
   return (
-    <section aria-labelledby="insights-title" className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-5 max-md:p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-[11px] text-text-3">{i.eyebrow}</span>
-          <h2 id="insights-title" className="font-display text-[20px] leading-6 font-bold tracking-[-0.02em]">
-            {i.title}
-          </h2>
-        </div>
-        <p
-          title={fmt(t.score.title, { score: token.score, level: t.score[token.level] })}
-          className={cn("m-0 inline-flex flex-none items-center gap-1.5 rounded-lg border border-current/20 px-2.5 py-1.5", SCORE_LEVELS[token.level])}
-        >
-          <Level size={14} strokeWidth={2.3} aria-hidden="true" />
-          <span className="sr-only">{fmt(i.score, { score: token.score })}</span>
-          <span aria-hidden="true" className="font-mono text-[15px] leading-5 font-semibold">
-            {token.score}
-          </span>
-          <span aria-hidden="true" className="font-mono text-[11px] opacity-70">
-            / 100
-          </span>
-        </p>
-      </div>
-      <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3">
-        {items.map(({ icon: Icon, title, sub, tone }) => (
-          <li key={sub} className="flex min-w-0 items-center gap-3">
-            <span className="flex size-[30px] flex-none items-center justify-center rounded-lg bg-raised text-text-3">
-              <Icon size={15} strokeWidth={1.9} aria-hidden="true" />
-            </span>
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <strong className={cn("text-[12px] font-semibold", tone)}>{title}</strong>
-              <span className="text-[11px] text-text-3">{sub}</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <InsightsFrame score={token.score} level={token.level} items={items}>
       {devLock ? <LockStatus lock={devLock} /> : null}
-    </section>
+    </InsightsFrame>
   );
 }

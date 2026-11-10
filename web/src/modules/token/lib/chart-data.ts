@@ -1,5 +1,6 @@
 import { formatChange, formatInteger, formatPrice, formatUsdCompact } from "@/shared/lib/format";
 import { CHART_TIMEFRAMES, type Candle, type ChartTimeframe } from "@/shared/types/token-detail";
+import { coinAmount, MONEY_UNIT } from "./money";
 
 /** What the candles plot: the price of one token or the market cap in USD. */
 export type ChartValue = "mcap" | "price";
@@ -25,11 +26,14 @@ export function scaleCandle(candle: Candle, value: ChartValue, supply: number | 
 
 /** Readout and crosshair text: "$58.7K", or "$0.0000587" per token. */
 export function formatChartValue(value: number, kind: ChartValue): string {
+  // The testnet site counts in test ETH; the card's heading carries the unit, the chart's figures go bare.
+  if (MONEY_UNIT) return coinAmount(value);
   return kind === "mcap" ? formatUsdCompact(value) : formatPrice(value);
 }
 
 /** Price-axis labels drop trailing zeros: "$40K", "$0.00004". */
 export function formatAxisValue(value: number, kind: ChartValue): string {
+  if (MONEY_UNIT) return coinAmount(value);
   if (kind === "mcap") return formatUsdCompact(value, { trimZeros: true });
   if (value === 0) return "$0";
   return formatPrice(value).replace(/(\.\d*?[1-9])0+$/, "$1");
@@ -45,6 +49,7 @@ const UNITS = [
 function preciseLabel(value: number, kind: ChartValue, extra: number): string {
   const abs = Math.abs(value);
   const sign = value < 0 ? "−" : "";
+  if (MONEY_UNIT) return coinAmount(value, Math.min(12, 4 + extra));
   if (kind === "mcap") {
     const [size, suffix] = UNITS.find(([unit]) => abs >= unit) ?? [1, ""];
     return `${sign}$${(abs / size).toFixed(extra)}${suffix}`;

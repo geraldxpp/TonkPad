@@ -95,6 +95,66 @@ export function devBuyQuote(settings: CurveSettings, devBuy: bigint, creatorBps:
   return buyQuote(freshCurve(settings), devBuy, 0, creatorBps);
 }
 
+/** A token's curve as its mission stores it: the reserves, the tokens left, and the ETH really held for sells. */
+export interface MissionCurve extends CurveState {
+  realEth: bigint;
+}
+
+/** What the contract's sell() pays for tokens. */
+export interface SellQuote {
+  grossEthOut: bigint;
+  protocolFee: bigint;
+  crewFee: bigint;
+  creatorFee: bigint;
+  netEthOut: bigint;
+  newVirtualEth: bigint;
+  newVirtualTokens: bigint;
+  /** The payout was limited to the ETH really in the curve. */
+  capped: boolean;
+}
+
+/**
+ * sell(): the tokens move the curve, the ETH paid out is at most what the
+ * curve really holds, and the fees come off that. `crewBps` is the Crew fee
+ * actually charged: 0 while nobody eligible holds the token.
+ */
+export function sellQuote(curve: MissionCurve, tokensIn: bigint, crewBps: number, creatorBps: number): SellQuote {
+  const k = curve.virtualEth * curve.virtualTokens;
+  const newVirtualTokens = curve.virtualTokens + tokensIn;
+  const uncapped = curve.virtualEth - k / newVirtualTokens;
+  const capped = uncapped > curve.realEth;
+  const grossEthOut = capped ? curve.realEth : uncapped;
+  const protocolFee = (grossEthOut * BigInt(PROTOCOL_FEE_BPS)) / BPS;
+  const crewFee = (grossEthOut * BigInt(crewBps)) / BPS;
+  const creatorFee = (grossEthOut * BigInt(creatorBps)) / BPS;
+  return {
+    grossEthOut,
+    protocolFee,
+    crewFee,
+    creatorFee,
+    netEthOut: grossEthOut - protocolFee - crewFee - creatorFee,
+    newVirtualEth: curve.virtualEth - grossEthOut,
+    newVirtualTokens,
+    capped,
+  };
+}
+
+/** The least the contract must deliver for a quote at this slippage. Never zero: a zero minimum protects nobody. */
+export function minimumOut(quote: bigint, slippageBps: number): bigint {
+  const minimum = (quote * BigInt(10_000 - slippageBps)) / BPS;
+  return minimum > ZERO ? minimum : BigInt(1);
+}
+
+/** How much of the 800 million curve tokens have been sold, 0 to 1. */
+export function curveFilled(tokensLeft: bigint): number {
+  return Number(((CURVE_SUPPLY - tokensLeft) * BigInt(1_000_000)) / CURVE_SUPPLY) / 1_000_000;
+}
+
+/** The price of one token in ETH, from the reserves (the contract's telemetry rounds it down to a whole wei). */
+export function tokenPrice(virtualEth: bigint, virtualTokens: bigint): number {
+  return Number((virtualEth * BigInt(10) ** BigInt(30)) / virtualTokens) / 1e30;
+}
+
 /** Market cap in wei for a curve's reserves: its price times the whole supply. */
 export function marketCap(virtualEth: bigint, virtualTokens: bigint): bigint {
   return (virtualEth * TOTAL_SUPPLY) / virtualTokens;

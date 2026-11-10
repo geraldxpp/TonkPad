@@ -13,6 +13,8 @@
 # testing
 /coverage
 /test-results/
+# The testnet run's captures show the time of the run, so each run rewrites them.
+/e2e/screenshots/testnet/
 /playwright-report/
 /blob-report/
 
