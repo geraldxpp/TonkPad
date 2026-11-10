@@ -20,10 +20,16 @@ export interface EvmTransactionRequest {
   gas: string | null;
 }
 
-/** Why a wallet action didn't happen: the person said no, or the wallet couldn't do it. */
+const ACTION_ERRORS = {
+  rejected: "Rejected in the wallet",
+  failed: "The wallet could not do this",
+  network: "The wallet is not on the swap's network and could not switch to it",
+} as const;
+
+/** Why a wallet action didn't happen: the person said no, the wallet couldn't do it, or it couldn't reach the swap's network. */
 export class WalletActionError extends Error {
-  constructor(readonly code: "rejected" | "failed") {
-    super(code === "rejected" ? "Rejected in the wallet" : "The wallet could not do this");
+  constructor(readonly code: keyof typeof ACTION_ERRORS) {
+    super(ACTION_ERRORS[code]);
     this.name = "WalletActionError";
   }
 }

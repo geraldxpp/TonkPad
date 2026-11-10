@@ -274,6 +274,7 @@ export const de: Dictionary = {
     },
     errors: {
       rejected: "Du hast ihn in deiner Wallet abgebrochen.",
+      network: "Deine Wallet konnte nicht zu diesem Netzwerk wechseln. Wechsle das Netzwerk in deiner Wallet oder nutze eine Wallet, die es unterstützt.",
       expired: "Der Preis hat sich vorher bewegt oder das Guthaben reichte nicht. Prüfe den neuen Kurs und versuch es erneut.",
       timeout: "Wird noch bestätigt. Sieh dir die Transaktion gleich an.",
       failed: "On-Chain fehlgeschlagen. Es wurde nichts getauscht.",

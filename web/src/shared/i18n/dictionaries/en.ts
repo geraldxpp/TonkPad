@@ -280,6 +280,7 @@ export const en = {
     },
     errors: {
       rejected: "You cancelled it in your wallet.",
+      network: "Your wallet couldn't switch to this network. Switch networks in your wallet, or use a wallet that supports it.",
       expired: "The price moved before it landed, or funds were short. Check the new quote and try again.",
       timeout: "Still confirming. Check the transaction in a moment.",
       failed: "It failed on-chain. Nothing was exchanged.",

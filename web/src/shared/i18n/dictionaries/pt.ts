@@ -275,6 +275,7 @@ export const pt: Dictionary = {
     },
     errors: {
       rejected: "Você cancelou na sua carteira.",
+      network: "Sua carteira não conseguiu mudar para esta rede. Troque de rede na carteira ou use uma carteira compatível com ela.",
       expired: "O preço mudou antes da execução ou faltou saldo. Confira a nova cotação e tente de novo.",
       timeout: "Ainda confirmando. Confira a transação daqui a pouco.",
       failed: "Falhou na blockchain. Nada foi trocado.",

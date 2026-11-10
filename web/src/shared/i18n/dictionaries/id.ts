@@ -275,6 +275,7 @@ export const id: Dictionary = {
     },
     errors: {
       rejected: "Dibatalkan di dompet.",
+      network: "Dompet tidak bisa beralih ke jaringan ini. Ganti jaringan di dompet, atau gunakan dompet yang mendukungnya.",
       expired: "Harga bergerak sebelum swap selesai atau dana kurang. Periksa kuotasi baru lalu coba lagi.",
       timeout: "Masih dikonfirmasi. Periksa transaksinya sebentar lagi.",
       failed: "Gagal di on-chain. Tidak ada yang ditukar.",

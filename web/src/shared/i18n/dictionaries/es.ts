@@ -274,6 +274,7 @@ export const es: Dictionary = {
     },
     errors: {
       rejected: "Lo cancelaste en tu wallet.",
+      network: "Tu wallet no pudo cambiar a esta red. Cambia de red en tu wallet o usa una wallet que la admita.",
       expired: "El precio cambió antes de ejecutarse o faltaron fondos. Revisa la nueva cotización y vuelve a intentarlo.",
       timeout: "Aún se está confirmando. Revisa la transacción en un momento.",
       failed: "Falló en la cadena. No se intercambió nada.",

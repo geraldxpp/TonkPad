@@ -4,6 +4,7 @@ import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { robinhood, solana } from "@reown/appkit/networks";
 import type { ChainId } from "@/shared/types/chain";
 import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
+import { ensureEvmChain } from "./network";
 import { WalletActionError, type WalletDriver } from "./types";
 
 /** Robinhood Chain is viem's `robinhood` (chain id 4663, its public RPC and Blockscout). */
@@ -34,6 +35,16 @@ interface Eip1193 {
 const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
 const toBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
 const hex = (wei: string) => `0x${BigInt(wei).toString(16)}`;
+
+/** The chain an EVM wallet is on, from the wallet itself ("0x1237" from extensions, 4663 over WalletConnect). */
+async function walletChainId(provider: Eip1193): Promise<number | null> {
+  try {
+    const id = Number(await provider.request({ method: "eth_chainId" }));
+    return Number.isSafeInteger(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
 
 const pageTheme = () => (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
 
@@ -70,6 +81,11 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
     },
     enableCoinbase: false,
     enableBaseAccount: false,
+    // AppKit's own "Switch Network" screen can't be closed, and a multi-chain
+    // wallet's other side (Ethereum, say) can set it off even mid-way through
+    // a Solana swap. The app moves the wallet to the right network itself,
+    // right before each signature, so that screen never shows.
+    allowUnsupportedChain: true,
   });
 
   const read = () => {
@@ -109,6 +125,16 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
     await appKit.open({ view: "Connect", namespace: NAMESPACES[chain] });
   };
 
+  /**
+   * Points AppKit, and the wallet, at the chain, throwing if the wallet won't
+   * go. AppKit only asks the wallet once the chain's namespace is the active
+   * one, so that comes first.
+   */
+  const moveTo = async (chain: ChainId) => {
+    if (appKit.getActiveChainNamespace() !== NAMESPACES[chain]) await appKit.switchNetwork(NETWORKS[chain], { throwOnFailure: true });
+    await appKit.switchNetwork(NETWORKS[chain], { throwOnFailure: true });
+  };
+
   return {
     snapshot: () => snapshot,
     subscribe(listener) {
@@ -131,6 +157,8 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
     async signSolanaTransaction(transaction) {
       const signer = appKit.getProvider<SolanaSigner>(NAMESPACES.sol);
       if (!signer) throw new WalletActionError("failed");
+      // A change on the wallet's EVM side can leave AppKit's Solana network unknown, and the signer refuses to sign on one.
+      if (appKit.getCaipNetwork(NAMESPACES.sol)?.id !== NETWORKS.sol.id) await moveTo("sol");
       // Loaded with the wallet code, never in the page bundle.
       const { VersionedTransaction } = await import("@solana/web3.js");
       const signed = await signer.signTransaction(VersionedTransaction.deserialize(fromBase64(transaction)));
@@ -140,7 +168,8 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       const provider = appKit.getProvider<Eip1193>(NAMESPACES.rh);
       const from = appKit.getAccount(NAMESPACES.rh)?.address;
       if (!provider || !from) throw new WalletActionError("failed");
-      if (appKit.getCaipNetwork(NAMESPACES.rh)?.id !== NETWORKS.rh.id) await appKit.switchNetwork(NETWORKS.rh);
+      // The wallet's own answer decides: AppKit's record can be stale, and its switch fails silently by default.
+      await ensureEvmChain({ chainId: () => walletChainId(provider), switchTo: () => moveTo("rh") }, NETWORKS.rh.id);
       const hash = await provider.request({
         method: "eth_sendTransaction",
         params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}) }],

@@ -274,6 +274,7 @@ export const vi: Dictionary = {
     },
     errors: {
       rejected: "Bạn đã hủy trong ví.",
+      network: "Ví của bạn không thể chuyển sang mạng này. Hãy đổi mạng trong ví, hoặc dùng ví có hỗ trợ mạng này.",
       expired: "Giá đã thay đổi trước khi khớp hoặc không đủ số dư. Kiểm tra báo giá mới rồi thử lại.",
       timeout: "Vẫn đang xác nhận. Hãy kiểm tra giao dịch sau ít phút.",
       failed: "Giao dịch thất bại trên chuỗi. Không có gì được hoán đổi.",

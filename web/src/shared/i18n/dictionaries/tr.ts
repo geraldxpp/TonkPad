@@ -274,6 +274,7 @@ export const tr: Dictionary = {
     },
     errors: {
       rejected: "Cüzdanınızda iptal ettiniz.",
+      network: "Cüzdanınız bu ağa geçemedi. Cüzdanınızda ağı değiştirin veya bu ağı destekleyen bir cüzdan kullanın.",
       expired: "Fiyat işlem gerçekleşmeden değişti ya da bakiye yetmedi. Yeni fiyatı kontrol edip tekrar deneyin.",
       timeout: "Onay sürüyor. İşlemi birazdan kontrol edin.",
       failed: "Zincirde başarısız oldu. Hiçbir şey takas edilmedi.",

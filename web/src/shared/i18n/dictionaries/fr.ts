@@ -274,6 +274,7 @@ export const fr: Dictionary = {
     },
     errors: {
       rejected: "Vous l’avez annulé dans votre wallet.",
+      network: "Votre wallet n’a pas pu passer sur ce réseau. Changez de réseau dans votre wallet, ou utilisez un wallet qui le prend en charge.",
       expired: "Le prix a bougé avant l’exécution ou les fonds manquaient. Vérifiez la nouvelle cotation et réessayez.",
       timeout: "Toujours en confirmation. Vérifiez la transaction dans un instant.",
       failed: "Échec on-chain. Rien n’a été échangé.",

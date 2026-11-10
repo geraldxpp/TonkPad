@@ -275,6 +275,7 @@ export const zh: Dictionary = {
     },
     errors: {
       rejected: "你在钱包中取消了。",
+      network: "钱包无法切换到此网络。请在钱包中切换网络，或使用支持该网络的钱包。",
       expired: "价格在成交前发生变化，或资金不足。请查看新报价后重试。",
       timeout: "仍在确认中，请稍后查看交易。",
       failed: "链上执行失败，未发生兑换。",
