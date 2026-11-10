@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getI18n } from "@/shared/i18n/server";
+import { tonkNetwork } from "@/shared/tonk/networks";
 import type { ShellData } from "../data/shell.mock";
 import { LiveIndicator } from "./LiveIndicator";
 import { StatusValue } from "./StatusValue";
@@ -16,24 +17,33 @@ const LINK = "text-text-3 hover:text-text-2";
 /** The footer: feed status, coin prices and gas, then the site links; centred like the page above it. */
 export async function StatusBar({ status }: StatusBarProps) {
   const { t, href } = await getI18n();
+  const testnet = tonkNetwork();
   return (
     <footer className="border-t border-line bg-bg-deep text-[11px] text-text-3">
       <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 md:px-7">
-        <LiveIndicator />
-        <span className="inline-flex items-center gap-2">
-          {t.status.nextSweep}
-          <SweepFill />
-          <SweepCountdown className={VALUE} />
-        </span>
-        <span>
-          SOL <StatusValue field="solUsd" fallback={status.solUsd} className={VALUE} />
-        </span>
-        <span>
-          ETH <StatusValue field="ethUsd" fallback={status.ethUsd} className={VALUE} />
-        </span>
-        <span>
-          {t.status.gas} <StatusValue field="rhGasGwei" fallback={status.rhGasGwei} className={VALUE} />
-        </span>
+        {testnet ? (
+          <span>
+            {testnet.name} · <span className={VALUE}>{testnet.chainId}</span>
+          </span>
+        ) : (
+          <>
+            <LiveIndicator />
+            <span className="inline-flex items-center gap-2">
+              {t.status.nextSweep}
+              <SweepFill />
+              <SweepCountdown className={VALUE} />
+            </span>
+            <span>
+              SOL <StatusValue field="solUsd" fallback={status.solUsd} className={VALUE} />
+            </span>
+            <span>
+              ETH <StatusValue field="ethUsd" fallback={status.ethUsd} className={VALUE} />
+            </span>
+            <span>
+              {t.status.gas} <StatusValue field="rhGasGwei" fallback={status.rhGasGwei} className={VALUE} />
+            </span>
+          </>
+        )}
         <span className="flex-auto" />
         <Link href={href("/docs")} className={LINK}>
           {t.status.docs}

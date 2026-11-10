@@ -1,7 +1,9 @@
 import { type ReactNode, Suspense } from "react";
 import { isLiveMode } from "@/shared/live/server";
+import { tonkNetwork } from "@/shared/tonk/networks";
 import type { ShellData } from "../data/shell.mock";
 import { ShellLiveProvider } from "../live/ShellLive";
+import { ReferralCapture } from "./ReferralCapture";
 import { SideRail } from "./SideRail";
 import { SideRailView } from "./SideRailView";
 import { StatusBar } from "./StatusBar";
@@ -17,6 +19,7 @@ interface AppShellProps {
  * ticker, chain counts and status bar refresh from the worker.
  */
 export function AppShell({ data, children }: AppShellProps) {
+  const network = tonkNetwork();
   return (
     <ShellLiveProvider live={isLiveMode()}>
       <div className="relative flex min-h-screen items-stretch overflow-clip bg-bg font-sans text-[14px] text-text">
@@ -31,6 +34,11 @@ export function AppShell({ data, children }: AppShellProps) {
             {children}
           </main>
           <StatusBar status={data.status} />
+          {network ? (
+            <Suspense fallback={null}>
+              <ReferralCapture chainId={network.chainId} />
+            </Suspense>
+          ) : null}
         </div>
       </div>
     </ShellLiveProvider>

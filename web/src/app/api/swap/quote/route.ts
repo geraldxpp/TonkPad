@@ -2,7 +2,7 @@ import { overLimit } from "@/shared/lib/rate-limit";
 import { cached } from "@/shared/swap/server/cache";
 import { swapConfig } from "@/shared/swap/server/config";
 import { quoteSwap } from "@/shared/swap/server/engine";
-import { errorResponse, jsonResponse, parseSwapRequest, queryRecord } from "@/shared/swap/server/request";
+import { errorResponse, jsonResponse, parseSwapRequest, queryRecord, refuseOnTestnet } from "@/shared/swap/server/request";
 
 /**
  * An indicative quote: GET /api/swap/quote?chain=sol&from=<mint>&to=<mint>&amount=<raw>&slippageBps=100[&taker=<wallet>].
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const limited = overLimit(request, "quote");
   if (limited) return limited;
   try {
+    refuseOnTestnet();
     const swap = parseSwapRequest(queryRecord(request));
     const key = `quote:${swap.chain}:${swap.from}:${swap.to}:${swap.amount}:${swap.slippageBps}:${swap.taker ?? ""}`;
     const quote = await cached(key, 4_000, () => quoteSwap(swap, swapConfig()));

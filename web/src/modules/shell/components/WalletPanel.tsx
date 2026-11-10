@@ -2,7 +2,7 @@
 
 import { Check, Copy, LoaderCircle, LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { CHAIN_IDS, CHAINS } from "@/shared/config/chains";
+import { CHAINS, WALLET_CHAIN_IDS } from "@/shared/config/chains";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { shortAddress } from "@/shared/lib/address";
@@ -61,7 +61,7 @@ function ConnectView({ onClose }: WalletPanelProps) {
   return (
     <div className="flex flex-col gap-1">
       <div role="group" aria-label={w.choose} className="flex flex-col gap-0.5">
-        {CHAIN_IDS.map((chain) => (
+        {WALLET_CHAIN_IDS.map((chain) => (
           <button
             key={chain}
             type="button"
@@ -144,10 +144,12 @@ function AccountView({ chain, address, accounts, onClose }: AccountViewProps) {
         </button>
       </div>
       <div className="h-px bg-line" />
-      <button type="button" onClick={switchChain} className={ROW}>
-        <ChainMark chain={other} size={22} letterSize={10} decorative />
-        <span className="flex-auto">{fmt(otherConnected ? w.switchTo : w.connectOn, { chain: CHAINS[other].name })}</span>
-      </button>
+      {WALLET_CHAIN_IDS.includes(other) ? (
+        <button type="button" onClick={switchChain} className={ROW}>
+          <ChainMark chain={other} size={22} letterSize={10} decorative />
+          <span className="flex-auto">{fmt(otherConnected ? w.switchTo : w.connectOn, { chain: CHAINS[other].name })}</span>
+        </button>
+      ) : null}
       <button type="button" onClick={disconnect} className={ROW}>
         <span className="inline-flex size-[22px] flex-none items-center justify-center text-text-2" aria-hidden="true">
           <LogOut size={16} strokeWidth={2} />

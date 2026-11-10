@@ -1,14 +1,21 @@
 import { createAppKit } from "@reown/appkit";
 import { SolanaAdapter } from "@reown/appkit-adapter-solana";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { robinhood, solana } from "@reown/appkit/networks";
+import { robinhood, robinhoodTestnet, solana } from "@reown/appkit/networks";
+import { isTestnetSite } from "@/shared/tonk/networks";
 import type { ChainId } from "@/shared/types/chain";
 import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
 import { ensureEvmChain } from "./network";
 import { WalletActionError, type WalletDriver } from "./types";
 
-/** Robinhood Chain is viem's `robinhood` (chain id 4663, its public RPC and Blockscout). */
-const NETWORKS = { sol: solana, rh: robinhood } as const;
+/**
+ * Robinhood Chain is viem's `robinhood` (chain id 4663, its public RPC and
+ * Blockscout). On the testnet site it is `robinhoodTestnet` (46630) instead,
+ * and Solana isn't offered: everything the wallet signs there is on testnet.
+ */
+const TESTNET = isTestnetSite();
+const EVM = TESTNET ? robinhoodTestnet : robinhood;
+const NETWORKS = { sol: solana, rh: EVM } as const;
 
 /** How long a first Connect waits for AppKit to set up before opening the picker anyway. */
 const READY_WAIT_MS = 4_000;
@@ -62,9 +69,9 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
   const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content || "tonkfun.fun";
   const appKit = createAppKit({
     projectId,
-    adapters: [new SolanaAdapter(), new WagmiAdapter({ projectId, networks: [robinhood] })],
-    networks: [solana, robinhood],
-    defaultNetwork: solana,
+    adapters: TESTNET ? [new WagmiAdapter({ projectId, networks: [EVM] })] : [new SolanaAdapter(), new WagmiAdapter({ projectId, networks: [EVM] })],
+    networks: TESTNET ? [EVM] : [solana, EVM],
+    defaultNetwork: TESTNET ? EVM : solana,
     metadata: { name: "tonkfun.fun", description, url: origin, icons: [`${origin}/icon.png`] },
     themeMode: pageTheme(),
     themeVariables: themeVariables(),
@@ -94,7 +101,7 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       initialized: state.initialized,
       open: state.open,
       activeNamespace: appKit.getActiveChainNamespace(),
-      accounts: { solana: appKit.getAccount(NAMESPACES.sol), eip155: appKit.getAccount(NAMESPACES.rh) },
+      accounts: { solana: TESTNET ? undefined : appKit.getAccount(NAMESPACES.sol), eip155: appKit.getAccount(NAMESPACES.rh) },
     };
     return toSnapshot(view);
   };
@@ -107,7 +114,7 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
     snapshot = next;
     for (const listener of listeners) listener();
   };
-  appKit.subscribeAccount(refresh, NAMESPACES.sol);
+  if (!TESTNET) appKit.subscribeAccount(refresh, NAMESPACES.sol);
   appKit.subscribeAccount(refresh, NAMESPACES.rh);
   appKit.subscribeState(refresh);
   appKit.subscribeNetwork(refresh);

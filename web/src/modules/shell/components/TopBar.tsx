@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react";
 import { Suspense } from "react";
 import { getI18n } from "@/shared/i18n/server";
+import { isTestnetSite } from "@/shared/tonk/networks";
 import { IconButton } from "@/shared/ui/IconButton";
 import type { ShellData } from "../data/shell.mock";
 import { ChainFilter } from "./ChainFilter";
@@ -35,30 +36,41 @@ interface TopBarProps {
  */
 export async function TopBar({ data }: TopBarProps) {
   const { t } = await getI18n();
+  const testnet = isTestnetSite();
   return (
     <>
       <header className="relative z-[5] border-b border-line bg-bg/95 max-md:sticky max-md:top-0 max-md:z-30 max-md:backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-1 px-4 py-2.5 md:flex-nowrap md:gap-2.5 md:px-7 md:py-4">
           <MobileBrand />
-          <Suspense
-            fallback={
-              <>
-                <SearchToggle open={false} />
-                <SearchBox />
-              </>
-            }
-          >
-            <SearchField />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="relative flex-none max-md:hidden">
-                <ChainTrigger value="all" aria-expanded={false} />
-              </div>
-            }
-          >
-            <ChainFilter counts={data.chainCounts} className="flex-none max-md:hidden" />
-          </Suspense>
+          {testnet ? (
+            <span className="mr-auto rounded-md border border-warn/35 bg-warn/10 px-2 py-1 font-mono text-[11px] font-semibold tracking-[0.12em] text-warn uppercase max-md:mr-1 max-md:px-1.5 max-md:text-[10px]">
+              {t.launch.testnet.badge}
+            </span>
+          ) : (
+            <>
+              <Suspense
+                fallback={
+                  <>
+                    <SearchToggle open={false} />
+                    <SearchBox />
+                  </>
+                }
+              >
+                <SearchField />
+              </Suspense>
+              <Suspense
+                fallback={
+                  <div className="relative flex-none max-md:hidden">
+                    <ChainTrigger value="all" aria-expanded={false} />
+                  </div>
+                }
+              >
+                <ChainFilter counts={data.chainCounts} className="flex-none max-md:hidden" />
+              </Suspense>
+            </>
+          )}
+          {/* A page's own controls, portalled in by that page (the Creator Studio's chain pill and Refer & earn). */}
+          <div id="tk-topbar-slot" className="contents" />
           <LanguageMenu />
           <ThemeToggle className="max-md:size-8" />
           <IconButton
@@ -72,11 +84,13 @@ export async function TopBar({ data }: TopBarProps) {
           <WalletButton />
         </div>
       </header>
-      <div className="border-b border-line bg-bg-deep/45">
-        <div className="mx-auto flex w-full max-w-[1600px] items-center px-2 md:px-7">
-          <TickerTape items={data.tape} label={t.header.ticker} />
+      {testnet ? null : (
+        <div className="border-b border-line bg-bg-deep/45">
+          <div className="mx-auto flex w-full max-w-[1600px] items-center px-2 md:px-7">
+            <TickerTape items={data.tape} label={t.header.ticker} />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

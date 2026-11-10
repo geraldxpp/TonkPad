@@ -48,6 +48,10 @@
   --track: #252a31;
 
   --card-ink: #0a0b0e;
+  /* A token's stand-in art (its letter on teal): the same in both themes. */
+  --art-ink: #eeffff;
+  --art-tile: linear-gradient(135deg, #64e6ec, #058696 90%);
+  --art-scene: radial-gradient(ellipse at 50% 20%, #52e1e5aa, transparent 65%), linear-gradient(145deg, #10434d, #106a77 55%, #0b212b);
   --sweep: #a8d1ff;
   --badge-on-alert: #1a0509;
   --scrim: rgba(2, 3, 4, 0.62);

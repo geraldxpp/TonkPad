@@ -1,5 +1,6 @@
 import { isChainId } from "@/shared/config/chains";
 import { isChainAddress } from "@/shared/lib/address";
+import { isTestnetSite } from "@/shared/tonk/networks";
 import { isRecord, SwapError } from "./config";
 import type { SwapRequest } from "./engine";
 
@@ -27,6 +28,14 @@ export function parseSwapRequest(input: Record<string, unknown>): SwapRequest {
     throw new SwapError("invalid", "bad wallet", 400);
   }
   return { chain, from, to, amount, slippageBps: slippage, taker: typeof taker === "string" && taker ? taker : null };
+}
+
+/**
+ * Swaps run on mainnet providers (Jupiter, 0x) that don't cover Robinhood
+ * Chain Testnet, so on the testnet site every swap route is closed.
+ */
+export function refuseOnTestnet(): void {
+  if (isTestnetSite()) throw new SwapError("closed", "swaps are not on the testnet site", 403);
 }
 
 /** Query params as a plain record. */

@@ -27,6 +27,10 @@ export const ALLOWANCES = {
   send: { burst: 10, perSecond: 0.2 },
   // Two swaps confirming at once.
   status: { burst: 60, perSecond: 1 },
+  // The launchpad's own routes: its settings refresh every 15 s, a launch builds once and its receipt is checked every 2 s.
+  tonkSettings: { burst: 20, perSecond: 0.5 },
+  tonkLaunch: { burst: 6, perSecond: 0.1 },
+  tonkTx: { burst: 60, perSecond: 1 },
 } as const satisfies Record<string, Allowance>;
 
 export type RouteGroup = keyof typeof ALLOWANCES;

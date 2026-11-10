@@ -31,7 +31,8 @@ export default defineConfig({
     command: `npm run build && npm run start -- -p ${PORT} -H 127.0.0.1`,
     url: baseURL,
     // The stub wallet stands in for Reown: no real wallets or wallet network in tests.
-    env: { NEXT_PUBLIC_WALLET_STUB: "1", ...NO_SWAP },
+    // The Creator Studio runs as the demo: mock settings, and /api/tonk/* answered in the browser.
+    env: { NEXT_PUBLIC_WALLET_STUB: "1", NEXT_PUBLIC_TONK_NETWORK: "mock", ...NO_SWAP },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },

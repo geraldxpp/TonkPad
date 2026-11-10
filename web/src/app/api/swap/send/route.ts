@@ -1,6 +1,6 @@
 import { overLimit } from "@/shared/lib/rate-limit";
 import { swapConfig, SwapError } from "@/shared/swap/server/config";
-import { bodyRecord, errorResponse, jsonResponse } from "@/shared/swap/server/request";
+import { bodyRecord, errorResponse, jsonResponse, refuseOnTestnet } from "@/shared/swap/server/request";
 import { sendSolanaTransaction } from "@/shared/swap/server/send";
 
 /** A signed Solana transaction is at most 1,232 bytes: 1,644 base64 characters. */
@@ -11,6 +11,7 @@ export async function POST(request: Request) {
   const limited = overLimit(request, "send");
   if (limited) return limited;
   try {
+    refuseOnTestnet();
     if (!swapConfig().tradingOpen) throw new SwapError("closed", "trading is not open yet", 403);
     const { transaction } = await bodyRecord(request);
     if (typeof transaction !== "string" || !BASE64_TX.test(transaction)) throw new SwapError("invalid", "bad transaction", 400);

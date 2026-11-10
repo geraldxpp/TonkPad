@@ -1,3 +1,4 @@
+import { isTestnetSite } from "@/shared/tonk/networks";
 import { isEvmAddress, isSolanaAddress } from "@/shared/lib/address";
 
 /** tonkfun.fun's fee on every swap: 1% (100 basis points), the owner's call (10 Nov 2026). */
@@ -34,7 +35,8 @@ export function swapConfig(env: Readonly<Record<string, string | undefined>> = p
     solanaFeeWallet: solFee && isSolanaAddress(solFee) ? solFee : null,
     evmFeeWallet: evmFee && isEvmAddress(evmFee) ? evmFee : null,
     feeBps: FEE_BPS,
-    tradingOpen: value(env.SWAP_TRADING) === "on",
+    // Never on the testnet site: Jupiter and 0x only cover mainnet.
+    tradingOpen: value(env.SWAP_TRADING) === "on" && !isTestnetSite(),
     quoteTakerSol: QUOTE_TAKER_SOL,
   };
 }

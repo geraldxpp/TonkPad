@@ -5,7 +5,7 @@ import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 
-export type BadgeKind = "locked" | "crew" | "agent" | "hot" | "og" | "new" | "graduated" | "rwa";
+export type BadgeKind = "locked" | "crew" | "agent" | "hot" | "og" | "new" | "graduated" | "rwa" | "shield";
 
 interface BadgeProps {
   kind: BadgeKind;
@@ -96,6 +96,14 @@ export function Badge({ kind, value, tone = "default", density = "comfortable" }
         <span title={fmt(t.badges.rwaTitle, { issuer: value ?? "" })} className={cn(BASE, right, "gap-1 border", BORDERED.rwa[tone])}>
           <ShieldCheck size={11} strokeWidth={2.6} />
           {t.badges.rwa}
+        </span>
+      );
+    case "shield":
+      // tonkfun.fun launches: the 99% tax on separate buys in the launch block and the next one.
+      return (
+        <span title={t.launch.preview.shieldTitle} className={cn(BASE, right, "gap-1 border", BORDERED.rwa[tone])}>
+          <ShieldCheck size={11} strokeWidth={2.6} />
+          {t.launch.preview.shield}
         </span>
       );
   }

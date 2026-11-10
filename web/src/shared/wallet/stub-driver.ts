@@ -7,23 +7,25 @@ export const STUB_ACCOUNTS: Record<ChainId, string> = {
   rh: "0x7a5e00000000000000000000000000000000c0de",
 };
 
-/** Set to "1" and the stub refuses every signature, as if the person rejected it. */
+/** Set to "1" and the stub refuses every signature, as if the person rejected it; "network", as if the wallet couldn't switch networks. */
 export const STUB_REJECT_KEY = "tonkpad-wallet-stub-reject";
 /** The hash the stub returns for every Robinhood Chain transaction. */
 export const STUB_EVM_HASH = `0x${"5a".repeat(32)}`;
 
-const refuses = () => {
+const told = () => {
   try {
-    return localStorage.getItem(STUB_REJECT_KEY) === "1";
+    return localStorage.getItem(STUB_REJECT_KEY);
   } catch {
-    return false;
+    return null;
   }
 };
 
 /** Signs nothing for real: waits like a wallet, then approves (or rejects when told to). */
 const approve = async <T>(result: T): Promise<T> => {
   await new Promise((resolve) => setTimeout(resolve, 150));
-  if (refuses()) throw new WalletActionError("rejected");
+  const refusal = told();
+  if (refusal === "1") throw new WalletActionError("rejected");
+  if (refusal === "network") throw new WalletActionError("network");
   return result;
 };
 

@@ -36,6 +36,8 @@ export default defineConfig({
         WORKER_URL: FIXTURE_WORKER_URL,
         WORKER_TOKEN: FIXTURE_WORKER_TOKEN,
         NEXT_PUBLIC_WALLET_STUB: "1",
+        // As in production: no launchpad network, so Launch stays "coming soon".
+        NEXT_PUBLIC_TONK_NETWORK: "",
         SOLANA_RPC_URL: `${FIXTURE_RPC_URL}/sol`,
         ROBINHOOD_RPC_URL: `${FIXTURE_RPC_URL}/rh`,
         ...NO_SWAP,

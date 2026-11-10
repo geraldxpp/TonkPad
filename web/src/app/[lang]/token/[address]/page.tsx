@@ -3,16 +3,20 @@ import { pageTitle } from "@/modules/shell/lib/meta";
 import { getLiveTokenData } from "@/modules/token/data/get-live-token-data";
 import { getTokenData } from "@/modules/token/data/get-token-data";
 import { TokenPage } from "@/modules/token/TokenPage";
+import { TestnetLater } from "@/modules/shell/components/TestnetLater";
 import { getI18n } from "@/shared/i18n/server";
+import { isTestnetSite } from "@/shared/tonk/networks";
 import { isLiveMode } from "@/shared/live/server";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/token/[address]">): Promise<Metadata> {
   const [{ address }, { t }] = await Promise.all([params, getI18n()]);
+  if (isTestnetSite()) return { title: { absolute: pageTitle(t.meta.token) } };
   const live = isLiveMode() ? await getLiveTokenData(address) : null;
   const detail = live ? (live.status === "ok" ? live.detail : null) : await getTokenData(address);
   return { title: { absolute: pageTitle(detail?.token.name ?? t.meta.token) } };
 }
 
-export default function Page({ params }: PageProps<"/[lang]/token/[address]">) {
+export default async function Page({ params }: PageProps<"/[lang]/token/[address]">) {
+  if (isTestnetSite()) return <TestnetLater title={(await getI18n()).t.meta.token} />;
   return <TokenPage params={params} />;
 }

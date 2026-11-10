@@ -12,8 +12,11 @@ Pump.fun, Bonk.fun and Pons (Robinhood Chain) launches** from the live-data
 worker (`worker/`, see below). Token Detail uses that same live feed when
 `WORKER_URL` is set: click any Explore token to open its contract address.
 Without a worker, open `/token/GHOST` for the approved Ghosty design, or click
-any mock Explore token. The other rail screens (`/live`, `/bridge`, `/portfolio`, `/launch`,
-`/docs`) show a "Coming in a later module" panel inside the shell.
+any mock Explore token. **Module 3 — Swap** (`/swap`) and **Module 4 — Launch,
+the Creator Studio** (`/launch`, on the testnet site; "coming soon" on
+production) have their own sections below. The other rail screens (`/live`,
+`/bridge`, `/portfolio`, `/docs`) show a "Coming in a later module" panel
+inside the shell.
 
 ## Run it
 
@@ -57,10 +60,15 @@ src/
     shell/      AppShell, SideRail, TopBar (search, ticker tape, chain filter, language, theme), StatusBar, Logo, LaterPanel, SettingsDialog
     explore/    Explore: components/, hooks/, lib/ (filter, view, radar), data/, tests/
     token/      Token Detail: components/ (chart, activity, trade, mission), hooks/, lib/, data/, tests/
+    swap/       Swap: the card, token picker, Recent, token and route cards
+    launch/     Launch: the Creator Studio's cards, preview, summary, review and receipt; hooks/, lib/, data/, tests/
   shared/       ui/ primitives, lib/ (format, seeded-random, sparkline, url-params), config/, types/,
                 i18n/ (languages, dictionaries, getI18n / useI18n)
   styles/       tokens.css (design tokens), animations.css (all motion), globals.css (Tailwind theme)
   shared/live/  the worker's JSON contract helpers: server-side fetch, usePolling, query strings
+  shared/swap/  the swap engine (quotes, the run, the review dialog); server/ holds the Jupiter and 0x clients
+  shared/tonk/  tonkfun.fun's launchpad: networks and addresses, curve and lock maths, rules, launch-time score;
+                server/ reads the chain and builds launches behind /api/tonk/*
   app/api/live/ /api/live/list|overview|shell and /api/live/token/[address], server-side proxies to the worker
 worker/         the live-data worker (Node + tsx): src/ (sources/, views/, store, score) and tests/
 e2e/            Playwright specs and screenshots
@@ -315,6 +323,75 @@ the switch, and `e2e/swap.spec.ts` stubs `/api/swap/*` and the balances in
 the browser, with the stub wallet "signing". `src/shared/tests/swap-engine.test.ts`
 covers amounts, request checks, the fee placement and the transaction
 assembly. Real swaps are only ever made by a person, in their own wallet.
+
+## Launch (Creator Studio)
+
+`/launch` is the Creator Studio: four cards (Token & basics, Locked Mission
+Protocol, Mission economics, Token Agent) beside the token preview, the
+launch-time Mission score and the summary. On phones the cards are a
+four-step flow (`/launch?step=2`). It launches tokens on tonkfun.fun's own
+launchpad contracts (`src/shared/tonk/`); the brief is
+`../prompts/04-launch-creator-studio.md`.
+
+**Modes.** `NEXT_PUBLIC_TONK_NETWORK` picks one at build time (it only selects
+public addresses, so it may be public):
+
+| Value | What the site does |
+|---|---|
+| unset | Production. Launch stays "coming soon" and `/api/tonk/*` answer 404 `{ error: "closed" }`. |
+| `testnet` | The testnet site: real launches on Robinhood Chain Testnet (chain 46630). `rh` means the testnet everywhere, a TESTNET badge shows, the wallet offers only that network, and Solana and swaps are off (the swap routes refuse). Explore, token pages and Swap say "Not on testnet yet". |
+| `mock` | The demo: the studio on the contract's mainnet defaults (0.005 ETH fee, 6 ETH reserve). No contract is called and a real wallet is never asked to sign. Put it in `web/.env.local` to work on the screen locally; the e2e tests set it themselves. |
+
+**The contract is the source of truth.** `GET /api/tonk/settings` reads the
+launch fee, the virtual reserves and the paused flag from the launchpad, and
+the screen asks again every 15 s. `curve.ts` mirrors the contract's buy maths
+in integers, so the tokens a dev buy receives, the starting cap, the
+graduation target and the dev-buy presets (the reserve ÷ 60, 24 and 12)
+follow whatever is deployed; nothing is hard-coded from the design.
+`rules.ts` holds the launch rules: a lock needs a dev buy, at least half of
+it and 7 days or more; Crew Rewards are off or 1%+; Crew and Creator share
+4%; the lock's tier caps Creator Rewards (0.5%, 2% or 4%). `score.ts` is the
+launch-time Mission score: the worker's v2 rows plus +5 for Crew Rewards of
+1% or more, held to the worker's by `worker/tests/launch-score.test.ts`.
+
+**How a launch runs.** "Review launch" opens "One final look."; Launch calls
+`POST /api/tonk/launch`. The server reads the settings again, checks every
+rule, simulates `launchMission` from the creator's address and returns the
+unsigned transaction with the simulated amounts; it holds no key. If the
+settings moved since the screen showed them, nothing is sent and the review
+shows the new figures. The creator's wallet sends the transaction, the page
+moves to `/launch?tx=<hash>`, and `GET /api/tonk/tx?hash=…` follows it. A
+launch counts only when a confirmed receipt carries the launchpad's
+`MissionLaunched` event; the receipt screen shows what the chain recorded. A
+reload while it confirms keeps watching and sends nothing.
+
+**Kept in the browser.** A draft is saved only by "Save draft"
+(`tonkpad-launch-draft:<chainId>`). A referrer's address from `?ref=` is
+remembered per network (`tonkpad-ref:<chainId>`) for when curve trading opens
+on the site. Token images wait for hosting: until then a token shows its
+letter.
+
+**Settings.** `NEXT_PUBLIC_TONK_NETWORK` (above). `TONK_RPC_URL` (server only,
+optional) replaces the testnet's public RPC; it is used only if it answers
+with chain 46630. The three routes have their own allowances in
+`src/shared/lib/rate-limit.ts`.
+
+**The testnet site on Vercel.** A `testnet` branch gets its own preview
+deployment. In the project's Environment Variables add
+`NEXT_PUBLIC_TONK_NETWORK=testnet` for **Preview**, limited to the `testnet`
+branch, then redeploy that branch. Production's variables stay as they are,
+so production keeps "coming soon". The preview also needs
+`NEXT_PUBLIC_REOWN_PROJECT_ID`; if the wallet window won't open there, add the
+preview's domain to the Reown project's allowed origins. Test ETH comes from
+the faucet linked on the screen.
+
+**Tests** never send a transaction. `src/shared/tests/tonk-*.test.ts` cover
+the curve against the contract's numbers, the rules, the metadata and the
+server side (the RPC is mocked); `src/modules/launch/tests/` the form.
+`e2e/launch.spec.ts` runs the studio in `mock` mode, with `/api/tonk/*` and
+the balance stubbed in the browser and the stub wallet "signing";
+`e2e/live/launch.live.ts` checks that a production-like build keeps Launch
+closed. Real launches are only ever made by a person, in their own wallet.
 
 ## Live data
 

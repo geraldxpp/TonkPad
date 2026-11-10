@@ -47,6 +47,7 @@ html:lang(ru) {
   --color-track: var(--track);
   --color-sweep: var(--sweep);
   --color-card-ink: var(--card-ink);
+  --color-art-ink: var(--art-ink);
 
   --font-*: initial;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;

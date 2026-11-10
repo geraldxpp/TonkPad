@@ -1,3 +1,5 @@
+import { tonkNetwork } from "@/shared/tonk/networks";
+import { tonkRpcUrl } from "@/shared/tonk/server/client";
 import type { ChainId } from "@/shared/types/chain";
 import type { WalletBalances } from "./balances";
 import { jsonRpc, readEvmBalances, readSolanaBalances } from "./rpc";
@@ -17,6 +19,9 @@ const value = (raw: string | undefined) => (raw && raw.trim() ? raw.trim() : nul
  * Next never puts them in a browser bundle.
  */
 export function walletRpcUrl(chain: ChainId, env: Readonly<Record<string, string | undefined>> = process.env): string {
+  // The testnet site reads Robinhood Chain Testnet: the mainnet RPC would report mainnet balances for the same address.
+  const testnet = tonkNetwork();
+  if (chain === "rh" && testnet) return tonkRpcUrl(testnet, env);
   if (chain === "rh") return value(env.ROBINHOOD_RPC_URL) ?? PUBLIC_RPC.rh;
   const custom = value(env.SOLANA_RPC_URL);
   if (custom) return custom;

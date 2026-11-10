@@ -1,7 +1,7 @@
 import { overLimit } from "@/shared/lib/rate-limit";
 import { swapConfig, SwapError } from "@/shared/swap/server/config";
 import { buildSwap } from "@/shared/swap/server/engine";
-import { bodyRecord, errorResponse, jsonResponse, parseSwapRequest } from "@/shared/swap/server/request";
+import { bodyRecord, errorResponse, jsonResponse, parseSwapRequest, refuseOnTestnet } from "@/shared/swap/server/request";
 
 /**
  * A firm quote and the unsigned transaction(s) for the taker's wallet:
@@ -12,6 +12,7 @@ export async function POST(request: Request) {
   const limited = overLimit(request, "build");
   if (limited) return limited;
   try {
+    refuseOnTestnet();
     const swap = parseSwapRequest(await bodyRecord(request));
     if (!swap.taker) throw new SwapError("invalid", "taker required", 400);
     return jsonResponse(await buildSwap({ ...swap, taker: swap.taker }, swapConfig()));

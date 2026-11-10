@@ -12,6 +12,8 @@ import type { TrackedToken } from "./model";
  * - creator bought over 15% at launch: −20 (over 5%: −8), waived when the
  *   creator has locked half that buy for 30+ days (locks.ts)
  * - half or more of the creator's tokens locked for 30+ days: +10
+ * - Crew Rewards of 1% or more on every curve trade (tonkfun.fun launches;
+ *   the owner's call, 10 Nov 2026): +5
  * - valued at $20K+, the 10 largest wallets hold over 50%: −20 (30–50%: −10,
  *   under 20%: +5)
  * - at least 30 trades in the last hour with a healthy buy/sell mix: +8
@@ -63,6 +65,7 @@ function launchPoints(token: TrackedToken, now: number): number {
 export function missionScore(token: TrackedToken, now: number): { score: number; level: ScoreLevel } {
   let score = 50 + launchPoints(token, now);
   if (poolLockedOrBurned(token)) score += 10;
+  if ((token.crewBps ?? 0) >= 100) score += 5;
 
   const h1 = token.windows.h1;
   const trades = h1.buys + h1.sells;

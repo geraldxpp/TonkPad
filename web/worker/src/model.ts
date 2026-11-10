@@ -89,6 +89,8 @@ export interface TrackedToken {
   locks?: StreamLock[];
   /** The creator wallet's balance at the last holder check, raw units (0 when outside the 20 largest). */
   creatorHeld?: number;
+  /** tonkfun.fun launches: the Crew Rewards fee on every curve trade, in basis points (0 or 100–400). */
+  crewBps?: number;
 
   // Short histories for the sparkline and buy velocity.
   /** [time, market cap], oldest first, thinned as it grows. */
