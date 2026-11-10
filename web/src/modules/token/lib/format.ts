@@ -34,11 +34,7 @@ export function formatSeconds(seconds: number): string {
   return `${Math.floor(seconds / 86_400)}d`;
 }
 
-/** "0x5e1d7c…a0f3" → "0x5e1d…a0f3"; Solana addresses keep 4 + 4 like the rest of the app. */
-export function shortAddress(address: string): string {
-  if (address.length <= 13) return address;
-  return address.startsWith("0x") ? `${address.slice(0, 6)}…${address.slice(-4)}` : `${address.slice(0, 4)}…${address.slice(-4)}`;
-}
+export { shortAddress } from "@/shared/lib/address";
 
 /** Whole days between two times in ms. */
 export function daysBetween(from: number, to: number): number {

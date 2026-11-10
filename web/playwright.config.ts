@@ -5,7 +5,8 @@ const baseURL = `http://127.0.0.1:${PORT}`;
 
 /**
  * E2E runs against a production build (`next build` + `next start`) so the
- * dev-only overlay never shows up in screenshots.
+ * dev-only overlay never shows up in screenshots. The build swaps in the stub
+ * wallet (NEXT_PUBLIC_WALLET_STUB=1).
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -26,6 +27,8 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npm run start -- -p ${PORT} -H 127.0.0.1`,
     url: baseURL,
+    // The stub wallet stands in for Reown: no real wallets or wallet network in tests.
+    env: { NEXT_PUBLIC_WALLET_STUB: "1" },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },

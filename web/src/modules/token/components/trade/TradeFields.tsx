@@ -3,10 +3,12 @@
 import { useId } from "react";
 import { CHAINS } from "@/shared/config/chains";
 import { fmt } from "@/shared/i18n/config";
+import type { Dictionary } from "@/shared/i18n/dictionaries/en";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatUsd } from "@/shared/lib/format";
+import type { ChainId } from "@/shared/types/chain";
 import { coinOf } from "../../lib/format";
-import { formatTokens, plainAmount, SLIPPAGE, type TradeQuote, type TradeSide } from "../../lib/trade";
+import { formatTokens, SLIPPAGE, type TradeQuote, type TradeSide } from "../../lib/trade";
 import { CoinPill } from "./CoinPill";
 import { TradeBox } from "./TradeBox";
 import type { TradeToken } from "./types";
@@ -19,24 +21,30 @@ interface PayFieldProps {
   amount: string;
   onAmount: (value: string) => void;
   quote: TradeQuote;
-  balance: number;
-  holdingM: number;
+  /** The line beside the label: "Balance 0.25 ETH on Robinhood Chain", "Checking balance…". */
+  balanceText: string;
+  /** Shows the balance in the loss colour (an empty wallet on the buy side). */
+  empty: boolean;
+}
+
+/** The wallet's coin on the token's chain, as the buy side's balance line shows it: "0.25 ETH on Robinhood Chain". */
+export function coinOnChain(tr: Dictionary["token"]["trade"], chain: ChainId, amount: string): string {
+  return fmt(tr.onChain, { amount, unit: coinOf(chain), chain: CHAINS[chain].name });
 }
 
 /** "You pay" (or "You sell"): the amount, the wallet's balance and its USD value. */
-export function PayField({ token, side, amount, onAmount, quote, balance, holdingM }: PayFieldProps) {
+export function PayField({ token, side, amount, onAmount, quote, balanceText, empty }: PayFieldProps) {
   const { t } = useI18n();
   const tr = t.token.trade;
   const id = useId();
   const buy = side === "buy";
   const coin = coinOf(token.chain);
-  const held = buy ? fmt(tr.onChain, { amount: plainAmount(balance), unit: coin, chain: CHAINS[token.chain].name }) : `${holdingM}M ${token.ticker}`;
   return (
     <TradeBox
       top={
         <>
           <label htmlFor={id}>{buy ? tr.pay : tr.sellAmount}</label>
-          <span className={buy && balance === 0 ? "text-neg" : undefined}>{fmt(tr.balance, { amount: held })}</span>
+          <span className={empty ? "text-neg" : undefined}>{balanceText}</span>
         </>
       }
       foot={<span className="font-mono text-[12px] text-text-3">{fmt(tr.approx, { usd: formatUsd(quote.payUsd) })}</span>}

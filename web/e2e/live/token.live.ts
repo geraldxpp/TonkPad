@@ -33,9 +33,10 @@ test("observed charts show the selected market history without mock trades or ba
 
   await expect(page.getByText("Trade history is not available for this token yet.")).toBeVisible();
   const trade = page.getByRole("region", { name: "Trade", exact: true });
-  await expect(trade.getByText("Wallet connection and trading are coming soon. No funds can be moved here yet.")).toBeVisible();
-  await expect(trade.getByRole("button")).toHaveCount(0);
-  await expect(trade.getByRole("textbox")).toHaveCount(0);
+  // No simulated wallet: balances wait for a real one (e2e/live/wallet.live.ts).
+  await expect(trade.getByText("Balance —")).toBeVisible();
+  await expect(trade.getByRole("button", { name: "Connect wallet" })).toBeVisible();
+  await expect(trade.getByRole("button", { name: /Need funds/ })).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Captain Boo" })).toHaveCount(0);
   await expect(page.getByText("Crew Rewards 2%", { exact: true })).toHaveCount(0);
 });

@@ -8,6 +8,7 @@ import { Segmented, type SegmentedOption } from "@/shared/ui/Segmented";
 import { useTheme } from "../hooks/useTheme";
 import type { Theme } from "../lib/theme";
 import { LanguageLinks } from "./LanguageLinks";
+import { WalletPanel } from "./WalletPanel";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -17,7 +18,7 @@ interface SettingsDialogProps {
 const HEADING = "m-0 text-[12px] font-semibold tracking-[0.04em] text-text-3 uppercase";
 
 /**
- * Theme and language, opened from More. A modal <dialog>: a bottom sheet on
+ * Wallet, theme and language, opened from More. A modal <dialog>: a bottom sheet on
  * phones, a panel beside the rail on desktop. Escape, the close button or a
  * click on the backdrop closes it, and focus returns to More.
  */
@@ -26,6 +27,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { t } = useI18n();
   const { theme, setTheme } = useTheme();
   const titleId = useId();
+  const walletId = useId();
   const themeId = useId();
   const languageId = useId();
 
@@ -60,6 +62,14 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             <X size={18} strokeWidth={1.8} />
           </IconButton>
         </div>
+        <section aria-labelledby={walletId} className="flex flex-col gap-2.5">
+          <h3 id={walletId} className={HEADING}>
+            {t.wallet.title}
+          </h3>
+          <div className="rounded-[14px] border border-line bg-surface p-1.5">
+            {open ? <WalletPanel onClose={onClose} /> : null}
+          </div>
+        </section>
         <section aria-labelledby={themeId} className="flex flex-col gap-2.5">
           <h3 id={themeId} className={HEADING}>
             {t.prefs.theme}

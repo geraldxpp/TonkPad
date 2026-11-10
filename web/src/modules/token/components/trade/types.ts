@@ -3,6 +3,8 @@ import type { LaunchpadId } from "@/shared/types/launchpad";
 
 /** What the trade panel needs to know about the token. */
 export interface TradeToken {
+  /** The token's contract (EVM) or mint (Solana) address. */
+  address: string;
   name: string;
   ticker: string;
   art: string;

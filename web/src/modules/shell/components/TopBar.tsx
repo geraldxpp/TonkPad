@@ -1,7 +1,6 @@
-import { Bell, Wallet } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Suspense } from "react";
 import { getI18n } from "@/shared/i18n/server";
-import { Button } from "@/shared/ui/Button";
 import { IconButton } from "@/shared/ui/IconButton";
 import type { ShellData } from "../data/shell.mock";
 import { ChainFilter } from "./ChainFilter";
@@ -13,23 +12,11 @@ import { SearchField } from "./SearchField";
 import { SearchToggle } from "./SearchToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { TickerTape } from "./TickerTape";
+import { WalletButton } from "./WalletButton";
 
 interface TopBarProps {
   data: ShellData;
 }
-
-/**
- * The wallet button on phones. Its flex basis is 0, so it can never push the
- * row into wrapping: it grows up to its full label and, if a big system font
- * leaves too little room, the label ends in an ellipsis instead. Under 340 px
- * it is a 32 px wallet icon. (The 340 px split uses ranges so no two
- * breakpoints set the same property.)
- */
-const PHONE_CTA = [
-  "max-md:h-8 max-md:min-w-0 max-md:flex-[1_1_0%] max-md:text-[13px]",
-  "min-[340px]:max-md:max-w-max min-[340px]:max-md:px-3",
-  "max-[339px]:max-w-8 max-[339px]:px-0",
-].join(" ");
 
 /**
  * Search, live ticker, chain filter, language, theme, alerts and wallet. The
@@ -42,7 +29,7 @@ const PHONE_CTA = [
  * one row with "Connect wallet" in full on any phone, the bar uses 32 px
  * icon buttons with 16 px icons, a 28 px logo (the wordmark returns from
  * 640 px), a globe-only language button and 4 px gaps, and the wallet button
- * can't wrap (see PHONE_CTA). Languages whose phrase is much longer than
+ * can't wrap (see WalletButton). Languages whose phrase is much longer than
  * English use their short "Connect" (the `connect` message).
  */
 export async function TopBar({ data }: TopBarProps) {
@@ -77,11 +64,7 @@ export async function TopBar({ data }: TopBarProps) {
           <Bell size={18} strokeWidth={1.8} className="max-md:size-4" />
           <span className="absolute top-[9px] right-[9px] size-2 rounded-full bg-accent shadow-[0_0_0_2px_var(--surface)] max-md:top-[6px] max-md:right-[6px]" />
         </IconButton>
-        <Button variant="cta" size="md" aria-label={t.header.connectWallet} className={PHONE_CTA}>
-          <Wallet size={16} strokeWidth={2} className="hidden max-[339px]:block md:block" />
-          <span className="max-md:hidden">{t.header.connectWallet}</span>
-          <span className="min-w-0 truncate md:hidden max-[339px]:hidden">{t.header.connect}</span>
-        </Button>
+        <WalletButton />
       </header>
       <div className="border-b border-line px-2 md:hidden">
         <TickerTape items={data.tape} label={t.header.ticker} />

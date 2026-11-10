@@ -5,7 +5,9 @@ import type { TokenDetail } from "@/shared/types/token-detail";
 import { formatDay } from "../lib/format";
 import { AgentChat } from "./mission/AgentChat";
 import { MissionTelemetry } from "./mission/MissionTelemetry";
+import { LiveTradePanel } from "./trade/LiveTradePanel";
 import { TradePanel } from "./trade/TradePanel";
+import type { TradeToken } from "./trade/types";
 
 /** The right column: trade, mission telemetry and the token's agent (when it has one). */
 export function TokenAside({ detail }: { detail: TokenDetail }) {
@@ -13,23 +15,22 @@ export function TokenAside({ detail }: { detail: TokenDetail }) {
   const { token, devLock, crew, agent } = detail;
   const live = detail.source === "live";
   const curvePct = token.curve < 1 ? Math.round(token.curve * 100) : null;
+  const trade: TradeToken = {
+    address: detail.contract,
+    name: token.name,
+    ticker: token.ticker,
+    art: token.art,
+    chain: token.chain,
+    launchpad: token.launchpad,
+    onCurve: curvePct !== null,
+    priceUsd: detail.priceUsd ?? 0,
+    nativeUsd: detail.nativeUsd ?? 0,
+    feePct: detail.feePct,
+    crewPct: crew?.sharePct ?? null,
+  };
   return (
     <aside aria-label={t.token.aside} className="flex min-w-0 max-w-[420px] flex-[1_1_360px] flex-col gap-5 max-md:max-w-none">
-      <TradePanel
-        live={live}
-        token={{
-          name: token.name,
-          ticker: token.ticker,
-          art: token.art,
-          chain: token.chain,
-          launchpad: token.launchpad,
-          onCurve: curvePct !== null,
-          priceUsd: detail.priceUsd ?? 0,
-          nativeUsd: detail.nativeUsd ?? 0,
-          feePct: detail.feePct,
-          crewPct: crew?.sharePct ?? null,
-        }}
-      />
+      {live ? <LiveTradePanel token={trade} /> : <TradePanel token={trade} />}
       <MissionTelemetry devLock={devLock} crew={crew} live={live} />
       {agent && !live && detail.priceUsd !== null ? (
         <AgentChat

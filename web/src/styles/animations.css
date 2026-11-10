@@ -130,6 +130,17 @@
   animation: tk-in 0.3s ease;
 }
 
+/* The wallet's spinner while its code loads or a connection is made. */
+@keyframes tk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tk-spin {
+  animation: tk-spin 0.9s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

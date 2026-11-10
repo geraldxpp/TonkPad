@@ -184,16 +184,67 @@ The worker does not keep complete developer vesting schedules. These fields
 remain unavailable, and the chart identifies its history as observed samples
 rather than exchange trade candles. No volume is invented for those candles. An outage preserves
 the last good view with a warning; an unknown address shows an unavailable
-token state, with no fallback to a mock token. Live pages show trading as
-coming soon, without simulated balances, swaps, bridging or Captain Boo.
-Full history/lock integrations and real wallets and swaps remain later work;
-see `../prompts/02-token-detail.md`.
+token state, with no fallback to a mock token. Live pages show the connected
+wallet's real balances (see *Wallets*) with trading still closed, and no
+simulated balances, swaps, bridging or Captain Boo. Full history/lock
+integrations, quotes and swaps remain later work; see
+`../prompts/02-token-detail.md`.
 
 The browser suite captures `e2e/screenshots/token-1440.png` and
 `token-1440-light.png`, plus German dark and Russian light phone views.
 The interactive chart uses the same candle recipes as the reference, with
 TradingView's axis spacing and attribution. The app keeps its approved logo,
 chain logos, theme controls, and blue/green palette.
+
+## Wallets
+
+Phase 3 starts with connecting and reading only: nothing is ever signed or
+sent. "Connect wallet" in the top bar (and the Wallet section of the More
+sheet) offers a Solana or a Robinhood Chain wallet. Once connected, the button
+shows the chain's mark and the short address. Its menu copies the full
+address, connects or switches to the other chain (a wallet can be connected on
+both at once) and disconnects everything. On a live token page the trade panel
+shows the wallet's SOL or ETH and its holding of that token. Its trade button
+stays disabled, with a note that trading opens soon. Mock token pages keep the
+simulated panel.
+
+- **Library.** Reown AppKit (`@reown/appkit` 1.8.24) with its Solana and
+  Wagmi adapters, in `src/shared/wallet/appkit-driver.ts`. Robinhood Chain is
+  viem's `robinhood` chain (id 4663, public RPC). The app turns off email and
+  social sign-in, Reown Authentication (sign-in by signature), swaps, on-ramp,
+  send, activity and analytics. The Reown dashboard can override most of these
+  once a feature there carries its own settings, so keep them off there too.
+  (On 10 Nov 2026 none did, so the app's switches applied.) Even with
+  analytics off, AppKit always reports three events to Reown: initialize,
+  connect success and social-login success.
+- **Coinbase, Base and Safe connectors** are off: `@wagmi/connectors` is
+  aliased to an empty module in `next.config.ts`. The real one would pull
+  Coinbase's server SDK into the build. Coinbase Wallet still connects as a
+  browser extension or through WalletConnect. `package.json` pins
+  `@wagmi/connectors` to 8.2.2 (an npm override), the version wagmi 3.7.9
+  itself uses.
+- **Loaded on demand.** `src/shared/wallet/wallet.ts` is a small store. The
+  wallet library is a dynamic import, made on the first Connect, or once the
+  page is idle for someone who connected before (`tonkpad-wallet` in
+  localStorage). Explore and the token page load none of it: about 3–4 KB
+  gzipped of wallet UI joins their first load, and AppKit (about 1.5 MB
+  uncompressed) arrives only on Connect.
+- **Balances** come from `GET /api/wallet/[chain]/[owner]?token=<address>`.
+  It answers only for addresses in the chain's own format and reads through
+  the server: `SOLANA_RPC_URL`, else Helius with `HELIUS_API_KEY`, else
+  Solana's public RPC; `ROBINHOOD_RPC_URL`, else Robinhood Chain's public
+  RPC. Solana's public RPC refuses browser requests, so reading in the browser
+  isn't an option. The CDN may share a response for 5 s; the page refreshes
+  every 15 s while visible.
+- **Keys.** Only `NEXT_PUBLIC_REOWN_PROJECT_ID` reaches the browser. In the
+  Reown dashboard (dashboard.reown.com), add every domain the site runs on to
+  the project's allowed domains. Without the project id the wallet menu says
+  connecting is unavailable.
+- **Tests.** The e2e builds set `NEXT_PUBLIC_WALLET_STUB=1`; production builds
+  inline it as empty, so the stub is left out. The stub wallet
+  (`src/shared/wallet/stub-driver.ts`) connects at once with fixed addresses,
+  so no real wallet or Reown network is needed. The live suite reads balances
+  from a local fixture RPC (`e2e/live/fixture-rpc.ts`, port 8789).
 
 ## Live data
 
@@ -346,6 +397,9 @@ as JSON. The app never calls the data providers itself.
     `{"ok":true,…}`; `/v1/*` answers 401 without the token.
 
   Then in Vercel set `WORKER_URL` (that domain, with `https://`) and the same
-  `WORKER_TOKEN` for Production, and redeploy. Without `WORKER_URL` the site
+  `WORKER_TOKEN` for Production, and redeploy. For wallets, also set
+  `NEXT_PUBLIC_REOWN_PROJECT_ID`, plus `HELIUS_API_KEY` and `ROBINHOOD_RPC_URL`
+  so balances don't depend on the rate-limited public RPCs (server-only, never
+  `NEXT_PUBLIC_`). Without `WORKER_URL` the site
   shows the mock data. In live mode `/` streams in at request time behind a
   loading skeleton.

@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { FIXTURE_WORKER_TOKEN, FIXTURE_WORKER_URL } from "./e2e/live/fixtures";
+import { FIXTURE_RPC_URL } from "./e2e/live/wallet-fixtures";
 
 /** Run after the mock suite: both configurations build into .next. */
 export default defineConfig({
@@ -19,9 +20,22 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
+      command: "npx tsx e2e/live/fixture-rpc.ts",
+      url: `${FIXTURE_RPC_URL}/health`,
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
       command: "npm run build && npm run start -- -p 3101 -H 127.0.0.1",
       url: "http://127.0.0.1:3101",
-      env: { WORKER_URL: FIXTURE_WORKER_URL, WORKER_TOKEN: FIXTURE_WORKER_TOKEN },
+      // The stub wallet, and wallet balances read from the fixture RPC instead of Helius or Alchemy.
+      env: {
+        WORKER_URL: FIXTURE_WORKER_URL,
+        WORKER_TOKEN: FIXTURE_WORKER_TOKEN,
+        NEXT_PUBLIC_WALLET_STUB: "1",
+        SOLANA_RPC_URL: `${FIXTURE_RPC_URL}/sol`,
+        ROBINHOOD_RPC_URL: `${FIXTURE_RPC_URL}/rh`,
+      },
       reuseExistingServer: false,
       timeout: 300_000,
     },

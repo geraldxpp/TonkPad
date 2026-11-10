@@ -52,6 +52,23 @@ export const en = {
     languageMenu: "Language: {language}",
     close: "Close",
   },
+  wallet: {
+    title: "Wallet",
+    /** The top bar's button while a wallet is connected. */
+    account: "Wallet {address} on {chain}",
+    connecting: "Connecting wallet…",
+    choose: "Connect a wallet",
+    connectOn: "Connect a {chain} wallet",
+    loading: "Loading wallets…",
+    /** Under the chains in the wallet menu: connecting never signs anything. */
+    note: "Connecting shares only your address. Nothing is signed.",
+    connectedOn: "Connected on {chain}",
+    copy: "Copy address",
+    copied: "Address copied",
+    switchTo: "Switch to {chain}",
+    disconnect: "Disconnect",
+    unavailable: "Wallet connection is unavailable right now. Try again later.",
+  },
   hero: {
     overview: "Overview",
     live: "Live on Solana & Robinhood Chain",
@@ -189,7 +206,7 @@ export const en = {
       loading: "Loading token details…",
       notFound: "This token is no longer available in the live feed.",
       failed: "Token details are temporarily unavailable. Retrying…",
-      tradingSoon: "Wallet connection and trading are coming soon. No funds can be moved here yet.",
+      tradingSoon: "Trading opens soon: nothing can be signed or sent yet.",
     },
     crumbs: "Breadcrumb",
     artAlt: "{name} token art",
@@ -354,6 +371,8 @@ export const en = {
       toast: "Bridged {amount} {unit} to {chain} via {provider}. Ready to buy.",
       curveVenue: "{pad} curve",
       soon: "Trading opens soon: nothing was bought or sold.",
+      checking: "Checking balance…",
+      balanceFailed: "Balance unavailable",
     },
     bridge: {
       title: "Bridge to {chain}",

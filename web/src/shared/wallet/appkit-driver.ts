@@ -1,0 +1,119 @@
+import { createAppKit } from "@reown/appkit";
+import { SolanaAdapter } from "@reown/appkit-adapter-solana";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { robinhood, solana } from "@reown/appkit/networks";
+import type { ChainId } from "@/shared/types/chain";
+import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
+import type { WalletDriver } from "./types";
+
+/** Robinhood Chain is viem's `robinhood` (chain id 4663, its public RPC and Blockscout). */
+const NETWORKS = { sol: solana, rh: robinhood } as const;
+
+/** How long a first Connect waits for AppKit to set up before opening the picker anyway. */
+const READY_WAIT_MS = 4_000;
+
+/** The picker in the page's theme: the CTA blue as its accent and the app's UI font. Read from the tokens, never hard-coded. */
+function themeVariables() {
+  const cta = getComputedStyle(document.documentElement).getPropertyValue("--cta").trim();
+  return {
+    "--w3m-accent": cta,
+    "--w3m-font-family": getComputedStyle(document.body).fontFamily,
+    // Above the sticky top bar (z-30) and the phone tab bar (z-40).
+    "--w3m-z-index": 1000,
+  };
+}
+
+const pageTheme = () => (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+
+/**
+ * Reown AppKit, loaded only when the wallet is first needed. Its picker only
+ * connects wallets here: email and social sign-in, Reown Authentication,
+ * swaps, on-ramp, send and activity are off (the Reown dashboard must keep
+ * them off too, since its settings can override these). The Coinbase and Base
+ * SDK connectors are off as well; those wallets still connect as browser
+ * extensions or through WalletConnect. Nothing here signs or sends anything.
+ */
+export async function createAppKitDriver(projectId: string): Promise<WalletDriver> {
+  const origin = window.location.origin;
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content || "Tonkpad.fun";
+  const appKit = createAppKit({
+    projectId,
+    adapters: [new SolanaAdapter(), new WagmiAdapter({ projectId, networks: [robinhood] })],
+    networks: [solana, robinhood],
+    defaultNetwork: solana,
+    metadata: { name: "Tonkpad.fun", description, url: origin, icons: [`${origin}/icon.png`] },
+    themeMode: pageTheme(),
+    themeVariables: themeVariables(),
+    features: {
+      analytics: false,
+      email: false,
+      socials: false,
+      reownAuthentication: false,
+      swaps: false,
+      onramp: false,
+      send: false,
+      receive: false,
+      history: false,
+    },
+    enableCoinbase: false,
+    enableBaseAccount: false,
+  });
+
+  const read = () => {
+    const state = appKit.getState();
+    const view: AppKitView = {
+      initialized: state.initialized,
+      open: state.open,
+      activeNamespace: appKit.getActiveChainNamespace(),
+      accounts: { solana: appKit.getAccount(NAMESPACES.sol), eip155: appKit.getAccount(NAMESPACES.rh) },
+    };
+    return toSnapshot(view);
+  };
+
+  let snapshot = read();
+  const listeners = new Set<() => void>();
+  const refresh = () => {
+    const next = read();
+    if (sameSnapshot(next, snapshot)) return;
+    snapshot = next;
+    for (const listener of listeners) listener();
+  };
+  appKit.subscribeAccount(refresh, NAMESPACES.sol);
+  appKit.subscribeAccount(refresh, NAMESPACES.rh);
+  appKit.subscribeState(refresh);
+  appKit.subscribeNetwork(refresh);
+
+  // Wait for setup (and a saved session coming back), but never leave Connect spinning on a slow network.
+  await Promise.race([appKit.ready().then(refresh), new Promise((resolve) => setTimeout(resolve, READY_WAIT_MS))]);
+
+  /**
+   * The picker, listing only the chain's wallets. The chain is made active
+   * first: with no wallet on it yet that's just a setting, and it keeps the
+   * picker from detouring through its network-switch screen.
+   */
+  const pick = async (chain: ChainId) => {
+    if (appKit.getActiveChainNamespace() !== NAMESPACES[chain]) await appKit.switchNetwork(NETWORKS[chain]);
+    await appKit.open({ view: "Connect", namespace: NAMESPACES[chain] });
+  };
+
+  return {
+    snapshot: () => snapshot,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    connect: pick,
+    async switchChain(chain) {
+      if (!snapshot.accounts[chain]) return pick(chain);
+      await appKit.switchNetwork(NETWORKS[chain]);
+      refresh();
+    },
+    disconnect: () => appKit.disconnect(),
+    setTheme(theme) {
+      appKit.setThemeMode(theme);
+      appKit.setThemeVariables(themeVariables());
+    },
+  };
+}

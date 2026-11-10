@@ -18,12 +18,19 @@
     "worker:dev": "tsx watch --env-file=.env.local worker/src/main.ts"
   },
   "dependencies": {
+    "@reown/appkit": "1.8.24",
+    "@reown/appkit-adapter-solana": "1.8.24",
+    "@reown/appkit-adapter-wagmi": "1.8.24",
+    "@tanstack/react-query": "5.104.5",
+    "@wagmi/core": "3.6.7",
     "lightweight-charts": "5.2.1",
     "lucide-react": "^1.69.0",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "viem": "2.57.12",
+    "wagmi": "3.7.9"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
@@ -41,5 +48,8 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "@wagmi/connectors": "8.2.2"
   }
 }

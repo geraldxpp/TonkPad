@@ -1,22 +1,13 @@
+import { isEvmAddress, isSolanaAddress, sameAddress } from "@/shared/lib/address";
 import { CHART_TIMEFRAMES, type TokenDetail } from "@/shared/types/token-detail";
 
 export type LiveTokenResult = { status: "ok"; detail: TokenDetail } | { status: "not-found" } | { status: "unavailable" };
 
-const BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const EVM = /^0x[\da-fA-F]{40}$/;
 
 /** Accept only one EVM address or a base58-encoded 32-byte Solana public key. */
 export function isTokenAddress(address: string): boolean {
-  if (EVM.test(address)) return true;
-  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)) return false;
-  let value = BigInt(0);
-  for (const character of address) value = value * BigInt(58) + BigInt(BASE58.indexOf(character));
-  const leading = address.match(/^1*/)?.[0].length ?? 0;
-  return leading + (value === BigInt(0) ? 0 : Math.ceil(value.toString(16).length / 2)) === 32;
-}
-
-function sameAddress(left: string, right: string): boolean {
-  return EVM.test(right) ? left.toLowerCase() === right.toLowerCase() : left === right;
+  return isEvmAddress(address) || isSolanaAddress(address);
 }
 
 const record = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
