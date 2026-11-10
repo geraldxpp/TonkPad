@@ -1,3 +1,4 @@
+import { overLimit } from "@/shared/lib/rate-limit";
 import { cached } from "@/shared/swap/server/cache";
 import { swapConfig } from "@/shared/swap/server/config";
 import { quoteSwap } from "@/shared/swap/server/engine";
@@ -8,6 +9,8 @@ import { errorResponse, jsonResponse, parseSwapRequest, queryRecord } from "@/sh
  * Identical requests within a few seconds share one upstream call.
  */
 export async function GET(request: Request) {
+  const limited = overLimit(request, "quote");
+  if (limited) return limited;
   try {
     const swap = parseSwapRequest(queryRecord(request));
     const key = `quote:${swap.chain}:${swap.from}:${swap.to}:${swap.amount}:${swap.slippageBps}:${swap.taker ?? ""}`;

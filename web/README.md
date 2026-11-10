@@ -295,6 +295,15 @@ the contract itself on Robinhood Chain).
 switch `SWAP_TRADING=on`. Without the switch quotes still show, the button
 says "Trading opens soon" and the build and send routes refuse (403).
 
+**Rate limits.** The routes that spend those keys (quote, token, build, send,
+status, and `/api/wallet/*`) give each client address an allowance
+(`src/shared/lib/rate-limit.ts`): a burst, then a steady rate, well above the
+app's own pace (quotes and balances every 15 s, status every 2 s while a swap
+confirms). Past it they answer 429 `{ error: "busy" }` with `Retry-After`,
+never cached, and the screens show "busy" and retry. The count lives in each
+server instance's memory, so it stops one script, not a crowd; a shared limit
+would need a Vercel Firewall rule or a store. Local requests aren't limited.
+
 **Fee wallet setup.** A brand-new Solana account can't receive less than
 about 0.00089 SOL, so until `SOLANA_FEE_WALLET` holds some SOL, fees on small
 swaps are skipped rather than failing the swap. Send it about 0.002 SOL once.

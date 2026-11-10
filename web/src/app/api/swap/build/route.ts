@@ -1,3 +1,4 @@
+import { overLimit } from "@/shared/lib/rate-limit";
 import { swapConfig, SwapError } from "@/shared/swap/server/config";
 import { buildSwap } from "@/shared/swap/server/engine";
 import { bodyRecord, errorResponse, jsonResponse, parseSwapRequest } from "@/shared/swap/server/request";
@@ -8,6 +9,8 @@ import { bodyRecord, errorResponse, jsonResponse, parseSwapRequest } from "@/sha
  * until SWAP_TRADING=on.
  */
 export async function POST(request: Request) {
+  const limited = overLimit(request, "build");
+  if (limited) return limited;
   try {
     const swap = parseSwapRequest(await bodyRecord(request));
     if (!swap.taker) throw new SwapError("invalid", "taker required", 400);

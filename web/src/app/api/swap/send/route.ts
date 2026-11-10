@@ -1,3 +1,4 @@
+import { overLimit } from "@/shared/lib/rate-limit";
 import { swapConfig, SwapError } from "@/shared/swap/server/config";
 import { bodyRecord, errorResponse, jsonResponse } from "@/shared/swap/server/request";
 import { sendSolanaTransaction } from "@/shared/swap/server/send";
@@ -7,6 +8,8 @@ const BASE64_TX = /^[A-Za-z0-9+/]{100,1644}={0,2}$/;
 
 /** Sends a wallet-signed Solana swap through the server's RPC: POST /api/swap/send { transaction }. */
 export async function POST(request: Request) {
+  const limited = overLimit(request, "send");
+  if (limited) return limited;
   try {
     if (!swapConfig().tradingOpen) throw new SwapError("closed", "trading is not open yet", 403);
     const { transaction } = await bodyRecord(request);

@@ -1,11 +1,14 @@
 import { isChainId } from "@/shared/config/chains";
 import { isChainAddress } from "@/shared/lib/address";
+import { overLimit } from "@/shared/lib/rate-limit";
 import { SwapError } from "@/shared/swap/server/config";
 import { errorResponse, jsonResponse } from "@/shared/swap/server/request";
 import { tokenInfo } from "@/shared/swap/server/token-info";
 
 /** A token's symbol, name, decimals and art, for a pasted address: GET /api/swap/token?chain=rh&address=0x… */
 export async function GET(request: Request) {
+  const limited = overLimit(request, "token");
+  if (limited) return limited;
   try {
     const params = new URL(request.url).searchParams;
     const chain = params.get("chain");
