@@ -1,7 +1,7 @@
-/* Tonkpad.fun design tokens, matched to the logo: gunmetal steel surfaces, the
-   electric blue of the chain glow and the green of the lock. They are mapped
-   into Tailwind in globals.css; the *-rgb channels feed the translucent tints,
-   e.g. rgb(var(--accent-rgb) / 0.14).
+/* tonkfun.fun design tokens: the cyan of the rounded-T logo on a graphite
+   workspace, with the lock green kept for gains, Locked and Buy. They are
+   mapped into Tailwind in globals.css; the *-rgb channels feed the translucent
+   tints, e.g. rgb(var(--accent-rgb) / 0.14).
 
    Dark is the default. <html data-theme="light"> switches the page to the
    light palette; any element marked data-theme="dark" (the token-card art
@@ -12,27 +12,27 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* Steel */
-  --bg: #07080a;
-  --bg-deep: #050607;
-  --surface: #0e1013;
-  --raised: #15181c;
-  --input: #1c2026;
-  --line: #1d2127;
-  --line-strong: #2c3139;
+  /* Graphite */
+  --bg: #080d10;
+  --bg-deep: #060a0d;
+  --surface: #0e161b;
+  --raised: #151f25;
+  --input: #1b2b33;
+  --line: #213039;
+  --line-strong: #344954;
 
-  --text: #f2f4f6;
-  --text-2: #a3a9b2;
-  --text-3: #7d838c; /* 5:1 on --bg */
+  --text: #f0f5f7;
+  --text-2: #a7b6be;
+  --text-3: #81959f; /* 6:1 on --bg */
 
-  /* Electric blue (chain glow) */
-  --accent: #3d8ef0;
-  --accent-rgb: 61 142 240;
-  --accent-text: #7db8f5;
-  --cta: #4a9cf5;
-  --on-cta: #04101e;
+  /* Cyan (the rounded T) */
+  --accent: #00d7e8;
+  --accent-rgb: 0 215 232;
+  --accent-text: #58e5ef;
+  --cta: #24dbea;
+  --on-cta: #03282e;
 
-  /* Lock green: the brand green for gains, Locked and Buy */
+  /* Lock green: gains, Locked and Buy */
   --neon: #3ddc84;
   --neon-rgb: 61 220 132;
   --pos: #3ddc84;
@@ -52,33 +52,33 @@
   --badge-on-alert: #1a0509;
   --scrim: rgba(2, 3, 4, 0.62);
 
-  --glow-accent: rgb(var(--accent-rgb) / 0.2);
-  --glow-neon: rgb(var(--neon-rgb) / 0.06);
-  --gradient-brand: linear-gradient(90deg, var(--accent), var(--neon));
+  --glow-accent: rgb(var(--accent-rgb) / 0.06);
+  --glow-neon: rgb(var(--neon-rgb) / 0.02);
+  --gradient-brand: linear-gradient(90deg, var(--accent), var(--accent-text));
 }
 
 /* ---- Colours: light ----
    Text colours keep at least 4.5:1 on --bg, --bg-deep, --surface and their
-   own 12–14% tints; the blue, green and red are deepened for white. */
+   own 12–14% tints; the cyan, green and red are deepened for white. */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg: #f3f5f8;
-  --bg-deep: #eef1f5;
+  --bg: #f2f6f8;
+  --bg-deep: #eaf1f4;
   --surface: #ffffff;
-  --raised: #f1f3f6;
-  --input: #e2e7ee;
-  --line: #e1e5eb;
-  --line-strong: #cdd3dc;
+  --raised: #edf3f6;
+  --input: #dfeaf0;
+  --line: #dbe5eb;
+  --line-strong: #c3d3dc;
 
   --text: #0d1117;
   --text-2: #3f4754;
   --text-3: #5e6675;
 
-  --accent: #2b74e4;
-  --accent-rgb: 43 116 228;
-  --accent-text: #1a5fc8;
-  --cta: #2468d6;
+  --accent: #087c8a;
+  --accent-rgb: 8 124 138;
+  --accent-text: #006c7a;
+  --cta: #087888;
   --on-cta: #ffffff;
 
   --neon: #18a957;
@@ -87,15 +87,15 @@
   --on-pos: #ffffff;
   --locked: #08703a;
 
-  --cyan: #087a8f;
+  --cyan: #057285;
   --neg: #c42339;
   --warn: #8a5a00;
-  --gold: #876200;
+  --gold: #805b00;
   --hot: #d4561c;
   --agent: #5b47c9;
   --track: #dce1e8;
 
-  --sweep: #2468d6;
+  --sweep: #087888;
   --badge-on-alert: #ffffff;
   --scrim: rgba(15, 23, 42, 0.32);
 
@@ -106,17 +106,17 @@
 /* ---- Elevation ----
    Set on the page only, so the dark card tiles cast the page theme's shadow. */
 :root {
-  --elevation-card: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+  --elevation-card: 0 2px 6px rgba(0, 0, 0, 0.12);
   --elevation-panel: 0 24px 48px -24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --elevation-menu: 0 24px 48px -16px rgba(0, 0, 0, 0.6);
   --elevation-cta: 0 8px 28px -4px rgb(var(--accent-rgb) / 0.45);
-  --elevation-card-hover: 0 0 0 1.5px rgb(var(--accent-rgb) / 0.75), 0 18px 40px -12px rgb(var(--accent-rgb) / 0.45);
+  --elevation-card-hover: 0 0 0 1px rgb(var(--accent-rgb) / 0.5), 0 8px 22px -12px rgb(var(--accent-rgb) / 0.2);
 }
 
 :root[data-theme="light"] {
-  --elevation-card: 0 18px 36px -22px rgba(16, 24, 40, 0.42);
+  --elevation-card: 0 2px 6px rgba(16, 24, 40, 0.04);
   --elevation-panel: 0 1px 2px rgba(16, 24, 40, 0.05), 0 16px 40px -24px rgba(16, 24, 40, 0.16);
   --elevation-menu: 0 1px 3px rgba(16, 24, 40, 0.06), 0 24px 48px -16px rgba(16, 24, 40, 0.22);
   --elevation-cta: 0 8px 22px -6px rgb(var(--accent-rgb) / 0.42);
-  --elevation-card-hover: 0 0 0 1.5px rgb(var(--accent-rgb) / 0.75), 0 18px 40px -14px rgb(var(--accent-rgb) / 0.32);
+  --elevation-card-hover: 0 0 0 1px rgb(var(--accent-rgb) / 0.5), 0 4px 12px -6px rgb(var(--accent-rgb) / 0.12);
 }

@@ -23,10 +23,6 @@ const COPIES = 3;
  */
 const LOOP_MIN_CARDS = 5;
 
-/** Bleeds the row into the page gutter so cards glide in and out at the edges. */
-const BLEED =
-  "-mx-[clamp(16px,3vw,40px)] px-[clamp(16px,3vw,40px)] [mask-image:linear-gradient(90deg,transparent,#000_clamp(16px,3vw,40px),#000_calc(100%_-_clamp(16px,3vw,40px)),transparent)]";
-
 export function HeatingUp({ cards }: HeatingUpProps) {
   const { t } = useI18n();
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -38,10 +34,7 @@ export function HeatingUp({ cards }: HeatingUpProps) {
     <section aria-labelledby="hot-title" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end gap-2">
         <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-0.5">
-          <h2
-            id="hot-title"
-            className="m-0 font-display text-[28px] leading-8 font-bold tracking-[-0.015em] max-md:text-[24px] max-md:leading-7"
-          >
+          <h2 id="hot-title" className="m-0 font-display text-[21px] leading-7 font-bold tracking-[-0.02em]">
             {t.heating.title}
           </h2>
           <span className="text-[12px] text-text-3">{t.heating.subtitle}</span>
@@ -64,10 +57,7 @@ export function HeatingUp({ cards }: HeatingUpProps) {
       <div
         ref={scrollerRef}
         data-testid="heating-cards"
-        className={cn(
-          "-my-2 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          BLEED,
-        )}
+        className="-mx-1 -my-2 overflow-x-auto px-1 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div ref={trackRef} className="flex w-max gap-4 max-md:gap-3">
           {Array.from({ length: loops ? COPIES : 1 }, (_, copy) => (
@@ -77,8 +67,8 @@ export function HeatingUp({ cards }: HeatingUpProps) {
               aria-hidden={copy > 0 || undefined}
               inert={copy > 0}
             >
-              {cards.map(({ token, color }, index) => (
-                <TokenCard key={token.address} token={token} color={color} rank={index + 1} />
+              {cards.map(({ token }, index) => (
+                <TokenCard key={token.address} token={token} rank={index + 1} />
               ))}
             </div>
           ))}

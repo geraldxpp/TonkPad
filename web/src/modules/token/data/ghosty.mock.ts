@@ -57,7 +57,7 @@ export const GHOSTY: TokenDetail = {
   priceUsd: 0.0000582,
   supply: 1_000_000_000,
   description:
-    "A friendly ghost haunting the timeline, launched natively on Tonkpad. The dev allocation is locked for 180 days, holders earn 2% of every trade, and Captain Boo answers questions from live on-chain data.",
+    "A friendly ghost haunting the timeline, launched natively on tonkfun.fun. The dev allocation is locked for 180 days, holders earn 2% of every trade, and Captain Boo answers questions from live on-chain data.",
   // The export shows both buttons; .example is a reserved domain, so these never reach a real site.
   links: { website: "https://ghosty.example", community: "https://community.ghosty.example" },
   stats: { txns24h: 1_284, liquidity: 8.4, liquidityIn: "curve", holdersChange1h: 96, top10Share: 0.182 },

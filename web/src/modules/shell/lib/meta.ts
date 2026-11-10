@@ -1,6 +1,6 @@
-export const SITE_NAME = "Tonkpad.fun";
+export const SITE_NAME = "tonkfun.fun";
 
-/** "Explore" → "Explore — Tonkpad.fun", the title every screen uses. */
+/** "Explore" → "Explore — tonkfun.fun", the title every screen uses. */
 export function pageTitle(name: string): string {
   return `${name} — ${SITE_NAME}`;
 }

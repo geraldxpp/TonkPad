@@ -16,7 +16,7 @@ export function HoldersTable({ holders, ticker }: { holders: readonly TokenHolde
   const h = t.token.holders;
   return (
     <div role="table" aria-label={h.label} className="min-w-[760px]">
-      <div role="row" className={cn(GRID, "h-9 border-b border-line text-[12px] text-text-3")}>
+      <div role="row" className={cn(GRID, "h-9 border-b border-line text-[11px] text-text-3")}>
         <span role="columnheader">{h.rank}</span>
         <span role="columnheader">{h.holder}</span>
         <span role="columnheader" className="text-right">{h.supply}</span>
@@ -24,7 +24,7 @@ export function HoldersTable({ holders, ticker }: { holders: readonly TokenHolde
         <span role="columnheader" className="text-right">{h.crew}</span>
       </div>
       {holders.map((holder, i) => (
-        <div key={holder.address ?? "curve"} role="row" className={cn(GRID, "h-11 hover:bg-raised")}>
+        <div key={holder.address ?? "curve"} role="row" className={cn(GRID, "h-11 border-b border-line/65 last:border-b-0 hover:bg-raised")}>
           <span role="cell" className="font-mono text-[12px] text-text-3">{i + 1}</span>
           <WalletCell address={holder.address} tag={holder.tag} />
           <span role="cell" className={cn(NUM, "font-semibold")}>{(holder.share * 100).toFixed(1)}%</span>

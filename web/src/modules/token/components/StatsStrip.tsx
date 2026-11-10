@@ -3,33 +3,35 @@
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
-import { formatChange, formatInteger, formatUsdCompact } from "@/shared/lib/format";
+import { formatInteger, formatUsdCompact } from "@/shared/lib/format";
 import type { TokenDetail } from "@/shared/types/token-detail";
-import { top10Band } from "../lib/display";
 import { coinOf, formatNative, formatSigned } from "../lib/format";
 
 interface Stat {
   label: string;
   value: string;
-  sub: string;
+  sub: string | null;
   tone: string;
 }
 
-/** Six figures under the header: market cap, volume, liquidity, holders, top 10 and the dev lock. */
+/**
+ * The market card's foot: market cap, 24h volume, liquidity and holders, four
+ * across from 768 px and two by two on phones. The -1 px margins let cells
+ * share single borders however the grid wraps.
+ */
 export function StatsStrip({ detail }: { detail: TokenDetail }) {
   const { t } = useI18n();
   const s = t.token.stats;
-  const { token, stats, devLock } = detail;
+  const { token, stats } = detail;
   const marketAvailable = detail.marketAvailable !== false;
-  const band = stats.top10Share === null ? null : top10Band(stats.top10Share);
   const cells: Stat[] = [
+    { label: t.token.marketCap, value: marketAvailable ? formatUsdCompact(token.marketCap) : "—", sub: null, tone: "" },
     {
-      label: t.token.marketCap,
-      value: marketAvailable ? formatUsdCompact(token.marketCap) : "—",
-      sub: marketAvailable ? fmt(s.change, { change: formatChange(token.change24h) }) : t.token.live.unavailable,
-      tone: !marketAvailable ? "text-text-3" : token.change24h >= 0 ? "text-pos" : "text-neg",
+      label: s.volume,
+      value: marketAvailable ? formatUsdCompact(token.volume24h) : "—",
+      sub: !marketAvailable || stats.txns24h === null ? t.token.live.unavailable : fmt(s.txns, { count: formatInteger(stats.txns24h) }),
+      tone: "text-text-3",
     },
-    { label: s.volume, value: marketAvailable ? formatUsdCompact(token.volume24h) : "—", sub: !marketAvailable || stats.txns24h === null ? t.token.live.unavailable : fmt(s.txns, { count: formatInteger(stats.txns24h) }), tone: "text-text-3" },
     {
       label: s.liquidity,
       value: stats.liquidity === null ? "—" : `${formatNative(stats.liquidity)} ${coinOf(token.chain)}`,
@@ -42,23 +44,15 @@ export function StatsStrip({ detail }: { detail: TokenDetail }) {
       sub: stats.holdersChange1h === null ? t.token.live.unavailable : fmt(s.holdersChange, { change: formatSigned(stats.holdersChange1h) }),
       tone: stats.holdersChange1h === null ? "text-text-3" : stats.holdersChange1h >= 0 ? "text-pos" : "text-neg",
     },
-    { label: s.top10, value: stats.top10Share === null ? "—" : `${(stats.top10Share * 100).toFixed(1)}%`, sub: band ? s[band.label] : t.token.live.unavailable, tone: band?.tone ?? "text-text-3" },
-    {
-      label: s.devLocked,
-      value: devLock ? `${Math.round(devLock.share * 100)}%` : "—",
-      // The full "lock data is unavailable" sentence is for Mission telemetry; a stat cell has room for the short form.
-      sub: devLock ? fmt(s.vest, { days: devLock.vestDays }) : detail.source === "live" ? t.token.live.unavailable : s.noLock,
-      tone: devLock ? "text-locked" : "text-text-3",
-    },
   ];
   return (
-    <section aria-label={s.label} className="overflow-hidden rounded-[20px] border border-line bg-surface">
-      <dl className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))]">
+    <section aria-label={s.label} className="overflow-hidden border-t border-line">
+      <dl className="m-0 grid grid-cols-2 md:grid-cols-4">
         {cells.map((cell) => (
-          <div key={cell.label} className="-ml-px flex flex-col gap-0.5 border-l border-line px-[18px] py-3.5">
-            <dt className="text-[12px] text-text-3">{cell.label}</dt>
-            <dd className="font-mono text-[14px] leading-5 font-semibold">{cell.value}</dd>
-            <dd className={cn("text-[12px]", cell.tone)}>{cell.sub}</dd>
+          <div key={cell.label} className="-mt-px -ml-px flex min-w-0 flex-col gap-1 border-t border-l border-line px-5 py-4 max-md:px-3.5 max-md:py-3.5">
+            <dt className="text-[11px] text-text-3">{cell.label}</dt>
+            <dd className="m-0 font-mono text-[17px] leading-6 font-semibold tracking-[-0.04em] max-md:text-[16px]">{cell.value}</dd>
+            {cell.sub ? <dd className={cn("m-0 text-[11px]", cell.tone)}>{cell.sub}</dd> : null}
           </div>
         ))}
       </dl>

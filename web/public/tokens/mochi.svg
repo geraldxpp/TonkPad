@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none"><defs><linearGradient id="b" x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse"><stop stop-color="#FF8FD6"/><stop offset="1" stop-color="#8B3BFF"/></linearGradient><radialGradient id="s" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22 10) scale(72)"><stop stop-color="#FFFFFF" stop-opacity="0.24"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs><rect width="96" height="96" fill="url(#b)"/><rect width="96" height="96" fill="url(#s)"/><path d="M30 68V30L48 52L66 30V68" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="24" fill="#281E28"/>
+  <rect x="28" y="28" width="52" height="52" rx="14" transform="rotate(-12 54 54)" fill="#8D5A81"/>
+  <rect x="48" y="48" width="52" height="52" rx="14" transform="rotate(12 74 74)" fill="#E3B7D1"/>
+  <path d="m51 48 26 5-5 26-26-5z" fill="#B97BA4"/>
+</svg>

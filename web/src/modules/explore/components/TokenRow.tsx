@@ -1,6 +1,5 @@
-import { Zap } from "lucide-react";
+import { ArrowUpRight, GraduationCap, Users } from "lucide-react";
 import Link from "next/link";
-import { CHAINS } from "@/shared/config/chains";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
@@ -17,15 +16,15 @@ import { tokenWindow } from "../lib/window";
 
 /**
  * Columns: #, Token, Bonding curve, Mission score, Last 24h, 24h, Volume,
- * Holders, Smart money, Market cap, Quick buy. All 11 show from 1440 px; below
+ * Holders, Smart money, Market cap, Open. All 11 show from 1440 px; below
  * that the lower-priority ones drop out so the table never scrolls sideways
- * and Market cap and Quick buy stay on screen.
+ * and Market cap and Open stay on screen.
  */
 export const TABLE_GRID = cn(
-  "grid items-center grid-cols-[32px_minmax(240px,1fr)_86px_96px_72px]",
-  "lg:grid-cols-[32px_minmax(300px,1fr)_84px_104px_86px_96px_72px]",
-  "xl:grid-cols-[32px_minmax(340px,1fr)_120px_84px_104px_86px_88px_96px_72px]",
-  "wide:grid-cols-[32px_minmax(380px,1fr)_120px_84px_104px_86px_88px_72px_92px_96px_72px]",
+  "grid items-center grid-cols-[24px_minmax(180px,1fr)_76px_90px_48px]",
+  "lg:grid-cols-[24px_minmax(180px,1fr)_66px_84px_76px_90px_48px]",
+  "xl:grid-cols-[24px_minmax(180px,1fr)_102px_66px_84px_76px_86px_90px_48px]",
+  "wide:grid-cols-[24px_minmax(180px,1fr)_102px_66px_84px_76px_86px_64px_84px_90px_48px]",
 );
 
 /** When each optional column appears (keep in step with TABLE_GRID). */
@@ -38,37 +37,54 @@ export const COLUMN_VISIBILITY = {
   smart: "hidden wide:flex",
 } as const;
 
-const SMART = [
-  "bg-[linear-gradient(135deg,#FF9A4D,#E2445E)]",
-  "-ml-1.5 bg-[linear-gradient(135deg,#46D9F2,#2D48F0)]",
-  "-ml-1.5 bg-[linear-gradient(135deg,#3BDB98,#0B5E50)]",
-];
+const OPEN = "inline-flex items-center justify-center rounded-md border border-line text-text-3 hover:border-accent/35 hover:bg-accent/8 hover:text-accent-text";
 
-export function TokenRow({ token, tf }: { token: RankedToken; tf: Timeframe }) {
+/** The open-the-token arrow at the end of every row (32 px in the table, 28 px on phones). */
+export function OpenToken({ address, ticker, small = false }: { address: string; ticker: string; small?: boolean }) {
   const { t, href } = useI18n();
-  const { change, volume } = tokenWindow(token, tf);
-  const up = change >= 0;
-  const { flags } = token;
-  const quick = CHAINS[token.chain].quickBuy;
   return (
-    <div role="row" className={cn(TABLE_GRID, "tk-row h-16 rounded-[14px] px-3 hover:bg-raised")}>
-      <span role="cell" className="font-mono text-[12px] text-text-3">
-        {token.rank}
-      </span>
-      <div role="cell" className="flex min-w-0 items-center gap-3">
-        <TokenAvatar art={token.art} label={token.ticker} pad={token.launchpad} />
-        <span className="flex min-w-0 flex-col gap-[3px]">
-          <span className="flex items-center gap-[5px] whitespace-nowrap">
-            <Link href={href(`/token/${token.address}`)} className="text-[14px] font-semibold text-text">
-              {token.name}
-            </Link>
-            <span className="font-mono text-[12px] text-text-3">{token.ticker}</span>
-            {flags.hot ? <Badge kind="hot" /> : null}
+    <Link href={href(`/token/${address}`)} aria-label={fmt(t.table.open, { ticker })} className={cn(OPEN, small ? "size-7" : "size-8")}>
+      <ArrowUpRight size={small ? 14 : 15} strokeWidth={2} aria-hidden="true" />
+    </Link>
+  );
+}
+
+/** A token's name line, meta line (chain, ticker, age, creator) and badge line. */
+function TokenCell({ token }: { token: RankedToken }) {
+  const { t, href } = useI18n();
+  const { flags } = token;
+  const badges = flags.locked || flags.og || flags.isNew || token.issuer || flags.crew || flags.agent;
+  return (
+    <div role="cell" className="flex min-w-0 items-center gap-2.5 pr-3">
+      <TokenAvatar art={token.art} label={token.ticker} pad={token.launchpad} />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <Link
+            href={href(`/token/${token.address}`)}
+            className="truncate text-[14px] leading-[18px] font-semibold text-text hover:text-accent-text"
+          >
+            {token.name}
+          </Link>
+          {flags.hot ? (
+            <span className="flex-none">
+              <Badge kind="hot" />
+            </span>
+          ) : null}
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5 font-mono text-[10px] leading-[14px] whitespace-nowrap text-text-3">
+          <ChainMark chain={token.chain} size={10} />
+          <span className="max-w-[76px] truncate text-text-2">{token.ticker}</span>
+          <span aria-hidden="true">·</span>
+          <span className="flex-none">{formatAge(token.ageMinutes)}</span>
+          <span className="truncate">{fmt(t.table.by, { creator: token.creator })}</span>
+        </span>
+        {badges ? (
+          <span className="flex min-w-0 items-center gap-1 overflow-hidden [&>span]:flex-none">
             {flags.og ? <Badge kind="og" density="compact" /> : null}
             {flags.isNew ? <Badge kind="new" density="compact" /> : null}
             {flags.locked ? <Badge kind="locked" density="compact" /> : null}
             {token.issuer ? <Badge kind="rwa" value={token.issuer} density="compact" /> : null}
-            {/* The narrower tiers keep the token line short. */}
+            {/* The narrower tiers keep the badge line short. */}
             {flags.crew ? (
               <span className="max-lg:hidden">
                 <Badge kind="crew" value={flags.crew} density="compact" />
@@ -80,45 +96,54 @@ export function TokenRow({ token, tf }: { token: RankedToken; tf: Timeframe }) {
               </span>
             ) : null}
           </span>
-          <span className="flex items-center gap-1.5 font-mono text-[12px] whitespace-nowrap text-text-3">
-            <ChainMark chain={token.chain} size={10} />
-            {fmt(t.table.by, { creator: token.creator })} · {formatAge(token.ageMinutes)}
-          </span>
-        </span>
-      </div>
+        ) : null}
+      </span>
+    </div>
+  );
+}
+
+export function TokenRow({ token, tf }: { token: RankedToken; tf: Timeframe }) {
+  const { t } = useI18n();
+  const { change, volume } = tokenWindow(token, tf);
+  const up = change >= 0;
+  return (
+    <div role="row" className={cn(TABLE_GRID, "tk-row h-[70px] border-b border-line/65 px-4 last:border-b-0 hover:bg-raised")}>
+      <span role="cell" className="font-mono text-[12px] text-text-3">
+        {token.rank}
+      </span>
+      <TokenCell token={token} />
       <div role="cell" className={cn(COLUMN_VISIBILITY.curve, "items-center gap-2")}>
         {token.curve < 1 ? (
           <>
-            <CurveBar value={token.curve} className="h-1.5 w-[72px] flex-none" />
+            <CurveBar value={token.curve} className="h-1 w-[52px] flex-none" />
             <span className="font-mono text-[12px] font-semibold">{Math.round(token.curve * 100)}%</span>
           </>
         ) : (
-          <Badge kind="graduated" />
+          <span title={t.badges.graduated} className="inline-flex min-w-0 items-center gap-1 pr-2 text-[11px] font-medium text-gold">
+            <GraduationCap size={13} strokeWidth={2} aria-hidden="true" className="flex-none" />
+            <span className="truncate">{t.badges.graduated}</span>
+          </span>
         )}
       </div>
       <div role="cell" className={COLUMN_VISIBILITY.score}>
         <ScorePill score={token.score} level={token.level} />
       </div>
       <div role="cell" className={COLUMN_VISIBILITY.spark}>
-        <Sparkline seed={token.spark} points={token.series} up={up} className="inline align-baseline" />
+        <Sparkline seed={token.spark} points={token.series} up={up} width={72} height={28} className="inline align-baseline" />
       </div>
-      <span role="cell" className={cn("text-right font-mono text-[14px] font-semibold", up ? "text-pos" : "text-neg")}>
+      <span role="cell" className={cn("text-right font-mono text-[13px] font-medium", up ? "text-pos" : "text-neg")}>
         {formatChange(change)}
       </span>
-      <span role="cell" className={cn(COLUMN_VISIBILITY.volume, "text-right font-mono text-[14px] font-medium")}>
+      <span role="cell" className={cn(COLUMN_VISIBILITY.volume, "text-right font-mono text-[13px] font-medium text-text-2")}>
         {formatUsdCompact(volume, { trimZeros: true })}
       </span>
-      <span role="cell" className={cn(COLUMN_VISIBILITY.holders, "text-right font-mono text-[14px] font-medium text-text-2")}>
+      <span role="cell" className={cn(COLUMN_VISIBILITY.holders, "text-right font-mono text-[13px] font-medium text-text-2")}>
         {token.holders === null ? "—" : formatInteger(token.holders)}
       </span>
-      <div role="cell" className={cn(COLUMN_VISIBILITY.smart, "items-center gap-1.5 pl-[18px]")}>
+      <div role="cell" className={cn(COLUMN_VISIBILITY.smart, "items-center gap-1.5 pl-1.5")}>
         {token.smartWallets > 0 ? (
           <>
-            <span className="inline-flex" aria-hidden="true">
-              {SMART.map((tone) => (
-                <span key={tone} className={cn("size-5 rounded-full shadow-[0_0_0_2px_var(--surface)]", tone)} />
-              ))}
-            </span>
+            <Users size={14} strokeWidth={2} aria-hidden="true" className="text-cyan" />
             <span className="font-mono text-[12px] font-semibold text-cyan">+{token.smartWallets}</span>
           </>
         ) : (
@@ -128,18 +153,11 @@ export function TokenRow({ token, tf }: { token: RankedToken; tf: Timeframe }) {
           </span>
         )}
       </div>
-      <span role="cell" className="text-right font-mono text-[14px] font-semibold">
+      <span role="cell" className="text-right font-mono text-[13px] font-semibold">
         {formatUsdCompact(token.marketCap)}
       </span>
       <div role="cell" className="flex justify-end">
-        <button
-          type="button"
-          aria-label={fmt(t.table.quickBuyLabel, { amount: quick.amount, unit: quick.unit, ticker: token.ticker })}
-          className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] border border-accent/45 bg-accent/14 pr-2.5 pl-2 font-mono text-[12px] font-semibold text-accent-text"
-        >
-          <Zap size={13} fill="currentColor" stroke="none" />
-          {quick.amount}
-        </button>
+        <OpenToken address={token.address} ticker={token.ticker} />
       </div>
     </div>
   );

@@ -17,10 +17,10 @@ describe("display helpers", () => {
     expect(walletDot("0x7f3a…e8d1")).toMatch(/^linear-gradient/);
   });
 
-  it("names Tonkpad launches as native and routes trades to the right venue", () => {
-    expect(padLabel("tonk", "{name} Native")).toBe("Tonkpad Native");
+  it("names tonkfun.fun launches as native and routes trades to the right venue", () => {
+    expect(padLabel("tonk", "{name} Native")).toBe("tonkfun.fun Native");
     expect(padLabel("pump", "{name} Native")).toBe("Pump.fun");
-    expect(venueOf({ launchpad: "tonk", chain: "rh", onCurve: true }, "{pad} curve")).toBe("Tonkpad curve");
+    expect(venueOf({ launchpad: "tonk", chain: "rh", onCurve: true }, "{pad} curve")).toBe("tonkfun.fun curve");
     expect(venueOf({ launchpad: "pump", chain: "sol", onCurve: false }, "{pad} curve")).toBe("Jupiter");
     expect(venueOf({ launchpad: "tonk", chain: "rh", onCurve: false }, "{pad} curve")).toBe("Uniswap");
   });

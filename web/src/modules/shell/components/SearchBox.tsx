@@ -24,7 +24,7 @@ export function SearchBox({ inputRef, defaultValue, onChange, open = false }: Se
       id={SEARCH_BOX_ID}
       htmlFor={SEARCH_INPUT_ID}
       className={cn(
-        "flex h-10 max-w-[340px] flex-[1_1_240px] items-center gap-2 rounded-xl border border-line bg-surface pr-2 pl-3 text-text-3 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-cta has-[input:focus-visible]:outline-solid",
+        "flex h-10 min-w-0 max-w-[560px] flex-[1_1_360px] items-center gap-2.5 rounded-lg border border-line bg-raised/55 pr-2.5 pl-3.5 text-text-3 md:mr-auto has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-cta has-[input:focus-visible]:outline-solid",
         "max-md:order-last max-md:max-w-none max-md:basis-full",
         open ? "max-md:flex" : "max-md:hidden",
       )}
@@ -45,7 +45,7 @@ export function SearchBox({ inputRef, defaultValue, onChange, open = false }: Se
       />
       <kbd
         aria-hidden="true"
-        className="rounded-md border border-line-strong bg-raised px-[7px] py-px font-mono text-[12px] font-normal text-text-2 max-md:hidden"
+        className="rounded border border-line-strong px-[7px] py-px font-mono text-[11px] font-normal text-text-3 max-md:hidden"
       >
         /
       </kbd>

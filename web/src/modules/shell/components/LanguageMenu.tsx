@@ -53,7 +53,7 @@ export function LanguageMenu({ className }: { className?: string }) {
   return (
     <div
       ref={rootRef}
-      className={cn("md:relative", className)}
+      className={cn("flex-none md:relative", className)}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           event.stopPropagation();
@@ -72,7 +72,7 @@ export function LanguageMenu({ className }: { className?: string }) {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={toggle}
-        className="inline-flex size-8 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-[13px] font-semibold text-text-2 md:h-10 md:w-auto md:border-line-strong md:pr-2 md:pl-2.5 md:text-text"
+        className="inline-flex size-8 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-[13px] font-medium text-text-2 md:h-10 md:w-auto md:rounded-lg md:border-transparent md:bg-transparent md:pr-2 md:pl-2.5 md:hover:bg-raised"
       >
         <Globe strokeWidth={1.8} aria-hidden="true" className="size-4 md:text-text-2" />
         <span className="uppercase max-md:hidden">{lang}</span>

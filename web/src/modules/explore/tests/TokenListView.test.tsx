@@ -39,7 +39,7 @@ describe("TokenListView — desktop table", () => {
       "Holders",
       "Smart money",
       "Market cap",
-      "Quick buy",
+      "Details",
     ]);
     expect(within(desktop).getAllByRole("row")).toHaveLength(11);
     expect(screen.getByText("Showing 10 of 8,412 tokens · refreshes every 4s")).toBeInTheDocument();
@@ -51,22 +51,22 @@ describe("TokenListView — desktop table", () => {
     expect(within(desktop).getByRole("link", { name: "Sol Cat" })).toHaveAttribute("href", "/token/SCAT");
   });
 
-  it("labels Quick buy with the chain's amount", () => {
+  it("ends each row with an arrow that opens the token", () => {
     const { desktop } = renderList();
-    expect(within(desktop).getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" })).toHaveTextContent("0.01");
-    expect(within(desktop).getByRole("button", { name: "Quick buy 0.5 SOL of SCAT" })).toHaveTextContent("0.5");
+    expect(within(desktop).getByRole("link", { name: "Open GHOST" })).toHaveAttribute("href", "/token/GHOST");
+    expect(within(desktop).getByRole("link", { name: "Open SCAT" })).toHaveAttribute("href", "/token/SCAT");
   });
 });
 
 describe("TokenListView — phone list", () => {
-  it("has four columns: Token, Market cap, 24h and Quick buy", () => {
+  it("has four columns: Token, Market cap, 24h and the open arrow", () => {
     const { phone } = renderList();
     expect(phone).toHaveAttribute("aria-label", "Tokens");
     expect(within(phone).getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
       "Token",
       "Market cap",
       "24h",
-      "Quick buy",
+      "Details",
     ]);
     expect(within(phone).getAllByRole("row")).toHaveLength(11);
   });
@@ -79,12 +79,17 @@ describe("TokenListView — phone list", () => {
     expect(ghosty).toHaveTextContent("GHOST·18d");
     expect(ghosty).toHaveTextContent("$58.2K");
     expect(ghosty).toHaveTextContent("+412.6%");
-    expect(within(ghosty).getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" })).toBeInTheDocument();
+    expect(within(ghosty).getByRole("link", { name: "Open GHOST" })).toHaveAttribute("href", "/token/GHOST");
   });
 
   it("follows the same filtered rows as the table", () => {
     const { phone, desktop } = renderList({ tab: "locked" });
-    const names = (el: HTMLElement) => within(el).getAllByRole("link").map((a) => a.textContent);
+    // Each row has two links to the token: its name and the open arrow (named by aria-label, no text).
+    const names = (el: HTMLElement) =>
+      within(el)
+        .getAllByRole("link")
+        .map((a) => a.textContent)
+        .filter(Boolean);
     expect(names(phone)).toEqual(["Ghosty", "Orbit", "Sparky", "Tide"]);
     expect(names(phone)).toEqual(names(desktop));
   });

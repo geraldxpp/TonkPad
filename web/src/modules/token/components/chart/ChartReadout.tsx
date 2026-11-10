@@ -15,7 +15,7 @@ export function ChartReadout({ readout, coin, showVolume = true }: { readout: Re
     [c.close, readout.close],
   ] as const;
   return (
-    <div data-testid="chart-readout" className="flex flex-wrap gap-x-3.5 gap-y-1 px-5 font-mono text-[12px] text-text-2">
+    <div data-testid="chart-readout" className="flex flex-wrap gap-x-3 gap-y-1 px-5 pt-1 font-mono text-[11px] text-text-2 max-md:px-3.5">
       {cells.map(([label, value]) => (
         <span key={label}>
           <span className="text-text-3">{label}</span> {value}

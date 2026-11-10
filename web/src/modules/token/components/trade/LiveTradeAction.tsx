@@ -31,7 +31,7 @@ export function LiveTradeAction({ owner, ...props }: LiveTradeActionProps) {
         <button type="button" aria-disabled="true" aria-describedby={noteId} className={DISABLED_TRADE}>
           {tradeLabel(t.token.trade, props)}
         </button>
-        <span id={noteId} className="text-center text-[12px] text-warn">
+        <span id={noteId} className="text-center text-[11px] text-warn">
           {t.token.live.tradingSoon}
         </span>
       </div>
@@ -52,7 +52,7 @@ export function LiveTradeAction({ owner, ...props }: LiveTradeActionProps) {
         onClick={() => void start()}
         aria-busy={view.pending || undefined}
         aria-describedby={noteId}
-        className={buttonClasses("cta", "lg", "h-[52px] w-full")}
+        className={buttonClasses("cta", "lg", "h-11 w-full rounded-lg text-[13px]")}
       >
         {view.pending ? (
           <LoaderCircle size={18} strokeWidth={2} className="tk-spin" aria-hidden="true" />
@@ -61,7 +61,7 @@ export function LiveTradeAction({ owner, ...props }: LiveTradeActionProps) {
         )}
         {elsewhere ? fmt(t.wallet.connectOn, { chain: chainName }) : t.header.connectWallet}
       </button>
-      <span id={noteId} className="text-center text-[12px] text-text-3">
+      <span id={noteId} className="text-center text-[11px] text-text-3">
         {t.wallet.note}
       </span>
       {failed ? (

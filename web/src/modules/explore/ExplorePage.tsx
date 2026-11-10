@@ -1,7 +1,6 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { ChainTrigger } from "@/modules/shell/components/ChainTrigger";
-import { getI18n } from "@/shared/i18n/server";
 import { isLiveMode } from "@/shared/live/server";
 import { ExploreLive } from "./components/ExploreLive";
 import { ExploreLoading } from "./components/ExploreLoading";
@@ -59,7 +58,7 @@ export async function ExplorePage({ searchParams }: ExplorePageProps) {
       </Suspense>
     );
   }
-  const [data, { t }] = await Promise.all([getExploreData(), getI18n()]);
+  const data = await getExploreData();
   const list = {
     launchpads: data.launchpads,
     moreLaunchpads: data.moreLaunchpads,
@@ -75,10 +74,7 @@ export async function ExplorePage({ searchParams }: ExplorePageProps) {
   );
   return (
     <>
-      <section aria-label={t.hero.overview} className="flex flex-wrap items-stretch gap-8 max-md:gap-6">
-        <Hero stats={data.stats} trackedToday={data.totalTokens} />
-        <LiveScope blips={data.blips} scope={data.scope} />
-      </section>
+      <Hero stats={data.stats} />
       <HeatingUp cards={data.heating} />
       <Suspense fallback={fallback}>
         <RequestTokenList
@@ -86,6 +82,7 @@ export async function ExplorePage({ searchParams }: ExplorePageProps) {
           data={{ ...list, tokens: data.tokens, chainCounts: data.chainCounts }}
         />
       </Suspense>
+      <LiveScope blips={data.blips} scope={data.scope} />
     </>
   );
 }

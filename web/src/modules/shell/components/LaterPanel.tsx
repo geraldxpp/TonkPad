@@ -16,15 +16,19 @@ export async function LaterPanel({ title, badge, children }: LaterPanelProps) {
   return (
     <section
       aria-labelledby="later-title"
-      className="flex max-w-[640px] flex-col items-start gap-4 rounded-[20px] border border-line bg-surface p-8 shadow-panel max-md:p-6"
+      className="relative isolate flex max-w-[640px] flex-col items-start gap-4 overflow-hidden rounded-2xl border border-line bg-surface p-8 max-md:p-6"
     >
-      <span className="rounded-full border border-line bg-raised px-3 py-1 text-[12px] font-semibold text-accent-text">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(ellipse_at_100%_0%,rgb(var(--accent-rgb)/0.12),transparent_60%)]"
+      />
+      <span className="rounded-md border border-accent/25 bg-accent/8 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] text-accent-text uppercase">
         {badge ?? t.later.badge}
       </span>
-      <h1 id="later-title" className="font-display text-[32px] leading-9 font-bold tracking-[-0.015em]">
+      <h1 id="later-title" className="font-display text-[34px] leading-10 font-extrabold tracking-[-0.04em]">
         {title}
       </h1>
-      <p className="text-[15px] leading-6 text-text-2">{children ?? t.later.body}</p>
+      <p className="text-[14px] leading-[22px] text-text-2">{children ?? t.later.body}</p>
       <Link href={href("/")} className={buttonClasses("secondary", "sm")}>
         {t.common.backToExplore}
       </Link>

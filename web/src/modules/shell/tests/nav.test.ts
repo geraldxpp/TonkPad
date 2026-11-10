@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { en } from "@/shared/i18n/dictionaries/en";
-import { activeNavId, MAIN_NAV, UTILITY_NAV } from "../lib/nav";
+import { activeNavId, MAIN_NAV, RESOURCE_NAV, UTILITY_NAV } from "../lib/nav";
 
 describe("activeNavId", () => {
   it.each([
     ["/", "explore"],
-    ["/live", "live"],
+    ["/swap", "swap"],
     ["/bridge", "bridge"],
     ["/portfolio", "portfolio"],
     ["/launch", "launch"],
@@ -16,7 +16,7 @@ describe("activeNavId", () => {
 
   it.each([
     ["/es", "explore"],
-    ["/es/live", "live"],
+    ["/es/swap", "swap"],
     ["/ja/docs", "docs"],
     // The prerendered English pages are rendered at /en/…, then served at /….
     ["/en", "explore"],
@@ -25,25 +25,21 @@ describe("activeNavId", () => {
     expect(activeNavId(path)).toBe(id);
   });
 
-  it("highlights nothing on token pages", () => {
+  it("highlights nothing on token pages or the retired Live page", () => {
     expect(activeNavId("/token/GHOST")).toBeNull();
     expect(activeNavId("/de/token/GHOST")).toBeNull();
+    expect(activeNavId("/live")).toBeNull();
   });
 
-  it("keeps the rail order from the design", () => {
-    expect(MAIN_NAV.map((item) => en.nav[item.id])).toEqual([
-      "Explore",
-      "Live",
-      "Bridge",
-      "Portfolio",
-      "Alerts",
-      "Launch",
-      "Docs",
-    ]);
+  it("keeps the rail order from the design: Workspace, then Resources", () => {
+    expect(MAIN_NAV.map((item) => en.nav[item.id])).toEqual(["Explore", "Swap", "Bridge", "Portfolio", "Alerts", "Launch"]);
+    expect(RESOURCE_NAV.map((item) => en.nav[item.id])).toEqual(["Docs"]);
   });
 
   it("gives the phone tab bar seven tabs (Alerts moves to the bell, Theme to the More sheet)", () => {
-    const phoneTabs = [...MAIN_NAV, ...UTILITY_NAV].filter((item) => !item.hideOnMobile).map((item) => en.nav[item.id]);
-    expect(phoneTabs).toEqual(["Explore", "Live", "Bridge", "Portfolio", "Launch", "Docs", "More"]);
+    const phoneTabs = [...MAIN_NAV, ...RESOURCE_NAV, ...UTILITY_NAV]
+      .filter((item) => !item.hideOnMobile)
+      .map((item) => en.nav[item.id]);
+    expect(phoneTabs).toEqual(["Explore", "Swap", "Bridge", "Portfolio", "Launch", "Docs", "More"]);
   });
 });

@@ -22,7 +22,8 @@ export async function expectShowing(page: Page, count: number): Promise<void> {
 }
 
 export async function rowNames(page: Page): Promise<string[]> {
-  return tokenRows(page).locator('a[href^="/token/"]').allTextContents();
+  // Each row links its name and its open arrow; the arrow has no text.
+  return (await tokenRows(page).locator('a[href^="/token/"]').allTextContents()).filter(Boolean);
 }
 
 export function chainPill(page: Page): Locator {

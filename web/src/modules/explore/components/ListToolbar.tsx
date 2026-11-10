@@ -1,6 +1,5 @@
-import { LayoutGrid, List, Lock, SlidersHorizontal } from "lucide-react";
+import { Lock } from "lucide-react";
 import type { ReactNode } from "react";
-import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { Segmented } from "@/shared/ui/Segmented";
 import { type TabItem, Tabs } from "@/shared/ui/Tabs";
@@ -20,9 +19,9 @@ interface ListToolbarProps {
 }
 
 /**
- * List tabs, timeframe, Filters (UI only) and the list/grid toggle (grid is
- * UI only). On phones the tabs become one swipeable row, the chain filter
- * joins the timeframe, and the list/grid toggle is dropped.
+ * The card's top edge: underlined list tabs and the timeframe. Under 1024 px
+ * the tabs take a swipeable row of their own and the timeframe moves below
+ * them; on phones the chain filter joins the timeframe.
  */
 export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListToolbarProps) {
   const { t } = useI18n();
@@ -32,7 +31,7 @@ export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListTool
     icon: id === "locked" ? LOCK_ICON : undefined,
   }));
   return (
-    <div className="flex flex-wrap items-center gap-3 max-md:gap-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-4 border-b border-line px-4 max-md:px-3">
       <Tabs
         tabs={tabs}
         value={view.tab}
@@ -40,39 +39,12 @@ export function ListToolbar({ view, onTab, onTimeframe, chainControl }: ListTool
         label={t.tabs.label}
         panelId={TOKEN_PANEL_ID}
         idPrefix={TOKEN_TAB_PREFIX}
-        className="max-lg:w-full max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden"
+        size="underline"
+        className="flex-1 max-lg:basis-full"
       />
-      <span className="flex-[1_1_0] max-md:hidden" />
-      <Segmented options={TIMEFRAMES} value={view.tf} onChange={onTimeframe} label={t.toolbar.timeframe} />
-      {chainControl ? <div className="md:hidden">{chainControl}</div> : null}
-      <button
-        type="button"
-        aria-label={fmt(t.toolbar.filtersActive, { count: 2 })}
-        className="inline-flex h-10 items-center gap-2 rounded-xl border border-line-strong bg-raised pr-3 pl-3.5 text-[14px] font-semibold text-text max-md:ml-auto max-md:pl-3"
-      >
-        <SlidersHorizontal size={16} strokeWidth={1.8} />
-        <span className="max-md:sr-only">{t.toolbar.filters}</span>
-        <span className="rounded-md bg-accent/14 px-1.5 py-px font-mono text-[12px] font-semibold text-accent-text">
-          2
-        </span>
-      </button>
-      <div role="group" aria-label={t.toolbar.view} className="flex gap-0.5 rounded-xl border border-line bg-surface p-1 max-md:hidden">
-        <button
-          type="button"
-          aria-label={t.toolbar.listView}
-          aria-pressed="true"
-          className="inline-flex size-8 items-center justify-center rounded-[9px] bg-input text-text"
-        >
-          <List size={16} strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          aria-label={t.toolbar.gridView}
-          aria-pressed="false"
-          className="inline-flex size-8 items-center justify-center rounded-[9px] bg-transparent text-text-3"
-        >
-          <LayoutGrid size={16} strokeWidth={2} />
-        </button>
+      <div className="flex flex-none items-center gap-3 py-3 max-lg:ml-auto max-md:w-full max-md:justify-between">
+        <Segmented size="xs" options={TIMEFRAMES} value={view.tf} onChange={onTimeframe} label={t.toolbar.timeframe} />
+        {chainControl ? <div className="md:hidden">{chainControl}</div> : null}
       </div>
     </div>
   );

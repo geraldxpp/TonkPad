@@ -14,8 +14,12 @@ interface SegmentedProps<T extends string> {
   value: T;
   onChange?: (value: T) => void;
   label: string;
-  /** "sm" is the Live scope switch, "md" the table timeframe, "panel" the token chart's toolbar groups. */
-  size?: "sm" | "md" | "panel";
+  /**
+   * "xs" is the token list's mono timeframe, "sm" a small switch, "md" the
+   * default, "panel" a toolbar group, "toggle" the token card's Price / MCap
+   * and "chart" the chart's borderless timeframes.
+   */
+  size?: "xs" | "sm" | "md" | "panel" | "toggle" | "chart";
   /** 11 px side padding instead of 12 (the chart's timeframes). */
   tight?: boolean;
   /** Stretch to the container's width with equal buttons (the Settings theme switch). */
@@ -32,15 +36,29 @@ export function Segmented<T extends string>({
   tight = false,
   fill = false,
 }: SegmentedProps<T>) {
+  const xs = size === "xs";
   const sm = size === "sm";
   const panel = size === "panel";
+  const toggle = size === "toggle";
+  const chart = size === "chart";
   return (
     <div
       role="group"
       aria-label={label}
       className={cn(
-        "flex gap-0.5 border border-line",
-        sm ? "rounded-[10px] bg-raised p-[3px]" : panel ? "flex-wrap rounded-xl bg-raised p-1" : "rounded-xl bg-surface p-1",
+        "flex gap-0.5",
+        !chart && "border border-line",
+        xs
+          ? "rounded-md bg-raised p-0.5"
+          : sm
+            ? "rounded-[10px] bg-raised p-[3px]"
+            : panel
+              ? "flex-wrap rounded-xl bg-raised p-1"
+              : toggle
+                ? "rounded-lg bg-bg p-[3px]"
+                : chart
+                  ? "flex-wrap"
+                  : "rounded-xl bg-surface p-1",
         fill && "w-full",
       )}
     >
@@ -54,11 +72,24 @@ export function Segmented<T extends string>({
             aria-pressed={active}
             onClick={() => onChange?.(option.id)}
             className={cn(
-              "text-[13px] font-medium disabled:cursor-not-allowed disabled:opacity-50",
-              tight ? "px-[11px]" : "px-3",
+              "font-medium disabled:cursor-not-allowed disabled:opacity-50",
+              xs || chart ? "font-mono text-[11px]" : toggle ? "text-[11px]" : "text-[13px]",
+              xs
+                ? "h-7 rounded px-2.5"
+                : chart
+                  ? "h-7 min-w-[31px] rounded-[5px] px-[7px] max-md:min-w-7 max-md:px-[5px]"
+                  : toggle
+                    ? "h-[26px] rounded-[5px] px-2.5"
+                    : tight
+                      ? "px-[11px]"
+                      : "px-3",
               // The timeframe pills tighten a little on phones to share a row with the filters.
-              sm ? "h-[26px] rounded-lg" : panel ? "h-[30px] rounded-lg" : "h-8 rounded-[9px] max-md:px-2.5",
-              active ? "bg-input text-text" : "bg-transparent text-text-2",
+              xs || chart || toggle ? undefined : sm ? "h-[26px] rounded-lg" : panel ? "h-[30px] rounded-lg" : "h-8 rounded-[9px] max-md:px-2.5",
+              active
+                ? chart
+                  ? "bg-accent/10 text-accent-text"
+                  : "bg-input text-text"
+                : cn("bg-transparent", xs || chart || toggle ? "text-text-3 hover:text-text" : "text-text-2"),
               fill && "flex-1",
               option.icon ? "inline-flex items-center justify-center gap-1.5" : undefined,
             )}

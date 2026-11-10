@@ -12,16 +12,16 @@ export function BridgeBanner({ chainName, onOpen }: { chainName: string; onOpen:
       type="button"
       onClick={onOpen}
       aria-haspopup="dialog"
-      className="flex items-center gap-3 rounded-2xl border border-neon/32 bg-[linear-gradient(90deg,rgb(var(--neon-rgb)/0.1),rgb(var(--accent-rgb)/0.14))] px-3.5 py-3 text-left"
+      className="flex items-center gap-3 rounded-xl border border-accent/25 bg-accent/6 px-3.5 py-2.5 text-left hover:bg-accent/10"
     >
-      <span className="inline-flex size-9 flex-none items-center justify-center rounded-xl bg-neon/14 text-neon">
+      <span className="inline-flex size-8 flex-none items-center justify-center rounded-lg bg-accent/12 text-accent-text">
         <ArrowRightLeft size={18} strokeWidth={2} aria-hidden="true" />
       </span>
       <span className="flex flex-auto flex-col gap-0.5">
-        <span className="text-[13px] font-semibold">{fmt(t.token.trade.bridgeTitle, { chain: chainName })}</span>
-        <span className="text-[12px] text-text-2">{t.token.trade.bridgeBody}</span>
+        <span className="text-[12px] font-semibold">{fmt(t.token.trade.bridgeTitle, { chain: chainName })}</span>
+        <span className="text-[11px] text-text-2">{t.token.trade.bridgeBody}</span>
       </span>
-      <ArrowRight size={18} strokeWidth={2} className="flex-none text-neon" aria-hidden="true" />
+      <ArrowRight size={16} strokeWidth={2} className="flex-none text-accent-text" aria-hidden="true" />
     </button>
   );
 }

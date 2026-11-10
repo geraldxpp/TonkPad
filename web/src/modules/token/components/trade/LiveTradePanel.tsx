@@ -10,17 +10,18 @@ import { formatTokens, quoteTrade } from "../../lib/trade";
 import { LiveTradeAction } from "./LiveTradeAction";
 import { FeeLine, PresetRow, SettingsRow, SideAndOrder, useTradeSide } from "./TradeControls";
 import { coinOnChain, PayField, ReceiveField } from "./TradeFields";
-import type { TradeToken } from "./types";
+import { TradeCard } from "./TradeCard";
+import type { TradePanelProps } from "./types";
 
 /**
  * The trade panel on live tokens: the connected wallet's real coin and
  * holding of this token, read through the app's server. Trading isn't open
  * yet, so the trade button stays disabled and nothing is ever signed.
  */
-export function LiveTradePanel({ token }: { token: TradeToken }) {
+export function LiveTradePanel({ token, initialSide, onClose }: TradePanelProps) {
   const { t } = useI18n();
   const tr = t.token.trade;
-  const { side, pick, amount, setAmount } = useTradeSide();
+  const { side, pick, amount, setAmount } = useTradeSide(initialSide);
   const funds = useWalletBalances(token.chain, token.address);
   const buy = side === "buy";
   const coin = coinOf(token.chain);
@@ -46,8 +47,8 @@ export function LiveTradePanel({ token }: { token: TradeToken }) {
   const max = buy ? (native ? floorUnits(native) : "0") : held ? floorUnits(held, 6) : "0";
 
   return (
-    <section aria-label={tr.label} className="flex flex-col gap-3.5 rounded-3xl border border-line bg-surface p-5 shadow-panel">
-      <SideAndOrder side={side} onSide={pick} />
+    <TradeCard name={token.name} onClose={onClose}>
+      <SideAndOrder side={side} onSide={pick} chain={token.chain} />
       <PayField
         token={token}
         side={side}
@@ -70,6 +71,6 @@ export function LiveTradePanel({ token }: { token: TradeToken }) {
         owner={funds.owner}
       />
       <FeeLine token={token} />
-    </section>
+    </TradeCard>
   );
 }

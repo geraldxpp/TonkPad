@@ -1,6 +1,6 @@
 "use client";
 
-import { Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { type Ref, useState } from "react";
 import { fmt } from "@/shared/i18n/config";
 import type { Dictionary } from "@/shared/i18n/dictionaries/en";
@@ -20,7 +20,7 @@ export interface TradeActionProps {
 }
 
 /** The muted look of a trade button that can't be pressed. */
-export const DISABLED_TRADE = "h-[52px] cursor-not-allowed rounded-[14px] border border-line-strong bg-input px-3 text-[15px] font-semibold text-text-2";
+export const DISABLED_TRADE = "min-h-11 cursor-not-allowed rounded-lg border border-line-strong bg-input px-3 py-2 text-[13px] font-semibold text-text-2";
 
 /** What the trade button says: the trade ("Buy $GHOST · 0.05 ETH") or why there's none ("Enter an amount"). */
 export function tradeLabel(tr: Dictionary["token"]["trade"], { token, side, amount, quote, coin, chainName }: Omit<TradeActionProps, "ref">): string {
@@ -51,14 +51,14 @@ export function TradeAction({ ref, ...props }: TradeActionProps) {
         type="button"
         onClick={() => setTried(true)}
         className={cn(
-          "inline-flex h-[52px] items-center justify-center gap-1.5 rounded-[14px] px-3 text-[16px] font-semibold",
-          buy ? "bg-pos text-on-pos" : "bg-neg text-[var(--badge-on-alert)]",
+          "inline-flex min-h-11 items-center justify-between gap-2 rounded-lg px-4 py-2 text-left text-[13px] font-semibold hover:brightness-110",
+          buy ? "bg-cta text-on-cta" : "bg-neg text-[var(--badge-on-alert)]",
         )}
       >
-        <Zap size={16} fill="currentColor" stroke="none" aria-hidden="true" />
         {label}
+        <ArrowRight size={16} strokeWidth={2} className="flex-none" aria-hidden="true" />
       </button>
-      <span role="status" className="text-center text-[12px] text-warn empty:hidden">
+      <span role="status" className="text-center text-[11px] text-warn empty:hidden">
         {tried ? tr.soon : ""}
       </span>
     </div>

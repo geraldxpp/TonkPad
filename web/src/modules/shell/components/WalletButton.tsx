@@ -22,6 +22,7 @@ import { WalletPanel } from "./WalletPanel";
  * two breakpoints set the same property.)
  */
 const PHONE_CTA = [
+  "md:flex-none md:rounded-lg md:shadow-none",
   "max-md:h-8 max-md:min-w-0 max-md:flex-[1_1_0%] max-md:text-[13px]",
   "min-[340px]:max-md:max-w-max min-[340px]:max-md:px-3",
   "max-[339px]:max-w-8 max-[339px]:px-0",
@@ -29,7 +30,7 @@ const PHONE_CTA = [
 
 /** The connected chip: chain mark, short address and chevron; under 340 px just the mark. */
 const ACCOUNT = cn(
-  "inline-flex h-10 min-w-0 items-center gap-2 rounded-xl border border-line-strong bg-surface pr-2.5 pl-2 text-text",
+  "inline-flex h-10 min-w-0 items-center gap-2 rounded-xl border border-line bg-surface pr-2.5 pl-2 text-text hover:bg-raised md:rounded-lg",
   "max-md:h-8 max-md:flex-[0_1_auto] max-md:gap-1.5 max-md:pr-2 max-md:pl-1.5",
 );
 

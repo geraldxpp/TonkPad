@@ -9,11 +9,11 @@ type CoinPillProps =
 /** The unit beside an amount: the chain's coin with its mark, or the token with its art. */
 export function CoinPill(props: CoinPillProps) {
   return (
-    <span className="inline-flex h-9 flex-none items-center gap-1.5 rounded-[18px] border border-line-strong bg-input pr-3 pl-1.5 text-[14px] font-semibold">
+    <span className="inline-flex h-8 flex-none items-center gap-1.5 rounded-lg border border-line bg-raised pr-2.5 pl-1.5 font-mono text-[12px] font-semibold">
       {props.kind === "chain" ? (
-        <ChainMark chain={props.chain} size={22} letterSize={10} decorative />
+        <ChainMark chain={props.chain} size={18} letterSize={9} decorative />
       ) : (
-        <TokenArt src={props.art} label={props.ticker} size={22} className="size-[22px] rounded-[7px]" />
+        <TokenArt src={props.art} label={props.ticker} size={18} className="size-[18px] rounded-[5px]" />
       )}
       {props.label}
     </span>

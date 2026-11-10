@@ -7,15 +7,16 @@ test("each Explore selection opens its own live detail and survives reload", asy
     await page.goto("/");
     await page.getByRole("table", { name: "Tokens" }).getByRole("link", { name: token.name, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/token/${token.address}$`));
-    await expect(page).toHaveTitle(`${token.name} — Tonkpad.fun`);
+    await expect(page).toHaveTitle(`${token.name} — tonkfun.fun`);
     await expect(page.getByRole("heading", { level: 1, name: token.name })).toBeVisible();
     const header = page.getByRole("region", { name: token.name, exact: true });
+    const stats = page.getByRole("region", { name: "Token stats" });
     await expect(header.getByText(token.chain === "sol" ? "Solana" : "Robinhood Chain", { exact: true })).toBeVisible();
-    await expect(header.getByText(token.chain === "sol" ? "$62.1K" : "$41.2K", { exact: true })).toBeVisible();
+    await expect(stats.getByText(token.chain === "sol" ? "$62.1K" : "$41.2K", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ghosty", exact: true })).toHaveCount(0);
     await page.reload();
     await expect(page.getByRole("heading", { level: 1, name: token.name })).toBeVisible();
-    await expect(header.getByText(token.chain === "sol" ? "$62.1K" : "$41.2K", { exact: true })).toBeVisible();
+    await expect(stats.getByText(token.chain === "sol" ? "$62.1K" : "$41.2K", { exact: true })).toBeVisible();
   }
   await page.screenshot({ path: testInfo.outputPath("token-live-1440.png"), fullPage: true });
 });
@@ -24,12 +25,13 @@ test("observed charts show the selected market history without mock trades or ba
   await page.goto(`/token/${LIVE_SOLANA.address}?tf=1m`);
   const chart = page.getByRole("region", { name: "Price chart" });
   await expect(chart.locator("canvas").first()).toBeVisible();
-  await expect(chart.getByTestId("chart-readout")).toContainText("C $62.1K");
+  // Price is the default once the supply is known; MCap is one click away.
+  await expect(chart.getByTestId("chart-readout")).toContainText("C $0.0000621");
   await expect(chart.getByText("Observed market history; earlier candles may be unavailable.")).toBeVisible();
   await expect(chart.getByTestId("chart-readout")).not.toContainText("Vol");
   await expect(chart.getByRole("button", { name: /Indicators/ })).toHaveCount(0);
-  await chart.getByRole("button", { name: "Price", exact: true }).click();
-  await expect(chart.getByTestId("chart-readout")).toContainText("C $0.0000621");
+  await page.getByRole("group", { name: "Chart value" }).getByRole("button", { name: "MCap", exact: true }).click();
+  await expect(chart.getByTestId("chart-readout")).toContainText("C $62.1K");
 
   await expect(page.getByText("Trade history is not available for this token yet.")).toBeVisible();
   const trade = page.getByRole("region", { name: "Trade", exact: true });
@@ -37,7 +39,7 @@ test("observed charts show the selected market history without mock trades or ba
   await expect(trade.getByText("Balance —")).toBeVisible();
   await expect(trade.getByRole("button", { name: "Connect wallet" })).toBeVisible();
   await expect(trade.getByRole("button", { name: /Need funds/ })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Captain Boo" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Ask Captain Boo/ })).toHaveCount(0);
   await expect(page.getByText("Crew Rewards 2%", { exact: true })).toHaveCount(0);
 });
 
@@ -72,8 +74,9 @@ test("a fresh token shows unavailable facts instead of invented candles", async 
   const chart = page.getByRole("region", { name: "Price chart" });
   await expect(chart.getByText("Data unavailable", { exact: true })).toBeVisible();
   await expect(chart.locator("canvas")).toHaveCount(0);
-  await expect(chart.getByRole("button", { name: "Price", exact: true })).toBeDisabled();
-  await expect(page.getByRole("region", { name: "Token stats" }).getByText("—", { exact: true })).toHaveCount(6);
+  await expect(page.getByRole("group", { name: "Chart value" }).getByRole("button", { name: "Price", exact: true })).toBeDisabled();
+  // Market cap, volume, liquidity and holders; the lock and top 10 moved to Token insights.
+  await expect(page.getByRole("region", { name: "Token stats" }).getByText("—", { exact: true })).toHaveCount(4);
 });
 
 test("German live details fit a light-theme phone", async ({ page }, testInfo) => {
@@ -114,10 +117,10 @@ test("a failed refresh retains the newest successful live detail", async ({ page
     ? { status: 502, json: { error: "fixture interruption" } }
     : { status: 200, json: latest }));
   await page.goto(`/token/${LIVE_SOLANA.address}`);
-  const header = page.getByRole("region", { name: LIVE_SOLANA.name, exact: true });
-  await expect(header.getByText("$79.4K", { exact: true })).toBeVisible({ timeout: 10_000 });
+  const stats = page.getByRole("region", { name: "Token stats" });
+  await expect(stats.getByText("$79.4K", { exact: true })).toBeVisible({ timeout: 10_000 });
   interrupted = true;
   await expect(page.getByText("Live updates are interrupted. Showing the last available data.")).toBeVisible({ timeout: 10_000 });
-  await expect(header.getByText("$79.4K", { exact: true })).toBeVisible();
-  await expect(header.getByText("$62.1K", { exact: true })).toHaveCount(0);
+  await expect(stats.getByText("$79.4K", { exact: true })).toBeVisible();
+  await expect(stats.getByText("$62.1K", { exact: true })).toHaveCount(0);
 });

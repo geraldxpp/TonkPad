@@ -26,7 +26,7 @@ test("token screen at 1440 px, light", async ({ page }) => {
   await page.screenshot({ path: "e2e/screenshots/token-1440-light.png", fullPage: true });
 });
 
-// The phone layout has a fixed tab bar, so take phone-sized screens rather than one long capture.
+// The phone layout has a fixed Buy / Sell bar, so take phone-sized screens rather than one long capture.
 test.describe("phone screens at 390 px", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 
@@ -34,8 +34,9 @@ test.describe("phone screens at 390 px", () => {
     const screens = [
       ["top", null],
       ["chart", dictionary.token.chart.label],
-      ["trade", dictionary.token.trade.label],
-      ["agent", "Captain Boo"],
+      ["insights", dictionary.token.insights.title],
+      ["trade", null],
+      ["agent", null],
     ] as const;
     for (const [name, region] of screens) {
       test(`phone: ${name} (${lang}, ${theme})`, async ({ page }) => {
@@ -45,6 +46,9 @@ test.describe("phone screens at 390 px", () => {
           await page.getByRole("region", { name: region, exact: true })
             .evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 110));
         }
+        // The trade form opens from the bottom bar's Buy; the agent from its card.
+        if (name === "trade") await page.getByRole("button", { name: dictionary.token.trade.buy, exact: true }).tap();
+        if (name === "agent") await page.locator('button[aria-haspopup="dialog"]').filter({ hasText: "Captain Boo" }).tap();
         await page.waitForTimeout(200);
         await page.screenshot({ path: `e2e/screenshots/token-390-${name}-${lang}${theme === "light" ? "-light" : ""}.png` });
       });

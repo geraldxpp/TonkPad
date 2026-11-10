@@ -8,7 +8,7 @@ import type { TokenDetail } from "@/shared/types/token-detail";
 import { padLabel } from "../lib/display";
 import { formatDayTime, shortAddress } from "../lib/format";
 
-/** The description and the token's facts; the curve, lock and fee only when the token has them. */
+/** The Activity card's About tab: the description and the token's facts; the curve, lock and fee only when the token has them. */
 export function AboutCard({ detail }: { detail: TokenDetail }) {
   const { t, lang } = useI18n();
   const a = t.token.about;
@@ -26,8 +26,8 @@ export function AboutCard({ detail }: { detail: TokenDetail }) {
     facts.push([a.fee, crew ? fmt(a.feeCrew, { fee: feePct, crew: crew.sharePct }) : fmt(a.feeOnly, { fee: feePct })]);
   }
   return (
-    <section aria-labelledby="about-title" className="flex flex-col gap-3.5 rounded-3xl border border-line bg-surface p-5">
-      <h2 id="about-title" className="text-[14px] font-semibold [overflow-wrap:anywhere]">
+    <section aria-labelledby="about-title" className="flex flex-col gap-3.5 p-5 max-md:p-3.5">
+      <h2 id="about-title" className="font-display text-[18px] leading-6 font-bold tracking-[-0.02em] [overflow-wrap:anywhere]">
         {fmt(a.title, { ticker: token.ticker })}
       </h2>
       {detail.description ? (
@@ -37,8 +37,8 @@ export function AboutCard({ detail }: { detail: TokenDetail }) {
       ) : null}
       <dl className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-2.5">
         {facts.map(([label, value]) => (
-          <div key={label} className="flex min-w-0 flex-col gap-0.5 rounded-xl bg-raised p-3">
-            <dt className="text-[12px] text-text-3">{label}</dt>
+          <div key={label} className="flex min-w-0 flex-col gap-1 rounded-lg border border-line bg-bg/40 px-3 py-2.5">
+            <dt className="text-[11px] text-text-3">{label}</dt>
             <dd className="font-mono text-[12px] font-semibold break-words">{value}</dd>
           </div>
         ))}

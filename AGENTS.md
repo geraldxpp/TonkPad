@@ -1,6 +1,6 @@
-# Tonkpad.fun — web app
+# tonkfun.fun — web app
 
-Tonkpad.fun is a token terminal for Solana and Robinhood Chain. It has five screens: Explore, Token Detail, Launch (Creator Studio), Bridge and Portfolio. We build it one module (screen) at a time from the approved design in `design-reference/`.
+tonkfun.fun (formerly Tonkpad.fun; the domain is still tonk-pad.vercel.app) is a token terminal for Solana and Robinhood Chain. Its screens are Explore, Token Detail, Swap, Launch (Creator Studio), Bridge and Portfolio. We build it one module (screen) at a time from the approved design in `design-reference/`, restyled by the tonkfun.fun redesign (10 Nov 2026, the owner's call): `design-proposals/Tonkfun.fun-Explore-Design.zip` holds Explore and Token Detail as built, plus Swap, Bridge, Portfolio and Launch for later. Where the two differ, the redesign wins. Swap, Bridge, Portfolio and Launch are "coming soon" placeholders for now.
 
 ## Folders
 - `design-reference/` — the approved design. Read-only: never edit anything in it.
@@ -44,27 +44,28 @@ Rules:
 - Every user-facing string, aria-label and title comes from the dictionaries: `await getI18n()` in Server Components, `useI18n()` in Client Components. Add each new key to `en.ts` and all eleven other languages (a unit test enforces matching keys and `{placeholders}`). Internal links go through `href()` so they keep the language. Names of tokens, chains and launchpads, tickers and numbers are not translated; numbers keep en-US formatting.
 - No `any`. Named exports. Keep files short (aim for under 200 lines).
 - Build only what the module prompt asks for. If something is unclear, ask instead of guessing.
-- The hero's featured coin (the reference's Mission Pick) is reserved for Tonkpad's own coin: until it launches it shows the emblem with "Coming soon" (owner's request). `MissionPick` stays for when the coin goes live.
+- The hero's featured coin (the reference's Mission Pick) is reserved for tonkfun.fun's own coin: until it launches it shows the rounded T with "Coming soon" (owner's request). `MissionPick` stays for when the coin goes live.
+- Internal storage keys keep their old names (`tonkpad-theme`, `tonkpad-lang`, `tonkpad-watchlist`, `tonkpad-wallet`) so returning visitors keep their settings.
 
 ## Design tokens
-The palette follows the Tonkpad logo: gunmetal steel surfaces, the electric blue of the chain glow and the green of the lock. It replaces the violet palette in `design-reference/` (changed at the owner's request); where the two differ, these values win.
+The palette is the tonkfun.fun redesign's: graphite surfaces with the brand cyan of the rounded T, and green for gains and locks. It replaces the earlier gunmetal-and-blue palette and the violet one in `design-reference/`; where they differ, these values win.
 
 | Token | Value | Use |
 |---|---|---|
-| --bg | #07080A | page |
-| --bg-deep | #050607 | rail, status bar |
-| --surface | #0E1013 | cards, table |
-| --raised | #15181C | inputs, menus, hovered row |
-| --input | #1C2026 | active segment |
-| --line | #1D2127 | borders, dividers |
-| --line-strong | #2C3139 | stronger borders |
-| --text | #F2F4F6 | primary text |
-| --text-2 | #A3A9B2 | secondary text |
-| --text-3 | #7D838C | tertiary text (keeps 4.5:1 contrast on --bg) |
-| --accent | #3D8EF0 | brand electric blue (tints use `--accent-rgb`) |
-| --accent-text | #7DB8F5 | blue text |
-| --cta | #4A9CF5 | primary button (text #04101E) |
-| --neon | #3DDC84 | brand green from the lock (tints use `--neon-rgb`) |
+| --bg | #080D10 | page |
+| --bg-deep | #060A0D | rail, status bar |
+| --surface | #0E161B | cards, table |
+| --raised | #151F25 | inputs, menus, hovered row |
+| --input | #1B2B33 | active segment |
+| --line | #213039 | borders, dividers |
+| --line-strong | #344954 | stronger borders |
+| --text | #F0F5F7 | primary text |
+| --text-2 | #A7B6BE | secondary text |
+| --text-3 | #81959F | tertiary text (keeps 4.5:1 contrast on --bg) |
+| --accent | #00D7E8 | brand cyan (tints use `--accent-rgb`) |
+| --accent-text | #58E5EF | cyan text |
+| --cta | #24DBEA | primary button (text `--on-cta` #03282E) |
+| --neon | #3DDC84 | green (tints use `--neon-rgb`) |
 | --cyan | #3FD8F0 | smart money |
 | --pos | #3DDC84 | gains, Buy (text #03140B) |
 | --neg | #FF5C74 | losses |
@@ -75,23 +76,23 @@ The palette follows the Tonkpad logo: gunmetal steel surfaces, the electric blue
 | --agent | #B8ACFF | token agent |
 | --track | #252A31 | empty progress track |
 
-Gradients (bonding curve, sweep bar) run --accent → --neon. Focus ring everywhere: 2px solid --cta with a 2px offset (#4A9CF5 in dark).
+Gradients (bonding curve, sweep bar) run --accent → --accent-text (`--gradient-brand`). Focus ring everywhere: 2px solid --cta with a 2px offset (#24DBEA in dark). The tonkfun.fun mark itself is #00CDE6 in both themes.
 
 Dark is the default theme. Light is opt-in (top-bar sun/moon, the rail's Theme item, the More sheet), saved in localStorage, applied before first paint by an inline script, and defined in `tokens.css` under `:root[data-theme="light"]`:
 
 | Token | Light | | Token | Light |
 |---|---|---|---|---|
-| --bg | #F3F5F8 | | --accent | #2B74E4 |
-| --bg-deep | #EEF1F5 | | --accent-text | #1A5FC8 |
-| --surface | #FFFFFF | | --cta | #2468D6 (text #FFFFFF) |
-| --raised | #F1F3F6 | | --neon | #18A957 |
-| --input | #E2E7EE | | --pos, --locked | #08703A (Buy text #FFFFFF) |
-| --line | #E1E5EB | | --neg | #C42339 |
-| --line-strong | #CDD3DC | | --warn | #8A5A00 |
-| --text | #0D1117 | | --gold | #876200 |
+| --bg | #F2F6F8 | | --accent | #087C8A |
+| --bg-deep | #EAF1F4 | | --accent-text | #006C7A |
+| --surface | #FFFFFF | | --cta | #087888 (text #FFFFFF) |
+| --raised | #EDF3F6 | | --neon | #18A957 |
+| --input | #DFEAF0 | | --pos, --locked | #08703A (Buy text #FFFFFF) |
+| --line | #DBE5EB | | --neg | #C42339 |
+| --line-strong | #C3D3DC | | --warn | #8A5A00 |
+| --text | #0D1117 | | --gold | #805B00 |
 | --text-2 | #3F4754 | | --hot | #D4561C |
 | --text-3 | #5E6675 | | --agent | #5B47C9 |
-| --track | #DCE1E8 | | --cyan | #087A8F |
+| --track | #DCE1E8 | | --cyan | #057285 |
 
 Light text colours keep 4.5:1 on their backgrounds and tints. Token-card art tiles stay dark in both themes (`data-theme="dark"` on the card scopes the dark tokens). Never hard-code a theme colour; use a token, and the `light:` variant only where a token can't express the difference.
 
@@ -107,20 +108,20 @@ Light text colours keep 4.5:1 on their backgrounds and tints. Token-card art til
 | Graduated | #F4C553 | rgba(244,197,83,.14) | none | GraduationCap |
 | Verified RWA | #7DB8F5 | --accent at 14% | --accent at 38% | ShieldCheck |
 
-Locked marks a Locked Mission and, with the Locked Missions tab, is reserved for tokens launched on Tonkpad (the owner's call, 7 Nov 2026); locks on other launchpads only count in the Mission score.
+Locked marks a Locked Mission and, with the Locked Missions tab, is reserved for tokens launched on tonkfun.fun (the owner's call, 7 Nov 2026); locks on other launchpads only count in the Mission score.
 
 On token-card art, Locked, Crew and Agent use the slightly stronger fills from the reference (.16 / .20 / .16 backgrounds, .42 borders), and Verified RWA uses --accent at 16% with a .42 border. Verified RWA marks a tokenized stock or RWA from a verified issuer (live data only); its tooltip names the issuer.
 
 Mission score pill: Safe = #3DDC84 on --pos at 12% with ShieldCheck. Caution = #FFB547 on rgba(255,181,71,.13) with ShieldCheck. Risky = #FF5C74 on rgba(255,92,116,.12) with TriangleAlert.
 
 ## Chain and launchpad marks
-Chain and launchpad marks use each one's own logo (the owner's decision, 6 Nov 2026, replacing the earlier stand-in rule): a 96 px PNG in `web/public/chains/<id>.png` or `web/public/launchpads/<id>.png`, set as `logo` in `shared/config/chains.ts` or `launchpads.ts`. Tonkpad's is the owner's emblem. A chain or launchpad without a logo file shows its letter on its colour from the table below. Add any new public folder like these to the matcher in `proxy.ts`.
+Chain and launchpad marks use each one's own logo (the owner's decision, 6 Nov 2026, replacing the earlier stand-in rule): a 96 px PNG in `web/public/chains/<id>.png` or `web/public/launchpads/<id>.png`, set as `logo` in `shared/config/chains.ts` or `launchpads.ts`. tonkfun.fun's is its rounded T (`web/public/launchpads/tonk.svg`). A chain or launchpad without a logo file shows its letter on its colour from the table below. Add any new public folder like these to the matcher in `proxy.ts`.
 
 | Mark | Shape | Background | Letter |
 |---|---|---|---|
 | Solana | circle | linear-gradient(135deg, #9945FF, #19FB9B) | S, #0B0A1A |
 | Robinhood Chain | circle | #CCFF00 | R, #0E1400 |
-| Tonkpad | rounded square | #3D8EF0 | T, #04101E |
+| tonkfun.fun (id `tonk`) | rounded square | #00CDE6 | T, #03282E |
 | Pons | rounded square | #2DD4BF | Pn, #032A25 |
 | Pump.fun | rounded square | #3BE2A0 | P, #05261A |
 | Bonk.fun | rounded square | #FF9B2F | B, #2B1500 |
@@ -129,7 +130,7 @@ Chain and launchpad marks use each one's own logo (the owner's decision, 6 Nov 2
 | Heaven | rounded square | #FF7EC8 | H, #2E0A1F |
 
 ## Icons (lucide-react)
-Compass (Explore), Radar (Live), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme; Moon while light), Ellipsis (More), Globe (Language), Check, X (Close), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (Filters), List, LayoutGrid. The logo is the owner's emblem (`web/src/modules/shell/assets/tonkpad-logo.png`, the T in a chain ring with the green lock), rendered by the `Logo` component; it replaces the inline SVG in the reference.
+Compass (Explore), ArrowDownUp (Swap), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme; Moon while light), Ellipsis (More), Globe (Language), Check, X (Close), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (trade settings), ArrowUpRight (open a token), Radio (launch radar). The logo is tonkfun.fun's rounded T, drawn inline by the `Logo` component (its `size` is the width; the height follows the mark's shape). The favicon and Apple icon (`web/src/app/icon.svg`, `icon.png`, `apple-icon.png`) are the same T on the page colour. The rail groups the screens under Workspace (Explore, Swap, Bridge, Portfolio, Alerts, Launch) and Docs under Resources; on phones the tab bar shows Explore, Swap, Bridge, Portfolio, Launch, Docs and More, and token pages swap it for their Buy / Sell bar.
 
 ## Motion
 CSS keyframes live in `styles/animations.css`. Turn every animation and transition off under `prefers-reduced-motion: reduce`. No animation library unless a module prompt asks for one.

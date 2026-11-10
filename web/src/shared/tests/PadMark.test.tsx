@@ -18,9 +18,9 @@ describe("PadMark", () => {
     }
   });
 
-  it("uses the owner's emblem for Tonkpad", () => {
+  it("uses the tonkfun.fun mark for its own launchpad", () => {
     const { container } = render(<PadMark pad="tonk" decorative />);
-    expect(container.querySelector("img")?.getAttribute("src")).toBe("/launchpads/tonk.png");
+    expect(container.querySelector("img")?.getAttribute("src")).toBe("/launchpads/tonk.svg");
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
   });
 });

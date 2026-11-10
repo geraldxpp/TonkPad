@@ -18,7 +18,7 @@ test("every Tab stop shows the focus ring, and the key controls are all reachabl
       // The search input draws its ring on the surrounding label.
       const target = el.matches("input[type=search]") ? (el.closest("label") as HTMLElement) : el;
       const s = getComputedStyle(target);
-      const ring = s.outlineStyle === "solid" && s.outlineWidth === "2px" && s.outlineColor === "rgb(74, 156, 245)";
+      const ring = s.outlineStyle === "solid" && s.outlineWidth === "2px" && s.outlineColor === "rgb(36, 219, 234)";
       const label = el.getAttribute("aria-label") ?? el.textContent?.trim().replace(/\s+/g, " ").slice(0, 40) ?? el.tagName;
       return { label: `${el.tagName.toLowerCase()}:${label}`, ring };
     });
@@ -32,7 +32,7 @@ test("every Tab stop shows the focus ring, and the key controls are all reachabl
 
   const labels = stops.map((s) => s.label).join("\n");
   for (const expected of [
-    "a:Tonkpad.fun home",
+    "a:tonkfun.fun home",
     "a:Explore",
     "button:Alerts, 3 new",
     "input:",
@@ -40,17 +40,17 @@ test("every Tab stop shows the focus ring, and the key controls are all reachabl
     "All Chains", // the pill's text also holds its aria-hidden S/R marks
     "button:Alerts",
     "button:Connect wallet",
-    "button:1m",
+    "a:Explore the market",
+    "a:Launch a token",
     "button:View all",
     "button:Previous",
     "a:Ghosty, market cap $58.2K, +412.6% in 24h",
     "button:Trending",
     "button:24h",
-    "button:Filters, 2 active",
-    "button:Grid view",
     "Moonshot304",
-    "button:Quick buy 0.5 SOL of TIDE",
+    "a:Open TIDE",
     "button:Load more",
+    "summary:Launch radar",
     "a:Terms",
   ]) {
     expect(labels).toContain(expected);

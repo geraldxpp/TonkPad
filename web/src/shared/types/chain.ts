@@ -11,6 +11,4 @@ export interface Chain {
   background: string;
   /** Letter colour on the mark. */
   foreground: string;
-  /** Preset amount for the one-tap "Quick buy" button. */
-  quickBuy: { amount: string; unit: string };
 }

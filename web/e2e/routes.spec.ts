@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { openExplore, pauseCarousel } from "./helpers";
 
 const RAIL = [
-  ["Live", "/live", "Live"],
+  ["Swap", "/swap", "Swap"],
   ["Bridge", "/bridge", "Bridge"],
   ["Portfolio", "/portfolio", "Portfolio"],
   ["Launch", "/launch", "Launch (Creator Studio)"],
@@ -36,7 +36,7 @@ test("token cards and table names link to /token/<TICKER>", async ({ page }) => 
   await pauseCarousel(page);
   await page.getByRole("link", { name: /^Orbit, market cap/ }).click();
   await expect(page).toHaveURL("/token/ORB");
-  await expect(page.getByText("$ORB", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Orbit" })).toBeVisible();
 
   await openExplore(page);
   await page.getByRole("table", { name: "Tokens" }).getByRole("link", { name: "Sol Cat" }).click();

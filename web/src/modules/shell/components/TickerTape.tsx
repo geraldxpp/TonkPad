@@ -18,13 +18,13 @@ interface TickerTapeLabelProps extends TickerTapeProps {
 
 function TapeRun({ items, hidden }: TickerTapeProps & { hidden?: boolean }) {
   return (
-    <div className="flex flex-none items-center gap-[22px] pr-[22px]" aria-hidden={hidden} inert={hidden}>
+    <div className="flex flex-none items-center gap-5 pr-5" aria-hidden={hidden} inert={hidden}>
       {items.map((item) => (
-        <span key={item.address ?? item.ticker} className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap">
-          <TokenArt src={item.art} label={item.ticker} size={20} eager className="size-5 rounded-md" />
-          <span className="text-[12px] font-semibold">{item.ticker}</span>
-          <span className="font-mono text-[12px] text-text-2">{formatUsdCompact(item.marketCap)}</span>
-          <span className={item.change24h >= 0 ? "font-mono text-[12px] font-medium text-pos" : "font-mono text-[12px] font-medium text-neg"}>
+        <span key={item.address ?? item.ticker} className="inline-flex flex-none items-center gap-2 border-r border-line pr-5 whitespace-nowrap">
+          <TokenArt src={item.art} label={item.ticker} size={16} eager className="size-4 rounded" />
+          <span className="font-mono text-[11px] font-medium">{item.ticker}</span>
+          <span className="font-mono text-[11px] text-text-2">{formatUsdCompact(item.marketCap)}</span>
+          <span className={item.change24h >= 0 ? "font-mono text-[11px] font-medium text-pos" : "font-mono text-[11px] font-medium text-neg"}>
             {formatChange(item.change24h)}
           </span>
         </span>
@@ -46,7 +46,7 @@ export function TickerTape({ items: mockItems, label, className }: TickerTapeLab
       role="marquee"
       aria-label={label}
       tabIndex={0}
-      className={cn("tk-tape h-10 min-w-0 flex-[999_1_260px] rounded-lg", className)}
+      className={cn("tk-tape h-9 min-w-0 flex-1", className)}
     >
       <div className="h-full overflow-hidden px-2 [mask-image:linear-gradient(90deg,transparent,#000_28px,#000_calc(100%-28px),transparent)]">
         <div className="tk-marquee flex h-full w-max items-center">

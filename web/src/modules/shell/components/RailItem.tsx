@@ -19,12 +19,16 @@ interface RailItemProps {
 }
 
 /**
- * 60 × 58 rail tile on desktop; an evenly sized tab in the phone tab bar.
- * Labels in long languages tighten a touch under 375 px and truncate as a
- * last resort.
+ * A 60 × 58 icon tile in the 76 px rail (768–1279 px), a full-width row with
+ * the label beside the icon in the 192 px sidebar from 1280 px, and an evenly
+ * sized tab in the phone tab bar. Labels in long languages tighten a touch
+ * under 375 px and truncate as a last resort.
  */
-const ITEM =
-  "relative flex h-[58px] w-[60px] flex-none flex-col items-center justify-center gap-1 rounded-[14px] max-md:h-14 max-md:w-auto max-md:min-w-0 max-md:flex-1 max-md:gap-0.5 max-md:rounded-xl";
+const ITEM = [
+  "relative flex h-[58px] w-[60px] flex-none flex-col items-center justify-center gap-1 rounded-lg",
+  "xl:h-11 xl:w-full xl:flex-row xl:justify-start xl:gap-3 xl:px-3",
+  "max-md:h-14 max-md:w-auto max-md:min-w-0 max-md:flex-1 max-md:gap-0.5 max-md:rounded-xl",
+].join(" ");
 
 export function RailItem({ item, active, badge, icon, buttonProps }: RailItemProps) {
   const { t, href } = useI18n();
@@ -32,17 +36,25 @@ export function RailItem({ item, active, badge, icon, buttonProps }: RailItemPro
   const label = t.nav[item.id];
   const body = (
     <>
-      {icon ?? <Icon size={20} strokeWidth={1.8} />}
+      {/* The active item's accent bar: on the left edge in the rail, along the top in the phone tab bar. */}
+      {active ? (
+        <span
+          aria-hidden="true"
+          className="absolute top-3 bottom-3 left-0 w-0.5 rounded-full bg-accent max-md:top-0 max-md:bottom-auto max-md:left-1/2 max-md:h-0.5 max-md:w-5 max-md:-translate-x-1/2"
+        />
+      ) : null}
+      {icon ?? <Icon size={20} strokeWidth={1.8} className="flex-none" />}
       <span
         className={cn(
           "max-w-full truncate text-[10px] font-semibold max-[374px]:tracking-[-0.02em] md:text-[11px] md:tracking-[0.02em]",
+          "xl:min-w-0 xl:text-[13px] xl:font-medium xl:tracking-normal",
           active ? "text-text" : "text-text-3",
         )}
       >
         {label}
       </span>
       {badge ? (
-        <span className="absolute left-[34px] top-[5px] h-4 min-w-4 rounded-lg bg-neg px-1 text-center text-[10px] leading-4 font-bold text-[var(--badge-on-alert)]">
+        <span className="absolute top-[5px] left-[34px] h-4 min-w-4 rounded bg-neg px-1 text-center font-mono text-[10px] leading-4 font-semibold text-[var(--badge-on-alert)] xl:static xl:ml-auto">
           {badge}
         </span>
       ) : null}
@@ -50,8 +62,8 @@ export function RailItem({ item, active, badge, icon, buttonProps }: RailItemPro
   );
 
   const tone = active
-    ? "bg-accent/14 text-accent-text max-md:bg-transparent"
-    : "bg-transparent text-text-2";
+    ? "bg-accent/10 text-accent-text max-md:bg-transparent"
+    : "bg-transparent text-text-2 hover:bg-raised hover:text-text";
   const className = cn(ITEM, tone, item.hideOnMobile && "max-md:hidden");
 
   if (item.href) {

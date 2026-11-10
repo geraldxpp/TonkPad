@@ -11,7 +11,7 @@ interface ChipProps {
   onClick?: () => void;
 }
 
-/** Pill toggle used for the launchpad filters. */
+/** Small toggle used for the launchpad filters: a cyan tint when selected, a quiet hover otherwise. */
 export function Chip({ label, count, mark, active, onClick }: ChipProps) {
   return (
     <button
@@ -19,16 +19,15 @@ export function Chip({ label, count, mark, active, onClick }: ChipProps) {
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-2xl border pr-3 text-[13px] font-medium whitespace-nowrap",
-        mark ? "pl-2" : "pl-3",
+        "inline-flex h-7 flex-none items-center gap-1.5 rounded-md border px-2 text-[12px] font-medium whitespace-nowrap",
         active
-          ? "border-accent/55 bg-accent/14 text-text"
-          : "border-line bg-surface text-text-2",
+          ? "border-accent/25 bg-accent/8 text-accent-text"
+          : "border-transparent text-text-2 hover:bg-raised hover:text-text",
       )}
     >
       {mark}
       {label}
-      {count ? <span className="font-mono text-[12px] font-normal text-text-3">{count}</span> : null}
+      {count ? <span className="font-mono text-[11px] font-normal text-text-3">{count}</span> : null}
     </button>
   );
 }

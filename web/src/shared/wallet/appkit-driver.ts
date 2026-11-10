@@ -35,13 +35,13 @@ const pageTheme = () => (document.documentElement.getAttribute("data-theme") ===
  */
 export async function createAppKitDriver(projectId: string): Promise<WalletDriver> {
   const origin = window.location.origin;
-  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content || "Tonkpad.fun";
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content || "tonkfun.fun";
   const appKit = createAppKit({
     projectId,
     adapters: [new SolanaAdapter(), new WagmiAdapter({ projectId, networks: [robinhood] })],
     networks: [solana, robinhood],
     defaultNetwork: solana,
-    metadata: { name: "Tonkpad.fun", description, url: origin, icons: [`${origin}/icon.png`] },
+    metadata: { name: "tonkfun.fun", description, url: origin, icons: [`${origin}/icon.png`] },
     themeMode: pageTheme(),
     themeVariables: themeVariables(),
     features: {

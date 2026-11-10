@@ -52,7 +52,7 @@ test("ArrowDown on the pill opens the menu; End jumps to the last chain", async 
 test("a click outside closes the menu", async ({ page }) => {
   await chainPill(page).click();
   await expect(page.getByRole("listbox")).toBeVisible();
-  await page.getByRole("heading", { name: "Launches." }).click();
+  await page.getByRole("heading", { level: 1 }).click();
   await expect(page.getByRole("listbox")).toBeHidden();
 });
 
@@ -63,5 +63,5 @@ test("the focused option shows the focus ring", async ({ page }) => {
     .getByRole("option", { name: /^All Chains/ })
     .evaluate((el) => getComputedStyle(el).outline);
   expect(outline).toContain("2px");
-  expect(outline).toContain("rgb(74, 156, 245)");
+  expect(outline).toContain("rgb(36, 219, 234)");
 });

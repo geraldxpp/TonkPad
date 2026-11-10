@@ -18,7 +18,7 @@ export function TradersTable({ traders }: { traders: readonly TopTrader[] }) {
   const h = t.token.traders;
   return (
     <div role="table" aria-label={h.label} className="min-w-[760px]">
-      <div role="row" className={cn(GRID, "h-9 border-b border-line text-[12px] text-text-3")}>
+      <div role="row" className={cn(GRID, "h-9 border-b border-line text-[11px] text-text-3")}>
         <span role="columnheader">{h.trader}</span>
         <span role="columnheader" className="text-right">{h.pnl}</span>
         <span role="columnheader" className="text-right">{h.bought}</span>
@@ -26,7 +26,7 @@ export function TradersTable({ traders }: { traders: readonly TopTrader[] }) {
         <span role="columnheader" className="text-right">{h.win}</span>
       </div>
       {traders.map((trader) => (
-        <div key={trader.address} role="row" className={cn(GRID, "h-11 hover:bg-raised")}>
+        <div key={trader.address} role="row" className={cn(GRID, "h-11 border-b border-line/65 last:border-b-0 hover:bg-raised")}>
           <WalletCell address={trader.address} tag={trader.tag} />
           <span role="cell" className={cn(NUM, "font-semibold", trader.pnlUsd < 0 ? "text-neg" : "text-pos")}>{signedUsd(trader.pnlUsd)}</span>
           <span role="cell" className={cn(NUM, "text-text-2")}>{formatUsd(trader.boughtUsd, 0)}</span>

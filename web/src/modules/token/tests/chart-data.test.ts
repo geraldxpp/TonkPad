@@ -4,6 +4,12 @@ import { formatAxisTicks, formatAxisValue, formatChartValue, formatVolume, gradu
 
 const LAST_15M = GHOSTY.chart.candles["15m"].at(-1)!;
 
+describe("price axis zero", () => {
+  it("labels a zero line that arrives as a float crumb as $0", () => {
+    expect(formatAxisTicks([0.00007, 0.000035, 1.2e-13], "price")).toEqual(["$0.00007", "$0.000035", "$0"]);
+  });
+});
+
 describe("chart view state", () => {
   it("reads the timeframe and value from the URL, falling back to 15m and market cap", () => {
     expect(parseTimeframe("1h")).toBe("1h");
@@ -12,7 +18,8 @@ describe("chart view state", () => {
     expect(parseTimeframe(null)).toBe("15m");
     expect(parseChartValue("price")).toBe("price");
     expect(parseChartValue("mcap")).toBe("mcap");
-    expect(parseChartValue("x")).toBe("mcap");
+    expect(parseChartValue("x")).toBe("price");
+    expect(parseChartValue(null)).toBe("price");
   });
 });
 

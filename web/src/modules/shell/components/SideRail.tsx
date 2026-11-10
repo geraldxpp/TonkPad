@@ -1,15 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { activeNavId } from "../lib/nav";
+import { activeNavId, isTokenPath } from "../lib/nav";
 import { SideRailView } from "./SideRailView";
 
 interface SideRailProps {
   unreadAlerts: number;
 }
 
-/** Highlights the rail item for the current route, in any language. */
+/** Highlights the rail item for the current route, in any language; token pages hide the phone tab bar. */
 export function SideRail({ unreadAlerts }: SideRailProps) {
   const pathname = usePathname();
-  return <SideRailView activeId={activeNavId(pathname)} unreadAlerts={unreadAlerts} />;
+  return <SideRailView activeId={activeNavId(pathname)} unreadAlerts={unreadAlerts} phoneTabs={!isTokenPath(pathname)} />;
 }

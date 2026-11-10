@@ -8,7 +8,6 @@ export const CHAINS: Record<ChainId, Chain> = {
     letter: "S",
     background: "linear-gradient(135deg, #9945FF, #19FB9B)",
     foreground: "#0B0A1A",
-    quickBuy: { amount: "0.5", unit: "SOL" },
   },
   rh: {
     id: "rh",
@@ -17,7 +16,6 @@ export const CHAINS: Record<ChainId, Chain> = {
     letter: "R",
     background: "#CCFF00",
     foreground: "#0E1400",
-    quickBuy: { amount: "0.01", unit: "ETH" },
   },
 };
 

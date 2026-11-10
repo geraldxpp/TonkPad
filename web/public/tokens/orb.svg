@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none"><defs><linearGradient id="b" x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse"><stop stop-color="#C65BFF"/><stop offset="1" stop-color="#3A0E6C"/></linearGradient><radialGradient id="s" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22 10) scale(72)"><stop stop-color="#FFFFFF" stop-opacity="0.24"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs><rect width="96" height="96" fill="url(#b)"/><rect width="96" height="96" fill="url(#s)"/><ellipse cx="48" cy="50" rx="36" ry="11" transform="rotate(-18 48 50)" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3"/><circle cx="48" cy="50" r="19" fill="#FFC6F4"/><path d="M30.5 44.5C39 48.5 57 48.5 65.5 43.5M31 55.5C40 59 56 59 65 54.5" stroke="#F08BDD" stroke-width="3" stroke-linecap="round"/><path d="M13.8 61.1Q48 73 82.2 38.9" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><circle cx="79" cy="20" r="3" fill="#FFFFFF"/><circle cx="19" cy="25" r="1.8" fill="#FFFFFF"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="24" fill="#181B2B"/>
+  <ellipse cx="64" cy="64" rx="41" ry="19" transform="rotate(-40 64 64)" stroke="#B0ADFA" stroke-width="5"/>
+  <ellipse cx="64" cy="64" rx="41" ry="19" transform="rotate(40 64 64)" stroke="#5E649D" stroke-width="5"/>
+  <circle cx="64" cy="64" r="10" fill="#D4D5FF"/>
+  <circle cx="95" cy="38" r="5" fill="#B0ADFA"/>
+</svg>

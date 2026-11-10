@@ -83,20 +83,20 @@ test.describe("with motion", () => {
     await expect.poll(state).toBe("paused");
   });
 
-  test("token cards lift 4 px with a violet ring on hover", async ({ page }) => {
+  test("token cards lift 4 px with a cyan ring on hover", async ({ page }) => {
     const card = page.getByRole("link", { name: /^Ghosty, market cap/ });
     await pauseCarousel(page);
     await card.hover();
     await page.waitForTimeout(300);
     const style = await card.evaluate((el) => ({ transform: getComputedStyle(el).transform, shadow: getComputedStyle(el).boxShadow }));
     expect(style.transform).toBe("matrix(1, 0, 0, 1, 0, -4)");
-    expect(style.shadow).toContain("rgba(61, 142, 240, 0.75) 0px 0px 0px 1.5px");
+    expect(style.shadow).toContain("rgba(0, 215, 232, 0.5) 0px 0px 0px 1px");
   });
 
   test("table rows turn the raised colour on hover", async ({ page }) => {
     const row = page.getByRole("table", { name: "Tokens" }).getByRole("row").nth(1);
     await row.hover();
-    await expect.poll(() => row.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(21, 24, 28)");
+    await expect.poll(() => row.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(21, 31, 37)");
   });
 });
 
@@ -108,6 +108,7 @@ test.describe("with reduced motion", () => {
     expect(await animations(page)).toEqual([]);
     await expect(page.getByText("0:04", { exact: true })).toHaveCount(2);
     await expect(page.getByTestId("sweep-countdown").first()).toBeHidden();
+    await page.getByTestId("radar-toggle").click();
     const sweep = await page.getByTestId("radar-sweep").evaluate((el) => getComputedStyle(el).transform);
     expect(sweep).toBe("none"); // the wedge sits still at its start angle
   });

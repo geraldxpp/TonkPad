@@ -46,7 +46,7 @@ test("the server streams a shared view, so it is right before the app hydrates",
   );
   await page.goto("/?chain=sol&tab=locked");
   await expect(page.getByText("Showing 1 of 8,412 tokens · refreshes every 4s")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Tide" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Tide", exact: true })).toBeVisible();
   await expectChain(page, "Solana");
 });
 

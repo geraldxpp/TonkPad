@@ -13,7 +13,7 @@ import { CoinPill } from "./CoinPill";
 import { TradeBox } from "./TradeBox";
 import type { TradeToken } from "./types";
 
-const BIG = "font-mono text-[36px] leading-[44px] font-semibold tracking-[-0.03em] max-md:text-[30px]";
+const BIG = "font-mono text-[30px] leading-9 font-medium tracking-[-0.045em] max-md:text-[28px]";
 
 interface PayFieldProps {
   token: TradeToken;
@@ -47,7 +47,7 @@ export function PayField({ token, side, amount, onAmount, quote, balanceText, em
           <span className={empty ? "text-neg" : undefined}>{balanceText}</span>
         </>
       }
-      foot={<span className="font-mono text-[12px] text-text-3">{fmt(tr.approx, { usd: formatUsd(quote.payUsd) })}</span>}
+      foot={<span className="font-mono text-[11px] text-text-3">{fmt(tr.approx, { usd: formatUsd(quote.payUsd) })}</span>}
     >
       <input
         id={id}
@@ -79,6 +79,7 @@ export function ReceiveField({ token, side, quote }: { token: TradeToken; side: 
     : fmt(tr.minSell, { amount: quote.minimum.toFixed(4), unit: coin });
   return (
     <TradeBox
+      tone="receive"
       top={
         <>
           <span>{tr.receive}</span>
@@ -86,7 +87,7 @@ export function ReceiveField({ token, side, quote }: { token: TradeToken; side: 
         </>
       }
     >
-      <span className={`${BIG} min-w-0 truncate`}>{buy ? formatTokens(quote.receive) : quote.receive.toFixed(4)}</span>
+      <span className="min-w-0 truncate font-mono text-[22px] leading-8 font-medium tracking-[-0.04em]">{buy ? formatTokens(quote.receive) : quote.receive.toFixed(4)}</span>
       {buy ? (
         <CoinPill kind="token" art={token.art} ticker={token.ticker} label={token.ticker} />
       ) : (

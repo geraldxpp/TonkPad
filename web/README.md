@@ -1,7 +1,8 @@
-# Tonkpad.fun — web
+# tonkfun.fun — web
 
-The Tonkpad.fun token terminal (Solana + Robinhood Chain), built module by module
-from the approved design in `../design-reference/`. Project rules live in
+The tonkfun.fun token terminal (Solana + Robinhood Chain; formerly Tonkpad.fun),
+built module by module from the approved design in `../design-reference/`,
+restyled by the tonkfun.fun redesign (`../design-proposals/`). Project rules live in
 `../CLAUDE.md`; module briefs live in `../prompts/`.
 
 Built so far: **Module 1 — app shell + Explore** (`/`) and **Module 2 —
@@ -85,10 +86,11 @@ returns typed mock data; with the worker on, Explore loads through
   sweep's leading edge takes to reach its blip.
 - **Reduced motion.** `prefers-reduced-motion: reduce` turns every animation and
   transition off; the countdown shows a static `0:04`.
-- **Palette.** Matched to the logo: gunmetal steel surfaces, electric blue
-  (`--accent`) from the chain glow and green (`--neon`) from the lock. Tints
-  use the `--accent-rgb` / `--neon-rgb` channels, so a retheme is a
-  `tokens.css` change.
+- **Palette.** The tonkfun.fun redesign's: graphite surfaces, the brand cyan
+  of the rounded T (`--accent`) and green for gains and locks. Tints use the
+  `--accent-rgb` / `--neon-rgb` channels, so a retheme is a `tokens.css`
+  change. The logo is drawn inline by `Logo` (the cyan T, #00CDE6 in both
+  themes); `app/icon.svg`, `icon.png` and `apple-icon.png` are the same mark.
 - **Light and dark.** Dark is the default. The sun/moon button in the top bar
   (phones too), the rail's Theme item and the More sheet switch themes; the choice is saved
   in `localStorage` (`tonkpad-theme`). The light palette is the
@@ -99,8 +101,8 @@ returns typed mock data; with the worker on, Explore loads through
   `light:` variant for anything else that must differ (e.g. the sun/moon icon).
 - **Languages.** English, Español, Português (BR), Français, Deutsch, Русский,
   Türkçe, 中文 (简体), 日本語, 한국어, Tiếng Việt and Bahasa Indonesia. English is
-  the default and lives at the unprefixed URLs (`/`, `/live`); the others are
-  prefixed (`/es`, `/ja/live`). Every page is under `app/[lang]` and
+  the default and lives at the unprefixed URLs (`/`, `/swap`); the others are
+  prefixed (`/es`, `/ja/swap`). Every page is under `app/[lang]` and
   prerendered for each language. `proxy.ts` rewrites unprefixed URLs to English
   and sends visitors who picked another language (the `tonkpad-lang` cookie,
   set by the language menus) to their prefix. Strings live in
@@ -111,28 +113,35 @@ returns typed mock data; with the worker on, Explore loads through
   `lang`. Numbers, prices and tickers keep the design's en-US formatting.
   Unknown paths render a translated 404 inside the shell.
 - **Launchpad marks** are each launchpad's own logo, as 96 px PNGs in
-  `public/launchpads/` (`logo` in `shared/config/launchpads.ts`): Tonkpad's is
-  the emblem; Bags, Moonshot (moonshot.com) and Bonk.fun come from their own
+  `public/launchpads/` (`logo` in `shared/config/launchpads.ts`): tonkfun.fun's
+  is its rounded T (`tonk.svg`); Bags, Moonshot (moonshot.com) and Bonk.fun come from their own
   sites; Pump.fun, Pons and Heaven from DefiLlama's copies (pump.fun blocks
   scripted requests, Pons's site has no icon file, heaven.xyz is down). A
   launchpad without a file shows its letter on its colour.
 - **Chain marks** are the chains' own logos too, in `public/chains/`:
   Solana's from Solana Labs' token list on GitHub (solana.com rate-limits
   scripted requests), Robinhood Chain's from DefiLlama's copy.
-- **Tonkpad's coin slot.** The hero's featured coin (Mission Pick in the
-  design) is reserved for Tonkpad's own coin: until it launches it shows the
-  emblem with "Coming soon" (`NativeCoin`). The worker still computes a
+- **tonkfun.fun's coin slot.** The hero's featured coin (Mission Pick in the
+  design) is reserved for tonkfun.fun's own coin: until it launches it shows
+  the rounded T with "Coming soon" (`NativeCoin`). The worker still computes a
   pick; `MissionPick` can show the coin's price and Buy once it's live.
-- **Heating up carousel.** A real scroll row that glides on its own
+- **Explore layout.** The hero (eyebrow, "Find your next move.", the two
+  calls to action) sits beside the coin slot, with the four market figures
+  under both; then "In the spotlight", the "Explore tokens" card (underlined
+  tabs, timeframe, launchpad chips and the table) and the launch radar, folded
+  into a `<details>` under the list. The top bar, ticker and page share a
+  1600 px column, centred on wider screens.
+- **Spotlight carousel.** A real scroll row that glides on its own
   (`hooks/useAutoScroll.ts`): the cards render three times and the position
   wraps by one copy for a seamless loop. Hover, keyboard focus, touch and the
   wheel pause it; Previous/Next step one card; reduced motion keeps it still.
 - **Token table tiers.** All 11 columns from 1440 px; Holders and Smart
   money drop below that, Bonding curve and Volume below 1280 px, Mission
   score and Last 24h below 1024 px. It never scrolls sideways, and Market cap
-  and Quick buy are always on screen. The page fills wide screens.
+  and the open arrow (Details) are always on screen.
 - **Phone layout (under 768 px).** The rail becomes a fixed seven-tab bar along
-  the bottom (More opens the theme and language sheet); the top bar is one
+  the bottom (Explore, Swap, Bridge, Portfolio, Launch, Docs, More; More opens
+  the theme and language sheet; token pages swap it for their Buy / Sell bar); the top bar is one
   sticky row (logo, search, language, theme, alerts, wallet) with the ticker
   under it. Like Boxa, the bar uses compact 32 px buttons (globe-only
   language, 28 px logo; the wordmark waits until 640 px) so "Connect wallet"
@@ -140,17 +149,24 @@ returns typed mock data; with the worker on, Explore loads through
   button can't wrap: with a very large system font its label ends in "…"
   instead. Languages whose phrase is much longer show their short "Connect"; Mission Pick becomes a featured card with a
   full-width Buy; Heating up is a swipeable row; the token list is a compact
-  Token / Market cap / 24h / Quick buy list, and the chain filter joins its
+  Token / Market cap / 24h / open-arrow list, and the chain filter joins its
   toolbar. Tablet and desktop keep the design exactly.
 
 ## Token Detail
 
 `getTokenData()` returns typed mock details for Ghosty and every token in the
-mock Explore list. The screen includes the header and watchlist, an interactive
-Lightweight Charts chart, activity tables, About, a simulated trade panel and
-bridge dialog, lock telemetry, crew payouts and scripted Captain Boo replies.
-Chart timeframe/value and activity tabs are kept in the URL. The watchlist is
-saved in the browser. Crew rewards and Locked Missions remain Tonkpad-only.
+mock Explore list. The screen (tonkfun.fun redesign) has the token's identity
+with its links, star and Share; one market card with the price (or market
+cap) and the Price / MCap switch, the interactive Lightweight Charts chart,
+the bonding curve and four market figures; an Activity card with Live
+trades, Holders, Top traders and About tabs; and Token insights (Mission
+score, dev lock with its vesting, top 10 holders, smart money). The trade
+column beside it holds "Trade {name}", crew payouts and "Ask Captain Boo",
+which opens the scripted agent in a dialog. Phones trade from a Buy / Sell
+bar fixed to the bottom, which opens the form in a sheet. Price is the
+default chart value; chart timeframe/value and activity tabs are kept in the
+URL. The watchlist is saved in the browser. Crew rewards and Locked Missions
+remain tonkfun.fun-only.
 
 In mock mode, balances, quotes, trades and bridging are simulated. No wallet
 connects and no funds move. Captain Boo answers from the selected token's

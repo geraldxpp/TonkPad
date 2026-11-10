@@ -19,8 +19,12 @@ interface TabsProps<T extends string> {
   idPrefix: string;
   /** Placement classes for the tablist (e.g. a swipeable row on phones). */
   className?: string;
-  /** "panel" is the token screen's activity tabs: a raised group with 30 px tabs. */
-  size?: "md" | "panel";
+  /**
+   * "md" and "panel" are pill groups (panel: raised, with 30 px tabs);
+   * "underline" is a bare row of 56 px tabs with a cyan rule under the
+   * selected one, for tabs that sit along a card's edge.
+   */
+  size?: "md" | "panel" | "underline";
 }
 
 /**
@@ -48,7 +52,12 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
     <div
       role="tablist"
       aria-label={label}
-      className={cn("flex flex-wrap gap-0.5 rounded-xl border border-line p-1", size === "panel" ? "bg-raised" : "bg-surface", className)}
+      className={cn(
+        size === "underline"
+          ? "flex min-w-0 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          : cn("flex flex-wrap gap-0.5 rounded-xl border border-line p-1", size === "panel" ? "bg-raised" : "bg-surface"),
+        className,
+      )}
     >
       {tabs.map((tab, index) => {
         const active = tab.id === value;
@@ -67,9 +76,16 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
             onClick={() => onChange?.(tab.id)}
             onKeyDown={(event) => move(event, index)}
             className={cn(
-              "inline-flex items-center gap-1.5 text-[13px] font-medium whitespace-nowrap",
-              size === "panel" ? "h-[30px] rounded-lg px-3" : "h-8 rounded-[9px] px-3.5",
-              active ? "bg-input text-text" : "bg-transparent text-text-2",
+              "inline-flex flex-none items-center gap-1.5 text-[13px] font-medium whitespace-nowrap",
+              size === "underline"
+                ? cn(
+                    "h-14 border-b-2 px-2.5 focus-visible:[outline-offset:-4px]",
+                    active ? "border-accent text-accent-text" : "border-transparent text-text-2 hover:text-text",
+                  )
+                : cn(
+                    size === "panel" ? "h-[30px] rounded-lg px-3" : "h-8 rounded-[9px] px-3.5",
+                    active ? "bg-input text-text" : "bg-transparent text-text-2",
+                  ),
             )}
           >
             {tab.icon}

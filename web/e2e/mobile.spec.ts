@@ -33,7 +33,7 @@ test("a shared link with a query opens the search row", async ({ page }) => {
 
 test("the chain filter sits in the list toolbar and filters by chain", async ({ page }) => {
   await expect(page.getByRole("banner").getByRole("button", { name: "All Chains" })).toBeHidden();
-  const pill = page.getByRole("region", { name: "All tokens" }).getByRole("button", { name: "All Chains" });
+  const pill = page.getByRole("region", { name: "Explore tokens" }).getByRole("button", { name: "All Chains" });
   await pill.tap();
   await page.getByRole("option", { name: /^Solana/ }).tap();
   await expectChain(page, "Solana");
@@ -52,10 +52,10 @@ test("the tab row and launchpad chips scroll sideways and still work", async ({ 
 
 test("the bottom tab bar navigates", async ({ page }) => {
   const nav = page.getByRole("navigation", { name: "Main" });
-  await nav.getByRole("link", { name: "Live" }).tap();
-  await expect(page).toHaveURL("/live");
-  await expect(page.getByRole("heading", { level: 1, name: "Live" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Live" })).toHaveAttribute("aria-current", "page");
+  await nav.getByRole("link", { name: "Swap" }).tap();
+  await expect(page).toHaveURL("/swap");
+  await expect(page.getByRole("heading", { level: 1, name: "Swap" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Swap" })).toHaveAttribute("aria-current", "page");
 });
 
 test("compact rows link to the token page", async ({ page }) => {

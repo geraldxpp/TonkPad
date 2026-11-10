@@ -12,17 +12,18 @@ import { BridgeDialog } from "./BridgeDialog";
 import { TradeAction } from "./TradeAction";
 import { FeeLine, PresetRow, SettingsRow, SideAndOrder, useTradeSide } from "./TradeControls";
 import { coinOnChain, PayField, ReceiveField } from "./TradeFields";
-import type { TradeToken } from "./types";
+import { TradeCard } from "./TradeCard";
+import type { TradePanelProps } from "./types";
 
 /**
  * Buy and sell on mock data, as the export simulates them: a pretend wallet
  * with nothing on the token's chain, so a buy needs funds bridged in first.
  * Live tokens use LiveTradePanel, with the connected wallet's real balances.
  */
-export function TradePanel({ token }: { token: TradeToken }) {
+export function TradePanel({ token, initialSide, onClose }: TradePanelProps) {
   const { t } = useI18n();
   const tr = t.token.trade;
-  const { side, pick, amount, setAmount } = useTradeSide();
+  const { side, pick, amount, setAmount } = useTradeSide(initialSide);
   const [balance, setBalance] = useState<number>(SIM_WALLET.native);
   const [bridgeOpen, setBridgeOpen] = useState(false);
   const [bridged, setBridged] = useState<{ amount: number; provider: string } | null>(null);
@@ -35,8 +36,8 @@ export function TradePanel({ token }: { token: TradeToken }) {
   const held = buy ? coinOnChain(tr, token.chain, plainAmount(balance)) : `${SIM_WALLET.tokensM}M ${token.ticker}`;
 
   return (
-    <section aria-label={tr.label} className="flex flex-col gap-3.5 rounded-3xl border border-line bg-surface p-5 shadow-panel">
-      <SideAndOrder side={side} onSide={pick} />
+    <TradeCard name={token.name} onClose={onClose}>
+      <SideAndOrder side={side} onSide={pick} chain={token.chain} />
       {quote.needsFunds ? <BridgeBanner chainName={chainName} onOpen={() => setBridgeOpen(true)} /> : null}
       {bridged && buy && !quote.needsFunds ? (
         <div role="status" className="tk-in flex items-center gap-2.5 rounded-[14px] border border-pos/35 bg-pos/12 px-3 py-2.5 text-[12px]">
@@ -72,6 +73,6 @@ export function TradePanel({ token }: { token: TradeToken }) {
           requestAnimationFrame(() => action.current?.focus());
         }}
       />
-    </section>
+    </TradeCard>
   );
 }

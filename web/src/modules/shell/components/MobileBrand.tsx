@@ -13,7 +13,7 @@ export async function MobileBrand() {
     <Link href={href("/")} aria-label={t.nav.home} className="mr-auto flex items-center gap-2 rounded-full md:hidden">
       <Logo size={28} />
       <span className="hidden font-display text-[19px] leading-6 font-extrabold tracking-[-0.02em] sm:inline">
-        Tonkpad
+        tonkfun.fun
       </span>
     </Link>
   );

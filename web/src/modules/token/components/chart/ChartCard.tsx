@@ -10,7 +10,7 @@ import { type Candle, CHART_TIMEFRAMES, type TokenChart } from "@/shared/types/t
 import { Segmented } from "@/shared/ui/Segmented";
 import { useChartTheme } from "../../hooks/useChartTheme";
 import { useFullscreen } from "../../hooks/useFullscreen";
-import { type ChartValue, DEFAULT_TIMEFRAME, graduationInView, parseChartValue, parseTimeframe, readoutOf } from "../../lib/chart-data";
+import { type ChartValue, DEFAULT_CHART_VALUE, DEFAULT_TIMEFRAME, graduationInView, parseChartValue, parseTimeframe, readoutOf } from "../../lib/chart-data";
 import { coinOf } from "../../lib/format";
 import { ChartReadout } from "./ChartReadout";
 import { type Indicators, IndicatorsMenu } from "./IndicatorsMenu";
@@ -24,7 +24,11 @@ interface ChartCardProps {
   up: boolean;
 }
 
-/** The chart card: Price / MCap, timeframes (both kept in the URL), indicators, full screen, the readout and the chart. */
+/**
+ * The chart inside the token's market card: timeframes (kept in the URL),
+ * indicators, full screen, the readout and the chart. The card's heading holds
+ * Price / MCap; full screen brings its own copy.
+ */
 export function ChartCard({ chart, supply, chain, up }: ChartCardProps) {
   const { t } = useI18n();
   const c = t.token.chart;
@@ -46,27 +50,27 @@ export function ChartCard({ chart, supply, chain, up }: ChartCardProps) {
       ref={ref}
       aria-label={c.label}
       className={cn(
-        "overflow-hidden rounded-3xl border border-line bg-surface shadow-card",
+        "overflow-hidden border-t border-line bg-surface",
         full && "flex flex-col",
-        overlay && "fixed inset-0 z-[80] rounded-none border-0",
+        overlay && "fixed inset-0 z-[80] border-0",
       )}
     >
-      <div className="flex flex-wrap items-center gap-2 px-4 py-3.5">
-        <Segmented<ChartValue>
-          size="panel"
-          label={c.value}
-          value={value}
-          onChange={(next) => setParams({ chart: next === "mcap" ? null : next })}
-          options={[
-            { id: "price", label: c.price, disabled: !hasSupply },
-            { id: "mcap", label: c.mcap },
-          ]}
-        />
-        {/* On phones the timeframes take their own row, under Price / MCap and the buttons. */}
-        <div className="max-md:order-last max-md:w-full">
+      <div className="flex flex-wrap items-center gap-2 px-4 py-2 max-md:gap-1 max-md:px-2.5">
+        {full ? (
+          <Segmented<ChartValue>
+            size="toggle"
+            label={c.value}
+            value={value}
+            onChange={(next) => setParams({ chart: next === DEFAULT_CHART_VALUE ? null : next })}
+            options={[
+              { id: "price", label: c.price, disabled: !hasSupply },
+              { id: "mcap", label: c.mcap },
+            ]}
+          />
+        ) : null}
+        <div className="min-w-0">
           <Segmented
-            size="panel"
-            tight
+            size="chart"
             label={c.timeframe}
             value={tf}
             onChange={(next) => {
@@ -83,7 +87,7 @@ export function ChartCard({ chart, supply, chain, up }: ChartCardProps) {
           onClick={toggle}
           aria-label={full ? c.exitFullScreen : c.fullScreen}
           title={full ? c.exitFullScreen : c.fullScreen}
-          className="inline-flex size-9 flex-none items-center justify-center rounded-[10px] border border-line bg-raised text-text-2 hover:text-text"
+          className="inline-flex size-7 flex-none items-center justify-center rounded-[5px] text-text-3 hover:bg-raised hover:text-text"
         >
           {full ? <Minimize2 size={15} strokeWidth={1.8} aria-hidden="true" /> : <Maximize2 size={15} strokeWidth={1.8} aria-hidden="true" />}
         </button>

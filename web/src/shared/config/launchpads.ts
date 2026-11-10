@@ -1,7 +1,7 @@
 import type { Launchpad, LaunchpadId } from "@/shared/types/launchpad";
 
 export const LAUNCHPADS: Record<LaunchpadId, Launchpad> = {
-  tonk: { id: "tonk", name: "Tonkpad", logo: "/launchpads/tonk.png", letter: "T", background: "#3D8EF0", foreground: "#04101E" },
+  tonk: { id: "tonk", name: "tonkfun.fun", logo: "/launchpads/tonk.svg", letter: "T", background: "#00CDE6", foreground: "#03282E" },
   pons: { id: "pons", name: "Pons", logo: "/launchpads/pons.png", letter: "Pn", background: "#2DD4BF", foreground: "#032A25" },
   pump: { id: "pump", name: "Pump.fun", logo: "/launchpads/pump.png", letter: "P", background: "#3BE2A0", foreground: "#05261A" },
   bonk: { id: "bonk", name: "Bonk.fun", logo: "/launchpads/bonk.png", letter: "B", background: "#FF9B2F", foreground: "#2B1500" },

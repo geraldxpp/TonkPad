@@ -42,7 +42,7 @@ describe("Explore mock data", () => {
     ]);
     expect(data.blips.map((b) => b.ticker)).toEqual(["GHOST", "ORB", "MOON", "SCAT", "BOLT", "MOCHI", "TIDE"]);
     expect(data.missionPick?.token.name).toBe("Ghosty");
-    expect(data.scope).toEqual({ pads: ["Tonkpad", "Pons", "Pump.fun"], more: 5 });
+    expect(data.scope).toEqual({ pads: ["tonkfun.fun", "Pons", "Pump.fun"], more: 5 });
     expect(data.launchpads.map((p) => formatInteger(p.count))).toEqual(["8,412", "1,846", "624", "3,904", "1,022", "512", "304"]);
   });
 });

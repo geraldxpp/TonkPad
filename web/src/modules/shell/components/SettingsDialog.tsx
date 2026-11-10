@@ -51,7 +51,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="m-0 max-h-[min(640px,calc(100dvh_-_32px))] w-[340px] max-w-none overflow-y-auto overscroll-contain rounded-[18px] border border-line-strong bg-raised p-0 text-text shadow-menu backdrop:bg-[var(--scrim)] md:top-auto md:bottom-4 md:left-[88px] max-md:inset-x-0 max-md:top-auto max-md:bottom-0 max-md:max-h-[85dvh] max-md:w-full max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0"
+      className="m-0 max-h-[min(640px,calc(100dvh_-_32px))] w-[340px] max-w-none overflow-y-auto overscroll-contain rounded-[18px] border border-line-strong bg-raised p-0 text-text shadow-menu backdrop:bg-[var(--scrim)] md:top-auto md:bottom-4 md:left-[88px] xl:left-[204px] max-md:inset-x-0 max-md:top-auto max-md:bottom-0 max-md:max-h-[85dvh] max-md:w-full max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0"
     >
       <div className="flex flex-col gap-5 p-5 max-md:pb-[calc(20px+env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between gap-3">

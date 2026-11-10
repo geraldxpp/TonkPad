@@ -14,7 +14,7 @@ const hasRing = (page: Page, name: string) =>
     .getByRole("button", { name, exact: true })
     .evaluate((el) => {
       const s = getComputedStyle(el);
-      return s.outlineStyle === "solid" && s.outlineWidth === "2px" && s.outlineColor === "rgb(74, 156, 245)";
+      return s.outlineStyle === "solid" && s.outlineWidth === "2px" && s.outlineColor === "rgb(36, 219, 234)";
     });
 
 /** Starts a page with the stub already connected, as if the visitor connected on an earlier visit. */

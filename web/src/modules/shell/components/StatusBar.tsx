@@ -11,38 +11,41 @@ interface StatusBarProps {
 }
 
 const VALUE = "font-mono text-text-2";
-const LINK = "text-text-3";
+const LINK = "text-text-3 hover:text-text-2";
 
+/** The footer: feed status, coin prices and gas, then the site links; centred like the page above it. */
 export async function StatusBar({ status }: StatusBarProps) {
   const { t, href } = await getI18n();
   return (
-    <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line bg-bg-deep px-[clamp(16px,2vw,24px)] py-[9px] text-[12px] text-text-3">
-      <LiveIndicator />
-      <span className="inline-flex items-center gap-2">
-        {t.status.nextSweep}
-        <SweepFill />
-        <SweepCountdown className={VALUE} />
-      </span>
-      <span>
-        SOL <StatusValue field="solUsd" fallback={status.solUsd} className={VALUE} />
-      </span>
-      <span>
-        ETH <StatusValue field="ethUsd" fallback={status.ethUsd} className={VALUE} />
-      </span>
-      <span>
-        {t.status.gas} <StatusValue field="rhGasGwei" fallback={status.rhGasGwei} className={VALUE} />
-      </span>
-      <span className="flex-auto" />
-      <Link href={href("/docs")} className={LINK}>
-        {t.status.docs}
-      </Link>
-      <Link href={href("/status")} className={LINK}>
-        {t.status.status}
-      </Link>
-      <Link href={href("/terms")} className={LINK}>
-        {t.status.terms}
-      </Link>
-      <span>© 2026 Tonkpad.fun</span>
+    <footer className="border-t border-line bg-bg-deep text-[11px] text-text-3">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 md:px-7">
+        <LiveIndicator />
+        <span className="inline-flex items-center gap-2">
+          {t.status.nextSweep}
+          <SweepFill />
+          <SweepCountdown className={VALUE} />
+        </span>
+        <span>
+          SOL <StatusValue field="solUsd" fallback={status.solUsd} className={VALUE} />
+        </span>
+        <span>
+          ETH <StatusValue field="ethUsd" fallback={status.ethUsd} className={VALUE} />
+        </span>
+        <span>
+          {t.status.gas} <StatusValue field="rhGasGwei" fallback={status.rhGasGwei} className={VALUE} />
+        </span>
+        <span className="flex-auto" />
+        <Link href={href("/docs")} className={LINK}>
+          {t.status.docs}
+        </Link>
+        <Link href={href("/status")} className={LINK}>
+          {t.status.status}
+        </Link>
+        <Link href={href("/terms")} className={LINK}>
+          {t.status.terms}
+        </Link>
+        <span>© 2026 tonkfun.fun</span>
+      </div>
     </footer>
   );
 }

@@ -29,7 +29,7 @@ describe("Verified RWA badge", () => {
       "Verified RWA · issued by Ondo Global Markets",
     );
 
-    render(<TokenCard token={stock} color="#101820" rank={1} />);
+    render(<TokenCard token={stock} rank={1} />);
     expect(screen.getAllByText("Verified RWA")).toHaveLength(2);
   });
 });

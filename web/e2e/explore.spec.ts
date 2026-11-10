@@ -95,12 +95,15 @@ test("timeframe only switches the active pill", async ({ page }) => {
   await expectSearch(page, "?tf=1h");
 });
 
-test("Live scope window switches between 1m, 5m and 1h", async ({ page }) => {
-  const scope = page.getByRole("group", { name: "Scope window" });
-  await expect(scope.getByRole("button", { name: "5m" })).toHaveAttribute("aria-pressed", "true");
-  await scope.getByRole("button", { name: "1m" }).click();
-  await expect(scope.getByRole("button", { name: "1m" })).toHaveAttribute("aria-pressed", "true");
-  await expect(scope.getByRole("button", { name: "5m" })).toHaveAttribute("aria-pressed", "false");
+test("the launch radar opens under the list and closes again", async ({ page }) => {
+  const toggle = page.getByTestId("radar-toggle");
+  const scope = page.getByRole("region", { name: "Live scope" });
+  await expect(scope).toBeHidden();
+  await toggle.click();
+  await expect(scope).toBeVisible();
+  await expect(page.locator('[data-blip-label="GHOST"]')).toBeVisible();
+  await toggle.click();
+  await expect(scope).toBeHidden();
 });
 
 test("pressing / focuses the search", async ({ page }) => {
@@ -110,7 +113,7 @@ test("pressing / focuses the search", async ({ page }) => {
   await expect(page.getByRole("searchbox")).toHaveValue(""); // the slash is not typed
 });
 
-test("Quick buy shows the chain's amount and has an aria-label", async ({ page }) => {
-  await expect(page.getByRole("button", { name: "Quick buy 0.01 ETH of GHOST" })).toHaveText("0.01");
-  await expect(page.getByRole("button", { name: "Quick buy 0.5 SOL of SCAT" })).toHaveText("0.5");
+test("each row ends with an arrow that opens the token", async ({ page }) => {
+  await expect(page.getByRole("link", { name: "Open GHOST" })).toHaveAttribute("href", "/token/GHOST");
+  await expect(page.getByRole("link", { name: "Open SCAT" })).toHaveAttribute("href", "/token/SCAT");
 });

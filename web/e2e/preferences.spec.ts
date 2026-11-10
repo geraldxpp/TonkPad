@@ -1,8 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 import { openExplore } from "./helpers";
 
-const DARK_BG = "rgb(7, 8, 10)";
-const LIGHT_BG = "rgb(243, 245, 248)";
+const DARK_BG = "rgb(8, 13, 16)";
+const LIGHT_BG = "rgb(242, 246, 248)";
 
 async function pageTheme(page: Page) {
   return page.evaluate(() => ({
@@ -48,9 +48,10 @@ test.describe("theme", () => {
     await saveLightTheme(page);
     await openExplore(page);
     const card = page.getByTestId("heating-cards").getByRole("link", { name: /^Ghosty, market cap/ }).first();
-    await expect(card).toHaveAttribute("data-theme", "dark");
-    // The card keeps the dark palette's bright green; the light table uses the deeper one.
-    await expect(card.getByText("Locked", { exact: true })).toHaveCSS("color", "rgb(61, 220, 132)");
+    // The art tile scopes the dark tokens, so the art reads the same in both themes.
+    await expect(card.locator('[data-theme="dark"]')).toHaveCSS("background-color", "rgb(21, 31, 37)");
+    // Only the art is dark: the card itself follows the light theme, with the deeper green the table uses.
+    await expect(card.getByText("Locked", { exact: true })).toHaveCSS("color", "rgb(8, 112, 58)");
     const tableLocked = page.getByRole("table", { name: "Tokens" }).getByText("Locked", { exact: true }).first();
     await expect(tableLocked).toHaveCSS("color", "rgb(8, 112, 58)");
   });
@@ -69,7 +70,7 @@ test.describe("language", () => {
   test("English is the default, at the unprefixed URLs", async ({ page }) => {
     await openExplore(page);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Launches.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Find your next move.");
     await expect(page.getByRole("button", { name: "Language: English" })).toHaveText("EN", { useInnerText: true });
   });
 
@@ -81,20 +82,20 @@ test.describe("language", () => {
 
     await expect(page).toHaveURL((url) => url.pathname === "/es" && url.search === "?tab=locked");
     await expect(page.locator("html")).toHaveAttribute("lang", "es");
-    await expect(page).toHaveTitle("Explorar — Tonkpad.fun");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Lanzamientos.");
+    await expect(page).toHaveTitle("Explorar — tonkfun.fun");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Encuentra tu próxima jugada.");
     await expect(page.getByRole("tab", { name: "Misiones bloqueadas" })).toHaveAttribute("aria-selected", "true");
 
     // An unprefixed URL now lands on the remembered language.
-    await page.goto("/live");
-    await expect(page).toHaveURL((url) => url.pathname === "/es/live");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("En vivo");
+    await page.goto("/swap");
+    await expect(page).toHaveURL((url) => url.pathname === "/es/swap");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Swap");
 
     // Picking English goes back to the unprefixed URLs, and stays there.
     await page.getByRole("button", { name: "Idioma: Español" }).click();
     await page.getByRole("link", { name: "English" }).click();
-    await expect(page).toHaveURL((url) => url.pathname === "/live");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Live");
+    await expect(page).toHaveURL((url) => url.pathname === "/swap");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Swap");
     await page.goto("/");
     await expect(page).toHaveURL((url) => url.pathname === "/");
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -117,10 +118,10 @@ test.describe("language", () => {
   });
 
   for (const [path, lang, heading] of [
-    ["/ja", "ja", "新規ローンチ."],
-    ["/ru", "ru", "Запуски."],
-    ["/zh", "zh-CN", "新币发射."],
-    ["/de/live", "de", "Live"],
+    ["/ja", "ja", "次の一手を見つけましょう。"],
+    ["/ru", "ru", "Найдите свой следующий ход."],
+    ["/zh", "zh-CN", "发现你的下一步。"],
+    ["/de/swap", "de", "Swap"],
     ["/fr/token/ghost", "fr", "Ghosty"],
   ] as const) {
     test(`${path} is served in its language`, async ({ page }) => {
@@ -246,7 +247,7 @@ test.describe("long languages on desktop", () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/${lang}`);
       await page.waitForLoadState("networkidle");
-      if (width >= 1280) expect((await page.getByRole("banner").boundingBox())!.height).toBeLessThan(70);
+      if (width >= 1280) expect((await page.getByRole("banner").boundingBox())!.height).toBeLessThan(80);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
 
       const table = page.locator('[role="table"][data-variant="table"]');

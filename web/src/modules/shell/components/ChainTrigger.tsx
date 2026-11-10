@@ -32,7 +32,7 @@ export function ChainTrigger({ value, buttonRef, compact = false, ...rest }: Cha
       type="button"
       aria-haspopup="listbox"
       className={cn(
-        "inline-flex h-10 items-center rounded-xl border border-line-strong bg-surface pl-2 text-text",
+        "inline-flex h-10 items-center rounded-lg border border-line bg-surface pl-2 text-text",
         compact ? "gap-1 pr-2" : "gap-2 pr-2.5",
       )}
       {...rest}
@@ -50,7 +50,7 @@ export function ChainTrigger({ value, buttonRef, compact = false, ...rest }: Cha
           />
         ) : null}
       </span>
-      <span className={cn("text-[13px] font-semibold whitespace-nowrap", compact && "sr-only")}>
+      <span className={cn("text-[13px] font-medium whitespace-nowrap", compact ? "sr-only" : "md:max-lg:sr-only")}>
         {chainLabel(value, t)}
       </span>
       <ChevronDown size={14} strokeWidth={2} className="text-text-2" />

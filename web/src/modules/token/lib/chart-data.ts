@@ -1,7 +1,7 @@
 import { formatChange, formatInteger, formatPrice, formatUsdCompact } from "@/shared/lib/format";
 import { CHART_TIMEFRAMES, type Candle, type ChartTimeframe } from "@/shared/types/token-detail";
 
-/** What the candles plot: market cap in USD (the export's default) or the price of one token. */
+/** What the candles plot: the price of one token or the market cap in USD. */
 export type ChartValue = "mcap" | "price";
 
 export const DEFAULT_TIMEFRAME: ChartTimeframe = "15m";
@@ -12,7 +12,9 @@ export function parseTimeframe(raw: string | null): ChartTimeframe {
 }
 
 /** The URL's ?chart=price, else market cap. */
-export const parseChartValue = (raw: string | null): ChartValue => (raw === "price" ? "price" : "mcap");
+/** Price is the default (the card's heading leads with it); MCap is kept in the URL. */
+export const DEFAULT_CHART_VALUE: ChartValue = "price";
+export const parseChartValue = (raw: string | null): ChartValue => (raw === "mcap" ? "mcap" : DEFAULT_CHART_VALUE);
 
 /** A candle in the chart's units. Volume stays in the chain's coin. */
 export function scaleCandle(candle: Candle, value: ChartValue, supply: number | null): Candle {
@@ -29,6 +31,7 @@ export function formatChartValue(value: number, kind: ChartValue): string {
 /** Price-axis labels drop trailing zeros: "$40K", "$0.00004". */
 export function formatAxisValue(value: number, kind: ChartValue): string {
   if (kind === "mcap") return formatUsdCompact(value, { trimZeros: true });
+  if (value === 0) return "$0";
   return formatPrice(value).replace(/(\.\d*?[1-9])0+$/, "$1");
 }
 
@@ -58,7 +61,10 @@ const distinct = (labels: readonly string[]) => new Set(labels).size === labels.
  * labels repeat ("$33.4K" three times), so decimals are added until every
  * label differs: "$33.40K", "$33.42K", "$33.44K".
  */
-export function formatAxisTicks(prices: readonly number[], kind: ChartValue): string[] {
+export function formatAxisTicks(ticks: readonly number[], kind: ChartValue): string[] {
+  // The axis's zero line can arrive as a float crumb (1e-13): it is zero next to the other ticks.
+  const top = Math.max(0, ...ticks.map(Math.abs));
+  const prices = ticks.map((tick) => (Math.abs(tick) < top * 1e-6 ? 0 : tick));
   const labels = prices.map((price) => formatAxisValue(price, kind));
   if (distinct(labels)) return labels;
   for (let extra = 1; extra <= 6; extra++) {

@@ -28,7 +28,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       label={theme === "light" ? t.prefs.toDark : t.prefs.toLight}
       size={40}
       onClick={toggleTheme}
-      className={className}
+      className={cn("md:rounded-lg md:border-transparent md:bg-transparent md:hover:bg-raised", className)}
     >
       <ThemeIcon size={18} className="max-md:size-4" />
     </IconButton>
