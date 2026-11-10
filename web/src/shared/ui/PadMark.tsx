@@ -29,11 +29,17 @@ export function PadMark({ pad, size = 16, ring, decorative = false, className }:
   const a11y = decorative
     ? ({ "aria-hidden": true } as const)
     : ({ role: "img", "aria-label": p.name, title: p.name } as const);
-  const shape = size === 16 ? "h-4 min-w-4 rounded-[5px]" : "h-[18px] min-w-[18px] rounded-md";
+  const radius = size === 16 ? "rounded-[5px]" : "rounded-md";
   if (p.logo) {
     // The logo sets its own shape and colours (some have transparent corners), so no fill behind it.
+    // The box is square on both sides: with only a height set, Safari (on every iPhone browser)
+    // sized it from the logo's own 96 px, stretching it into a wide, cropped strip.
     return (
-      <span {...a11y} style={{ border: style.border }} className={cn("inline-block overflow-hidden", shape, className)}>
+      <span
+        {...a11y}
+        style={{ border: style.border }}
+        className={cn("inline-block flex-none overflow-hidden", size === 16 ? "size-4" : "size-[18px]", radius, className)}
+      >
         <Image src={p.logo} alt="" width={size} height={size} unoptimized className="block size-full object-cover" />
       </span>
     );
@@ -44,8 +50,8 @@ export function PadMark({ pad, size = 16, ring, decorative = false, className }:
       style={style}
       className={cn(
         "inline-block px-[3px] text-center font-bold",
-        shape,
-        size === 16 ? "text-[9px] leading-4" : "text-[8px] leading-[14px]",
+        size === 16 ? "h-4 min-w-4 text-[9px] leading-4" : "h-[18px] min-w-[18px] text-[8px] leading-[14px]",
+        radius,
         className,
       )}
     >
