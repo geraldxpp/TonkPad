@@ -207,7 +207,7 @@ No test or script ever sends a transaction. Only a person does, in their own wal
 CLAUDE.md's list, plus:
 - **Unit tests:** the check values in section 7 to the wei; tiers, auto-adjust and the no-dev-buy rule; field validation; metadata written and read back, including hostile input; parameters encoded and decoded against the ABI; a fixture receipt decoded; score parity with the worker.
 - **End-to-end** in mock mode, with the stub wallet and `/api/tonk/*` stubbed in the browser: fill the form and watch the preview follow; review and launch through to "Mission launched"; a refusal in the wallet; a contract refusal; a wrong network; a reload while confirming; the phone flow; 390 px in German and Russian, both themes; everything by keyboard.
-- The e2e configs blank the Tonk settings, so no test reaches the RPC or spends faucet ETH.
+- The e2e configs blank the Tonk settings, so no test reaches the RPC or spends faucet ETH. The testnet site has its own run (`npm run test:e2e:testnet`): a production build in `testnet` mode against a local stand-in RPC that answers only the settings and a balance.
 - All 12 languages. Screenshots at 1440 px beside the design's.
 
 ## 12. The owner's public test

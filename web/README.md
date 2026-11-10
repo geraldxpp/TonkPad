@@ -47,6 +47,7 @@ Delete `.env.development.local` to go back to mock data. Production builds
 | `npm test` | Vitest + Testing Library unit and component tests |
 | `npm run test:e2e` | Playwright against a production build on port 3100; also writes the captures in `e2e/screenshots/` |
 | `npm run test:e2e:live` | Live integration tests with a local fixture worker and a production app on port 3101; no provider credentials needed |
+| `npm run test:e2e:testnet` | The testnet site: a production build in `testnet` mode on port 3102, reading a local stand-in for the chain's RPC |
 | `npm run worker:dev` | The live-data worker with `.env.local`, restarting on changes |
 | `npm run worker` | The worker as it runs in production (env vars from the host) |
 
@@ -391,7 +392,14 @@ server side (the RPC is mocked); `src/modules/launch/tests/` the form.
 `e2e/launch.spec.ts` runs the studio in `mock` mode, with `/api/tonk/*` and
 the balance stubbed in the browser and the stub wallet "signing";
 `e2e/live/launch.live.ts` checks that a production-like build keeps Launch
-closed. Real launches are only ever made by a person, in their own wallet.
+closed. `npm run test:e2e:testnet` builds the app in `testnet` mode (the only
+run that does) and reads a local stand-in for the chain's RPC
+(`e2e/testnet/fixture-rpc.ts`): the launchpad's settings on screen, the other
+screens' "Not on testnet yet", the closed swap routes, a launch through to
+its receipt with the explorer's links, and the faucet link. The stand-in
+refuses anything but those reads, so nothing is simulated or sent. The three
+e2e runs build into the same `.next`, so run them one after another. Real
+launches are only ever made by a person, in their own wallet.
 
 ## Live data
 
