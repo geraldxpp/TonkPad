@@ -87,13 +87,13 @@ export function PresetRow({ side, amount, max, onAmount }: { side: TradeSide; am
 }
 
 /** Slippage, priority and MEV shield in one quiet line. */
-export function SettingsRow() {
+export function SettingsRow({ slippage = "15%" }: { slippage?: string }) {
   const { t } = useI18n();
   const tr = t.token.trade;
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-text-3">
       <span>
-        {tr.slippage} <span className="font-mono text-text-2">15%</span>
+        {tr.slippage} <span className="font-mono text-text-2">{slippage}</span>
       </span>
       <span>
         {tr.priority} <span className="text-accent-text">{tr.fast}</span>

@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import { openExplore, pauseCarousel } from "./helpers";
 
 const RAIL = [
-  ["Swap", "/swap", "Swap"],
   ["Bridge", "/bridge", "Bridge"],
   ["Portfolio", "/portfolio", "Portfolio"],
   ["Launch", "/launch", "Launch (Creator Studio)"],
@@ -21,6 +20,15 @@ for (const [label, path, title] of RAIL) {
     await expect(nav.getByRole("link", { name: "Explore" })).not.toHaveAttribute("aria-current", "page");
   });
 }
+
+test("rail: Swap opens the swap screen", async ({ page }) => {
+  await openExplore(page);
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await nav.getByRole("link", { name: "Swap" }).click();
+  await expect(page).toHaveURL("/swap");
+  await expect(page.getByRole("heading", { level: 1, name: "Swap. Simple as that." })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Swap" })).toHaveAttribute("aria-current", "page");
+});
 
 test("Explore is the active rail item on /", async ({ page }) => {
   await openExplore(page);

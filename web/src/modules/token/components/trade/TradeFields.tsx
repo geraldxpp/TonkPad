@@ -69,13 +69,13 @@ export function PayField({ token, side, amount, onAmount, quote, balanceText, em
 }
 
 /** "You receive", with the minimum after slippage. */
-export function ReceiveField({ token, side, quote }: { token: TradeToken; side: TradeSide; quote: TradeQuote }) {
+export function ReceiveField({ token, side, quote, slippagePct = SLIPPAGE * 100 }: { token: TradeToken; side: TradeSide; quote: TradeQuote; slippagePct?: number }) {
   const { t } = useI18n();
   const tr = t.token.trade;
   const buy = side === "buy";
   const coin = coinOf(token.chain);
   const minimum = buy
-    ? fmt(tr.minBuy, { amount: formatTokens(quote.minimum), pct: SLIPPAGE * 100 })
+    ? fmt(tr.minBuy, { amount: formatTokens(quote.minimum), pct: slippagePct })
     : fmt(tr.minSell, { amount: quote.minimum.toFixed(4), unit: coin });
   return (
     <TradeBox

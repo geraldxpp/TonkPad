@@ -4,7 +4,7 @@ import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { robinhood, solana } from "@reown/appkit/networks";
 import type { ChainId } from "@/shared/types/chain";
 import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
-import type { WalletDriver } from "./types";
+import { WalletActionError, type WalletDriver } from "./types";
 
 /** Robinhood Chain is viem's `robinhood` (chain id 4663, its public RPC and Blockscout). */
 const NETWORKS = { sol: solana, rh: robinhood } as const;
@@ -23,6 +23,18 @@ function themeVariables() {
   };
 }
 
+/** The two provider shapes the swap uses: a Solana signer and an EIP-1193 provider. */
+interface SolanaSigner {
+  signTransaction<T>(transaction: T): Promise<T>;
+}
+interface Eip1193 {
+  request(args: { method: string; params?: unknown[] }): Promise<unknown>;
+}
+
+const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
+const toBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
+const hex = (wei: string) => `0x${BigInt(wei).toString(16)}`;
+
 const pageTheme = () => (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
 
 /**
@@ -31,7 +43,8 @@ const pageTheme = () => (document.documentElement.getAttribute("data-theme") ===
  * swaps, on-ramp, send and activity are off (the Reown dashboard must keep
  * them off too, since its settings can override these). The Coinbase and Base
  * SDK connectors are off as well; those wallets still connect as browser
- * extensions or through WalletConnect. Nothing here signs or sends anything.
+ * extensions or through WalletConnect. It signs only the swaps the app
+ * builds, and only once the person approves them in their wallet.
  */
 export async function createAppKitDriver(projectId: string): Promise<WalletDriver> {
   const origin = window.location.origin;
@@ -114,6 +127,26 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
     setTheme(theme) {
       appKit.setThemeMode(theme);
       appKit.setThemeVariables(themeVariables());
+    },
+    async signSolanaTransaction(transaction) {
+      const signer = appKit.getProvider<SolanaSigner>(NAMESPACES.sol);
+      if (!signer) throw new WalletActionError("failed");
+      // Loaded with the wallet code, never in the page bundle.
+      const { VersionedTransaction } = await import("@solana/web3.js");
+      const signed = await signer.signTransaction(VersionedTransaction.deserialize(fromBase64(transaction)));
+      return toBase64(signed.serialize());
+    },
+    async sendEvmTransaction({ to, data, value, gas }) {
+      const provider = appKit.getProvider<Eip1193>(NAMESPACES.rh);
+      const from = appKit.getAccount(NAMESPACES.rh)?.address;
+      if (!provider || !from) throw new WalletActionError("failed");
+      if (appKit.getCaipNetwork(NAMESPACES.rh)?.id !== NETWORKS.rh.id) await appKit.switchNetwork(NETWORKS.rh);
+      const hash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}) }],
+      });
+      if (typeof hash !== "string") throw new WalletActionError("failed");
+      return hash;
     },
   };
 }

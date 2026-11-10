@@ -89,13 +89,13 @@ test.describe("language", () => {
     // An unprefixed URL now lands on the remembered language.
     await page.goto("/swap");
     await expect(page).toHaveURL((url) => url.pathname === "/es/swap");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Swap");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Intercambia. Así de simple.");
 
     // Picking English goes back to the unprefixed URLs, and stays there.
     await page.getByRole("button", { name: "Idioma: Español" }).click();
     await page.getByRole("link", { name: "English" }).click();
     await expect(page).toHaveURL((url) => url.pathname === "/swap");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Swap");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Swap. Simple as that.");
     await page.goto("/");
     await expect(page).toHaveURL((url) => url.pathname === "/");
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -121,7 +121,7 @@ test.describe("language", () => {
     ["/ja", "ja", "次の一手を見つけましょう。"],
     ["/ru", "ru", "Найдите свой следующий ход."],
     ["/zh", "zh-CN", "发现你的下一步。"],
-    ["/de/swap", "de", "Swap"],
+    ["/de/swap", "de", "Tauschen. Ganz einfach."],
     ["/fr/token/ghost", "fr", "Ghosty"],
   ] as const) {
     test(`${path} is served in its language`, async ({ page }) => {

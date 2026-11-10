@@ -1,6 +1,6 @@
 # tonkfun.fun — web app
 
-tonkfun.fun (formerly Tonkpad.fun; the domain is still tonk-pad.vercel.app) is a token terminal for Solana and Robinhood Chain. Its screens are Explore, Token Detail, Swap, Launch (Creator Studio), Bridge and Portfolio. We build it one module (screen) at a time from the approved design in `design-reference/`, restyled by the tonkfun.fun redesign (10 Nov 2026, the owner's call): `design-proposals/Tonkfun.fun-Explore-Design.zip` holds Explore and Token Detail as built, plus Swap, Bridge, Portfolio and Launch for later. Where the two differ, the redesign wins. Swap, Bridge, Portfolio and Launch are "coming soon" placeholders for now.
+tonkfun.fun (formerly Tonkpad.fun; the domain is still tonk-pad.vercel.app) is a token terminal for Solana and Robinhood Chain. Its screens are Explore, Token Detail, Swap, Launch (Creator Studio), Bridge and Portfolio. We build it one module (screen) at a time from the approved design in `design-reference/`, restyled by the tonkfun.fun redesign (10 Nov 2026, the owner's call): `design-proposals/Tonkfun.fun-Explore-Design.zip` holds Explore and Token Detail as built, plus Swap, Bridge, Portfolio and Launch for later. Where the two differ, the redesign wins. Swap is built (module 3, 10 Nov 2026); Bridge, Portfolio and Launch are "coming soon" placeholders for now.
 
 ## Folders
 - `design-reference/` — the approved design. Read-only: never edit anything in it.
@@ -21,17 +21,23 @@ tonkfun.fun (formerly Tonkpad.fun; the domain is still tonk-pad.vercel.app) is a
 ```
 web/src/
   app/[lang]/          routes only, one tree per language; each page file just renders its module
-  proxy.ts             language routing: English unprefixed (/live), others prefixed (/es/live)
+  proxy.ts             language routing: English unprefixed (/swap), others prefixed (/es/swap)
   modules/
     shell/             chrome every screen shares: AppShell, SideRail, TopBar, TickerTape, ChainFilter, StatusBar, Logo
     explore/           module 1: components/, hooks/, lib/, data/, tests
-    token/ launch/ bridge/ portfolio/    later modules, same shape
+    token/             module 2: token detail (its live Buy/Sell runs on shared/swap)
+    swap/              module 3: the Swap screen (card, token picker, Recent, token and route cards)
+    launch/ bridge/ portfolio/    later modules, same shape
   shared/
     ui/                Badge, ChainMark, PadMark, TokenAvatar, ScorePill, CurveBar, Sparkline, Segmented, Tabs, Button, IconButton, Chip
     lib/               format.ts, seeded-random.ts, sparkline.ts, cn.ts
     config/            chains.ts, launchpads.ts
     i18n/              config.ts (languages, path helpers), dictionaries/ (en.ts is the source), server.ts (getI18n), I18nProvider.tsx (useI18n)
     types/             token.ts and friends
+    swap/              the swap engine both Swap and token pages use: tokens, amounts, quotes (useQuote),
+                       the run (useSwapRun: build → approve → sign → send → confirm), the review dialog, Recent;
+                       server/ holds the Jupiter (Solana) and 0x (Robinhood Chain) clients behind /api/swap/*
+    wallet/            wallet store and drivers (Reown AppKit; a stub for e2e), balances, signing
   styles/              tokens.css, animations.css, globals.css
 web/public/tokens/     token art, copied from design-reference/assets/tokens
 web/worker/            live-data worker (Node + tsx): feeds in, the screens' JSON views out
@@ -44,6 +50,7 @@ Rules:
 - Every user-facing string, aria-label and title comes from the dictionaries: `await getI18n()` in Server Components, `useI18n()` in Client Components. Add each new key to `en.ts` and all eleven other languages (a unit test enforces matching keys and `{placeholders}`). Internal links go through `href()` so they keep the language. Names of tokens, chains and launchpads, tickers and numbers are not translated; numbers keep en-US formatting.
 - No `any`. Named exports. Keep files short (aim for under 200 lines).
 - Build only what the module prompt asks for. If something is unclear, ask instead of guessing.
+- Swaps (owner's decisions, 10 Nov 2026): Jupiter Swap V2 `/build` on Solana and 0x AllowanceHolder on Robinhood Chain, from server routes only (`JUPITER_API_KEY`, `ZEROX_API_KEY`, the RPC keys and the fee wallets never reach the browser). tonkfun.fun takes 1% (`FEE_BPS`): on Solana as a SOL (or USDC) transfer to `SOLANA_FEE_WALLET` added to the swap transaction, from the input before the route or from the minimum output after it; on Robinhood Chain through 0x's integrator fee to `EVM_FEE_WALLET`. Real swaps are behind a switch: the server builds and sends transactions only with `SWAP_TRADING=on`; quotes work either way. Every swap is signed in the user's own wallet after the "One last look." review. Tests never call the real APIs: e2e configs blank the swap keys and stub `/api/swap/*` in the browser. Never run a real swap from a test or script.
 - The hero's featured coin (the reference's Mission Pick) is reserved for tonkfun.fun's own coin: until it launches it shows the rounded T with "Coming soon" (owner's request). `MissionPick` stays for when the coin goes live.
 - Internal storage keys keep their old names (`tonkpad-theme`, `tonkpad-lang`, `tonkpad-watchlist`, `tonkpad-wallet`) so returning visitors keep their settings.
 
@@ -130,7 +137,7 @@ Chain and launchpad marks use each one's own logo (the owner's decision, 6 Nov 2
 | Heaven | rounded square | #FF7EC8 | H, #2E0A1F |
 
 ## Icons (lucide-react)
-Compass (Explore), ArrowDownUp (Swap), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme; Moon while light), Ellipsis (More), Globe (Language), Check, X (Close), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (trade settings), ArrowUpRight (open a token), Radio (launch radar). The logo is tonkfun.fun's rounded T, drawn inline by the `Logo` component (its `size` is the width; the height follows the mark's shape). The favicon and Apple icon (`web/src/app/icon.svg`, `icon.png`, `apple-icon.png`) are the same T on the page colour. The rail groups the screens under Workspace (Explore, Swap, Bridge, Portfolio, Alerts, Launch) and Docs under Resources; on phones the tab bar shows Explore, Swap, Bridge, Portfolio, Launch, Docs and More, and token pages swap it for their Buy / Sell bar.
+Compass (Explore), ArrowDownUp (Swap; also the flip button), History (Recent swaps), Eye (review), Layers (route), ArrowRightLeft (Bridge), Wallet (Portfolio), Bell (Alerts), Rocket (Launch), BookOpen (Docs), Sun (Theme; Moon while light), Ellipsis (More), Globe (Language), Check, X (Close), Search, ChevronDown, ChevronLeft, ChevronRight, Target (Mission Pick), ShieldCheck, TriangleAlert, Lock, Zap, Bot, Flame, Crown, GraduationCap, SlidersHorizontal (trade settings), ArrowUpRight (open a token), Radio (launch radar). The logo is tonkfun.fun's rounded T, drawn inline by the `Logo` component (its `size` is the width; the height follows the mark's shape). The favicon and Apple icon (`web/src/app/icon.svg`, `icon.png`, `apple-icon.png`) are the same T on the page colour. The rail groups the screens under Workspace (Explore, Swap, Bridge, Portfolio, Alerts, Launch) and Docs under Resources; on phones the tab bar shows Explore, Swap, Bridge, Portfolio, Launch, Docs and More, and token pages swap it for their Buy / Sell bar.
 
 ## Motion
 CSS keyframes live in `styles/animations.css`. Turn every animation and transition off under `prefers-reduced-motion: reduce`. No animation library unless a module prompt asks for one.

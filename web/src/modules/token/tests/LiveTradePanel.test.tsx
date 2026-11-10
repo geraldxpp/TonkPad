@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SwapQuote } from "@/shared/types/swap";
 import type { WalletBalancesView } from "@/shared/wallet/useWalletBalances";
 import type { WalletView } from "@/shared/wallet/wallet";
 import { LiveTradePanel } from "../components/trade/LiveTradePanel";
@@ -12,10 +13,15 @@ const mocks = vi.hoisted(() => ({
   view: null as WalletView | null,
   funds: null as WalletBalancesView | null,
   wallet: { connect: vi.fn(async () => true) },
+  /** The swap engine's answer: closed by default, as before go-live. */
+  live: { quote: null as SwapQuote | null, loading: false, error: "unavailable" as string | null, tradingOpen: false as boolean | null },
 }));
 
 vi.mock("@/shared/wallet/wallet", () => ({ useWallet: () => mocks.view, wallet: mocks.wallet }));
 vi.mock("@/shared/wallet/useWalletBalances", () => ({ useWalletBalances: () => mocks.funds }));
+vi.mock("../hooks/useLiveTrade", () => ({
+  useLiveTrade: () => ({ request: null, live: { ...mocks.live, refresh: () => undefined }, from: null, to: null, slippageBps: 100 }),
+}));
 
 const token: TradeToken = {
   address: MINT,
@@ -51,6 +57,7 @@ const panel = () => screen.getByRole("region", { name: "Trade" });
 beforeEach(() => {
   mocks.view = idle;
   mocks.funds = noFunds;
+  mocks.live = { quote: null, loading: false, error: "unavailable", tradingOpen: false };
 });
 
 afterEach(() => {
@@ -94,6 +101,34 @@ describe("LiveTradePanel", () => {
     fireEvent.change(screen.getByLabelText("You sell"), { target: { value: "5" } });
     expect(screen.getByRole("button", { name: "Not enough $LVS" })).toHaveAttribute("aria-disabled", "true");
     expect(panel()).not.toHaveTextContent("Need funds");
+  });
+
+  it("enables the trade once trading is open and a quote is in, using the quote's amounts", () => {
+    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER } };
+    mocks.funds = funded;
+    mocks.live = {
+      quote: {
+        chain: "sol", provider: "jupiter", inToken: MINT, outToken: "LVS", inAmount: "50000000", outAmount: "800000000000", minOut: "792000000000",
+        slippageBps: 100, priceImpact: 0, fee: null, networkFee: "5000", inUsd: 5, outUsd: 4.95, route: ["Pump.fun"], tradingOpen: true, quotedAt: 1,
+      },
+      loading: false,
+      error: null,
+      tradingOpen: true,
+    };
+    render(<LiveTradePanel token={token} />);
+    const trade = screen.getByRole("button", { name: "Buy $LVS · 0.05 SOL" });
+    expect(trade).not.toHaveAttribute("aria-disabled");
+    expect(trade).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.getByText("Slippage")).toBeInTheDocument();
+    expect(panel()).toHaveTextContent("1%");
+  });
+
+  it("says why a quote is missing once trading is open", () => {
+    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER } };
+    mocks.funds = funded;
+    mocks.live = { quote: null, loading: false, error: "no-route", tradingOpen: true };
+    render(<LiveTradePanel token={token} />);
+    expect(screen.getByRole("button", { name: "Buy $LVS · 0.05 SOL" })).toHaveAccessibleDescription("No route for this pair right now");
   });
 
   it("says when the balance is loading or can't be read", () => {

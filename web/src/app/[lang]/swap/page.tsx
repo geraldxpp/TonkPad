@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LaterPanel } from "@/modules/shell/components/LaterPanel";
+import { SwapPage } from "@/modules/swap/SwapPage";
 import { getI18n } from "@/shared/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -7,7 +7,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.meta.swap };
 }
 
-export default async function Page() {
-  const { t } = await getI18n();
-  return <LaterPanel title={t.meta.swap} />;
+export default function Page() {
+  return <SwapPage />;
 }

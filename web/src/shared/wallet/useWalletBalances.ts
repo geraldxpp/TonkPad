@@ -20,11 +20,12 @@ export interface WalletBalancesView {
 }
 
 /**
- * The connected wallet's coin on `chain` and its holding of `token`, from the
+ * The connected wallet's coin on `chain` and its holding of `token` (none for
+ * just the coin), from the
  * app's /api/wallet route, refreshed while the tab is visible. A response for
  * any other wallet or token is ignored.
  */
-export function useWalletBalances(chain: ChainId, token: string): WalletBalancesView {
+export function useWalletBalances(chain: ChainId, token: string | null): WalletBalancesView {
   const { accounts } = useWallet();
   const owner = accounts[chain] ?? null;
   const { data, loading, error } = usePolling<unknown>(owner ? balancesPath(chain, owner, token) : null, null, BALANCES_REFRESH_MS);

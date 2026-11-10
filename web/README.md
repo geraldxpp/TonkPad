@@ -262,6 +262,51 @@ simulated panel.
   so no real wallet or Reown network is needed. The live suite reads balances
   from a local fixture RPC (`e2e/live/fixture-rpc.ts`, port 8789).
 
+## Swap
+
+`/swap` trades any token on Solana or Robinhood Chain from the connected
+wallet, and live token pages' Buy/Sell run on the same engine
+(`src/shared/swap/`). The network and pair are in the URL
+(`/swap?chain=rh&from=…&to=…`); the slippage (0.5%, 1% or 3%) is kept in the
+browser; Recent lists this device's swaps.
+
+**How a swap runs.** The browser asks `GET /api/swap/quote` as you type (and
+every 15 s). "Review swap" opens "One last look."; Confirm calls
+`POST /api/swap/build`, which returns the unsigned transaction:
+
+- **Solana:** Jupiter Swap V2 `/build` (Metis routing, no Jupiter fee). The
+  server compiles the v0 transaction with tonkfun.fun's 1% added as a SOL
+  transfer to `SOLANA_FEE_WALLET` (from the input on a buy, from the minimum
+  output on a sell; USDC pairs pay it in USDC once the fee wallet has a USDC
+  account). Long routes are rebuilt smaller to stay under Solana's
+  1,232-byte limit. The wallet signs; `POST /api/swap/send` sends it through
+  the server's RPC with a preflight check.
+- **Robinhood Chain:** 0x AllowanceHolder, with its integrator fee (1%) to
+  `EVM_FEE_WALLET`, in ETH where the pair has it. ERC-20 sells ask for an
+  exact-amount approval first. The wallet sends the transaction.
+
+`GET /api/swap/status` follows the transaction until it confirms or fails.
+`GET /api/swap/token` looks up a pasted address (Jupiter Tokens for Solana,
+the contract itself on Robinhood Chain).
+
+**Settings (server only, never `NEXT_PUBLIC_`).** `JUPITER_API_KEY`,
+`ZEROX_API_KEY`, `SOLANA_FEE_WALLET`, `EVM_FEE_WALLET`, the RPCs
+(`HELIUS_API_KEY` or `SOLANA_RPC_URL`, `ROBINHOOD_RPC_URL`), and the go-live
+switch `SWAP_TRADING=on`. Without the switch quotes still show, the button
+says "Trading opens soon" and the build and send routes refuse (403).
+
+**Fee wallet setup.** A brand-new Solana account can't receive less than
+about 0.00089 SOL, so until `SOLANA_FEE_WALLET` holds some SOL, fees on small
+swaps are skipped rather than failing the swap. Send it about 0.002 SOL once.
+For USDC-paired fees, send it any amount of USDC once (that creates its USDC
+account).
+
+**Tests** never reach Jupiter or 0x: the e2e configs blank the swap keys and
+the switch, and `e2e/swap.spec.ts` stubs `/api/swap/*` and the balances in
+the browser, with the stub wallet "signing". `src/shared/tests/swap-engine.test.ts`
+covers amounts, request checks, the fee placement and the transaction
+assembly. Real swaps are only ever made by a person, in their own wallet.
+
 ## Live data
 
 The worker (`worker/src/main.ts`) is one small Node process that keeps every

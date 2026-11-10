@@ -1,5 +1,5 @@
 import type { ChainId } from "@/shared/types/chain";
-import { EMPTY_SNAPSHOT, type WalletDriver, type WalletSnapshot, type WalletState } from "./types";
+import { EMPTY_SNAPSHOT, type EvmTransactionRequest, isRejection, WalletActionError, type WalletDriver, type WalletSnapshot, type WalletState } from "./types";
 
 /** Set while a wallet is connected, so the next visit restores it; nobody else loads the wallet code. */
 export const REMEMBER_KEY = "tonkpad-wallet";
@@ -16,6 +16,10 @@ export interface WalletStore {
   /** Brings back a remembered connection; does nothing for someone who never connected. */
   restore(): void;
   setTheme(theme: "dark" | "light"): void;
+  /** Signs a Solana transaction with the connected wallet. Throws a WalletActionError ("rejected" or "failed"). */
+  signSolanaTransaction(transaction: string): Promise<string>;
+  /** Sends a Robinhood Chain transaction from the connected wallet. Throws a WalletActionError. */
+  sendEvmTransaction(request: EvmTransactionRequest): Promise<string>;
 }
 
 type StorageAccess = () => Pick<Storage, "getItem" | "setItem" | "removeItem"> | null;
@@ -93,6 +97,18 @@ export function createWalletStore(loadDriver: () => Promise<WalletDriver>, stora
     }
   };
 
+  /** A signing action: errors come back as "rejected" (the person said no) or "failed". */
+  const act = async <T>(action: (loaded: WalletDriver) => Promise<T>): Promise<T> => {
+    const loaded = await load();
+    if (!loaded) throw new WalletActionError("failed");
+    try {
+      return await action(loaded);
+    } catch (error) {
+      if (error instanceof WalletActionError) throw error;
+      throw new WalletActionError(isRejection(error) ? "rejected" : "failed");
+    }
+  };
+
   return {
     getState: () => state,
     subscribe(listener) {
@@ -115,5 +131,7 @@ export function createWalletStore(loadDriver: () => Promise<WalletDriver>, stora
       theme = next;
       driver?.setTheme(next);
     },
+    signSolanaTransaction: (transaction) => act((loaded) => loaded.signSolanaTransaction(transaction)),
+    sendEvmTransaction: (request) => act((loaded) => loaded.sendEvmTransaction(request)),
   };
 }

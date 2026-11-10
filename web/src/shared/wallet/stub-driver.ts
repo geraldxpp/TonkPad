@@ -1,10 +1,30 @@
 import type { ChainId } from "@/shared/types/chain";
-import { EMPTY_SNAPSHOT, type WalletDriver, type WalletSnapshot } from "./types";
+import { EMPTY_SNAPSHOT, WalletActionError, type WalletDriver, type WalletSnapshot } from "./types";
 
 /** The stub's fixed wallets (a valid Solana key and EVM address that belong to no one). */
 export const STUB_ACCOUNTS: Record<ChainId, string> = {
   sol: "FLRettWhwj1oyn19GMQVF3xdGUtgZft4mRXBHTuWSuCv",
   rh: "0x7a5e00000000000000000000000000000000c0de",
+};
+
+/** Set to "1" and the stub refuses every signature, as if the person rejected it. */
+export const STUB_REJECT_KEY = "tonkpad-wallet-stub-reject";
+/** The hash the stub returns for every Robinhood Chain transaction. */
+export const STUB_EVM_HASH = `0x${"5a".repeat(32)}`;
+
+const refuses = () => {
+  try {
+    return localStorage.getItem(STUB_REJECT_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+/** Signs nothing for real: waits like a wallet, then approves (or rejects when told to). */
+const approve = async <T>(result: T): Promise<T> => {
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  if (refuses()) throw new WalletActionError("rejected");
+  return result;
 };
 
 /** Where the stub keeps its session: `{ "active": "sol", "chains": ["sol", "rh"] }`. */
@@ -40,7 +60,8 @@ function save({ active, accounts }: WalletSnapshot) {
  * never need a real wallet or the Reown network. Like the real driver, a
  * second chain joins the first instead of replacing it; it connects after a
  * short wait that shows the pending state, and keeps its session across
- * reloads. It cannot sign anything.
+ * reloads. Its "signatures" change nothing: a Solana transaction comes back
+ * as it went in, and every EVM send returns the same fake hash.
  */
 export function createStubDriver(): WalletDriver {
   let snapshot = read();
@@ -67,5 +88,7 @@ export function createStubDriver(): WalletDriver {
     switchChain: (chain) => (snapshot.accounts[chain] ? Promise.resolve(set({ ...snapshot, active: chain })) : connect(chain)),
     disconnect: async () => set(EMPTY_SNAPSHOT),
     setTheme: () => undefined,
+    signSolanaTransaction: (transaction) => approve(transaction),
+    sendEvmTransaction: () => approve(STUB_EVM_HASH),
   };
 }

@@ -22,6 +22,8 @@ function fakeDriver(initial: WalletSnapshot = EMPTY_SNAPSHOT) {
     switchChain: vi.fn(async () => undefined),
     disconnect: vi.fn(async () => emit(EMPTY_SNAPSHOT)),
     setTheme: vi.fn(),
+    signSolanaTransaction: vi.fn(async (transaction: string) => `signed:${transaction}`),
+    sendEvmTransaction: vi.fn(async () => "0xhash"),
   };
   return { driver, emit };
 }
@@ -143,5 +145,29 @@ describe("stub driver", () => {
     await stub.disconnect();
     expect(stub.snapshot()).toEqual(EMPTY_SNAPSHOT);
     expect(createStubDriver().snapshot()).toEqual(EMPTY_SNAPSHOT);
+  });
+});
+
+describe("signing", () => {
+  it("passes a signature through, and turns a wallet's refusal into a rejection", async () => {
+    const { driver } = fakeDriver();
+    const store = createWalletStore(async () => driver, memoryStorage);
+    await expect(store.signSolanaTransaction("AAAA")).resolves.toBe("signed:AAAA");
+    vi.mocked(driver.sendEvmTransaction).mockRejectedValueOnce(Object.assign(new Error("User rejected the request."), { code: 4001 }));
+    await expect(store.sendEvmTransaction({ to: "0x1", data: "0x", value: "0", gas: null })).rejects.toMatchObject({ code: "rejected" });
+    vi.mocked(driver.signSolanaTransaction).mockRejectedValueOnce(new Error("Wallet disconnected"));
+    await expect(store.signSolanaTransaction("AAAA")).rejects.toMatchObject({ code: "failed" });
+  });
+
+  it("fails cleanly when the wallet code can't load", async () => {
+    const store = createWalletStore(() => Promise.reject(new Error("no project id")), memoryStorage);
+    await expect(store.signSolanaTransaction("AAAA")).rejects.toMatchObject({ code: "failed" });
+  });
+
+  it("the stub approves, or rejects when told to", async () => {
+    const stub = createStubDriver();
+    await expect(stub.signSolanaTransaction("AAAA")).resolves.toBe("AAAA");
+    localStorage.setItem("tonkpad-wallet-stub-reject", "1");
+    await expect(stub.sendEvmTransaction({ to: "0x1", data: "0x", value: "0", gas: null })).rejects.toMatchObject({ code: "rejected" });
   });
 });

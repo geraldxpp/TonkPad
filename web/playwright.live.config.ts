@@ -3,6 +3,9 @@ import { FIXTURE_WORKER_TOKEN, FIXTURE_WORKER_URL } from "./e2e/live/fixtures";
 import { FIXTURE_RPC_URL } from "./e2e/live/wallet-fixtures";
 
 /** Run after the mock suite: both configurations build into .next. */
+// No real swap keys and trading closed, whatever a local .env.local holds: the browser stubs /api/swap where a test needs it.
+const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "" };
+
 export default defineConfig({
   testDir: "./e2e/live",
   testMatch: "**/*.live.ts",
@@ -35,6 +38,7 @@ export default defineConfig({
         NEXT_PUBLIC_WALLET_STUB: "1",
         SOLANA_RPC_URL: `${FIXTURE_RPC_URL}/sol`,
         ROBINHOOD_RPC_URL: `${FIXTURE_RPC_URL}/rh`,
+        ...NO_SWAP,
       },
       reuseExistingServer: false,
       timeout: 300_000,
