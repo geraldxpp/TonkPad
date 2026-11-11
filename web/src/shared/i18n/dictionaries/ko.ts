@@ -688,6 +688,15 @@ export const ko: Dictionary = {
       withdraw: "출금",
       done: "{amount} {unit} 출금 완료",
     },
+    poolFees: {
+      title: "풀 수수료",
+      sub: "Crew {crew} · 크리에이터 {creator} · tonkfun.fun 1%",
+      body: "풀의 거래 수수료는 누군가 분배할 때까지 여기에 쌓입니다. 분배하면 {unit}는 Crew, 크리에이터, tonkfun.fun에 지급되고 토큰 부분은 유통에서 빠집니다. 누구나 할 수 있으며 네트워크 수수료만 듭니다.",
+      share: "풀 수수료 분배",
+      connect: "풀 수수료를 분배하려면 지갑을 연결하세요.",
+      done: "{amount} {unit} 분배 완료: Crew {crew}, 크리에이터 {creator}, tonkfun.fun {protocol}.",
+      nothing: "완료했습니다. 이번에는 분배할 {unit} 수수료가 없었습니다.",
+    },
     action: {
       confirming: "확인 중…",
       forbidden: "토큰의 크리에이터만 할 수 있습니다.",

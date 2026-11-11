@@ -689,6 +689,15 @@ export const zh: Dictionary = {
       withdraw: "提取",
       done: "已提取 {amount} {unit}",
     },
+    poolFees: {
+      title: "资金池手续费",
+      sub: "Crew {crew} · 创作者 {creator} · tonkfun.fun 1%",
+      body: "资金池的交易手续费会一直留在这里，直到有人发起分配。分配时，{unit} 发给 Crew、创作者和 tonkfun.fun，代币部分退出流通。任何人都可以发起，只需支付网络费。",
+      share: "分配资金池手续费",
+      connect: "连接钱包即可分配资金池手续费。",
+      done: "已分配 {amount} {unit}：Crew {crew}，创作者 {creator}，tonkfun.fun {protocol}。",
+      nothing: "已完成。这次没有可分配的 {unit} 手续费。",
+    },
     action: {
       confirming: "确认中…",
       forbidden: "只有代币的创作者可以执行此操作。",

@@ -76,5 +76,8 @@ describe("what each action leaves in its receipt", () => {
     expect(didAction({ kind: "rewards", token: TOKEN_A, owner: OWNER }, [{ kind: "rewards", token: TOKEN_A, holder: PAD, amount: "1" }])).toBe(false);
     expect(didAction({ kind: "withdraw", owner: OWNER }, [{ kind: "withdrawn", recipient: OWNER.toLowerCase(), amount: "1" }])).toBe(true);
     expect(didAction(EXTEND, [{ kind: "edited", token: TOKEN_A }])).toBe(false);
+    const shared = { kind: "shared", protocolEth: "1", crewEth: "0", creatorEth: "1", tokensBurned: "0" } as const;
+    expect(didAction({ kind: "share", token: TOKEN_A, owner: OWNER }, [{ ...shared, token: TOKEN_A.toLowerCase() }])).toBe(true);
+    expect(didAction({ kind: "share", token: TOKEN_A, owner: OWNER }, [{ ...shared, token: TOKEN_B }])).toBe(false);
   });
 });

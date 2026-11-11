@@ -694,6 +694,15 @@ export const en = {
       withdraw: "Withdraw",
       done: "Withdrew {amount} {unit}",
     },
+    poolFees: {
+      title: "Pool fees",
+      sub: "Crew {crew} · Creator {creator} · tonkfun.fun 1%",
+      body: "The pool's trading fees wait here until someone shares them. Sharing sends the {unit} to the Crew, the creator and tonkfun.fun, and takes the token side out of circulation. Anyone can do it; it costs only the network fee.",
+      share: "Share pool fees",
+      connect: "Connect a wallet to share the pool's fees.",
+      done: "Shared {amount} {unit}: {crew} to the Crew, {creator} to the creator, {protocol} to tonkfun.fun.",
+      nothing: "Done. There were no {unit} fees to share this time.",
+    },
     action: {
       confirming: "Confirming…",
       forbidden: "Only the token's creator can do this.",

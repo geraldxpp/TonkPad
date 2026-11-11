@@ -689,6 +689,15 @@ export const id: Dictionary = {
       withdraw: "Tarik",
       done: "{amount} {unit} ditarik",
     },
+    poolFees: {
+      title: "Biaya pool",
+      sub: "Crew {crew} · Kreator {creator} · tonkfun.fun 1%",
+      body: "Biaya trading pool menunggu di sini sampai ada yang membagikannya. Saat dibagikan, {unit} dikirim ke Crew, kreator, dan tonkfun.fun, dan bagian token keluar dari peredaran. Siapa pun bisa melakukannya; biayanya hanya biaya jaringan.",
+      share: "Bagikan biaya pool",
+      connect: "Hubungkan dompet untuk membagikan biaya pool.",
+      done: "{amount} {unit} dibagikan: {crew} ke Crew, {creator} ke kreator, {protocol} ke tonkfun.fun.",
+      nothing: "Selesai. Kali ini tidak ada biaya {unit} untuk dibagikan.",
+    },
     action: {
       confirming: "Mengonfirmasi…",
       forbidden: "Hanya kreator token yang bisa melakukan ini.",

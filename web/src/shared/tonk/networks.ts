@@ -22,7 +22,7 @@ export interface TonkNetwork {
   migrator: `0x${string}`;
   /** Locks for other launchpads' tokens: on testnet only, until its own phase. */
   externalRouter: `0x${string}` | null;
-  /** Where graduated pools trade; none on testnet, whose isolated Uniswap copy has no router. */
+  /** Where graduated pools trade: Uniswap's official contracts on mainnet; on testnet only where a router and quoter are deployed beside its Uniswap copy. */
   uniswap: UniswapContracts | null;
   /** The launchpad's deployment block: where an indexer starts. */
   launchpadBlock: number;
@@ -48,7 +48,8 @@ export const ROBINHOOD_UNISWAP: UniswapContracts = {
  * The repaired contracts on Robinhood Chain Testnet, deployed and verified
  * on 10 Nov 2026 (DEPLOYED-ADDRESSES.json and reports/testnet-deployment.json
  * in the contract project). The Uniswap v4 contracts beside them are an
- * isolated test deployment; later phases add their addresses here.
+ * isolated test deployment with no router, so pools don't trade here; a
+ * testnet preview can name a fresh deployment instead (`testnetNetwork`).
  */
 export const TONK_TESTNET: TonkNetwork = {
   chainId: 46630,
@@ -80,6 +81,41 @@ const BUILD_DEPLOYMENT: MainnetDeployment = {
   block: process.env.NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK,
 };
 
+/** Uniswap contracts named for a testnet preview: public values, unset everywhere else. */
+export interface UniswapDeployment {
+  poolManager: string | undefined;
+  universalRouter: string | undefined;
+  permit2: string | undefined;
+  quoter: string | undefined;
+}
+
+const BUILD_UNISWAP: UniswapDeployment = {
+  poolManager: process.env.NEXT_PUBLIC_TONK_UNISWAP_POOL_MANAGER,
+  universalRouter: process.env.NEXT_PUBLIC_TONK_UNISWAP_ROUTER,
+  permit2: process.env.NEXT_PUBLIC_TONK_UNISWAP_PERMIT2,
+  quoter: process.env.NEXT_PUBLIC_TONK_UNISWAP_QUOTER,
+};
+
+const lower = (value: string) => value.toLowerCase() as `0x${string}`;
+
+/** A launchpad, its migrator and its first block, when all three are well formed and the two addresses differ. */
+function deploymentOf(deployment: MainnetDeployment): Pick<TonkNetwork, "launchpad" | "migrator" | "launchpadBlock"> | null {
+  const launchpad = deployment.launchpad?.trim() ?? "";
+  const migrator = deployment.migrator?.trim() ?? "";
+  const block = Number(deployment.block?.trim() || Number.NaN);
+  if (!ADDRESS.test(launchpad) || !ADDRESS.test(migrator) || launchpad.toLowerCase() === migrator.toLowerCase()) return null;
+  if (!Number.isSafeInteger(block) || block <= 0) return null;
+  return { launchpad: lower(launchpad), migrator: lower(migrator), launchpadBlock: block };
+}
+
+/** All four Uniswap contracts, well formed and distinct, or none. */
+function uniswapOf(deployment: UniswapDeployment): UniswapContracts | null {
+  const values = [deployment.poolManager, deployment.universalRouter, deployment.permit2, deployment.quoter].map((value) => value?.trim() ?? "");
+  if (!values.every((value) => ADDRESS.test(value)) || new Set(values.map((value) => value.toLowerCase())).size !== values.length) return null;
+  const [poolManager, universalRouter, permit2, quoter] = values.map(lower);
+  return { poolManager, universalRouter, permit2, quoter };
+}
+
 /**
  * Robinhood Chain mainnet, once the owner has deployed (prompts/07-mainnet.md):
  * the launchpad, the migrator and the launchpad's first block come from the
@@ -88,11 +124,8 @@ const BUILD_DEPLOYMENT: MainnetDeployment = {
  * chain before it builds anything. Addresses are kept lowercase.
  */
 export function mainnetNetwork(deployment: MainnetDeployment = BUILD_DEPLOYMENT): TonkNetwork | null {
-  const launchpad = deployment.launchpad?.trim() ?? "";
-  const migrator = deployment.migrator?.trim() ?? "";
-  const block = Number(deployment.block?.trim() || Number.NaN);
-  if (!ADDRESS.test(launchpad) || !ADDRESS.test(migrator) || launchpad.toLowerCase() === migrator.toLowerCase()) return null;
-  if (!Number.isSafeInteger(block) || block <= 0) return null;
+  const fresh = deploymentOf(deployment);
+  if (!fresh) return null;
   return {
     chainId: 4663,
     name: "Robinhood Chain",
@@ -100,12 +133,26 @@ export function mainnetNetwork(deployment: MainnetDeployment = BUILD_DEPLOYMENT)
     rpcUrl: "https://rpc.mainnet.chain.robinhood.com",
     explorerUrl: "https://robinhoodchain.blockscout.com",
     faucetUrl: null,
-    launchpad: launchpad.toLowerCase() as `0x${string}`,
-    migrator: migrator.toLowerCase() as `0x${string}`,
+    ...fresh,
     externalRouter: null,
+    // Mainnet trades only through Uniswap's official contracts, never addresses from the build.
     uniswap: ROBINHOOD_UNISWAP,
-    launchpadBlock: block,
   };
+}
+
+/**
+ * Robinhood Chain Testnet. By default the deployment above. A testnet
+ * preview (Astra's campaign, prompts/08-astra-brief.md) names a fresh
+ * deployment through the same three public values mainnet uses; it then
+ * has no external router, and its pools trade wherever the four
+ * NEXT_PUBLIC_TONK_UNISWAP_ values name a router and quoter beside the
+ * testnet's Uniswap copy. Anything missing or malformed keeps the default.
+ */
+export function testnetNetwork(deployment: MainnetDeployment = BUILD_DEPLOYMENT, uniswap: UniswapDeployment = BUILD_UNISWAP): TonkNetwork {
+  const fresh = deploymentOf(deployment);
+  const pools = uniswapOf(uniswap);
+  if (!fresh) return pools ? { ...TONK_TESTNET, uniswap: pools } : TONK_TESTNET;
+  return { ...TONK_TESTNET, ...fresh, externalRouter: null, uniswap: pools };
 }
 
 /** The mode a value of NEXT_PUBLIC_TONK_NETWORK asks for; anything unknown is off. */
@@ -121,7 +168,7 @@ export function tonkMode(): TonkMode {
 
 /** The network this build's contracts are on, or null when none is connected (off, mock, and mainnet before its addresses are set). */
 export function tonkNetwork(mode: TonkMode = tonkMode()): TonkNetwork | null {
-  if (mode === "testnet") return TONK_TESTNET;
+  if (mode === "testnet") return testnetNetwork();
   return mode === "mainnet" ? mainnetNetwork() : null;
 }
 

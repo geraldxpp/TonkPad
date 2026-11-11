@@ -101,6 +101,25 @@ test("a graduated mission trades on its Uniswap pool: the quote, the review, the
   expect(builds).toEqual([{ token: GRAD.token, trader: STUB_WALLET, side: "buy", amount: "10000000000000000", minOut: "3960000000000000000000000" }]);
 });
 
+test("anyone shares a graduated pool's fees: the server builds it, the wallet sends it, and the receipt says who got what", async ({ page }) => {
+  await connected(page);
+  const asked: Record<string, string>[] = [];
+  await page.route("**/api/tonk/action", (route) => {
+    asked.push(route.request().postDataJSON() as Record<string, string>);
+    return route.fulfill({ json: { tx: { to: MAINNET_DEPLOYMENT.migrator, data: "0x", value: "0", gas: "250000" } } });
+  });
+  const shared = { kind: "shared", token: GRAD.token, protocolEth: "2500000000000000", crewEth: "0", creatorEth: "500000000000000", tokensBurned: "1000" };
+  await page.route("**/api/tonk/tx?**", (route) => route.fulfill({ json: { state: "confirmed", mission: null, events: [shared] } }));
+
+  await page.goto(`/token/${GRAD.token}`);
+  const fees = page.getByRole("region", { name: "Pool fees" });
+  await expect(fees.getByText("Crew 0% · Creator 0.5% · tonkfun.fun 1%")).toBeVisible();
+  await fees.getByRole("button", { name: "Share pool fees" }).click();
+  await expect(fees.getByText(/^Shared 0\.003 ETH: \S+ to the Crew, 0\.0005 to the creator, 0\.0025 to tonkfun\.fun\.$/)).toBeVisible();
+  // Any wallet may share: the request names the token and the wallet that pays the network fee.
+  expect(asked).toEqual([{ kind: "share", token: GRAD.token, owner: STUB_WALLET }]);
+});
+
 test("a receipt's swap on some other pool is never shown as this token's trade", async ({ page }) => {
   await page.route("**/api/tonk/tx?**", (route) => route.fulfill({ json: { state: "confirmed", mission: null, events: [{ kind: "pool", pool: `0x${"ab".repeat(32)}`, side: "buy", eth: "1", tokens: "1" }] } }));
   await page.goto(`/token/${GRAD.token}?tx=${STUB_EVM_HASH}`);

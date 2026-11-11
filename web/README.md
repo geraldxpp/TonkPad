@@ -378,15 +378,33 @@ deployed migrator: either could complete a curve. Sells and claims are never
 refused for it. A paused launchpad refuses launches and curve trades
 (`paused`).
 
-**Graduated tokens** trade on their Uniswap v4 pool through Uniswap's official
-Universal Router (addresses in `networks.ts`; none on testnet, whose isolated
-Uniswap copy has no router). `GET /api/tonk/pool/quote` asks V4Quoter;
+**Graduated tokens** trade on their Uniswap v4 pool through Uniswap's
+Universal Router. On mainnet that means Uniswap's official contracts, fixed in
+`networks.ts` and never read from the build. On testnet it means only a
+preview that names a router and quoter (below); the testnet site's isolated
+Uniswap copy has neither.
+
+Every pool read takes the migrator's own `poolKey(token, fee)` at the fee it
+recorded, and refuses it (`refused`) unless its hook is the migrator's
+`initializationGuard()`. The guard must be a beforeInitialize-only hook that
+serves this migrator on that PoolManager. A look-alike pool someone creates
+for the same token is never quoted, traded or matched to a receipt.
+
+`GET /api/tonk/pool/quote` asks V4Quoter;
 `POST /api/tonk/pool/trade` reads the pool and the quote at one block, runs
 the exact swap there with the quote itself as its minimum, and only then
 builds it. A sell first approves Permit2 for exactly the amount, then allows
 the router exactly that for 30 minutes. A receipt counts only from the
 PoolManager's own `Swap` event on this token's pool. The swap encoding is held
 byte for byte to Foundry's `cast` (`src/shared/tests/fixtures/pool-vectors.json`).
+
+**Share pool fees.** Any wallet can have a graduated pool's fees shared. The
+token page's Pool fees card sends `POST /api/tonk/action` with
+`{ kind: "share" }`. The server reads the guarded pool, simulates the
+migrator's `distributePostGradRewards(token)` from that wallet, and builds it.
+The migrator pays the ETH side to the Crew, the creator and the treasury, and
+sends the token side to the dead address. The receipt's own
+`PostGradRewardsDistributed` event says who got what.
 
 **Kept in the browser.** A draft is saved only by "Save draft"
 (`tonkpad-launch-draft:<chainId>`). A referrer's address from `?ref=` is
@@ -415,6 +433,21 @@ so production keeps "coming soon". The preview also needs
 `NEXT_PUBLIC_REOWN_PROJECT_ID`; if the wallet window won't open there, add the
 preview's domain to the Reown project's allowed origins. Test ETH comes from
 the faucet linked on the screen.
+
+**A testnet preview of a fresh deployment.** Astra's campaign
+(`../prompts/08-astra-brief.md`) runs on a fresh testnet deployment of the
+frozen build. A second preview branch can point testnet mode at it without
+touching the testnet site. Add these variables, limited to that branch:
+- `NEXT_PUBLIC_TONK_NETWORK=testnet`;
+- the deployment's `NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR`
+  and `NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK`;
+- so its graduated pools trade: `NEXT_PUBLIC_TONK_UNISWAP_POOL_MANAGER`,
+  `NEXT_PUBLIC_TONK_UNISWAP_ROUTER`, `NEXT_PUBLIC_TONK_UNISWAP_PERMIT2` and
+  `NEXT_PUBLIC_TONK_UNISWAP_QUOTER`. These are the testnet's own PoolManager
+  and Permit2, and the router and quoter deployed beside them.
+
+Anything missing or malformed keeps the built-in testnet deployment, with no
+pool trading. Mainnet never reads the Uniswap values.
 
 **Tests** never send a transaction. `src/shared/tests/tonk-*.test.ts` cover
 the curve against the contract's numbers, the rules, the metadata and the
@@ -496,8 +529,9 @@ fee only while someone eligible holds the token. A trade then runs like this:
 
 A buy bigger than what is left on the curve is allowed, as the contract
 allows it: the review says it is cut to fit, how much comes back, and that
-the token graduates and curve trading ends. Trading the graduated pool is a
-later phase; until then a graduated token's button says so.
+the token graduates and curve trading ends. The token then trades on its
+Uniswap pool where the network has a router (see Graduated tokens). On the
+testnet site, which has none, a graduated token's button says so.
 
 **Rewards and the creator's tools.** `POST /api/tonk/action` builds and
 simulates each of these the same way, and each counts only from its event:

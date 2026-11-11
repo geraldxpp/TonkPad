@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chainText, decodeAgent, decodeMetadata, encodeAgent, encodeMetadata, normalizeTelegram, normalizeWebsite, normalizeX } from "@/shared/tonk/metadata";
-import { mainnetNetwork, parseTonkMode, TONK_TESTNET, tonkNetwork } from "@/shared/tonk/networks";
+import { mainnetNetwork, parseTonkMode, ROBINHOOD_UNISWAP, TONK_TESTNET, testnetNetwork, tonkNetwork } from "@/shared/tonk/networks";
 
 /** 👻: one character, two UTF-16 units. */
 const GHOST = "\u{1F47B}";
@@ -161,5 +161,35 @@ describe("the network mode", () => {
     ]) {
       expect(mainnetNetwork(bad)).toBeNull();
     }
+  });
+
+  it("points a testnet preview at a fresh deployment, trading pools only where its router and quoter are named", () => {
+    const none = { launchpad: undefined, migrator: undefined, block: undefined };
+    const noPools = { poolManager: undefined, universalRouter: undefined, permit2: undefined, quoter: undefined };
+    // Unset, as on the testnet site today: the built-in deployment, with no pool trading.
+    expect(testnetNetwork(none, noPools)).toBe(TONK_TESTNET);
+    const fresh = { launchpad: "0x1111111111111111111111111111111111111111", migrator: "0x2222222222222222222222222222222222222222", block: "152000000" };
+    const pools = {
+      poolManager: " 0x5b29D2869A76ceeb969d090BA73cAc506b128519 ",
+      universalRouter: "0x3333333333333333333333333333333333333333",
+      permit2: "0x4bB2c9fF76C8f5774C35362CC1137cB014B604d6",
+      quoter: "0x4444444444444444444444444444444444444444",
+    };
+    expect(testnetNetwork(fresh, pools)).toEqual({
+      ...TONK_TESTNET,
+      launchpad: fresh.launchpad,
+      migrator: fresh.migrator,
+      launchpadBlock: 152000000,
+      externalRouter: null,
+      uniswap: { poolManager: "0x5b29d2869a76ceeb969d090ba73cac506b128519", universalRouter: pools.universalRouter, permit2: "0x4bb2c9ff76c8f5774c35362cc1137cb014b604d6", quoter: pools.quoter },
+    });
+    // A fresh deployment without a router and quoter: its pools don't trade here.
+    expect(testnetNetwork(fresh, noPools).uniswap).toBeNull();
+    expect(testnetNetwork(fresh, { ...pools, quoter: "0x12" }).uniswap).toBeNull();
+    expect(testnetNetwork(fresh, { ...pools, quoter: pools.universalRouter }).uniswap).toBeNull();
+    // A malformed deployment keeps the built-in one.
+    expect(testnetNetwork({ ...fresh, block: "0" }, noPools)).toBe(TONK_TESTNET);
+    // Mainnet never takes Uniswap from the build: always Uniswap's own contracts.
+    expect(mainnetNetwork(fresh)?.uniswap).toEqual(ROBINHOOD_UNISWAP);
   });
 });

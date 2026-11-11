@@ -148,6 +148,7 @@ export type ActionRequest =
   | { kind: "extend"; token: string; owner: string; days: number }
   | { kind: "edit"; token: string; owner: string; description: string; x: string; telegram: string; website: string; agent: AgentSettings | null }
   | { kind: "rewards"; token: string; owner: string }
+  | { kind: "share"; token: string; owner: string }
   | { kind: "withdraw"; owner: string };
 export type ActionKind = ActionRequest["kind"];
 
@@ -165,6 +166,8 @@ export type TxEventJson =
   | { kind: "edited"; token: string }
   | { kind: "rewards"; token: string; holder: string; amount: string }
   | { kind: "withdrawn"; recipient: string; amount: string }
+  /** A graduated pool's fees, shared by its migrator: the ETH side split three ways, the token side out of circulation. */
+  | { kind: "shared"; token: string; protocolEth: string; crewEth: string; creatorEth: string; tokensBurned: string }
   // A swap on a graduated token's Uniswap pool, from the PoolManager's own Swap event: ETH and tokens in wei.
   | { kind: "pool"; pool: string; side: TradeSide; eth: string; tokens: string };
 

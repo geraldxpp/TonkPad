@@ -46,12 +46,15 @@ export function didAction(request: ActionRequest, events: readonly TxEventJson[]
         return event.kind === "rewards" && same(event.token, request.token) && same(event.holder, request.owner);
       case "withdraw":
         return event.kind === "withdrawn" && same(event.recipient, request.owner);
+      case "share":
+        return event.kind === "shared" && same(event.token, request.token);
     }
   });
 }
 
 /**
- * Runs a claim, a lock extension, an edit, a reward claim or a withdrawal:
+ * Runs a claim, a lock extension, an edit, a reward claim, a withdrawal or a
+ * share of a graduated pool's fees:
  * the server checks and simulates it, the wallet sends it, and it counts
  * only once a receipt confirms it. No timer or failed check turns into a
  * failure: it stays confirming until the chain answers, unless the person

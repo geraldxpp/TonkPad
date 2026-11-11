@@ -8,6 +8,8 @@ import { type Address, address, invalid, isRecord, padGas, refusal, requireFunds
 import { TonkError, tonkClient } from "./client";
 import { parseDetails } from "./launch";
 import { readMission } from "./mission";
+import { readPoolAt, requireUniswap } from "./pool";
+import { MIGRATOR_ABI } from "./pool-key";
 
 /** The longest single extension the screen offers; a lock can be extended again. */
 export const MAX_EXTENSION_DAYS = 3650;
@@ -20,7 +22,7 @@ export function parseActionRequest(body: unknown): ActionRequest {
   const owner = address(body.owner, "owner");
   if (body.kind === "withdraw") return { kind: "withdraw", owner };
   const token = address(body.token, "token");
-  if (body.kind === "claim" || body.kind === "rewards") return { kind: body.kind, token, owner };
+  if (body.kind === "claim" || body.kind === "rewards" || body.kind === "share") return { kind: body.kind, token, owner };
   if (body.kind === "extend") {
     const days = Number(body.days);
     if (!Number.isInteger(days) || days < MIN_EXTENSION_DAYS || days > MAX_EXTENSION_DAYS) throw invalid("days");
@@ -43,6 +45,15 @@ async function actionCall(network: TonkNetwork, request: ActionRequest): Promise
     const owed = await read(client.readContract({ address: pad, abi: LAUNCHPAD_ABI, functionName: "claimableEth", args: [owner] }));
     if (owed === BigInt(0)) throw nothing("no unpaid ETH");
     return { to: pad, data: encodeFunctionData({ abi: LAUNCHPAD_ABI, functionName: "withdrawAccruedEth" }) };
+  }
+
+  if (request.kind === "share") {
+    // Anyone may share a graduated pool's fees, but only on the migrator's own guarded pool, once it is open.
+    requireUniswap(network);
+    const token = request.token as Address;
+    const blockNumber = await read(client.getBlockNumber({ cacheTime: 0 }));
+    await readPoolAt(client, network, token, blockNumber);
+    return { to: network.migrator, data: encodeFunctionData({ abi: MIGRATOR_ABI, functionName: "distributePostGradRewards", args: [token] }) };
   }
 
   const mission = await readMission(network, request.token, 0);
@@ -70,8 +81,8 @@ async function actionCall(network: TonkNetwork, request: ActionRequest): Promise
 }
 
 /**
- * Builds a claim, a lock extension, an edit, a reward claim or a withdrawal
- * for the wallet to sign. The call is simulated from that wallet first, so a
+ * Builds a claim, a lock extension, an edit, a reward claim, a withdrawal or
+ * a share of a graduated pool's fees for the wallet to sign. The call is simulated from that wallet first, so a
  * refusal shows before any wallet opens. Nothing is sent from here.
  */
 export async function buildAction(network: TonkNetwork, request: ActionRequest): Promise<ActionBuild> {

@@ -688,6 +688,15 @@ export const tr: Dictionary = {
       withdraw: "Çek",
       done: "{amount} {unit} çekildi",
     },
+    poolFees: {
+      title: "Havuz ücretleri",
+      sub: "Crew {crew} · Yaratıcı {creator} · tonkfun.fun 1%",
+      body: "Havuzun işlem ücretleri biri paylaştırana kadar burada bekler. Paylaştırınca {unit} Crew’a, yaratıcıya ve tonkfun.fun’a gider; token kısmı dolaşımdan çıkar. Bunu herkes yapabilir; yalnızca ağ ücreti ödenir.",
+      share: "Havuz ücretlerini paylaştır",
+      connect: "Havuz ücretlerini paylaştırmak için bir cüzdan bağlayın.",
+      done: "{amount} {unit} paylaştırıldı: Crew’a {crew}, yaratıcıya {creator}, tonkfun.fun’a {protocol}.",
+      nothing: "Tamam. Bu kez paylaştırılacak {unit} ücreti yoktu.",
+    },
     action: {
       confirming: "Onaylanıyor…",
       forbidden: "Bunu yalnızca token’ın yaratıcısı yapabilir.",

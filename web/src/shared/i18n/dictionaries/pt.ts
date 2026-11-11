@@ -689,6 +689,15 @@ export const pt: Dictionary = {
       withdraw: "Sacar",
       done: "Você sacou {amount} {unit}",
     },
+    poolFees: {
+      title: "Taxas do pool",
+      sub: "Crew {crew} · Criador {creator} · tonkfun.fun 1%",
+      body: "As taxas de negociação do pool ficam aqui até alguém distribuí-las. Ao distribuir, o {unit} vai para o Crew, o criador e a tonkfun.fun, e a parte em tokens sai de circulação. Qualquer pessoa pode fazer isso; custa só a taxa de rede.",
+      share: "Distribuir taxas do pool",
+      connect: "Conecte uma carteira para distribuir as taxas do pool.",
+      done: "Foram distribuídos {amount} {unit}: {crew} para o Crew, {creator} para o criador, {protocol} para a tonkfun.fun.",
+      nothing: "Pronto. Desta vez não havia taxas em {unit} para distribuir.",
+    },
     action: {
       confirming: "Confirmando…",
       forbidden: "Só o criador do token pode fazer isto.",

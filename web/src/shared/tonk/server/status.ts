@@ -6,6 +6,7 @@ import { isTxHash, type LaunchedMission, type LaunchStatus, type TxCall, type Tx
 import { LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
 import { TonkError, tonkClient } from "./client";
 import { POOL_MANAGER_ABI } from "./pool";
+import { MIGRATOR_ABI } from "./pool-key";
 
 const LOCK_TYPES: readonly LockType[] = ["none", "time", "linear"];
 const BPS = BigInt(10_000);
@@ -67,6 +68,12 @@ export function txEvents(network: TonkNetwork, logs: Log[]): TxEventJson[] {
   for (const log of parseEventLogs({ abi: TOKEN_ABI, logs: logs.filter((entry) => !isPad(entry)) })) {
     if (log.eventName === "CrewRewardPaid") events.push({ kind: "rewards", token: log.address, holder: log.args.holder, amount: String(log.args.ethAmount) });
     else if (log.args.spender.toLowerCase() === network.launchpad.toLowerCase()) events.push({ kind: "approved", token: log.address, owner: log.args.owner, amount: String(log.args.value) });
+  }
+  // Pool fees shared, only by this network's own migrator.
+  const migrator = network.migrator.toLowerCase();
+  for (const log of parseEventLogs({ abi: MIGRATOR_ABI, eventName: "PostGradRewardsDistributed", logs: logs.filter((entry) => entry.address.toLowerCase() === migrator) })) {
+    const { token, protocolEth, crewEth, creatorEth, tokensBurned } = log.args;
+    events.push({ kind: "shared", token, protocolEth: String(protocolEth), crewEth: String(crewEth), creatorEth: String(creatorEth), tokensBurned: String(tokensBurned) });
   }
   // Swaps on graduated pools, only from Uniswap's own PoolManager: the swapper's deltas, so a buy pays ETH in (negative) and takes tokens out.
   const manager = network.uniswap?.poolManager.toLowerCase();

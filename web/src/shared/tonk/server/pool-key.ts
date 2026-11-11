@@ -20,6 +20,8 @@ export const MIGRATOR_ABI = parseAbi([
   "function poolKey(address token, uint24 fee) view returns (PoolKey)",
   "function lockedPositions(address token) view returns (address token, address creator, uint256 positionTokenId, uint16 crewFeeBps, uint16 creatorFeeBps, uint24 uniV4PoolFee, uint256 totalEthFeesCollected, uint256 totalTokensBurned, bool initialized)",
   "function initializationGuard() view returns (address)",
+  "function distributePostGradRewards(address token)",
+  "event PostGradRewardsDistributed(address indexed token, uint256 protocolEth, uint256 crewEth, uint256 creatorEth, uint256 tokensBurned)",
 ]);
 /** The guard names the one migrator it lets initialize pools, on the one PoolManager it answers to. */
 export const GUARD_ABI = parseAbi(["function migrator() view returns (address)", "function poolManager() view returns (address)"]);

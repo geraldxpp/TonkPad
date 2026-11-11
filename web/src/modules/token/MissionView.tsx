@@ -15,6 +15,7 @@ import { CurveTradePanel } from "./components/curve/CurveTradePanel";
 import { PoolTradePanel } from "./components/curve/PoolTradePanel";
 import { MissionInsights } from "./components/curve/MissionInsights";
 import { MissionTags } from "./components/curve/MissionTags";
+import { PoolFees } from "./components/curve/PoolFees";
 import { RewardsCard } from "./components/curve/RewardsCard";
 import { UnpaidEth } from "./components/curve/UnpaidEth";
 import { MarketCard } from "./components/MarketCard";
@@ -39,9 +40,10 @@ interface MissionViewProps {
 
 /**
  * The token screen for a mission read from tonkfun.fun's launchpad: module
- * 2's layout with every figure from the chain, Buy and Sell on the curve,
- * the holder's reward claim, and the creator's tools for the wallet that
- * launched it. Phones trade from the bottom bar.
+ * 2's layout with every figure from the chain, Buy and Sell on the curve
+ * (on its Uniswap pool once graduated, with Share pool fees), the holder's
+ * reward claim, and the creator's tools for the wallet that launched it.
+ * Phones trade from the bottom bar.
  */
 export function MissionView({ page, network, onMission, onRefresh }: MissionViewProps) {
   const { t } = useI18n();
@@ -88,6 +90,7 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
           <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-1", mission.crewBps === 0 && "md:grid-cols-1")}>
             <div className="max-md:hidden">{panel("buy")}</div>
             {mission.crewBps > 0 ? <RewardsCard mission={mission} network={network} view={view} action={action} onAction={onAction} onStop={stopWatching} /> : null}
+            {pool ? <PoolFees mission={mission} network={network} owner={owner} action={action} onAction={onAction} onStop={stopWatching} /> : null}
           </div>
         </aside>
       </div>

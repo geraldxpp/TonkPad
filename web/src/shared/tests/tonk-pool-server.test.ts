@@ -1,9 +1,11 @@
-import { BaseError, decodeFunctionData, encodeAbiParameters, encodeEventTopics, getAddress, type Log } from "viem";
+import { BaseError, decodeFunctionData, encodeAbiParameters, encodeEventTopics, encodeFunctionData, getAddress, type Log } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mainnetNetwork, TONK_TESTNET } from "@/shared/tonk/networks";
 import { TOKEN_ABI } from "@/shared/tonk/server/abi";
 import { tonkClient } from "@/shared/tonk/server/client";
 import { buildPoolTrade, parsePoolTradeRequest, PERMIT2_ABI, POOL_MANAGER_ABI, type PoolKey, poolIdOf, quotePool, ROUTER_ABI, swapInput } from "@/shared/tonk/server/pool";
+import { buildAction, parseActionRequest } from "@/shared/tonk/server/action";
+import { MIGRATOR_ABI } from "@/shared/tonk/server/pool-key";
 import { txEvents } from "@/shared/tonk/server/status";
 import VECTORS from "./fixtures/pool-vectors.json";
 
@@ -330,3 +332,46 @@ describe("a pool trade's receipt", () => {
     expect(txEvents(TONK_TESTNET, [swapLog(UNISWAP.poolManager, big(-1_000), big(40_000))])).toEqual([]);
   });
 });
+
+describe("sharing a graduated pool's fees", () => {
+  beforeEach(() => vi.mocked(tonkClient).mockReset());
+  const SHARE = { kind: "share" as const, token: TOKEN, owner: TRADER };
+
+  it("builds the migrator's own distributePostGradRewards for any wallet, simulated from it first", async () => {
+    expect(parseActionRequest(SHARE)).toEqual(SHARE);
+    const client = connect(chain());
+    const build = await buildAction(NETWORK, SHARE);
+    expect(build.tx).toMatchObject({ to: NETWORK.migrator, value: "0", data: encodeFunctionData({ abi: MIGRATOR_ABI, functionName: "distributePostGradRewards", args: [TOKEN] }) });
+    expect(client.call).toHaveBeenCalledWith(expect.objectContaining({ account: TRADER, to: NETWORK.migrator }));
+  });
+
+  it("is refused where pools don't trade, before graduation, and on anything but the guarded pool", async () => {
+    connect(chain());
+    await expect(buildAction(TONK_TESTNET, SHARE)).rejects.toMatchObject({ code: "closed" });
+    for (const [patch, code] of [
+      [{ initialized: false, graduated: false }, "curve"],
+      [{ keyPatch: { hooks: "0x4444444444444444444444444444444444442000" } }, "refused"],
+    ] as const) {
+      const client = connect({ ...chain(), ...patch } as Chain);
+      await expect(buildAction(NETWORK, SHARE)).rejects.toMatchObject({ code });
+      expect(client.call).not.toHaveBeenCalled();
+    }
+  });
+
+  it("reads what was shared from the migrator's own event, and from no other contract", () => {
+    const log = (address: string): Log => ({
+      address: address as `0x${string}`,
+      topics: encodeEventTopics({ abi: MIGRATOR_ABI, eventName: "PostGradRewardsDistributed", args: { token: TOKEN } }) as Log["topics"],
+      data: encodeAbiParameters([{ type: "uint256" }, { type: "uint256" }, { type: "uint256" }, { type: "uint256" }], [big(25), big(0), big(5), big(1_000)]),
+      blockHash: `0x${"0".repeat(64)}`,
+      blockNumber: big(1),
+      logIndex: 0,
+      transactionHash: `0x${"1".repeat(64)}`,
+      transactionIndex: 0,
+      removed: false,
+    });
+    expect(txEvents(NETWORK, [log(NETWORK.migrator)])).toEqual([{ kind: "shared", token: getAddress(TOKEN), protocolEth: "25", crewEth: "0", creatorEth: "5", tokensBurned: "1000" }]);
+    expect(txEvents(NETWORK, [log(TOKEN)])).toEqual([]);
+  });
+});
+

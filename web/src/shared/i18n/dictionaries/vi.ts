@@ -688,6 +688,15 @@ export const vi: Dictionary = {
       withdraw: "Rút",
       done: "Đã rút {amount} {unit}",
     },
+    poolFees: {
+      title: "Phí của pool",
+      sub: "Crew {crew} · Nhà sáng tạo {creator} · tonkfun.fun 1%",
+      body: "Phí giao dịch của pool nằm ở đây cho đến khi có người chia. Khi chia, {unit} được gửi cho Crew, nhà sáng tạo và tonkfun.fun, còn phần token bị rút khỏi lưu thông. Ai cũng làm được; chỉ tốn phí mạng.",
+      share: "Chia phí của pool",
+      connect: "Kết nối ví để chia phí của pool.",
+      done: "Đã chia {amount} {unit}: {crew} cho Crew, {creator} cho nhà sáng tạo, {protocol} cho tonkfun.fun.",
+      nothing: "Xong. Lần này không có phí {unit} nào để chia.",
+    },
     action: {
       confirming: "Đang xác nhận…",
       forbidden: "Chỉ nhà sáng tạo của token mới làm được việc này.",

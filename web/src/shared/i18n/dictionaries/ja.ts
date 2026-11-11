@@ -688,6 +688,15 @@ export const ja: Dictionary = {
       withdraw: "引き出す",
       done: "{amount} {unit} を引き出しました",
     },
+    poolFees: {
+      title: "プールの手数料",
+      sub: "Crew {crew}・クリエイター {creator}・tonkfun.fun 1%",
+      body: "プールの取引手数料は、誰かが分配するまでここに貯まります。分配すると、{unit} は Crew、クリエイター、tonkfun.fun に送られ、トークン分は流通から外れます。誰でも実行でき、かかるのはネットワーク手数料だけです。",
+      share: "プールの手数料を分配",
+      connect: "プールの手数料を分配するには、ウォレットを接続してください。",
+      done: "{amount} {unit} を分配しました：Crew に {crew}、クリエイターに {creator}、tonkfun.fun に {protocol}。",
+      nothing: "完了しました。今回は分配する {unit} の手数料はありませんでした。",
+    },
     action: {
       confirming: "承認中…",
       forbidden: "この操作はトークンのクリエイターのみ行えます。",
