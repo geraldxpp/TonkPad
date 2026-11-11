@@ -53,6 +53,11 @@ function chain() {
     /** Reads of that receipt the RPC answers with "not found" before it has it. */
     receiptLag: 0,
     heads: [] as bigint[],
+    /** The migrator's guard, and what the guard says it serves; and what the migrator's key says beyond the true one. */
+    guard: GUARD as string,
+    guardMigrator: NETWORK.migrator as string,
+    guardManager: UNISWAP.poolManager as string,
+    keyPatch: {} as Partial<PoolKey>,
   };
 }
 type Chain = ReturnType<typeof chain>;
@@ -65,7 +70,13 @@ function fakeClient(state: Chain) {
       case "missions":
         return [state.known ? TOKEN : ZERO, TRADER, big(0), big(0), 200, 100, state.graduated, big(0), big(0), big(0), big(0), ZERO, "", ""];
       case "poolKey":
-        return { ...KEY, fee: Number(args?.[1]) };
+        return { ...KEY, fee: Number(args?.[1]), ...state.keyPatch };
+      case "initializationGuard":
+        return state.guard;
+      case "migrator":
+        return state.guardMigrator;
+      case "poolManager":
+        return state.guardManager;
       case "balanceOf":
         return state.held;
       case "allowance":
@@ -201,6 +212,44 @@ function swapLog(address: string, amount0: bigint, amount1: bigint): Log {
     removed: false,
   };
 }
+
+describe("only the migrator's own guarded pool", () => {
+  beforeEach(() => vi.mocked(tonkClient).mockReset());
+  const OTHER = `0x${"9".repeat(40)}` as const;
+
+  it("quotes and builds nothing on a look-alike key: another hook, tick spacing, fee or pair", async () => {
+    // A hook with the guard's flags but another address: someone else's pool for the same token.
+    const LOOK_ALIKE = "0x4444444444444444444444444444444444442000";
+    for (const keyPatch of [{ hooks: LOOK_ALIKE }, { tickSpacing: 10 }, { fee: 3_000 }, { currency1: OTHER }, { currency0: TOKEN }] satisfies Partial<PoolKey>[]) {
+      const state = chain();
+      state.keyPatch = keyPatch;
+      const client = connect(state);
+      await expect(quotePool(NETWORK, TOKEN, "buy", big(1_000))).rejects.toMatchObject({ code: "refused" });
+      await expect(buildPoolTrade(NETWORK, BUY)).rejects.toMatchObject({ code: "refused" });
+      expect(client.simulateContract).not.toHaveBeenCalled();
+      expect(client.call).not.toHaveBeenCalled();
+    }
+  });
+
+  it("refuses a guard with any other hook flag, or one serving another migrator or PoolManager", async () => {
+    for (const patch of [{ guard: "0x2222222222222222222222222222222222222080" }, { guard: "0x2222222222222222222222222222222222220000" }, { guardMigrator: OTHER }, { guardManager: OTHER }]) {
+      const state = { ...chain(), ...patch };
+      // The key names whatever the migrator calls its guard, so only the guard's own checks can refuse it.
+      state.keyPatch = { hooks: state.guard as `0x${string}` };
+      const client = connect(state);
+      await expect(quotePool(NETWORK, TOKEN, "buy", big(1_000))).rejects.toMatchObject({ code: "refused" });
+      expect(client.simulateContract).not.toHaveBeenCalled();
+    }
+  });
+
+  it("checks the guard once, then trusts it: its migrator and PoolManager never change", async () => {
+    const client = connect(chain());
+    await quotePool(NETWORK, TOKEN, "buy", big(1_000));
+    await quotePool(NETWORK, TOKEN, "sell", big(5));
+    const asked = (name: string) => client.readContract.mock.calls.filter(([request]) => request.functionName === name).length;
+    expect([asked("initializationGuard"), asked("migrator"), asked("poolManager"), asked("poolKey")]).toEqual([1, 1, 1, 2]);
+  });
+});
 
 describe("a pool sale after its approval", () => {
   const APPROVAL = `0x${"ab".repeat(32)}`;

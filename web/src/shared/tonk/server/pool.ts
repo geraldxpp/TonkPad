@@ -1,4 +1,4 @@
-import { encodeAbiParameters, encodeFunctionData, keccak256, parseAbi, type PublicClient } from "viem";
+import { encodeAbiParameters, encodeFunctionData, parseAbi, type PublicClient } from "viem";
 import type { TradeSide } from "../mission";
 import type { TonkNetwork, UniswapContracts } from "../networks";
 import type { PoolQuoteJson, PoolTradeBuild, PoolTradeRequest } from "../pool";
@@ -6,15 +6,10 @@ import { LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
 import { isTxHash } from "../types";
 import { type Address, address, approvalReceipt, headAtLeast, invalid, isRecord, padGas, refusal, requireFunds, unsigned, wei, ZERO_ADDRESS } from "./build";
 import { TonkError, tonkClient } from "./client";
+import { checkedKey, MIGRATOR_ABI, POOL_KEY, type PoolKey, poolIdOf } from "./pool-key";
 
-const POOL_KEY = "struct PoolKey { address currency0; address currency1; uint24 fee; int24 tickSpacing; address hooks; }";
+export { GUARD_ABI, MIGRATOR_ABI, poolIdAt, poolIdOf, type PoolKey } from "./pool-key";
 
-/** The migrator's own record of each graduated token's pool, from the repaired build. */
-export const MIGRATOR_ABI = parseAbi([
-  POOL_KEY,
-  "function poolKey(address token, uint24 fee) view returns (PoolKey)",
-  "function lockedPositions(address token) view returns (address token, address creator, uint256 positionTokenId, uint16 crewFeeBps, uint16 creatorFeeBps, uint24 uniV4PoolFee, uint256 totalEthFeesCollected, uint256 totalTokensBurned, bool initialized)",
-]);
 export const QUOTER_ABI = parseAbi([
   POOL_KEY,
   "struct QuoteExactSingleParams { PoolKey poolKey; bool zeroForOne; uint128 exactAmount; bytes hookData; }",
@@ -28,14 +23,6 @@ export const PERMIT2_ABI = parseAbi([
 /** v4-core's Swap: `amount0` and `amount1` are the swapper's own deltas (negative: paid in), as PoolManager accounts them. */
 export const POOL_MANAGER_ABI = parseAbi(["event Swap(bytes32 indexed id, address indexed sender, int128 amount0, int128 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick, uint24 fee)"]);
 
-export interface PoolKey {
-  currency0: Address;
-  currency1: Address;
-  fee: number;
-  tickSpacing: number;
-  hooks: Address;
-}
-
 /** The router's V4_SWAP command. */
 const V4_SWAP = "0x10";
 /** SWAP_EXACT_IN_SINGLE, SETTLE_ALL, TAKE_ALL: v4-periphery 1.0.3's actions, as the deployed router takes them (proven on the mainnet fork). */
@@ -46,7 +33,6 @@ const DEADLINE_SECONDS = 600;
 const ALLOWANCE_SECONDS = 1_800;
 const ZERO = BigInt(0);
 
-const KEY_TYPES = [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }] as const;
 const SINGLE_TYPES = [
   {
     type: "tuple",
@@ -61,9 +47,6 @@ const SINGLE_TYPES = [
 ] as const;
 const PAY = [{ type: "address" }, { type: "uint256" }] as const;
 
-/** A pool's id: the hash of its key, as v4 computes it. */
-export const poolIdOf = (key: PoolKey) => keccak256(encodeAbiParameters(KEY_TYPES, [key.currency0, key.currency1, key.fee, key.tickSpacing, key.hooks]));
-
 /** One V4_SWAP input: swap exactly `amountIn`, pay it in full, take at least `minOut`. ETH is currency0, so a buy is zeroForOne. */
 export function swapInput(key: PoolKey, buy: boolean, amountIn: bigint, minOut: bigint): `0x${string}` {
   const params = [
@@ -72,13 +55,6 @@ export function swapInput(key: PoolKey, buy: boolean, amountIn: bigint, minOut: 
     encodeAbiParameters(PAY, [buy ? key.currency1 : key.currency0, minOut]),
   ];
   return encodeAbiParameters([{ type: "bytes" }, { type: "bytes[]" }], [ACTIONS, params]);
-}
-
-/** A graduated token's pool id, from the migrator's own key for it: its fee is the 1% protocol fee plus Crew and Creator, in v4's units. */
-export async function poolIdAt(client: PublicClient, network: TonkNetwork, token: Address, crewAndCreatorBps: number, blockNumber?: bigint): Promise<`0x${string}`> {
-  const fee = (100 + crewAndCreatorBps) * 100;
-  const raw = await client.readContract({ address: network.migrator, abi: MIGRATOR_ABI, functionName: "poolKey", args: [token, fee], ...(blockNumber === undefined ? {} : { blockNumber }) });
-  return poolIdOf({ currency0: raw.currency0, currency1: raw.currency1, fee: raw.fee, tickSpacing: raw.tickSpacing, hooks: raw.hooks });
 }
 
 export function requireUniswap(network: TonkNetwork): UniswapContracts {
@@ -128,10 +104,8 @@ export async function readPoolAt(client: PublicClient, network: TonkNetwork, tok
     throw mission[6] ? new TonkError("pending", "the pool opens once graduation completes", 409) : new TonkError("curve", "still on its curve", 409);
   }
   const fee = position[5];
-  const raw = await read(client.readContract({ address: network.migrator, abi: MIGRATOR_ABI, functionName: "poolKey", args: [token, fee], blockNumber }));
-  const key: PoolKey = { currency0: raw.currency0, currency1: raw.currency1, fee: raw.fee, tickSpacing: raw.tickSpacing, hooks: raw.hooks };
-  // ETH against this token, at the fee the migrator recorded: anything else is not the pool this page trades.
-  if (key.currency0.toLowerCase() !== ZERO_ADDRESS || key.currency1.toLowerCase() !== token.toLowerCase() || key.fee !== fee) throw new TonkError("refused", "unexpected pool key", 409);
+  // The migrator's guarded pool at the fee it recorded: never a look-alike someone else created for the same token.
+  const key = await checkedKey(client, network, requireUniswap(network), token, fee, blockNumber);
   return { key, id: poolIdOf(key), feeBps: fee / 100 };
 }
 

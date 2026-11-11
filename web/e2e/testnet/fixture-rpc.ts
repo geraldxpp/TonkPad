@@ -1,8 +1,8 @@
 import { createServer } from "node:http";
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, encodeFunctionResult, type Hex, toEventSelector } from "viem";
-import { TONK_TESTNET } from "../../src/shared/tonk/networks";
+import { ROBINHOOD_UNISWAP, TONK_TESTNET } from "../../src/shared/tonk/networks";
 import { ARBSYS, ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "../../src/shared/tonk/server/abi";
-import { MIGRATOR_ABI } from "../../src/shared/tonk/server/pool";
+import { GUARD_ABI, MIGRATOR_ABI } from "../../src/shared/tonk/server/pool";
 import { BLOCK, type FixtureMission, type FixtureTrade, MISSIONS, ZERO } from "./fixture-chain";
 import { FIXTURE_LAUNCHPAD, MAINNET_DEPLOYMENT, MAINNET_LAUNCHPAD, MAINNET_RPC_PORT, STUB_BALANCE, STUB_WALLET, TESTNET_RPC_PORT } from "./fixtures";
 
@@ -98,14 +98,23 @@ function migratorCall(data: Hex): Hex {
       return result({ currency0: ZERO, currency1: token, fee: Number(args?.[1]), tickSpacing: 60, hooks: MAINNET_DEPLOYMENT.guard });
     case "lockedPositions":
       return result([mission?.token ?? ZERO, mission?.creator ?? ZERO, big(mission?.graduated ? 7 : 0), mission?.crewBps ?? 0, mission?.creatorBps ?? 0, fee, big(0), big(0), mission?.graduated === true]);
+    case "initializationGuard":
+      return result(MAINNET_DEPLOYMENT.guard);
     default:
       throw new Error(`the fixture won't run ${functionName}`);
   }
 }
 
+/** The guard: it lets only this migrator initialize pools, on Uniswap's own PoolManager. */
+function guardCall(data: Hex): Hex {
+  const { functionName } = decodeFunctionData({ abi: GUARD_ABI, data });
+  return encodeFunctionResult({ abi: GUARD_ABI, functionName, result: functionName === "migrator" ? MIGRATOR : ROBINHOOD_UNISWAP.poolManager } as never);
+}
+
 function call(to: string, data: Hex): Hex {
   if (same(to, PAD)) return launchpadCall(data);
   if (same(to, MIGRATOR)) return migratorCall(data);
+  if (MAINNET && same(to, MAINNET_DEPLOYMENT.guard)) return guardCall(data);
   if (same(to, ARBSYS)) return encodeFunctionResult({ abi: ARBSYS_ABI, functionName: "arbBlockNumber", result: big(BLOCK) });
   const mission = missionOf(to);
   if (mission) return tokenCall(mission, data);
