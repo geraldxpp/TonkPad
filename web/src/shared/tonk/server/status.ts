@@ -2,7 +2,7 @@ import { parseEventLogs, TransactionNotFoundError, TransactionReceiptNotFoundErr
 import type { TonkNetwork } from "../networks";
 import type { LockType } from "../rules";
 import type { TxEventJson } from "../mission";
-import { isTxHash, type LaunchedMission, type LaunchStatus, type TxSender } from "../types";
+import { isTxHash, type LaunchedMission, type LaunchStatus, type TxCall, type TxSender } from "../types";
 import { LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
 import { TonkError, tonkClient } from "./client";
 
@@ -140,8 +140,11 @@ export async function txStatus(client: PublicClient, network: TonkNetwork, hash:
   if (late) return settledBy(network, late, sender);
   const other = await lookup(sender.from, sender.nonce);
   if (!other || other.toLowerCase() === hash.toLowerCase()) return open("unknown", sender);
+  // What the replacement called, for the page to tell a sped-up copy from anything else; unreadable is left out.
+  const call = await transactionOf(client, other).catch(() => null);
+  const replacedCall: TxCall | null = call ? { to: call.to ?? null, data: call.input, value: String(call.value) } : null;
   const replacement = await receiptOf(client, other);
-  return replacement ? settledBy(network, replacement, sender, other) : open("pending", sender, other);
+  return { ...(replacement ? settledBy(network, replacement, sender, other) : open("pending", sender, other)), replacedCall };
 }
 
 /** GET /api/tonk/tx: a transaction's status on the network's chain. */

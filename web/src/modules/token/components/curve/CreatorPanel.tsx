@@ -48,14 +48,16 @@ export function CreatorPanel({ mission, network, owner, action, onAction, onStop
   const amount = (wei: bigint) => `${formatTokens(wei)} ${ticker}`;
 
   const mine = action.kind === "claim" || action.kind === "extend" || action.kind === "edit";
-  const claimed = action.events.find((event) => event.kind === "claimed");
-  const extended = action.events.find((event) => event.kind === "extended");
+  // Only this token's events count toward what is said.
+  const here = (token: string) => token.toLowerCase() === mission.token.toLowerCase();
+  const claimed = action.events.find((event) => event.kind === "claimed" && here(event.token));
+  const extended = action.events.find((event) => event.kind === "extended" && here(event.token));
   const done =
     action.kind === "claim" && claimed?.kind === "claimed"
       ? fmt(c.doneClaim, { amount: formatTokens(BigInt(claimed.amount)), ticker })
       : action.kind === "extend" && extended?.kind === "extended"
         ? fmt(c.doneExtend, { date: day(extended.lockEnd) })
-        : action.kind === "edit" && action.events.some((event) => event.kind === "edited")
+        : action.kind === "edit" && action.events.some((event) => event.kind === "edited" && here(event.token))
           ? c.doneEdit
           : t.mission.trade.errors.other;
   const note = mine ? <ActionNote state={action} network={network} done={done} onStop={onStop} /> : null;

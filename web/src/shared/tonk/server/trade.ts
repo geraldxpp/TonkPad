@@ -11,6 +11,9 @@ import { readMissionAt } from "./mission";
 /** How long a build waits for the chain to reach a just-confirmed approval's block. */
 const CATCH_UP_TRIES = 5;
 const CATCH_UP_MS = 1_000;
+/** How often a just-confirmed approval's receipt is asked for again before the sale gives up. */
+const RECEIPT_TRIES = 3;
+const RECEIPT_WAIT_MS = 1_000;
 const same = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
 
 /** A trade request checked field by field. */
@@ -24,13 +27,27 @@ export function parseTradeRequest(body: unknown): TradeRequest {
 }
 
 /**
+ * A just-confirmed approval's receipt. The page saw it confirmed, but this
+ * read may reach a replica a moment behind, or fail outright: asked again a
+ * few times before giving up.
+ */
+async function approvalReceipt(client: PublicClient, hash: `0x${string}`) {
+  for (let attempt = 0; ; attempt += 1) {
+    const receipt = await client.getTransactionReceipt({ hash }).catch(() => null);
+    if (receipt) return receipt;
+    if (attempt >= RECEIPT_TRIES) throw new TonkError("unavailable", "approval receipt unreadable");
+    await new Promise((resolve) => setTimeout(resolve, RECEIPT_WAIT_MS));
+  }
+}
+
+/**
  * The block of the approval a sale waited for. Its receipt must be a success
  * from the trader on this token, approving the launchpad for at least the
- * amount sold; anything else isn't that approval.
+ * amount sold; a receipt that is anything else is refused at once.
  */
 async function approvalBlock(client: PublicClient, network: TonkNetwork, request: TradeRequest, hash: `0x${string}`): Promise<bigint> {
-  const receipt = await client.getTransactionReceipt({ hash }).catch(() => null);
-  if (!receipt || receipt.status !== "success" || !same(receipt.from, request.trader) || !receipt.to || !same(receipt.to, request.token)) throw new TonkError("unavailable", "approval not confirmed");
+  const receipt = await approvalReceipt(client, hash);
+  if (receipt.status !== "success" || !same(receipt.from, request.trader) || !receipt.to || !same(receipt.to, request.token)) throw new TonkError("unavailable", "approval not confirmed");
   const approved = parseEventLogs({ abi: TOKEN_ABI, eventName: "Approval", logs: receipt.logs }).some(
     (log) => same(log.address, request.token) && same(log.args.owner, request.trader) && same(log.args.spender, network.launchpad) && log.args.value >= BigInt(request.amount),
   );

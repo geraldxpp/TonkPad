@@ -29,7 +29,7 @@ export function UnpaidEth({ amount, owner, network, action, onAction, onStop }: 
   const u = t.mission.unpaid;
   const unit = network.unit;
   const mine = action.kind === "withdraw";
-  const withdrawn = action.events.find((event) => event.kind === "withdrawn");
+  const withdrawn = action.events.find((event) => event.kind === "withdrawn" && event.recipient.toLowerCase() === owner.toLowerCase());
   if (amount === BigInt(0) && !mine) return null;
   return (
     <section aria-labelledby="mission-unpaid-title" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-warn/25 bg-warn/5 p-5 max-md:p-4">

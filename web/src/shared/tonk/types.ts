@@ -102,6 +102,20 @@ export interface LaunchStatus {
   sender?: TxSender | null;
   /** The transaction the wallet sent in its place, found at the same nonce; state, mission and events are then that one's. */
   replacedBy?: string | null;
+  /** What that replacement called, when the node could say: the same call as the one sent means a sped-up copy. */
+  replacedCall?: TxCall | null;
+}
+
+/** A transaction's call: where it went, with what data and value. */
+export interface TxCall {
+  to: string | null;
+  data: string;
+  value: string;
+}
+
+/** Whether a transaction made exactly this call (a wallet's speed-up keeps it; a cancellation doesn't). */
+export function sameCall(call: TxCall, sent: { to: string; data: string; value: string }): boolean {
+  return call.to !== null && call.to.toLowerCase() === sent.to.toLowerCase() && call.data.toLowerCase() === sent.data.toLowerCase() && BigInt(call.value) === BigInt(sent.value);
 }
 
 export const isTxHash = (value: string) => /^0x[0-9a-fA-F]{64}$/.test(value);

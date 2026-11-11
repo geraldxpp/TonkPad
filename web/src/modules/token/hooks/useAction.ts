@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildAction, TonkApiError } from "@/shared/tonk/api";
-import type { ActionKind, ActionRequest, TxEventJson } from "@/shared/tonk/mission";
+import type { ActionRequest, TxEventJson } from "@/shared/tonk/mission";
+import { sameCall } from "@/shared/tonk/types";
 import { settled } from "@/shared/tonk/useTxStatus";
 import { WalletActionError } from "@/shared/wallet/types";
 import { wallet } from "@/shared/wallet/wallet";
@@ -29,8 +30,25 @@ const IDLE: ActionState = { step: "idle", kind: null, error: null, hash: null, e
 const codeOf = (error: unknown) => (error instanceof WalletActionError || error instanceof TonkApiError ? error.code : "unavailable");
 const isAbort = (error: unknown) => error instanceof DOMException && error.name === "AbortError";
 
-/** The event each action leaves in its receipt. */
-const EXPECTED: Record<ActionKind, TxEventJson["kind"]> = { claim: "claimed", extend: "extended", edit: "edited", rewards: "rewards", withdraw: "withdrawn" };
+const same = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
+
+/** Whether a receipt's events show this very action: its kind, on its token, for its wallet. */
+export function didAction(request: ActionRequest, events: readonly TxEventJson[]): boolean {
+  return events.some((event) => {
+    switch (request.kind) {
+      case "claim":
+        return event.kind === "claimed" && same(event.token, request.token);
+      case "extend":
+        return event.kind === "extended" && same(event.token, request.token);
+      case "edit":
+        return event.kind === "edited" && same(event.token, request.token);
+      case "rewards":
+        return event.kind === "rewards" && same(event.token, request.token) && same(event.holder, request.owner);
+      case "withdraw":
+        return event.kind === "withdrawn" && same(event.recipient, request.owner);
+    }
+  });
+}
 
 /**
  * Runs a claim, a lock extension, an edit, a reward claim or a withdrawal:
@@ -38,8 +56,9 @@ const EXPECTED: Record<ActionKind, TxEventJson["kind"]> = { claim: "claimed", ex
  * only once a receipt confirms it. No timer or failed check turns into a
  * failure: it stays confirming until the chain answers, unless the person
  * stops watching (`reset`). A transaction the wallet sent in its place
- * counts only if it did the same. `onDone` runs once it is done, to refresh
- * the page.
+ * counts only if it made the very same call (a speed-up), or, when its call
+ * can't be read, did this very action on this token for this wallet.
+ * `onDone` runs once it is done, to refresh the page.
  */
 export function useAction(onDone: () => void) {
   const [state, setState] = useState<ActionState>(IDLE);
@@ -70,7 +89,8 @@ export function useAction(onDone: () => void) {
         setState({ ...IDLE, step: "confirming", kind, hash: sent });
         const result = await settled(sent, { signal: control.signal, onStall: () => setState((prev) => (prev.hash === sent ? { ...prev, stalled: true } : prev)) });
         if (result.state === "failed") throw new TonkApiError("reverted");
-        if (result.state !== "confirmed" || (result.replacedBy && !result.events.some((event) => event.kind === EXPECTED[kind]))) throw new TonkApiError("replaced");
+        const ours = !result.replacedBy || (result.replacedCall ? sameCall(result.replacedCall, build.tx) : didAction(request, result.events));
+        if (result.state !== "confirmed" || !ours) throw new TonkApiError("replaced");
         setState({ ...IDLE, step: "done", kind, hash: result.replacedBy ?? sent, events: result.events });
         onDone();
       } catch (error) {

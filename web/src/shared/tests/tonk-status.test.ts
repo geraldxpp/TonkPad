@@ -26,6 +26,8 @@ interface Chain {
   receipts: Record<string, Array<ReturnType<typeof receipt> | null | Error>>;
   tx: { blockNumber: bigint | null } | null | Error;
   used: number;
+  /** What other transactions called, by hash; an Error when that read fails. */
+  calls?: Record<string, { to: `0x${string}` | null; input: `0x${string}`; value: bigint } | Error>;
 }
 
 /** A client that answers from `chain`, with viem's own not-found errors. */
@@ -42,6 +44,9 @@ function client(chain: Chain): PublicClient {
       return answer;
     }),
     getTransaction: vi.fn(async ({ hash }: { hash: `0x${string}` }) => {
+      const call = chain.calls?.[hash];
+      if (call instanceof Error) throw call;
+      if (call) return { hash, from: SENDER, nonce: NONCE, blockNumber: BigInt(151_760_001), ...call };
       if (chain.tx instanceof Error) throw chain.tx;
       if (!chain.tx) throw new TransactionNotFoundError({ hash });
       return { hash, from: SENDER, nonce: NONCE, ...chain.tx };
@@ -85,6 +90,15 @@ describe("a transaction's status", () => {
     const cancelled = await status({ receipts: { [OTHER]: [receipt(OTHER, "success", [])] }, tx: { blockNumber: null }, used: NONCE + 1 }, OTHER);
     expect(cancelled).toMatchObject({ state: "confirmed", replacedBy: OTHER, events: [] });
     await expect(status({ tx: { blockNumber: null }, used: NONCE + 1 }, OTHER)).resolves.toMatchObject({ state: "pending", replacedBy: OTHER });
+  });
+
+  it("says what the replacement called, for the page to tell a sped-up copy from anything else", async () => {
+    const extend = { to: TONK_TESTNET.launchpad, input: "0x1234abcd" as const, value: BigInt(0) };
+    const answer = await status({ receipts: { [OTHER]: [receipt(OTHER)] }, tx: { blockNumber: null }, used: NONCE + 1, calls: { [OTHER]: extend } }, OTHER);
+    expect(answer).toMatchObject({ state: "confirmed", replacedBy: OTHER, replacedCall: { to: TONK_TESTNET.launchpad, data: "0x1234abcd", value: "0" } });
+    // Unreadable, it is left out: the page then judges by the events alone.
+    const unread = await status({ receipts: { [OTHER]: [receipt(OTHER)] }, tx: { blockNumber: null }, used: NONCE + 1, calls: { [OTHER]: new Error("502") } }, OTHER);
+    expect(unread).toMatchObject({ state: "confirmed", replacedBy: OTHER, replacedCall: null });
   });
 
   it("traces a transaction the node dropped through the sender and nonce from an earlier answer", async () => {

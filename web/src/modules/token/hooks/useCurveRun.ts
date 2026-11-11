@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildTrade, TonkApiError } from "@/shared/tonk/api";
 import type { MissionJson, TradeRequest } from "@/shared/tonk/mission";
+import { sameCall } from "@/shared/tonk/types";
 import { settled } from "@/shared/tonk/useTxStatus";
 import { WalletActionError } from "@/shared/wallet/types";
 import { wallet } from "@/shared/wallet/wallet";
@@ -79,9 +80,10 @@ export function useCurveRun({ onMission, onSent }: CurveRunOptions) {
             setState({ ...IDLE, step: "approving", approval: sent });
             const result = await settled(sent, { signal: control.signal, onStall: () => setState((prev) => (prev.approval === sent ? { ...prev, stalled: true } : prev)) });
             if (result.state === "failed") throw new TonkApiError("reverted");
-            // Something the wallet sent in its place counts only if it approved the same.
+            // Something the wallet sent in its place counts only if it made the same call or, when that can't be read, approved the same.
             const approvedHere = result.events.some((event) => event.kind === "approved" && same(event.token, request.token) && same(event.owner, request.trader) && BigInt(event.amount) >= BigInt(request.amount));
-            if (result.state !== "confirmed" || (result.replacedBy && !approvedHere)) throw new TonkApiError("replaced");
+            const ours = !result.replacedBy || (result.replacedCall ? sameCall(result.replacedCall, build.tx) : approvedHere);
+            if (result.state !== "confirmed" || !ours) throw new TonkApiError("replaced");
             approval = result.replacedBy ?? sent;
             approved = true;
             setState({ ...IDLE, step: "preparing", approval });

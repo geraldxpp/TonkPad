@@ -200,6 +200,49 @@ describe("the curve trade panel", () => {
     expect(handlers.onSent).not.toHaveBeenCalled();
   });
 
+  it("stops without a second approval when the launchpad still can't take the tokens after the first", async () => {
+    const approval = `0x${"a1".repeat(32)}`;
+    mocks.buildTrade.mockResolvedValueOnce({ step: "approve", tx: tx(TOKEN), mission: mission() } satisfies TradeBuild).mockResolvedValueOnce({ step: "approve", tx: tx(TOKEN), mission: mission() } satisfies TradeBuild);
+    mocks.wallet.sendEvmTransaction.mockResolvedValueOnce(approval);
+    panel({ view: view({ owner: CREATOR, tokens: "24800471698113207547169812" }) });
+    fireEvent.click(cta(tr.sell));
+    type(tr.sellAmount, "1000000");
+    fireEvent.click(cta(m.trade.reviewSell));
+    fireEvent.click(screen.getByRole("button", { name: "Sell $TTONE" }));
+    expect(await screen.findByText(m.trade.errors.approvedNotSent)).toBeVisible();
+    expect(mocks.wallet.sendEvmTransaction).toHaveBeenCalledTimes(1);
+    expect(handlers.onSent).not.toHaveBeenCalled();
+  });
+
+  it("follows a sped-up approval to the sale, and stops at a replacement that approved something else", async () => {
+    const approval = `0x${"a1".repeat(32)}`;
+    const faster = `0x${"a2".repeat(32)}`;
+    const sale = { side: "sell", amountIn: "1000000000000000000000000", out: "1713856886439", minOut: "1696718317574", protocolFee: "17852675900", crewFee: "35705351800", creatorFee: "17852675900", refund: "0", completesCurve: false, capped: false } as const;
+    const settle = (call: { to: string; data: string; value: string }) => mocks.fetchLaunchStatus.mockResolvedValue({ state: "confirmed", mission: null, events: [], block: 1, sender: null, replacedBy: faster, replacedCall: call });
+    mocks.buildTrade.mockResolvedValueOnce({ step: "approve", tx: tx(TOKEN), mission: mission() } satisfies TradeBuild).mockResolvedValueOnce({ step: "trade", tx: tx(TONK_TESTNET.launchpad), quote: sale, mission: mission() } satisfies TradeBuild);
+    mocks.wallet.sendEvmTransaction.mockResolvedValueOnce(approval).mockResolvedValueOnce(HASH);
+    settle({ to: TOKEN, data: "0x", value: "0" });
+    panel({ view: view({ owner: CREATOR, tokens: "24800471698113207547169812" }) });
+    fireEvent.click(cta(tr.sell));
+    type(tr.sellAmount, "1000000");
+    fireEvent.click(cta(m.trade.reviewSell));
+    fireEvent.click(screen.getByRole("button", { name: "Sell $TTONE" }));
+    await waitFor(() => expect(handlers.onSent).toHaveBeenCalledWith(HASH));
+    // The sale is built after the approval that landed: the sped-up one.
+    expect(mocks.buildTrade.mock.calls[1][0]).toMatchObject({ approval: faster });
+    // Replaced by a call to something else: nothing more is sent.
+    mocks.buildTrade.mockReset().mockResolvedValueOnce({ step: "approve", tx: tx(TOKEN), mission: mission() } satisfies TradeBuild);
+    mocks.wallet.sendEvmTransaction.mockReset().mockResolvedValueOnce(approval);
+    settle({ to: CREATOR, data: "0x", value: "0" });
+    // The sale went through, so the review closed and the amount cleared: a fresh review.
+    type(tr.sellAmount, "1000000");
+    fireEvent.click(cta(m.trade.reviewSell));
+    fireEvent.click(screen.getByRole("button", { name: "Sell $TTONE" }));
+    expect(await screen.findByText(m.trade.errors.replaced)).toBeVisible();
+    expect(mocks.wallet.sendEvmTransaction).toHaveBeenCalledTimes(1);
+    expect(mocks.buildTrade).toHaveBeenCalledTimes(1);
+  });
+
   it("quotes the last eligible holder's full sale without the Crew fee, as the contract charges it", () => {
     const held = "24800471698113207547169812";
     panel({ mission: mission({ eligibleSupply: held }), view: view({ owner: CREATOR, tokens: held }) });
@@ -339,6 +382,9 @@ describe("the creator's tools", () => {
     expect(screen.getByText("Claimed 551.12K $TTONE")).toBeVisible();
     show({ step: "done", kind: "extend", error: null, hash: HASH, stalled: false, events: [{ kind: "extended", token: TOKEN, lockEnd: LAUNCHED + 187 * DAY }] });
     expect(screen.getByText("Lock extended to May 16, 2027")).toBeVisible();
+    // Another token's extension is never told as this one's.
+    show({ step: "done", kind: "extend", error: null, hash: HASH, stalled: false, events: [{ kind: "extended", token: BUYER, lockEnd: LAUNCHED + 187 * DAY }] });
+    expect(screen.getByText(m.trade.errors.other)).toBeVisible();
     show({ step: "failed", kind: "claim", error: "rejected", hash: null, events: [], stalled: false });
     expect(screen.getByRole("alert")).toHaveTextContent(`${m.trade.failedTitle}${en.swap.errors.rejected}`);
   });

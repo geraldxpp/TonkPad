@@ -40,6 +40,33 @@ describe("the trade a page sent", () => {
     expect(mocks.setParams).toHaveBeenLastCalledWith({ tx: null });
   });
 
+  it("follows any later change of the URL, and never brings an old override back (Astra's R2)", async () => {
+    const OTHER = `0x${"99".repeat(32)}`;
+    mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "pending" }));
+    const { result, rerender } = renderHook(() => useSentTrade(vi.fn()));
+    act(() => result.current.send(GRADUATION));
+    expect(result.current.sent?.hash).toBe(GRADUATION);
+    // A link on the same mounted page moves the URL to another trade: the card follows it.
+    mocks.params = new URLSearchParams({ tx: OTHER });
+    rerender();
+    expect(result.current.sent?.hash).toBe(OTHER);
+    // Back to where the URL stood at the send: the URL leads, not the old override.
+    mocks.params = new URLSearchParams({ tx: SALE });
+    rerender();
+    expect(result.current.sent?.hash).toBe(SALE);
+  });
+
+  it("keeps a dismissal until the URL moves, then follows the URL", async () => {
+    const OTHER = `0x${"99".repeat(32)}`;
+    mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "confirmed" }));
+    const { result, rerender } = renderHook(() => useSentTrade(vi.fn()));
+    act(() => result.current.dismiss());
+    expect(result.current.sent).toBeNull();
+    mocks.params = new URLSearchParams({ tx: OTHER });
+    rerender();
+    expect(result.current.sent?.hash).toBe(OTHER);
+  });
+
   it("goes on watching a reloaded page's trade from the URL, and sends nothing", async () => {
     mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "confirmed" }));
     const onConfirmed = vi.fn();

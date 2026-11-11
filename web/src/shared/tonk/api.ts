@@ -1,5 +1,5 @@
 import type { ActionBuild, ActionRequest, MissionAccountJson, MissionJson, MissionPageJson, MissionSummaryJson, TradeBuild, TradeRequest } from "./mission";
-import { isTxHash, type LaunchBuild, type LaunchRequest, type LaunchStatus, type TonkSettingsJson, type TxSender } from "./types";
+import { isTxHash, type LaunchBuild, type LaunchRequest, type LaunchStatus, type TonkSettingsJson, type TxCall, type TxSender } from "./types";
 
 /** The server's reason, as a code the screen turns into words: "paused", "funds", "refused", "busy", "unavailable"… */
 export class TonkApiError extends Error {
@@ -45,6 +45,9 @@ export function buildLaunch(request: LaunchRequest): Promise<LaunchBuild> {
   return call("/api/tonk/launch", isBuild, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) });
 }
 
+const isCall = (value: unknown): value is TxCall =>
+  record(value) && (value.to === null || (typeof value.to === "string" && /^0x[0-9a-fA-F]{40}$/.test(value.to))) && typeof value.data === "string" && /^0x[0-9a-fA-F]*$/.test(value.data) && typeof value.value === "string" && /^\d+$/.test(value.value);
+
 const isSender = (value: unknown): value is TxSender => record(value) && typeof value.from === "string" && /^0x[0-9a-fA-F]{40}$/.test(value.from) && typeof value.nonce === "number" && Number.isSafeInteger(value.nonce) && value.nonce >= 0;
 
 /**
@@ -61,6 +64,7 @@ export async function fetchLaunchStatus(hash: string, sender: TxSender | null = 
     block: typeof status.block === "number" ? status.block : null,
     sender: isSender(status.sender) ? status.sender : null,
     replacedBy: typeof status.replacedBy === "string" && isTxHash(status.replacedBy) ? status.replacedBy : null,
+    replacedCall: isCall(status.replacedCall) ? status.replacedCall : null,
   };
 }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchLaunchStatus } from "./api";
 import type { TxEventJson } from "./mission";
-import type { LaunchedMission, LaunchStatus, LaunchTxState, TxSender } from "./types";
+import type { LaunchedMission, LaunchStatus, LaunchTxState, TxCall, TxSender } from "./types";
 
 const POLL_MS = 2_000;
 /** After the first half minute a transaction is checked less often. */
@@ -79,6 +79,8 @@ export interface SettledTx {
   events: TxEventJson[];
   block: number | null;
   replacedBy: string | null;
+  /** What the replacement called, when known: compared with what was sent. */
+  replacedCall: TxCall | null;
 }
 
 const wait = (ms: number, signal?: AbortSignal) =>
@@ -106,7 +108,7 @@ export async function settled(hash: string, { signal, onStall }: { signal?: Abor
     if (signal?.aborted) throw new DOMException("stopped watching", "AbortError");
     if (status) {
       sender = status.sender ?? sender;
-      if (isSettled(status.state)) return { state: status.state, events: status.events, block: status.block ?? null, replacedBy: status.replacedBy ?? null };
+      if (isSettled(status.state)) return { state: status.state, events: status.events, block: status.block ?? null, replacedBy: status.replacedBy ?? null, replacedCall: status.replacedCall ?? null };
     }
     const elapsed = Date.now() - started;
     if (!stalled && elapsed > STALL_MS) {

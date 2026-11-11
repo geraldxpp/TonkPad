@@ -427,6 +427,30 @@ describe("building a sell", () => {
     expect(client.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "allowance", blockNumber: approvedAt }));
   });
 
+  it("asks again for an approval receipt a lagging replica can't show yet, and refuses a wrong one at the first read", async () => {
+    const state = chain();
+    state.allowance = big(SELL.amount);
+    state.simulated = SOLD_FOR;
+    const client = connect(state);
+    // Astra's probe: the first read fails, the next can't find it yet, the third has it.
+    client.getTransactionReceipt.mockRejectedValueOnce(new Error("socket hang up")).mockRejectedValueOnce(new Error("not found")).mockResolvedValue(approvalReceipt(state.block, big(SELL.amount)));
+    const pending = buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL });
+    await vi.advanceTimersByTimeAsync(2_500);
+    await expect(pending).resolves.toMatchObject({ step: "trade" });
+    expect(client.getTransactionReceipt).toHaveBeenCalledTimes(3);
+    // A receipt that is there but isn't this sale's approval: refused at once, not asked again.
+    client.getTransactionReceipt.mockReset().mockResolvedValue({ ...approvalReceipt(state.block, big(SELL.amount)), status: "reverted" });
+    await expect(buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL })).rejects.toMatchObject({ code: "unavailable" });
+    expect(client.getTransactionReceipt).toHaveBeenCalledTimes(1);
+    // Never readable: it gives up after a few tries, having built nothing.
+    client.getTransactionReceipt.mockReset().mockRejectedValue(new Error("down"));
+    const gone = buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL });
+    const refused = expect(gone).rejects.toMatchObject({ code: "unavailable" });
+    await vi.advanceTimersByTimeAsync(5_000);
+    await refused;
+    expect(client.getTransactionReceipt).toHaveBeenCalledTimes(4);
+  });
+
   it("refuses to lean on an approval that isn't this sale's, or a chain that never reaches it", async () => {
     const state = chain();
     const client = connect(state);

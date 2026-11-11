@@ -34,7 +34,10 @@ export function RewardsCard({ mission, network, view, action, onAction, onStop }
   const unpaid = account ? BigInt(account.unpaidRewards) : null;
   const mine = action.kind === "rewards";
   const busy = isWorking(action);
-  const paid = action.events.filter((event): event is Extract<TxEventJson, { kind: "rewards" }> => event.kind === "rewards").reduce((sum, event) => sum + BigInt(event.amount), BigInt(0));
+  // Only what this token paid this wallet.
+  const paid = action.events
+    .filter((event): event is Extract<TxEventJson, { kind: "rewards" }> => event.kind === "rewards" && event.token.toLowerCase() === mission.token.toLowerCase() && owner !== null && event.holder.toLowerCase() === owner.toLowerCase())
+    .reduce((sum, event) => sum + BigInt(event.amount), BigInt(0));
   return (
     <section aria-labelledby="mission-rewards-title" className="flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-5 max-md:p-4">
       <div className="flex items-center gap-2.5">
