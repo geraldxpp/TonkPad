@@ -233,6 +233,21 @@ describe("reading a mission", () => {
     expect(await readMission(TONK_TESTNET, TOKEN)).toMatchObject({ name: "0xEaC3…1A8A", symbol: "EAC30D", metadata: '{"v":1,"description":"Short enough."}' });
   });
 
+  it("shows a name and ticker as they really read: no direction, zero-width or tag characters", async () => {
+    const state = chain();
+    // U+202E would draw "ENO TSET KNOT" right to left, as "TONK TEST ONE".
+    state.name = "\u{202E}ENO TSET KNOT\u{200B}";
+    state.symbol = "TT\u{200B}O\u{E0041}NE\u{2066}";
+    connect(state);
+    expect(await readMission(TONK_TESTNET, TOKEN)).toMatchObject({ name: "ENO TSET KNOT", symbol: "TTONE" });
+
+    clearCache();
+    state.name = "\u{200B}\u{202E}\u{3164}";
+    state.symbol = "\u{2800}\u{FEFF}";
+    connect(state);
+    expect(await readMission(TONK_TESTNET, TOKEN)).toMatchObject({ name: "0xEaC3…1A8A", symbol: "EAC30D" });
+  });
+
   it("says an address the launchpad doesn't know is missing, and an unreadable chain unavailable", async () => {
     const state = chain();
     state.mission = false;

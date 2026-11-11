@@ -1,9 +1,9 @@
 /**
  * Text a token says about itself (launch feeds, Helius metadata, token
  * contracts) as the app shows it. The same cleaning as `visibleText` and
- * `clip` in the app's `shared/swap/trust.ts`, kept here so that a change to
- * it redeploys the worker (Railway watches `web/worker/` only): change both
- * together.
+ * `clip` in the app's `shared/lib/visible-text.ts`, kept here so that a change
+ * to it redeploys the worker (Railway watches `web/worker/` only): change both
+ * together. `tests/text-parity.test.ts` holds the two equal.
  */
 
 /** Spaces of any width and line breaks, each shown as one plain space. */

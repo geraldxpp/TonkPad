@@ -435,10 +435,14 @@ reached the page keeps its last figures and says so.
 Everything a token says about itself is untrusted. The contract checks only
 that a name and ticker aren't empty and sets no maximum on the texts it
 stores, and anyone can call it directly. So `server/mission.ts` shows at most
-64 characters of a name and 16 of a ticker (printable characters only), and
-doesn't pass on a stored text over 4,096 characters; `metadata.ts` reads the
-rest back field by field, keeps links to http(s), and nothing is rendered as
-HTML.
+64 characters of a name and 16 of a ticker, and doesn't pass on a stored text
+over 4,096 characters; `metadata.ts` reads the rest back field by field, keeps
+links to http(s), and nothing is rendered as HTML. Its `chainText` (Portfolio
+uses it too) cleans text with `shared/lib/visible-text.ts`, which the worker
+copies: control, zero-width, direction, tag and other invisible characters
+are dropped, a name or ticker shows on one line, and it is cut without
+splitting a character. The description and the agent's brief keep their line
+breaks.
 
 **Buy and Sell.** The contract has no quote function, so `shared/tonk/curve.ts`
 mirrors its maths in integers (`buyQuote`, `sellQuote`, `minimumOut`) and the

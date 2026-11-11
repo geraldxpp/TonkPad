@@ -1,6 +1,60 @@
 import { describe, expect, it } from "vitest";
-import { decodeAgent, decodeMetadata, encodeAgent, encodeMetadata, normalizeTelegram, normalizeWebsite, normalizeX } from "@/shared/tonk/metadata";
+import { chainText, decodeAgent, decodeMetadata, encodeAgent, encodeMetadata, normalizeTelegram, normalizeWebsite, normalizeX } from "@/shared/tonk/metadata";
 import { parseTonkMode, TONK_TESTNET, tonkNetwork } from "@/shared/tonk/networks";
+
+/** 👻: one character, two UTF-16 units. */
+const GHOST = "\u{1F47B}";
+const NO_LINKS = { x: "", telegram: "", website: "" };
+
+describe("text read from the chain", () => {
+  it("drops zero-width, direction, tag and control characters from a name or ticker", () => {
+    // U+202E would draw "YTSOHG" right to left, as "GHOSTY".
+    expect(chainText("\u{202E}YTSOHG\u{200B}", 64)).toBe("YTSOHG");
+    expect(chainText("U\u{200B}SD\u{E0041}C\u{0}\u{9B}", 16)).toBe("USDC");
+    expect(chainText("\u{2066}Gho\u{AD}sty\u{2069}\u{FE0F}\u{3164}", 64)).toBe("Ghosty");
+  });
+
+  it("shows line breaks and spaces of any width as one plain space, on one line", () => {
+    expect(chainText(" Ghost\u{3000}\u{2028}\nCoin\t\u{A0}Two ", 64)).toBe("Ghost Coin Two");
+  });
+
+  it("counts characters, never cutting an emoji in half", () => {
+    expect(chainText(`${"x".repeat(15)}${GHOST}y`, 16)).toBe(`${"x".repeat(15)}${GHOST}`);
+    expect(chainText(GHOST.repeat(20), 16)).toBe(GHOST.repeat(16));
+  });
+
+  it("is bounded before it is walked, leaving no half character where the bound falls", () => {
+    // 8 × 16 units are read: here 127 zero-width spaces and half a ghost.
+    expect(chainText(`${"\u{200B}".repeat(127)}${GHOST}`, 16)).toBe("");
+    expect(chainText(`${"\u{200B}".repeat(126)}${GHOST}Z`, 16)).toBe(GHOST);
+  });
+
+  it("is empty when nothing shows, or when it isn't text", () => {
+    expect(chainText("\u{200B}\u{202E}\u{3164} \u{E0041}\u{0}", 64)).toBe("");
+    expect(chainText(42, 64)).toBe("");
+    expect(chainText(undefined, 64)).toBe("");
+  });
+
+  it("keeps a description's line breaks, and drops what doesn't show on each line", () => {
+    const stored = JSON.stringify({ v: 1, description: "Line\u{202E} one\u{200B}\r\n\u{3000}Line two\u{E0041}\n\nLast\u{2028}line\u{9B}" });
+    expect(decodeMetadata(stored).description).toBe("Line one\nLine two\n\nLast\nline");
+    expect(decodeMetadata(JSON.stringify({ v: 1, description: `${"d".repeat(279)}${GHOST}${GHOST}` })).description).toBe(`${"d".repeat(279)}${GHOST}`);
+  });
+
+  it("shows the agent's name and role on one line, and keeps its brief's line breaks", () => {
+    const stored = JSON.stringify({ v: 1, name: "Commander\nAstro\u{200B}", role: "\u{202E}Mission\tcommander", voice: "hype", brief: "Keep holders calm.\u{E0041}\r\nNever promise a price.\u{FEFF}" });
+    expect(decodeAgent(stored)).toEqual({ name: "Commander Astro", role: "Mission commander", voice: "hype", brief: "Keep holders calm.\nNever promise a price." });
+    // A name with nothing visible is no agent.
+    expect(decodeAgent(JSON.stringify({ v: 1, name: "\u{200B}\u{202E}", role: "Ghost" }))).toBeNull();
+  });
+
+  it("writes to the chain only what shows, line breaks kept", () => {
+    expect(encodeMetadata({ description: "A good\u{200B} boy.\u{202E}\r\nOn a mission.", ...NO_LINKS })).toBe('{"v":1,"description":"A good boy.\\nOn a mission."}');
+    expect(encodeMetadata({ description: "\u{200B}\u{2800}", ...NO_LINKS })).toBe("");
+    const agent = JSON.parse(encodeAgent({ name: "Astro\u{200B}", role: "Mission\u{2028}commander", voice: "meme", brief: "Calm.\u{FE0F}\nHonest." })) as unknown;
+    expect(agent).toEqual({ v: 1, name: "Astro", role: "Mission commander", voice: "meme", brief: "Calm.\nHonest." });
+  });
+});
 
 describe("links", () => {
   it("reads an X handle from a handle or a profile link", () => {

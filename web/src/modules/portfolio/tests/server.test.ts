@@ -47,6 +47,16 @@ describe("text and amounts from a chain", () => {
     expect(cleanSymbol(undefined, "0xabcdef0000000000000000000000000000000000")).toBe("ABCDE");
   });
 
+  it("shows a name and ticker as they really read: no direction, zero-width or tag characters, no half emoji", () => {
+    // U+202E would draw "YTSOHG" right to left, as "GHOSTY".
+    expect(cleanName("\u{202E}YTSOHG\u{200B}", BONK)).toBe("YTSOHG");
+    expect(cleanName("Ghost\u{3000}\u{2028}Coin\u{9B}", BONK)).toBe("Ghost Coin");
+    expect(cleanSymbol("U\u{200B}SD\u{E0041}C\u{FEFF}", BONK)).toBe("USDC");
+    expect(cleanSymbol(`${"Y".repeat(11)}\u{1F47B}Z`, BONK)).toBe(`${"Y".repeat(11)}\u{1F47B}`);
+    expect(cleanName("\u{200B}\u{2800}\u{202E}", BONK)).toBe("DezX…B263");
+    expect(parseTransfer({ hash: "0xabc", blockNum: "0x10", from: "0xAA", to: "0xBB", value: 1, asset: "\u{202E}US\u{200B}DG", metadata: { blockTimestamp: "2026-11-11T04:10:40.000Z" } })).toMatchObject({ symbol: "USDG" });
+  });
+
   it("turns base units into a number without losing small amounts", () => {
     expect(toAmount(BigInt("1500000000"), 9)).toBe(1.5);
     expect(toAmount(BigInt(5), 0)).toBe(5);

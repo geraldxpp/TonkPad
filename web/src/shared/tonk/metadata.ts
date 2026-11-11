@@ -1,3 +1,5 @@
+import { clip, visibleLines, visibleText } from "@/shared/lib/visible-text";
+
 /**
  * What a mission stores beside its fees and lock: the launchpad keeps two
  * text fields per token, `metadataUri` and `agentPrompt`. The app writes
@@ -72,15 +74,24 @@ export function normalizeWebsite(value: string): string | null {
   return url && HOSTNAME.test(url.hostname) ? url.href : null;
 }
 
-/** Printable characters plus tabs and line breaks; control characters are dropped. */
-const printable = (character: string) => {
-  const code = character.charCodeAt(0);
-  return code >= 32 ? code !== 127 : code === 9 || code === 10;
-};
-/** Text read from the chain, made safe to show: printable characters only, trimmed, at most `max` of them. */
+/**
+ * Bounded before it is walked, since the contract sets no maximum on what it
+ * stores, and without half a character left where it was cut.
+ */
+const bounded = (value: string, max: number) => value.slice(0, max * 8).replace(/[\uD800-\uDBFF]$/, "");
+
+/**
+ * Text read from the chain, made safe to show on one line, as a name or a
+ * ticker is: invisible characters dropped, line breaks and spaces of any width
+ * shown as one plain space, trimmed, at most `max` characters.
+ */
 export function chainText(value: unknown, max: number): string {
-  // Bounded before it is walked: the contract sets no maximum on what it stores.
-  return typeof value === "string" ? [...value.slice(0, max * 8)].filter(printable).join("").trim().slice(0, max) : "";
+  return typeof value === "string" ? clip(visibleText(bounded(value, max)), max) : "";
+}
+
+/** The same for text shown over several lines (the description, the agent's brief): its line breaks are kept. */
+function chainLines(value: unknown, max: number): string {
+  return typeof value === "string" ? clip(visibleLines(bounded(value, max)), max) : "";
 }
 const text = chainText;
 const record = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -98,7 +109,7 @@ function parse(json: string): Record<string, unknown> | null {
 /** The mission's `metadataUri`: compact JSON with the empty fields left out, or "" when there is nothing to store. */
 export function encodeMetadata(links: MissionLinks): string {
   const fields: Record<string, string> = {};
-  const description = text(links.description, LIMITS.description);
+  const description = chainLines(links.description, LIMITS.description);
   if (description) fields.description = description;
   const x = normalizeX(links.x);
   if (x) fields.x = x;
@@ -113,7 +124,7 @@ export function encodeMetadata(links: MissionLinks): string {
 export function decodeMetadata(metadataUri: string): MissionLinks {
   const fields = parse(metadataUri) ?? {};
   return {
-    description: text(fields.description, LIMITS.description),
+    description: chainLines(fields.description, LIMITS.description),
     x: normalizeX(text(fields.x, LIMITS.link)) ?? "",
     telegram: normalizeTelegram(text(fields.telegram, LIMITS.link)) ?? "",
     website: normalizeWebsite(text(fields.website, LIMITS.link)) ?? "",
@@ -125,7 +136,7 @@ const isVoice = (value: unknown): value is AgentVoice => AGENT_VOICES.includes(v
 /** The mission's `agentPrompt`: the agent's settings as JSON, or "" when the agent is off. */
 export function encodeAgent(agent: AgentSettings | null): string {
   if (!agent) return "";
-  return JSON.stringify({ v: 1, name: text(agent.name, LIMITS.agentName), role: text(agent.role, LIMITS.agentRole), voice: agent.voice, brief: text(agent.brief, LIMITS.agentBrief) });
+  return JSON.stringify({ v: 1, name: text(agent.name, LIMITS.agentName), role: text(agent.role, LIMITS.agentRole), voice: agent.voice, brief: chainLines(agent.brief, LIMITS.agentBrief) });
 }
 
 /** A mission's `agentPrompt` read back; null when it has no agent or the text isn't ours. */
@@ -133,5 +144,5 @@ export function decodeAgent(agentPrompt: string): AgentSettings | null {
   const fields = parse(agentPrompt);
   const name = fields ? text(fields.name, LIMITS.agentName) : "";
   if (!fields || !name) return null;
-  return { name, role: text(fields.role, LIMITS.agentRole), voice: isVoice(fields.voice) ? fields.voice : "tactical", brief: text(fields.brief, LIMITS.agentBrief) };
+  return { name, role: text(fields.role, LIMITS.agentRole), voice: isVoice(fields.voice) ? fields.voice : "tactical", brief: chainLines(fields.brief, LIMITS.agentBrief) };
 }
