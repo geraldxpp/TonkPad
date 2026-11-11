@@ -24,11 +24,15 @@ export function scaleCandle(candle: Candle, value: ChartValue, supply: number | 
   return { ...candle, open: open / supply, high: high / supply, low: low / supply, close: close / supply };
 }
 
-/** Readout and crosshair text: "$58.7K", or "$0.0000587" per token. */
+/**
+ * Readout and crosshair text: "$58.7K", or "$0.0000587" per token. The
+ * crosshair can sit in the volume bars' room under the zero line, which reads $0.
+ */
 export function formatChartValue(value: number, kind: ChartValue): string {
+  const shown = Math.max(0, value);
   // The testnet site counts in test ETH; the card's heading carries the unit, the chart's figures go bare.
-  if (MONEY_UNIT) return coinAmount(value);
-  return kind === "mcap" ? formatUsdCompact(value) : formatPrice(value);
+  if (MONEY_UNIT) return coinAmount(shown);
+  return kind === "mcap" ? formatUsdCompact(shown) : formatPrice(shown);
 }
 
 /** Price-axis labels drop trailing zeros: "$40K", "$0.00004". */
@@ -45,21 +49,26 @@ const UNITS = [
   [1e3, "K"],
 ] as const;
 
-/** A label with a set number of decimals: "$33.45K" (market cap) or "$0.00003342" (price). */
+/** A label with a set number of decimals: "$33.45K" (market cap) or "$0.00003342" (price). Never below zero. */
 function preciseLabel(value: number, kind: ChartValue, extra: number): string {
-  const abs = Math.abs(value);
-  const sign = value < 0 ? "−" : "";
   if (MONEY_UNIT) return coinAmount(value, Math.min(12, 4 + extra));
   if (kind === "mcap") {
-    const [size, suffix] = UNITS.find(([unit]) => abs >= unit) ?? [1, ""];
-    return `${sign}$${(abs / size).toFixed(extra)}${suffix}`;
+    const [size, suffix] = UNITS.find(([unit]) => value >= unit) ?? [1, ""];
+    return `$${(value / size).toFixed(extra)}${suffix}`;
   }
-  if (abs === 0) return "$0";
-  const decimals = abs >= 1 ? 2 + extra : Math.min(15, -Math.floor(Math.log10(abs)) + 2 + extra);
-  return `${sign}$${abs.toFixed(decimals)}`;
+  if (value === 0) return "$0";
+  const decimals = value >= 1 ? 2 + extra : Math.min(15, -Math.floor(Math.log10(value)) + 2 + extra);
+  return `$${value.toFixed(decimals)}`;
 }
 
-const distinct = (labels: readonly string[]) => new Set(labels).size === labels.length;
+/** One label per tick; a tick under zero gets a blank one. */
+const labelEach = (prices: readonly number[], label: (price: number) => string) => prices.map((price) => (price < 0 ? "" : label(price)));
+
+/** Whether no two shown labels repeat (blank ones don't count). */
+const distinct = (labels: readonly string[]) => {
+  const shown = labels.filter(Boolean);
+  return new Set(shown).size === shown.length;
+};
 
 /**
  * The price axis's labels, all at once. When a token barely moves, the usual
@@ -70,10 +79,12 @@ export function formatAxisTicks(ticks: readonly number[], kind: ChartValue): str
   // The axis's zero line can arrive as a float crumb (1e-13): it is zero next to the other ticks.
   const top = Math.max(0, ...ticks.map(Math.abs));
   const prices = ticks.map((tick) => (Math.abs(tick) < top * 1e-6 ? 0 : tick));
-  const labels = prices.map((price) => formatAxisValue(price, kind));
+  // Prices never go below zero, but the room kept under the candles for the
+  // volume bars can reach past the zero line; its ticks stay blank there.
+  const labels = labelEach(prices, (price) => formatAxisValue(price, kind));
   if (distinct(labels)) return labels;
   for (let extra = 1; extra <= 6; extra++) {
-    const precise = prices.map((price) => preciseLabel(price, kind, extra));
+    const precise = labelEach(prices, (price) => preciseLabel(price, kind, extra));
     if (distinct(precise)) return precise;
   }
   return labels;

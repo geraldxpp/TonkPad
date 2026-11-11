@@ -8,6 +8,24 @@ describe("price axis zero", () => {
   it("labels a zero line that arrives as a float crumb as $0", () => {
     expect(formatAxisTicks([0.00007, 0.000035, 1.2e-13], "price")).toEqual(["$0.00007", "$0.000035", "$0"]);
   });
+
+  it("leaves ticks under zero blank: the volume bars' room below the candles isn't a price", () => {
+    // Live, a chart running from a token's launch near $0 labelled that room "-$0.0005".
+    expect(formatAxisTicks([-0.0005, 0, 0.0005, 0.001], "price")).toEqual(["", "$0", "$0.0005", "$0.001"]);
+    expect(formatAxisTicks([-0.001, -0.0005, 0, 0.0005, 0.001], "price")).toEqual(["", "", "$0", "$0.0005", "$0.001"]);
+    expect(formatAxisTicks([-200_000, 200_000, 400_000], "mcap")).toEqual(["", "$200K", "$400K"]);
+  });
+
+  it("still adds decimals to repeated labels when blank ticks sit below them", () => {
+    expect(formatAxisTicks([-2e-8, -1e-8, 0.0000334, 0.00003342, 0.00003344], "price")).toEqual([
+      "", "", "$0.00003340", "$0.00003342", "$0.00003344",
+    ]);
+  });
+
+  it("reads $0 for a crosshair under the zero line", () => {
+    expect(formatChartValue(-0.0002, "price")).toBe(formatChartValue(0, "price"));
+    expect(formatChartValue(-50_000, "mcap")).toBe(formatChartValue(0, "mcap"));
+  });
 });
 
 describe("chart view state", () => {
