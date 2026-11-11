@@ -51,7 +51,7 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
     refreshAccount();
   }, [onRefresh, refreshAccount]);
   const { sent, send, dismiss } = useSentTrade(refreshAll);
-  const { state: action, start } = useAction(refreshAll);
+  const { state: action, start, reset: stopWatching } = useAction(refreshAll);
   const onAction = useCallback((request: ActionRequest) => void start(request), [start]);
   const isCreator = owner !== null && owner.toLowerCase() === mission.creator.toLowerCase();
   const later = t.launch.testnet.laterTitle;
@@ -64,8 +64,8 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_336px] xl:grid-cols-[minmax(0,1fr)_360px] max-lg:gap-5">
         <div className="flex min-w-0 flex-col gap-5 max-md:gap-4">
           <TokenHeader detail={detail} explorerUrl={explorerAddressUrl(network, mission.token)} tags={<MissionTags agent={detail.token.flags.agent} graduated={mission.graduated} />} />
-          {owner ? <UnpaidEth amount={BigInt(account?.unpaidEth ?? "0")} owner={owner} network={network} action={action} onAction={onAction} /> : null}
-          {isCreator && owner ? <CreatorPanel mission={mission} network={network} owner={owner} action={action} onAction={onAction} /> : null}
+          {owner ? <UnpaidEth amount={BigInt(account?.unpaidEth ?? "0")} owner={owner} network={network} action={action} onAction={onAction} onStop={stopWatching} /> : null}
+          {isCreator && owner ? <CreatorPanel mission={mission} network={network} owner={owner} action={action} onAction={onAction} onStop={stopWatching} /> : null}
           <MarketCard detail={detail} />
           <ActivityCard detail={detail} empty={{ trades: t.mission.noTrades, holders: later, traders: later }} />
           <MissionInsights mission={mission} score={detail.token.score} level={detail.token.level} network={network} />
@@ -73,7 +73,7 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
         <aside aria-label={t.token.aside} className="min-w-0 lg:sticky lg:top-6">
           <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-1", mission.crewBps === 0 && "md:grid-cols-1")}>
             <div className="max-md:hidden">{panel("buy")}</div>
-            {mission.crewBps > 0 ? <RewardsCard mission={mission} network={network} view={view} action={action} onAction={onAction} /> : null}
+            {mission.crewBps > 0 ? <RewardsCard mission={mission} network={network} view={view} action={action} onAction={onAction} onStop={stopWatching} /> : null}
           </div>
         </aside>
       </div>

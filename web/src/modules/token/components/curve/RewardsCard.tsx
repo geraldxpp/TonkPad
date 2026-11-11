@@ -17,6 +17,8 @@ interface RewardsCardProps {
   view: AccountView;
   action: ActionState;
   onAction: (request: ActionRequest) => void;
+  /** Stops watching an action that has been confirming for a long while. */
+  onStop?: () => void;
 }
 
 /**
@@ -24,7 +26,7 @@ interface RewardsCardProps {
  * connected wallet's unpaid part with Claim. Rewards are sent whenever a
  * holder's tokens move, so "unpaid" is only what is still waiting.
  */
-export function RewardsCard({ mission, network, view, action, onAction }: RewardsCardProps) {
+export function RewardsCard({ mission, network, view, action, onAction, onStop }: RewardsCardProps) {
   const { t } = useI18n();
   const r = t.mission.rewards;
   const unit = network.unit;
@@ -72,7 +74,7 @@ export function RewardsCard({ mission, network, view, action, onAction }: Reward
           {fmt(r.claim, { amount: formatEth(unpaid), unit })}
         </button>
       ) : null}
-      {mine ? <ActionNote state={action} network={network} done={fmt(r.done, { amount: formatEth(paid), unit })} /> : null}
+      {mine ? <ActionNote state={action} network={network} done={fmt(r.done, { amount: formatEth(paid), unit })} onStop={onStop} /> : null}
     </section>
   );
 }

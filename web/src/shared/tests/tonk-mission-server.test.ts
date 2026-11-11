@@ -3,6 +3,7 @@
 import { BaseError, ContractFunctionRevertedError, decodeFunctionData, encodeAbiParameters, encodeEventTopics, type Log, toEventSelector, toFunctionSelector } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearCache } from "@/shared/swap/server/cache";
+import { sellQuote } from "@/shared/tonk/curve";
 import { decodeAgent, decodeMetadata } from "@/shared/tonk/metadata";
 import type { ActionRequest, TradeRequest } from "@/shared/tonk/mission";
 import { TONK_TESTNET } from "@/shared/tonk/networks";
@@ -49,6 +50,8 @@ function chain() {
     eligibleSupply: big("124002358490566037735849057"),
     crewPaid: big(0),
     held: { [CREATOR.toLowerCase()]: big("24800471698113207547169812") } as Record<string, bigint>,
+    /** Wallets the token leaves out of the eligible supply. */
+    excluded: {} as Record<string, boolean>,
     allowance: big(0),
     unpaidRewards: big(0),
     unpaidEth: big(0),
@@ -79,6 +82,8 @@ function fakeClient(state: Chain) {
         return state.symbol;
       case "eligibleSupply":
         return state.eligibleSupply;
+      case "isExcludedFromCrew":
+        return state.excluded[String(args?.[0]).toLowerCase()] === true;
       case "totalCrewRewardsPaid":
         return state.crewPaid;
       case "balanceOf":
@@ -104,6 +109,9 @@ function fakeClient(state: Chain) {
     readContract,
     simulateContract,
     getBlockNumber: vi.fn(async () => state.block),
+    getTransactionReceipt: vi.fn(async (): Promise<unknown> => {
+      throw new Error("no receipt");
+    }),
     estimateContractGas: vi.fn(async () => big(271_000)),
     estimateGas: vi.fn(async () => big(129_000)),
     call: vi.fn(async () => {
@@ -273,12 +281,21 @@ const SELL: TradeRequest = { token: TOKEN, trader: CREATOR, side: "sell", amount
 /** What the deployed contract answered for each, simulated on 10 Nov 2026. */
 const BOUGHT = big("26119201142461485199930760");
 const SOLD_FOR = big("1713856886439");
+const APPROVAL = `0x${"a1".repeat(32)}`;
+
+/** The creator's confirmed approval of the launchpad, as its receipt shows it. */
+function approvalReceipt(blockNumber: bigint, value: bigint) {
+  const topics = encodeEventTopics({ abi: TOKEN_ABI, eventName: "Approval", args: { owner: CREATOR as `0x${string}`, spender: PAD } });
+  const log = { address: TOKEN, topics, data: encodeAbiParameters([{ type: "uint256" }], [value]), blockNumber, transactionHash: APPROVAL, logIndex: 0, blockHash: `0x${"b".repeat(64)}`, transactionIndex: 0, removed: false };
+  return { status: "success", from: CREATOR, to: TOKEN, blockNumber, logs: [log] };
+}
 
 describe("a trade request", () => {
   it("passes what the page sends, and refuses anything else", () => {
-    expect(parseTradeRequest(BUY)).toEqual(BUY);
-    expect(parseTradeRequest({ ...SELL, referrer: REFERRER })).toEqual({ ...SELL, referrer: REFERRER });
-    for (const patch of [{ token: "0x12" }, { trader: "me" }, { side: "swap" }, { amount: "0" }, { amount: "1.5" }, { amount: "-1" }, { minOut: "0" }, { minOut: 5 }, { referrer: "0xnope" }]) {
+    expect(parseTradeRequest(BUY)).toEqual({ ...BUY, approval: null });
+    expect(parseTradeRequest({ ...SELL, referrer: REFERRER })).toEqual({ ...SELL, referrer: REFERRER, approval: null });
+    expect(parseTradeRequest({ ...SELL, approval: APPROVAL })).toEqual({ ...SELL, approval: APPROVAL });
+    for (const patch of [{ token: "0x12" }, { trader: "me" }, { side: "swap" }, { amount: "0" }, { amount: "1.5" }, { amount: "-1" }, { minOut: "0" }, { minOut: 5 }, { referrer: "0xnope" }, { approval: "0x12" }, { approval: 7 }]) {
       expect(() => parseTradeRequest({ ...BUY, ...patch })).toThrow(TonkError);
     }
     expect(() => parseTradeRequest(null)).toThrow(TonkError);
@@ -369,6 +386,60 @@ describe("building a sell", () => {
     expect(build.tx).toMatchObject({ to: PAD, value: "0" });
     expect(decodeFunctionData({ abi: LAUNCHPAD_ABI, data: build.tx.data as `0x${string}` })).toMatchObject({ functionName: "sell", args: [TOKEN, big(SELL.amount), big(1), ZERO] });
     expect(client.simulateContract).toHaveBeenCalledWith(expect.objectContaining({ account: CREATOR, functionName: "sell", blockNumber: state.block }));
+  });
+
+  it("lets the last eligible holder sell out at the contract's own figure: no Crew fee once nobody eligible is left", async () => {
+    // The contract moves the tokens to the (excluded) launchpad first, then checks the eligible supply.
+    const state = chain();
+    const all = state.held[CREATOR.toLowerCase()];
+    state.eligibleSupply = all;
+    state.allowance = all;
+    const curve = { virtualEth: state.virtualEth, virtualTokens: state.virtualTokens, tokensLeft: state.tokensLeft, realEth: state.realEth };
+    state.simulated = sellQuote(curve, all, 0, 100).netEthOut;
+    const client = connect(state);
+    const build = await buildTrade(TONK_TESTNET, { ...SELL, amount: String(all) });
+    if (build.step !== "trade") throw new Error(`built ${build.step}`);
+    expect(build.quote).toMatchObject({ crewFee: "0", out: String(state.simulated) });
+    expect(client.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "isExcludedFromCrew", args: [CREATOR], blockNumber: state.block }));
+    // A seller the token leaves out was never in that supply: the holders still earn, and the contract charges it.
+    state.excluded[CREATOR.toLowerCase()] = true;
+    state.simulated = sellQuote(curve, all, 200, 100).netEthOut;
+    const excluded = await buildTrade(TONK_TESTNET, { ...SELL, amount: String(all) });
+    expect(excluded).toMatchObject({ step: "trade", quote: { crewFee: String(sellQuote(curve, all, 200, 100).crewFee) } });
+  });
+
+  it("after a confirmed approval, builds the sale no earlier than that approval's block, waiting out a lagging read", async () => {
+    const state = chain();
+    state.allowance = big(SELL.amount);
+    state.simulated = SOLD_FOR;
+    const client = connect(state);
+    const approvedAt = state.block + big(2);
+    client.getTransactionReceipt.mockResolvedValue(approvalReceipt(approvedAt, big(SELL.amount)));
+    // The RPC's head lags behind the receipt for a moment.
+    client.getBlockNumber.mockResolvedValueOnce(state.block).mockResolvedValueOnce(state.block + big(1)).mockResolvedValue(approvedAt);
+    const pending = buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL });
+    await vi.advanceTimersByTimeAsync(3_000);
+    const build = await pending;
+    expect(build.step).toBe("trade");
+    expect(client.getTransactionReceipt).toHaveBeenCalledWith({ hash: APPROVAL });
+    expect(client.getBlockNumber).toHaveBeenCalledWith({ cacheTime: 0 });
+    expect(client.simulateContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "sell", blockNumber: approvedAt }));
+    expect(client.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "allowance", blockNumber: approvedAt }));
+  });
+
+  it("refuses to lean on an approval that isn't this sale's, or a chain that never reaches it", async () => {
+    const state = chain();
+    const client = connect(state);
+    client.getTransactionReceipt.mockResolvedValue(approvalReceipt(state.block, big(SELL.amount) - big(1)));
+    await expect(buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL })).rejects.toMatchObject({ code: "unavailable" });
+    client.getTransactionReceipt.mockResolvedValue({ ...approvalReceipt(state.block, big(SELL.amount)), from: BUYER });
+    await expect(buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL })).rejects.toMatchObject({ code: "unavailable" });
+    client.getTransactionReceipt.mockResolvedValue(approvalReceipt(state.block + big(50), big(SELL.amount)));
+    const stuck = buildTrade(TONK_TESTNET, { ...SELL, approval: APPROVAL });
+    const settled = expect(stuck).rejects.toMatchObject({ code: "unavailable" });
+    await vi.advanceTimersByTimeAsync(10_000);
+    await settled;
+    expect(client.simulateContract).not.toHaveBeenCalled();
   });
 
   it("sells inside the launch-block shield (it only taxes buys), and refuses what the wallet doesn't hold", async () => {

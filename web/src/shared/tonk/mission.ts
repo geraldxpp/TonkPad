@@ -86,6 +86,8 @@ export interface MissionAccountJson {
   unpaidRewards: string;
   /** ETH the launchpad holds for the wallet after a delivery failed. */
   unpaidEth: string;
+  /** The token leaves this wallet out of the eligible supply (the launchpad and a few system addresses); absent from older answers. */
+  crewExcluded?: boolean;
   isCreator: boolean;
   readAt: number;
 }
@@ -112,6 +114,8 @@ export interface TradeRequest {
   /** The least the trader accepts of what they receive, in wei. */
   minOut: string;
   referrer: string | null;
+  /** A sale's confirmed approval: the server builds the sale no earlier than its block. */
+  approval?: string | null;
 }
 
 /** A trade worked out from a mission's state, with the contract's own maths. */

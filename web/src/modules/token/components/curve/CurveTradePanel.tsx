@@ -81,7 +81,10 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
   const { state: run, start, reset } = useCurveRun({ onMission, onSent: sentNow });
 
   const amount = parseEthInput(text);
-  const quote = amount !== null && amount > ZERO ? quoteTrade(mission, side, amount, slippageBps) : null;
+  // Most wallets count toward the eligible supply; the account read says when this one doesn't.
+  const sellerEligible = account?.crewExcluded !== true;
+  const trade = amount !== null && amount > ZERO ? { side, amount, sellerEligible } : undefined;
+  const quote = trade ? quoteTrade(mission, side, trade.amount, slippageBps, { sellerEligible }) : null;
   const { presets, balance, short, cta } = tradeForm({ t, mission, side, unit, owner, account, failed: view.failed, amount, quoted: quote !== null, waiting: sent?.waiting === true, settings });
   const onCta = async () => {
     if (owner) return setReviewing(true);
@@ -93,7 +96,7 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
     if (!owner || !quote) return;
     void start({ token: mission.token, trader: owner, side, amount: quote.amountIn, minOut: quote.minOut, referrer: storedReferrer(window.localStorage, network.chainId, owner) });
   };
-  const crew = chargedCrewBps(mission);
+  const crew = chargedCrewBps(mission, trade);
   const fees = { protocol: bpsPct(100), crew: bpsPct(crew), creator: bpsPct(mission.creatorBps) };
   const pick = (next: TradeSide) => {
     setSide(next);
@@ -176,6 +179,7 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
         mission={mission}
         network={network}
         quote={quote}
+        crewBps={crew}
         needsApproval={!buy && account !== null && quote !== null && BigInt(account.allowance) < BigInt(quote.amountIn)}
         referrer={owner ? storedReferrer(typeof window === "undefined" ? { getItem: () => null } : window.localStorage, network.chainId, owner) : null}
         run={run}

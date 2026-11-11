@@ -27,6 +27,8 @@ export function runError(t: Dictionary, code: string | null, unit: string): stri
       return e.reverted;
     case "replaced":
       return e.replaced;
+    case "approvedNotSent":
+      return e.approvedNotSent;
     case "forbidden":
       return t.mission.action.forbidden;
     case "nothing":

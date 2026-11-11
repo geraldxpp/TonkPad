@@ -15,6 +15,8 @@ interface UnpaidEthProps {
   network: TonkNetwork;
   action: ActionState;
   onAction: (request: ActionRequest) => void;
+  /** Stops watching an action that has been confirming for a long while. */
+  onStop?: () => void;
 }
 
 /**
@@ -22,7 +24,7 @@ interface UnpaidEthProps {
  * refund whose transfer failed), with Withdraw. Rare, so it only shows when
  * there is some, or while a withdrawal is being reported.
  */
-export function UnpaidEth({ amount, owner, network, action, onAction }: UnpaidEthProps) {
+export function UnpaidEth({ amount, owner, network, action, onAction, onStop }: UnpaidEthProps) {
   const { t } = useI18n();
   const u = t.mission.unpaid;
   const unit = network.unit;
@@ -49,7 +51,7 @@ export function UnpaidEth({ amount, owner, network, action, onAction }: UnpaidEt
           </button>
         ) : null}
       </div>
-      {mine ? <ActionNote state={action} network={network} done={withdrawn?.kind === "withdrawn" ? fmt(u.done, { amount: formatEth(BigInt(withdrawn.amount)), unit }) : t.mission.trade.errors.other} /> : null}
+      {mine ? <ActionNote state={action} network={network} done={withdrawn?.kind === "withdrawn" ? fmt(u.done, { amount: formatEth(BigInt(withdrawn.amount)), unit }) : t.mission.trade.errors.other} onStop={onStop} /> : null}
     </section>
   );
 }

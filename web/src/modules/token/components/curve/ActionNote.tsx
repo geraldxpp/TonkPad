@@ -11,19 +11,34 @@ interface ActionNoteProps {
   network: TonkNetwork;
   /** What to say once the receipt confirms it, from its own events. */
   done: string;
+  /** Stops watching a transaction that has been confirming for a long while; it never calls it failed. */
+  onStop?: () => void;
 }
 
 /**
  * Where a claim, an extension, an edit or a withdrawal stands: checking,
  * waiting on the wallet, confirming, then done or why not. Nothing is called
- * done before its receipt.
+ * done before its receipt, and nothing failed without one: a long wait only
+ * says so, with the choice to stop watching.
  */
-export function ActionNote({ state, network, done }: ActionNoteProps) {
+export function ActionNote({ state, network, done, onStop }: ActionNoteProps) {
   const { t } = useI18n();
   const m = t.mission;
   if (state.step === "idle") return null;
   const working = isWorking(state);
-  const text = state.step === "preparing" ? m.trade.preparing : state.step === "sign" ? m.trade.sign : state.step === "confirming" ? m.action.confirming : state.step === "done" ? done : runError(t, state.error, network.unit);
+  const stalled = state.step === "confirming" && state.stalled;
+  const text =
+    state.step === "preparing"
+      ? m.trade.preparing
+      : state.step === "sign"
+        ? m.trade.sign
+        : state.step === "confirming"
+          ? stalled
+            ? m.trade.stalled
+            : m.action.confirming
+          : state.step === "done"
+            ? done
+            : runError(t, state.error, network.unit);
   return (
     <div role={state.step === "failed" ? "alert" : "status"} aria-live="polite" className="flex flex-col gap-1.5 rounded-lg border border-line bg-raised px-3 py-2.5">
       <p className={`m-0 flex items-start gap-2 text-[12px] leading-[1.6] ${state.step === "failed" ? "text-neg" : "text-text-2"}`}>
@@ -31,15 +46,23 @@ export function ActionNote({ state, network, done }: ActionNoteProps) {
         {state.step === "done" ? <Check size={14} strokeWidth={2.6} className="mt-0.5 flex-none text-pos" aria-hidden="true" /> : null}
         <span className="[overflow-wrap:anywhere]">
           {state.step === "failed" ? <strong className="block font-semibold">{m.trade.failedTitle}</strong> : null}
+          {stalled ? <strong className="block font-semibold">{m.trade.stalledTitle}</strong> : null}
           {text}
         </span>
       </p>
-      {state.hash ? (
-        <a href={explorerTxUrl(network, state.hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 self-start rounded text-[12px] font-semibold text-accent-text">
-          {t.swap.viewTx}
-          <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
-        </a>
-      ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-2 empty:hidden">
+        {state.hash ? (
+          <a href={explorerTxUrl(network, state.hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
+            {t.swap.viewTx}
+            <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
+          </a>
+        ) : null}
+        {stalled && onStop ? (
+          <button type="button" onClick={onStop} className="min-h-8 rounded-lg border border-line-strong bg-surface px-3 text-[12px] font-semibold hover:bg-input">
+            {m.trade.stopWatching}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

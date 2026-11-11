@@ -15,12 +15,13 @@ export async function readAccount(network: TonkNetwork, token: string, owner: st
   const account = owner as `0x${string}`;
   const coin = { address: mission.token as `0x${string}`, abi: TOKEN_ABI } as const;
   try {
-    const [eth, tokens, allowance, unpaidRewards, unpaidEth] = await Promise.all([
+    const [eth, tokens, allowance, unpaidRewards, unpaidEth, crewExcluded] = await Promise.all([
       client.getBalance({ address: account }),
       client.readContract({ ...coin, functionName: "balanceOf", args: [account] }),
       client.readContract({ ...coin, functionName: "allowance", args: [account, network.launchpad] }),
       client.readContract({ ...coin, functionName: "viewUnpaidRewards", args: [account] }),
       client.readContract({ address: network.launchpad, abi: LAUNCHPAD_ABI, functionName: "claimableEth", args: [account] }),
+      client.readContract({ ...coin, functionName: "isExcludedFromCrew", args: [account] }),
     ]);
     return {
       owner,
@@ -29,6 +30,7 @@ export async function readAccount(network: TonkNetwork, token: string, owner: st
       allowance: String(allowance),
       unpaidRewards: String(unpaidRewards),
       unpaidEth: String(unpaidEth),
+      crewExcluded,
       isCreator: mission.creator.toLowerCase() === owner.toLowerCase(),
       readAt: Date.now(),
     };

@@ -166,7 +166,9 @@ test("a sell asks for an approval of exactly the amount first, then sells", asyn
   const asked = { token: TTONE.token, trader: STUB_WALLET, side: "sell", amount: "15000000000000000000000000", referrer: null };
   expect(builds).toHaveLength(2);
   expect(builds[0]).toMatchObject(asked);
-  expect(builds[1]).toEqual(builds[0]);
+  expect(builds[0]).not.toHaveProperty("approval");
+  // The same sale, built no earlier than the confirmed approval: the server is told which one it was.
+  expect(builds[1]).toEqual({ ...(builds[0] as Record<string, unknown>), approval: STUB_EVM_HASH });
 });
 
 test("a holder claims unpaid Crew Rewards, and withdraws ETH the launchpad couldn't deliver", async ({ page, request }) => {

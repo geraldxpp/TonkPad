@@ -38,12 +38,14 @@ let current: { url: string; client: PublicClient; verified: Promise<void> | null
 /**
  * A viem client for the network, checked once to really be on its chain: an
  * RPC for another chain with these addresses would read (and build) nonsense,
- * so every Tonk route is "unavailable" until the two agree.
+ * so every Tonk route is "unavailable" until the two agree. Nothing is cached
+ * (viem otherwise keeps the block number for 4 s): a sale built just after
+ * its approval must not read the chain as it was before it.
  */
 export async function tonkClient(network: TonkNetwork): Promise<PublicClient> {
   const url = tonkRpcUrl(network);
   if (!current || current.url !== url) {
-    current = { url, client: createPublicClient({ transport: http(url, { timeout: RPC_TIMEOUT_MS, retryCount: 1, batch: { batchSize: 100 } }) }), verified: null };
+    current = { url, client: createPublicClient({ cacheTime: 0, transport: http(url, { timeout: RPC_TIMEOUT_MS, retryCount: 1, batch: { batchSize: 100 } }) }), verified: null };
   }
   const entry = current;
   entry.verified ??= entry.client.getChainId().then((chainId) => {

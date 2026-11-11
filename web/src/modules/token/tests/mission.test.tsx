@@ -1,11 +1,14 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/shared/i18n/dictionaries/en";
+import { TonkApiError } from "@/shared/tonk/api";
 import type { MissionJson, TradeBuild, TxEventJson } from "@/shared/tonk/mission";
 import { TONK_TESTNET } from "@/shared/tonk/networks";
 import type { TonkSettingsJson, UnsignedTx } from "@/shared/tonk/types";
 import { WalletActionError } from "@/shared/wallet/types";
+import { ActionNote } from "../components/curve/ActionNote";
 import { CreatorPanel } from "../components/curve/CreatorPanel";
+import { CurveStatus } from "../components/curve/CurveStatus";
 import { CurveTradePanel, type CurveTradePanelProps } from "../components/curve/CurveTradePanel";
 import { RewardsCard } from "../components/curve/RewardsCard";
 import { UnpaidEth } from "../components/curve/UnpaidEth";
@@ -31,7 +34,7 @@ vi.mock("@/shared/tonk/api", async (actual) => ({
 const SETTINGS: TonkSettingsJson = { chainId: 46630, launchFee: "100000000000000", virtualEth: "1500000000000000", virtualTokens: "1073000000000000000000000000", paused: false, gasPrice: "10000000", readAt: 1 };
 const HASH = `0x${"ab".repeat(32)}`;
 const tx = (to: string): UnsignedTx => ({ to, data: "0x", value: "0", gas: "100000" });
-const IDLE: ActionState = { step: "idle", kind: null, error: null, hash: null, events: [] };
+const IDLE: ActionState = { step: "idle", kind: null, error: null, hash: null, events: [], stalled: false };
 const tr = en.token.trade;
 const m = en.mission;
 
@@ -174,8 +177,41 @@ describe("the curve trade panel", () => {
     await waitFor(() => expect(handlers.onSent).toHaveBeenCalledWith(HASH));
     expect(mocks.wallet.sendEvmTransaction.mock.calls.map(([sent]) => sent.to)).toEqual([TOKEN, TONK_TESTNET.launchpad]);
     // The approval is watched to its receipt before the sale is built again.
-    expect(mocks.fetchLaunchStatus).toHaveBeenCalledWith(`0x${"a1".repeat(32)}`);
+    expect(mocks.fetchLaunchStatus).toHaveBeenCalledWith(`0x${"a1".repeat(32)}`, null);
     expect(mocks.buildTrade).toHaveBeenCalledTimes(2);
+    // The sale is built no earlier than the confirmed approval: the server is told which one it was.
+    expect(mocks.buildTrade.mock.calls[0][0]).not.toHaveProperty("approval");
+    expect(mocks.buildTrade.mock.calls[1][0]).toMatchObject({ side: "sell", approval: `0x${"a1".repeat(32)}` });
+  });
+
+  it("says the approval went through when the sale isn't sent after it, and keeps the approval's link", async () => {
+    const approval = `0x${"a1".repeat(32)}`;
+    mocks.buildTrade.mockResolvedValueOnce({ step: "approve", tx: tx(TOKEN), mission: mission() } satisfies TradeBuild).mockRejectedValueOnce(new TonkApiError("unavailable"));
+    mocks.wallet.sendEvmTransaction.mockResolvedValueOnce(approval);
+    panel({ view: view({ owner: CREATOR, tokens: "24800471698113207547169812" }) });
+    fireEvent.click(cta(tr.sell));
+    type(tr.sellAmount, "1000000");
+    fireEvent.click(cta(m.trade.reviewSell));
+    fireEvent.click(screen.getByRole("button", { name: "Sell $TTONE" }));
+    const alert = await screen.findByText(m.trade.errors.approvedNotSent);
+    expect(alert.closest("[role=alert]")).toHaveTextContent(m.trade.failedTitle);
+    expect(mocks.wallet.sendEvmTransaction).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole("link", { name: en.swap.viewTx }).map((link) => link.getAttribute("href"))).toContain(`${TONK_TESTNET.explorerUrl}/tx/${approval}`);
+    expect(handlers.onSent).not.toHaveBeenCalled();
+  });
+
+  it("quotes the last eligible holder's full sale without the Crew fee, as the contract charges it", () => {
+    const held = "24800471698113207547169812";
+    panel({ mission: mission({ eligibleSupply: held }), view: view({ owner: CREATOR, tokens: held }) });
+    fireEvent.click(cta(tr.sell));
+    type(tr.sellAmount, "24800471.698113207547169812");
+    fireEvent.click(cta(m.trade.reviewSell));
+    expect(screen.getByText(`${en.launch.economics.crewTitle} · 0%`)).toBeVisible();
+    // Half of it leaves an eligible holder: the Crew fee stays.
+    fireEvent.click(screen.getAllByRole("button", { name: en.prefs.close })[0]);
+    type(tr.sellAmount, "12400235");
+    fireEvent.click(cta(m.trade.reviewSell));
+    expect(screen.getByText(`${en.launch.economics.crewTitle} · 2%`)).toBeVisible();
   });
 
   it("keeps the review open with the new figures when the price moved, and sends nothing", async () => {
@@ -206,7 +242,7 @@ describe("the curve trade panel", () => {
 
   it("shows a sent trade confirming, then what the chain recorded, and holds the next trade until it settles", () => {
     const bought: TxEventJson = { kind: "trade", token: TOKEN, trader: BUYER, side: "buy", eth: "50000000000000", tokens: "26119201142461485199930760", protocolFee: "500000000000", crewFee: "1000000000000", creatorFee: "500000000000" };
-    const sent = (state: SentTrade["tx"]["state"], events: TxEventJson[] = []): SentTrade => ({ hash: HASH, tx: { state, mission: null, events, unreachable: false }, waiting: state === "pending" });
+    const sent = (state: SentTrade["tx"]["state"], events: TxEventJson[] = []): SentTrade => ({ hash: HASH, tx: { state, mission: null, events, unreachable: false, stalled: false, replacedBy: null }, waiting: state === "pending" });
     const { rerender } = render(<CurveTradePanel mission={mission()} network={TONK_TESTNET} view={view()} sent={sent("pending")} {...handlers} />);
     expect(screen.getByText("Confirming on Robinhood Chain Testnet…")).toBeVisible();
     type(tr.pay, "0.00005");
@@ -295,16 +331,56 @@ describe("the creator's tools", () => {
   });
 
   it("reports each action from its confirmed receipt, and holds the buttons while one is in flight", () => {
-    const { rerender } = tools({}, { step: "confirming", kind: "claim", error: null, hash: `0x${"cd".repeat(32)}`, events: [] });
+    const { rerender } = tools({}, { step: "confirming", kind: "claim", error: null, hash: `0x${"cd".repeat(32)}`, events: [], stalled: false });
     expect(screen.getByText(m.action.confirming)).toBeVisible();
     expect([m.creator.extend, m.creator.edit].map((name) => screen.getByRole("button", { name }).hasAttribute("disabled"))).toEqual([true, true]);
     const show = (action: ActionState) => rerender(<CreatorPanel mission={mission()} network={TONK_TESTNET} owner={CREATOR} action={action} onAction={onAction} />);
-    show({ step: "done", kind: "claim", error: null, hash: HASH, events: [{ kind: "claimed", token: TOKEN, amount: "551121593291404612159329" }] });
+    show({ step: "done", kind: "claim", error: null, hash: HASH, stalled: false, events: [{ kind: "claimed", token: TOKEN, amount: "551121593291404612159329" }] });
     expect(screen.getByText("Claimed 551.12K $TTONE")).toBeVisible();
-    show({ step: "done", kind: "extend", error: null, hash: HASH, events: [{ kind: "extended", token: TOKEN, lockEnd: LAUNCHED + 187 * DAY }] });
+    show({ step: "done", kind: "extend", error: null, hash: HASH, stalled: false, events: [{ kind: "extended", token: TOKEN, lockEnd: LAUNCHED + 187 * DAY }] });
     expect(screen.getByText("Lock extended to May 16, 2027")).toBeVisible();
-    show({ step: "failed", kind: "claim", error: "rejected", hash: null, events: [] });
+    show({ step: "failed", kind: "claim", error: "rejected", hash: null, events: [], stalled: false });
     expect(screen.getByRole("alert")).toHaveTextContent(`${m.trade.failedTitle}${en.swap.errors.rejected}`);
+  });
+});
+
+describe("a transaction that takes long, or that the wallet replaced", () => {
+  const OTHER = `0x${"99".repeat(32)}`;
+  const card = (tx: Partial<SentTrade["tx"]>, onDismiss = vi.fn()) => {
+    const full: SentTrade["tx"] = { state: "unknown", mission: null, events: [], unreachable: false, stalled: false, replacedBy: null, ...tx };
+    const waiting = full.state !== "confirmed" && full.state !== "failed" && full.state !== "replaced";
+    return render(<CurveStatus sent={{ hash: HASH, tx: full, waiting }} token={TOKEN} ticker="TTONE" network={TONK_TESTNET} onDismiss={onDismiss} />);
+  };
+
+  it("says a slow trade is still confirming, never that it failed, and lets you stop watching", () => {
+    const onDismiss = vi.fn();
+    card({ state: "unknown", stalled: true }, onDismiss);
+    expect(screen.getByText(m.trade.stalledTitle)).toBeVisible();
+    expect(screen.getByText(m.trade.stalled)).toBeVisible();
+    expect(screen.queryByText(m.trade.failedTitle)).not.toBeInTheDocument();
+    expect(screen.queryByText(m.trade.errors.replaced)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: m.trade.stopWatching }));
+    expect(onDismiss).toHaveBeenCalled();
+  });
+
+  it("shows what the wallet sent in a trade's place, with its own link: a speed-up as the trade, a cancellation as replaced", () => {
+    const bought: TxEventJson = { kind: "trade", token: TOKEN, trader: BUYER, side: "buy", eth: "50000000000000", tokens: "26119201142461485199930760", protocolFee: "500000000000", crewFee: "1000000000000", creatorFee: "500000000000" };
+    const { unmount } = card({ state: "confirmed", events: [bought], replacedBy: OTHER });
+    expect(screen.getByText("Bought 26.12M $TTONE")).toBeVisible();
+    expect(screen.getByRole("link", { name: en.swap.viewTx })).toHaveAttribute("href", `${TONK_TESTNET.explorerUrl}/tx/${OTHER}`);
+    unmount();
+    card({ state: "confirmed", events: [], replacedBy: OTHER });
+    expect(screen.getByText(m.trade.failedTitle)).toBeVisible();
+    expect(screen.getByText(m.trade.errors.replaced)).toBeVisible();
+  });
+
+  it("says a slow action is still confirming and offers to stop watching, without calling it failed", () => {
+    const onStop = vi.fn();
+    render(<ActionNote state={{ step: "confirming", kind: "extend", error: null, hash: HASH, events: [], stalled: true }} network={TONK_TESTNET} done="" onStop={onStop} />);
+    expect(screen.getByRole("status")).toHaveTextContent(`${m.trade.stalledTitle}${m.trade.stalled}`);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: m.trade.stopWatching }));
+    expect(onStop).toHaveBeenCalled();
   });
 });
 
@@ -326,7 +402,7 @@ describe("Crew Rewards and unpaid ETH", () => {
     rerender(<RewardsCard mission={mission()} network={TONK_TESTNET} view={view()} action={IDLE} onAction={onAction} />);
     expect(screen.getByText(m.rewards.none)).toBeVisible();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    rerender(<RewardsCard mission={mission()} network={TONK_TESTNET} view={view()} action={{ step: "done", kind: "rewards", error: null, hash: HASH, events: [{ kind: "rewards", token: TOKEN, holder: BUYER, amount: "1000000000000" }] }} onAction={onAction} />);
+    rerender(<RewardsCard mission={mission()} network={TONK_TESTNET} view={view()} action={{ step: "done", kind: "rewards", error: null, hash: HASH, stalled: false, events: [{ kind: "rewards", token: TOKEN, holder: BUYER, amount: "1000000000000" }] }} onAction={onAction} />);
     expect(screen.getByText("Claimed 0.000001 test ETH")).toBeVisible();
   });
 
@@ -337,7 +413,7 @@ describe("Crew Rewards and unpaid ETH", () => {
     expect(screen.getByText("The launchpad couldn't deliver 0.000005 test ETH to this wallet.")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: m.unpaid.withdraw }));
     expect(onAction).toHaveBeenCalledWith({ kind: "withdraw", owner: BUYER });
-    rerender(<UnpaidEth amount={BigInt(0)} owner={BUYER} network={TONK_TESTNET} action={{ step: "done", kind: "withdraw", error: null, hash: HASH, events: [{ kind: "withdrawn", recipient: BUYER, amount: "5000000000000" }] }} onAction={onAction} />);
+    rerender(<UnpaidEth amount={BigInt(0)} owner={BUYER} network={TONK_TESTNET} action={{ step: "done", kind: "withdraw", error: null, hash: HASH, stalled: false, events: [{ kind: "withdrawn", recipient: BUYER, amount: "5000000000000" }] }} onAction={onAction} />);
     expect(screen.getByText("Withdrew 0.000005 test ETH")).toBeVisible();
   });
 });

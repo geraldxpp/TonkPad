@@ -23,6 +23,8 @@ interface CreatorPanelProps {
   owner: string;
   action: ActionState;
   onAction: (request: ActionRequest) => void;
+  /** Stops watching an action that has been confirming for a long while. */
+  onStop?: () => void;
 }
 
 /**
@@ -31,7 +33,7 @@ interface CreatorPanelProps {
  * end; then Claim, Extend lock and Edit details. Each runs through the
  * wallet and counts only from its confirmed receipt.
  */
-export function CreatorPanel({ mission, network, owner, action, onAction }: CreatorPanelProps) {
+export function CreatorPanel({ mission, network, owner, action, onAction, onStop }: CreatorPanelProps) {
   const { t, lang } = useI18n();
   const c = t.mission.creator;
   const f = t.mission.facts;
@@ -56,7 +58,7 @@ export function CreatorPanel({ mission, network, owner, action, onAction }: Crea
         : action.kind === "edit" && action.events.some((event) => event.kind === "edited")
           ? c.doneEdit
           : t.mission.trade.errors.other;
-  const note = mine ? <ActionNote state={action} network={network} done={done} /> : null;
+  const note = mine ? <ActionNote state={action} network={network} done={done} onStop={onStop} /> : null;
   const figures: [string, string, string][] = lock
     ? [
         [f.locked, amount(lockedAt(lock, now)), formatTokensFull(lockedAt(lock, now))],

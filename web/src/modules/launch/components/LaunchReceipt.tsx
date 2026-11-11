@@ -50,7 +50,7 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
   const tokens = (wei: string) => formatTokens(BigInt(wei));
   let icon: ReactNode = <LoaderCircle size={22} strokeWidth={2} className="tk-spin text-accent-text" aria-hidden="true" />;
   let title = c.pendingTitle;
-  let body: string = c.pendingBody;
+  let body: string = tx.stalled ? l.run.stalled : c.pendingBody;
   if (mission) {
     icon = <Check size={22} strokeWidth={2.6} className="text-pos" aria-hidden="true" />;
     title = c.title;
@@ -58,7 +58,7 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
   } else if (!waiting) {
     icon = <TriangleAlert size={22} strokeWidth={2.2} className="text-neg" aria-hidden="true" />;
     title = l.run.failed;
-    body = tx.state === "failed" ? l.run.reverted : tx.state === "replaced" ? l.run.replaced : c.notLaunch;
+    body = tx.state === "failed" ? l.run.reverted : tx.state === "replaced" || tx.replacedBy ? l.run.replaced : c.notLaunch;
   }
   return (
     <section aria-labelledby="launch-receipt-title" className="mx-auto flex w-full max-w-[560px] flex-col gap-5 rounded-2xl border border-line bg-surface p-6 max-md:p-4">
@@ -106,7 +106,7 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
         </>
       ) : null}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-4">
-        {link(`/tx/${hash}`, t.swap.viewTx)}
+        {link(`/tx/${tx.replacedBy ?? hash}`, t.swap.viewTx)}
         {mission ? link(`/address/${mission.token}`, c.viewToken) : null}
         <span className="flex-auto" />
         {mission && tokenHref ? (

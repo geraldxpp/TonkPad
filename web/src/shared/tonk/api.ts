@@ -1,5 +1,5 @@
 import type { ActionBuild, ActionRequest, MissionAccountJson, MissionJson, MissionPageJson, MissionSummaryJson, TradeBuild, TradeRequest } from "./mission";
-import type { LaunchBuild, LaunchRequest, LaunchStatus, TonkSettingsJson } from "./types";
+import { isTxHash, type LaunchBuild, type LaunchRequest, type LaunchStatus, type TonkSettingsJson, type TxSender } from "./types";
 
 /** The server's reason, as a code the screen turns into words: "paused", "funds", "refused", "busy", "unavailable"… */
 export class TonkApiError extends Error {
@@ -45,10 +45,23 @@ export function buildLaunch(request: LaunchRequest): Promise<LaunchBuild> {
   return call("/api/tonk/launch", isBuild, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) });
 }
 
-/** Where a transaction stands and, once confirmed, what it did. */
-export async function fetchLaunchStatus(hash: string): Promise<LaunchStatus> {
-  const status = await call(`/api/tonk/tx?${new URLSearchParams({ hash })}`, isStatus);
-  return { ...status, events: Array.isArray(status.events) ? status.events : [] };
+const isSender = (value: unknown): value is TxSender => record(value) && typeof value.from === "string" && /^0x[0-9a-fA-F]{40}$/.test(value.from) && typeof value.nonce === "number" && Number.isSafeInteger(value.nonce) && value.nonce >= 0;
+
+/**
+ * Where a transaction stands and, once confirmed, what it did. `sender` is
+ * what an earlier answer said about it, so a transaction the node has since
+ * dropped can still be traced to whatever replaced it.
+ */
+export async function fetchLaunchStatus(hash: string, sender: TxSender | null = null): Promise<LaunchStatus> {
+  const query = new URLSearchParams({ hash, ...(sender ? { from: sender.from, nonce: String(sender.nonce) } : {}) });
+  const status = await call(`/api/tonk/tx?${query}`, isStatus);
+  return {
+    ...status,
+    events: Array.isArray(status.events) ? status.events : [],
+    block: typeof status.block === "number" ? status.block : null,
+    sender: isSender(status.sender) ? status.sender : null,
+    replacedBy: typeof status.replacedBy === "string" && isTxHash(status.replacedBy) ? status.replacedBy : null,
+  };
 }
 
 const post = (body: unknown): RequestInit => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });

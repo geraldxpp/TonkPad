@@ -64,6 +64,8 @@ function tokenCall(mission: FixtureMission, data: Hex): Hex {
       return result(mission.symbol);
     case "eligibleSupply":
       return result(big(mission.eligibleSupply));
+    case "isExcludedFromCrew":
+      return result(false);
     case "totalCrewRewardsPaid":
       return result(big(mission.crewPaid));
     case "balanceOf":

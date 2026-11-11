@@ -156,19 +156,20 @@ const bought = (address: string, isBuy = true) =>
   log(address, "CurveTrade", { token: TOKEN, trader: CREATOR }, [isBuy, BigInt(200_000_000_000_000), BigInt(124_002_358) * BigInt(10) ** BigInt(18), BigInt(2_000_000_000_000), BigInt(0), BigInt(2_000_000_000_000), BigInt(1), BigInt(1), BigInt(1)]);
 
 describe("a launch's receipt", () => {
-  it("gives the mission and the creator's buy, from the launchpad's own logs", () => {
-    const mission = missionFromLogs(TONK_TESTNET, [launched(TONK_TESTNET.launchpad), bought(TONK_TESTNET.launchpad)], 151_200_000, BigInt(99));
-    expect(mission).toMatchObject({ token: TOKEN, name: "Tonk Test One", symbol: "TTONE", crewBps: 200, creatorBps: 100, lockType: "linear", lockedBps: 8000, lockEnd: 1_800_000_000, devBuy: "200000000000000", bought: "124002358000000000000000000", locked: "99", protocolFee: "2000000000000", creatorFee: "2000000000000", block: 151_200_000 });
+  it("gives the mission, the creator's buy and what its lock holds, from the launchpad's own logs alone", () => {
+    // No extra read: the lock holds lockedBps of the creator's buy (80% of 124,002,358 tokens), as the contract works it out.
+    const mission = missionFromLogs(TONK_TESTNET, [launched(TONK_TESTNET.launchpad), bought(TONK_TESTNET.launchpad)], 151_200_000);
+    expect(mission).toMatchObject({ token: TOKEN, name: "Tonk Test One", symbol: "TTONE", crewBps: 200, creatorBps: 100, lockType: "linear", lockedBps: 8000, lockEnd: 1_800_000_000, devBuy: "200000000000000", bought: "124002358000000000000000000", locked: "99201886400000000000000000", protocolFee: "2000000000000", creatorFee: "2000000000000", block: 151_200_000 });
     expect(mission?.creator.toLowerCase()).toBe(CREATOR.toLowerCase());
   });
 
   it("ignores the same event from any other contract, and transactions that launched nothing", () => {
     const impostor = "0x2222222222222222222222222222222222222222";
-    expect(missionFromLogs(TONK_TESTNET, [launched(impostor), bought(impostor)], 1, BigInt(0))).toBeNull();
-    expect(missionFromLogs(TONK_TESTNET, [bought(TONK_TESTNET.launchpad)], 1, BigInt(0))).toBeNull();
-    expect(missionFromLogs(TONK_TESTNET, [], 1, BigInt(0))).toBeNull();
+    expect(missionFromLogs(TONK_TESTNET, [launched(impostor), bought(impostor)], 1)).toBeNull();
+    expect(missionFromLogs(TONK_TESTNET, [bought(TONK_TESTNET.launchpad)], 1)).toBeNull();
+    expect(missionFromLogs(TONK_TESTNET, [], 1)).toBeNull();
     // A launch with no dev buy has no trade: nothing bought.
-    expect(missionFromLogs(TONK_TESTNET, [launched(TONK_TESTNET.launchpad)], 1, BigInt(0))).toMatchObject({ bought: "0", protocolFee: "0" });
+    expect(missionFromLogs(TONK_TESTNET, [launched(TONK_TESTNET.launchpad)], 1)).toMatchObject({ bought: "0", locked: "0", protocolFee: "0" });
   });
 });
 

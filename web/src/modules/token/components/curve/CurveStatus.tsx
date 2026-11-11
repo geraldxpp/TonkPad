@@ -24,7 +24,10 @@ const netOf = (trade: Extract<TxEventJson, { kind: "trade" }>) => BigInt(trade.e
 /**
  * A sent trade, watched by its hash: confirming, then what the chain
  * recorded (the CurveTrade event's own amounts), or why it failed. A hash
- * alone is never success.
+ * alone is never success, and no slow or failed check is ever a failure:
+ * a long wait only says so. If the wallet sent another transaction in its
+ * place, that one's result and link are shown, and it counts only if it
+ * traded this token.
  */
 export function CurveStatus({ sent, token, ticker, network, onDismiss }: CurveStatusProps) {
   const { t } = useI18n();
@@ -33,10 +36,11 @@ export function CurveStatus({ sent, token, ticker, network, onDismiss }: CurveSt
   const trade = tx.events.find((event): event is Extract<TxEventJson, { kind: "trade" }> => event.kind === "trade" && event.token.toLowerCase() === token.toLowerCase());
   const graduated = tx.events.some((event) => event.kind === "graduated");
   let title = fmt(t.swap.steps.confirming, { chain: network.name });
-  let body: string | null = tx.unreachable ? t.mission.stale : null;
+  let body: string | null = tx.stalled ? m.stalled : tx.unreachable ? t.mission.stale : null;
+  if (waiting && tx.stalled) title = m.stalledTitle;
   if (tx.state === "confirmed") {
-    title = trade ? (trade.side === "buy" ? fmt(m.doneBuy, { amount: formatTokens(BigInt(trade.tokens)), ticker }) : fmt(m.doneSell, { amount: formatEth(netOf(trade)), unit: network.unit })) : m.errors.other;
-    body = trade && graduated ? m.graduated : null;
+    title = trade ? (trade.side === "buy" ? fmt(m.doneBuy, { amount: formatTokens(BigInt(trade.tokens)), ticker }) : fmt(m.doneSell, { amount: formatEth(netOf(trade)), unit: network.unit })) : tx.replacedBy ? m.failedTitle : m.errors.other;
+    body = trade ? (graduated ? m.graduated : null) : tx.replacedBy ? runError(t, "replaced", network.unit) : null;
   } else if (!waiting) {
     title = m.failedTitle;
     body = runError(t, tx.state === "failed" ? "reverted" : "replaced", network.unit);
@@ -58,13 +62,13 @@ export function CurveStatus({ sent, token, ticker, network, onDismiss }: CurveSt
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <a href={explorerTxUrl(network, hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
+        <a href={explorerTxUrl(network, tx.replacedBy ?? hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
           {t.swap.viewTx}
           <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
         </a>
-        {waiting ? null : (
+        {waiting && !tx.stalled ? null : (
           <button type="button" onClick={onDismiss} className="min-h-8 rounded-lg border border-line-strong bg-surface px-3 text-[12px] font-semibold hover:bg-input">
-            {t.swap.done}
+            {waiting ? m.stopWatching : t.swap.done}
           </button>
         )}
       </div>

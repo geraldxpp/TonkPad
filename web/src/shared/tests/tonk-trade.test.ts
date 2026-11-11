@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buyQuote, curveFilled, marketCap, minimumOut, type MissionCurve, sellQuote, tokenPrice, WEI } from "@/shared/tonk/curve";
 import { claimableAt, DAY_SECONDS, type DevLockState, extendLock, lockedAt } from "@/shared/tonk/lock";
+import type { MissionJson } from "@/shared/tonk/mission";
+import { chargedCrewBps, quoteTrade } from "@/shared/tonk/quote";
 
 // The owner's test token (Tonk Test One) on Robinhood Chain Testnet at block 151,327,091, 10 Nov 2026.
 // Every figure below was simulated against the deployed contract (prompts/04, section 14.5).
@@ -65,6 +67,66 @@ describe("a sell, as the contract pays it", () => {
     const quote = sellQuote(CURVE, BigInt(1_000_000) * WEI, 0, CREATOR);
     expect(quote.crewFee).toBe(BigInt(0));
     expect(quote.netEthOut).toBe(quote.grossEthOut - quote.protocolFee - quote.creatorFee);
+  });
+});
+
+// APNL1 on Robinhood Chain Testnet at block 151,758,968 (11 Nov 2026): one wallet held every eligible token.
+// The launchpad simulated its full sale at 71,591,580,138,635 wei, and the app refused it (Astra's release review).
+const mission = (patch: Partial<MissionJson> = {}): MissionJson => ({
+  chainId: 46630,
+  token: "0x952a8C953F42216e8333435Fd2D8819D6cD9E96a",
+  name: "APNL1",
+  symbol: "APNL1",
+  creator: "0xd0d0620Bcf60F15a0aC75753fCc0EbF2d65b268f",
+  launchedAt: 1_794_388_791,
+  launchBlock: 151_749_598,
+  crewBps: 200,
+  creatorBps: 50,
+  graduated: false,
+  paused: false,
+  virtualEth: "1572681807247344",
+  virtualTokens: "1023411088360650609946825148",
+  realEth: "72681807247344",
+  tokensLeft: "750411088360650609946825148",
+  eligibleSupply: "49588911639349390053174852",
+  crewPaid: "0",
+  metadata: "",
+  agentPrompt: "",
+  lock: { type: "none", lockedBps: 0, start: 0, end: 0, total: "0", claimed: "0", checkpoint: "0" },
+  creatorHeld: "0",
+  block: 151_758_968,
+  buyingOpen: true,
+  readAt: 1_794_390_457_000,
+  ...patch,
+});
+const LAST_HOLDER = mission();
+const ALL = BigInt(LAST_HOLDER.eligibleSupply);
+
+describe("the Crew fee on a sell, as the contract charges it after the tokens move", () => {
+  it("pays the last eligible holder's full exit exactly what the launchpad simulated", () => {
+    const quote = quoteTrade(LAST_HOLDER, "sell", ALL, 0);
+    expect(quote).toMatchObject({ out: "71591580138635", crewFee: "0", protocolFee: "726818072473", creatorFee: "363409036236", capped: true });
+    expect(chargedCrewBps(LAST_HOLDER, { side: "sell", amount: ALL, sellerEligible: true })).toBe(0);
+  });
+
+  it("still charges it on a partial sale, while other holders remain, and to an excluded seller", () => {
+    const half = ALL / BigInt(2);
+    expect(chargedCrewBps(LAST_HOLDER, { side: "sell", amount: half, sellerEligible: true })).toBe(200);
+    expect(BigInt(quoteTrade(LAST_HOLDER, "sell", half, 0).crewFee) > BigInt(0)).toBe(true);
+    const shared = mission({ ...LAST_HOLDER, eligibleSupply: String(ALL * BigInt(2)) });
+    expect(quoteTrade(shared, "sell", ALL, 0).crewFee).not.toBe("0");
+    // An excluded seller's tokens were never in the eligible supply, so the holders who remain still earn.
+    expect(quoteTrade(LAST_HOLDER, "sell", ALL, 0, { sellerEligible: false }).out).toBe("70137943993689");
+  });
+
+  it("keeps a buy's check before it trades, and charges nothing on a token without a Crew fee", () => {
+    expect(chargedCrewBps(LAST_HOLDER, { side: "buy", amount: ALL, sellerEligible: true })).toBe(200);
+    expect(chargedCrewBps(mission({ ...LAST_HOLDER, eligibleSupply: "0" }), { side: "buy", amount: BigInt(1), sellerEligible: true })).toBe(0);
+    expect(quoteTrade(mission({ ...LAST_HOLDER, crewBps: 0 }), "sell", ALL / BigInt(3), 0).crewFee).toBe("0");
+  });
+
+  it("keeps the minimum the trader approved when the server checks again", () => {
+    expect(quoteTrade(LAST_HOLDER, "sell", ALL, 100, { approvedMinOut: BigInt("69440000000000") }).minOut).toBe("69440000000000");
   });
 });
 

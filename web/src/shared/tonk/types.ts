@@ -83,13 +83,25 @@ export interface LaunchedMission {
 
 export type LaunchTxState = "pending" | "confirmed" | "failed" | "replaced" | "unknown";
 
-/** Where a launch transaction stands: GET /api/tonk/tx?hash=…. */
+/** Who sent a transaction, at which nonce: what tells a replacement apart from a transaction still on its way. */
+export interface TxSender {
+  from: `0x${string}`;
+  nonce: number;
+}
+
+/** Where a transaction stands: GET /api/tonk/tx?hash=…[&from=…&nonce=…]. */
 export interface LaunchStatus {
   state: LaunchTxState;
   /** The mission it launched; null while unconfirmed, or when the transaction isn't a launch. */
   mission: LaunchedMission | null;
   /** What else it did once confirmed: a trade, a claim, an extension… (empty until then). */
   events: TxEventJson[];
+  /** The block its receipt is in, once settled. */
+  block?: number | null;
+  /** Its sender and nonce once the node has seen it, to send back with the next check. */
+  sender?: TxSender | null;
+  /** The transaction the wallet sent in its place, found at the same nonce; state, mission and events are then that one's. */
+  replacedBy?: string | null;
 }
 
 export const isTxHash = (value: string) => /^0x[0-9a-fA-F]{64}$/.test(value);

@@ -9,7 +9,6 @@ import { cn } from "@/shared/lib/cn";
 import { formatEth, formatTokensFull } from "@/shared/tonk/format";
 import type { MissionJson, TradeQuoteJson } from "@/shared/tonk/mission";
 import { explorerTxUrl, type TonkNetwork } from "@/shared/tonk/networks";
-import { chargedCrewBps } from "@/shared/tonk/quote";
 import { Sheet } from "@/shared/ui/Sheet";
 import type { CurveRunState } from "../../hooks/useCurveRun";
 import { bpsPct, runError } from "../../lib/curve-text";
@@ -20,6 +19,8 @@ interface CurveReviewProps {
   mission: MissionJson;
   network: TonkNetwork;
   quote: TradeQuoteJson | null;
+  /** The Crew fee this trade pays: none on a sale that leaves nobody eligible holding the token. */
+  crewBps: number;
   /** A sell the launchpad may not yet take: the wallet approves exactly this amount first. */
   needsApproval: boolean;
   referrer: string | null;
@@ -41,7 +42,7 @@ function Row({ label, children, strong = false }: { label: string; children: Rea
  * the least the contract may deliver, each fee, and anything unusual about
  * this trade. Then the steps, each named as it happens.
  */
-export function CurveReview({ open, onClose, mission, network, quote, needsApproval, referrer, run, onConfirm }: CurveReviewProps) {
+export function CurveReview({ open, onClose, mission, network, quote, crewBps, needsApproval, referrer, run, onConfirm }: CurveReviewProps) {
   const { t } = useI18n();
   const m = t.mission.trade;
   const unit = network.unit;
@@ -72,7 +73,7 @@ export function CurveReview({ open, onClose, mission, network, quote, needsAppro
           </Row>
           <Row label={t.swap.minReceived}>{buy ? tokens(quote.minOut) : coin(quote.minOut)}</Row>
           <Row label={`${t.launch.summary.protocol} · ${bpsPct(100)}`}>{coin(quote.protocolFee)}</Row>
-          <Row label={`${t.launch.economics.crewTitle} · ${bpsPct(chargedCrewBps(mission))}`}>{coin(quote.crewFee)}</Row>
+          <Row label={`${t.launch.economics.crewTitle} · ${bpsPct(crewBps)}`}>{coin(quote.crewFee)}</Row>
           <Row label={`${t.launch.economics.creatorTitle} · ${bpsPct(mission.creatorBps)}`}>{coin(quote.creatorFee)}</Row>
           {referrer ? <Row label={m.referral}>{fmt(m.referralValue, { address: shortAddress(referrer) })}</Row> : null}
         </dl>
@@ -101,11 +102,19 @@ export function CurveReview({ open, onClose, mission, network, quote, needsAppro
             {progress}
           </p>
         ) : null}
+        {run.step === "approving" && run.stalled ? <p className="m-0 text-[12px] leading-[1.6] text-text-2">{m.stalled}</p> : null}
         {run.approval ? (
-          <a href={explorerTxUrl(network, run.approval)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 self-start rounded text-[12px] font-semibold text-accent-text">
-            {t.swap.viewTx}
-            <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
-          </a>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <a href={explorerTxUrl(network, run.approval)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
+              {t.swap.viewTx}
+              <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
+            </a>
+            {run.step === "approving" && run.stalled ? (
+              <button type="button" onClick={onClose} className="min-h-8 rounded-lg border border-line-strong bg-surface px-3 text-[12px] font-semibold hover:bg-input">
+                {m.stopWatching}
+              </button>
+            ) : null}
+          </div>
         ) : null}
         {run.step === "failed" ? (
           <p role="alert" className="m-0 flex flex-col gap-0.5 rounded-lg border border-neg/25 bg-neg/7 px-3.5 py-3 text-[13px] leading-[1.6] text-neg">
