@@ -66,6 +66,7 @@ src/
     token/      Token Detail: components/ (chart, activity, trade, mission), hooks/, lib/, data/, tests/
     swap/       Swap: the card, token picker, Recent, token and route cards
     launch/     Launch: the Creator Studio's cards, preview, summary, review and receipt; hooks/, lib/, data/, tests/
+    security/   Security: the report, scope, rules, rewards and checks cards; lib/ (contact, rewards, scope, frozen build), data/, tests/
   shared/       ui/ primitives, lib/ (format, seeded-random, sparkline, url-params), config/, types/,
                 i18n/ (languages, dictionaries, getI18n / useI18n)
   styles/       tokens.css (design tokens), animations.css (all motion), globals.css (Tailwind theme)
@@ -685,6 +686,30 @@ upgrades a contract that route is unavailable until the list is updated. To
 see which contracts a route uses, ask its quote API for each asset pair (quotes
 are read-only). Tests never call the real APIs, and a real transfer must never
 be run from a test or script.
+
+## Security
+
+`/security`, linked from the footer, is the launchpad's security page for its
+mainnet release (`../prompts/08-internal-audit.md`, section 7): how to report a
+vulnerability, the scope, the rules, the rewards and what was checked. It is
+static: the text comes from the dictionaries, the rest from public build-time
+values, so set these in Vercel and rebuild.
+
+| Variable | What it does |
+|---|---|
+| `NEXT_PUBLIC_SECURITY_CONTACT` | Where reports go: an email address or an `https://` link. Unset, or anything else, shows "Coming soon". |
+| `NEXT_PUBLIC_BOUNTY_CRITICAL`, `_HIGH`, `_MEDIUM`, `_LOW` | Each severity's reward as it should read, e.g. `$25,000` or `5 ETH` (40 characters at most); the page shows "Up to {amount}". Unset, it says "Decided case by case". |
+
+The scope's addresses are the mainnet deployment's own values
+(`NEXT_PUBLIC_TONK_LAUNCHPAD` and `_MIGRATOR`, read in mainnet mode only):
+until they're set the page says "Not deployed yet", and the testnet site says
+"Listed on the mainnet site" rather than show its own contracts. The pool
+guard has no setting of its own, so the page points to the migrator's
+`initializationGuard()`. The source hashes are the frozen build's, copied
+from the contract project's `reports/mainnet-freeze.json` into
+`src/modules/security/lib/frozen-build.ts`: a new freeze means updating that
+file. The reply time (48 hours) is in each dictionary's
+`security.report.expect`.
 
 ## Live data
 

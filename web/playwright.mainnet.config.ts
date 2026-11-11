@@ -43,6 +43,12 @@ export default defineConfig({
         WORKER_URL: "",
         WORKER_TOKEN: "",
         HELIUS_API_KEY: "",
+        // A made-up security contact for the Security page; its bounty amounts stay unset.
+        NEXT_PUBLIC_SECURITY_CONTACT: "security@example.com",
+        NEXT_PUBLIC_BOUNTY_CRITICAL: "",
+        NEXT_PUBLIC_BOUNTY_HIGH: "",
+        NEXT_PUBLIC_BOUNTY_MEDIUM: "",
+        NEXT_PUBLIC_BOUNTY_LOW: "",
         ...NO_SWAP,
       },
       reuseExistingServer: false,
