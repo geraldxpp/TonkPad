@@ -1,10 +1,12 @@
+import { ChartBook, type FetchCandles } from "../../worker/src/charts/book";
 import { emptyWindows, newTrackedToken, type TrackedToken } from "../../worker/src/model";
 import { newPonsState } from "../../worker/src/pons/curve";
 import { startServer } from "../../worker/src/server";
 import { TokenStore } from "../../worker/src/store";
 import { newTradeBook, recordTrades } from "../../worker/src/trades/book";
 import { createViews } from "../../worker/src/views/cache";
-import { FIXTURE_TRADERS, FIXTURE_WORKER_TOKEN, FRESH_ADDRESS, LIVE_ROBINHOOD, LIVE_SOLANA } from "./fixtures";
+import type { RawCandle } from "../../worker/src/sources/geckoterminal";
+import { FIXTURE_TRADERS, FIXTURE_WORKER_TOKEN, FRESH_ADDRESS, LIVE_ROBINHOOD, LIVE_SOLANA, LIVE_SOLANA_POOL } from "./fixtures";
 
 const now = Date.now();
 const minute = 60_000;
@@ -29,7 +31,7 @@ function observedToken(input: typeof LIVE_SOLANA | typeof LIVE_ROBINHOOD): Track
   };
 }
 
-store.add(observedToken(LIVE_SOLANA));
+store.add({ ...observedToken(LIVE_SOLANA), pool: LIVE_SOLANA_POOL });
 const robinhood = observedToken(LIVE_ROBINHOOD);
 robinhood.pons = newPonsState({
   curve: LIVE_ROBINHOOD.address, quote: "0x0000000000000000000000000000000000000000",
@@ -54,6 +56,17 @@ store.add(newTrackedToken({
   creator: FRESH_ADDRESS, createdAt: now, creatorBuyShare: 0, marketCapNative: null,
 }, null));
 
-const views = createViews(store, { solUsd: 100, ethUsd: 3_000, rhGasGwei: null }, ["pump", "pons"]);
+/** 90 minutes of trades for LIVE_SOLANA's pool, closing this minute at its market cap, $150 a minute (no network). */
+const fixtureCandles: FetchCandles = async (request) => {
+  if (request.pool !== LIVE_SOLANA_POOL) return null;
+  const end = Math.floor(Date.now() / minute) * 60;
+  return Array.from({ length: 90 }, (_, i): RawCandle => {
+    const close = (LIVE_SOLANA.marketCap - (89 - i) * 50) / 1e9;
+    const open = close - 50 / 1e9;
+    return [end - (89 - i) * 60, open, close + 20 / 1e9, open - 20 / 1e9, close, 150];
+  });
+};
+
+const views = createViews(store, { solUsd: 100, ethUsd: 3_000, rhGasGwei: null }, ["pump", "pons"], { charts: new ChartBook(fixtureCandles) });
 const server = startServer(8788, FIXTURE_WORKER_TOKEN, { ...views, health: () => ({ ok: true, fixture: true }) });
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => server.close(() => process.exit(0)));

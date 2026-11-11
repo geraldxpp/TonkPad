@@ -1146,6 +1146,7 @@ export const tr: Dictionary = {
       smart: "Akıllı cüzdan alımı",
       showVolume: "Hacim",
       showMarks: "Balina ve akıllı cüzdan alımları",
+      poweredBy: "Veriler {source} tarafından sağlanır",
     },
     stats: {
       label: "Token istatistikleri",

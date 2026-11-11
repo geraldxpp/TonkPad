@@ -45,6 +45,7 @@ export function ChartCard({ chart, supply, chain, up }: ChartCardProps) {
   const shown = (hover ? candles.find((candle) => candle.time === hover.time) : null) ?? candles[candles.length - 1];
   const volumeAvailable = chart.volumeAvailable !== false;
   const coin = coinOf(chain);
+  const [creditBefore, creditAfter] = c.poweredBy.split("{source}");
   return (
     <section
       ref={ref}
@@ -93,7 +94,7 @@ export function ChartCard({ chart, supply, chain, up }: ChartCardProps) {
         </button>
       </div>
       {shown ? <ChartReadout readout={readoutOf(shown, value, supply)} coin={coin} showVolume={volumeAvailable} /> : null}
-      {!volumeAvailable ? <p className="px-5 pt-2 text-[12px] text-text-3">{t.token.live.history}</p> : null}
+      {!volumeAvailable && !chart.attribution ? <p className="px-5 pt-2 text-[12px] text-text-3">{t.token.live.history}</p> : null}
       <div className={cn("relative mt-1.5 mb-1 pl-5", full ? "min-h-[340px] flex-1" : "h-[340px]")}>
         {theme && candles.length > 0 ? (
           <PriceChart
@@ -113,6 +114,13 @@ export function ChartCard({ chart, supply, chain, up }: ChartCardProps) {
           />
         ) : candles.length === 0 ? <p className="flex h-full items-center justify-center pr-5 text-[13px] text-text-3">{t.token.live.unavailable}</p> : null}
       </div>
+      {chart.attribution === "geckoterminal" ? (
+        <p className="px-5 pb-3 text-right text-[11px] text-text-3 max-md:px-3.5">
+          {creditBefore}
+          <a href="https://www.geckoterminal.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-text-2 hover:text-text">GeckoTerminal</a>
+          {creditAfter}
+        </p>
+      ) : null}
     </section>
   );
 }

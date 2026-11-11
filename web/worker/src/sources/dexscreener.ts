@@ -35,6 +35,7 @@ const norm = (address: string) => (address.startsWith("0x") ? address.toLowerCas
 
 export interface DexPair {
   dexId?: string;
+  pairAddress?: string;
   baseToken?: { address?: string };
   quoteToken?: { address?: string };
   priceUsd?: string;
@@ -55,6 +56,10 @@ export interface MarketData {
   /** USD held in the pool, or null when DexScreener doesn't say. */
   liquidityUsd: number | null;
   dexId: string;
+  /** The pair's address, which GeckoTerminal knows the pool by (chart candles). */
+  pool: string | null;
+  /** The launchpad's bonding-curve pair, while DexScreener lists it. */
+  curvePool: string | null;
   /** True while the token still trades on its launchpad's bonding curve. */
   onCurve: boolean;
   windows: MarketWindows;
@@ -67,6 +72,18 @@ const n = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? N
 const safe = (v: number) => (Number.isFinite(v) ? v : 0);
 const busiest = (pairs: readonly DexPair[]) =>
   pairs.reduce((best, p) => (safe(n(p.volume?.h24)) > safe(n(best.volume?.h24)) ? p : best));
+
+/** The token's own pairs against a quote asset it can be trusted with. */
+function ownPairs(pairs: readonly DexPair[], address: string, quote?: string): DexPair[] {
+  const trusted = (q: string) => QUOTES.has(norm(q)) || (quote !== undefined && norm(q) === norm(quote));
+  return pairs.filter((p) => norm(p.baseToken?.address ?? "") === norm(address) && trusted(p.quoteToken?.address ?? ""));
+}
+
+/** The launchpad's own bonding-curve pair (its address), when DexScreener lists it. */
+export function curvePool(pairs: readonly DexPair[], address: string, launchpad: LaunchpadId, quote?: string): string | null {
+  const curve = ownPairs(pairs, address, quote).filter((p) => CURVE_DEXES[launchpad]?.includes(p.dexId ?? ""));
+  return curve.length > 0 ? busiest(curve).pairAddress ?? null : null;
+}
 
 /**
  * The launch's trusted pair: its graduation pool (opened after the launch),
@@ -81,8 +98,7 @@ export function pickMainPair(
   launchedAt: number,
   quote?: string,
 ): { pair: DexPair; onCurve: boolean } | "invalid" | null {
-  const trusted = (q: string) => QUOTES.has(norm(q)) || (quote !== undefined && norm(q) === norm(quote));
-  const own = pairs.filter((p) => norm(p.baseToken?.address ?? "") === norm(address) && trusted(p.quoteToken?.address ?? ""));
+  const own = ownPairs(pairs, address, quote);
   const graduated = own.filter(
     (p) => GRADUATION_DEXES[launchpad]?.includes(p.dexId ?? "") && (p.pairCreatedAt ?? 0) >= launchedAt - 10 * MINUTE,
   );
@@ -93,7 +109,7 @@ export function pickMainPair(
   return null;
 }
 
-export function toMarketData(pair: DexPair, onCurve: boolean): MarketData {
+export function toMarketData(pair: DexPair, onCurve: boolean, curve: string | null = null): MarketData {
   const windows = Object.fromEntries(
     KEYS.map((key): [WindowKey, MarketWindow] => [
       key,
@@ -112,6 +128,8 @@ export function toMarketData(pair: DexPair, onCurve: boolean): MarketData {
     marketCap: safe(n(pair.marketCap ?? pair.fdv)),
     liquidityUsd: Number.isFinite(n(pair.liquidity?.usd)) ? n(pair.liquidity?.usd) : null,
     dexId: pair.dexId ?? "",
+    pool: pair.pairAddress ?? null,
+    curvePool: curve,
     onCurve,
     windows,
   };
@@ -139,7 +157,8 @@ export async function fetchMarket(chain: "solana" | "robinhood", requests: reado
   if (!Array.isArray(pairs)) return out;
   for (const r of requests) {
     const main = pickMainPair(pairs, r.address, r.launchpad, r.launchedAt, r.quote);
-    out.set(r.address, main === "invalid" ? "invalid" : main ? toMarketData(main.pair, main.onCurve) : undefined);
+    if (main === "invalid") out.set(r.address, "invalid");
+    else out.set(r.address, main ? toMarketData(main.pair, main.onCurve, curvePool(pairs, r.address, r.launchpad, r.quote)) : undefined);
   }
   return out;
 }

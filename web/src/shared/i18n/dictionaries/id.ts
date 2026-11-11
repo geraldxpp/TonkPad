@@ -1147,6 +1147,7 @@ export const id: Dictionary = {
       smart: "Pembelian smart wallet",
       showVolume: "Volume",
       showMarks: "Pembelian paus dan smart wallet",
+      poweredBy: "Data disediakan oleh {source}",
     },
     stats: {
       label: "Statistik token",

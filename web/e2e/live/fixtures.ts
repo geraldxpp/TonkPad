@@ -11,6 +11,9 @@ export const LIVE_SOLANA = {
   marketCap: 62_100,
 } as const;
 
+/** LIVE_SOLANA's DexScreener pair: the fixture worker answers GeckoTerminal-shaped candles for it locally. */
+export const LIVE_SOLANA_POOL = "LiveSo1anaPoo1111111111111111111111111111111";
+
 export const LIVE_ROBINHOOD = {
   address: "0x1234567890abcdef1234567890abcdef12345678",
   name: "Live Robinhood",

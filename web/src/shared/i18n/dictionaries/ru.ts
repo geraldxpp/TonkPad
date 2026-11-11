@@ -1147,6 +1147,7 @@ export const ru: Dictionary = {
       smart: "Покупка умного кошелька",
       showVolume: "Объём",
       showMarks: "Покупки китов и умных кошельков",
+      poweredBy: "Данные предоставлены {source}",
     },
     stats: {
       label: "Показатели токена",

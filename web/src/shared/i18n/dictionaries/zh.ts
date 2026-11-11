@@ -1147,6 +1147,7 @@ export const zh: Dictionary = {
       smart: "聪明钱包买入",
       showVolume: "成交量",
       showMarks: "巨鲸与聪明钱包买入",
+      poweredBy: "数据来源：{source}",
     },
     stats: {
       label: "代币数据",

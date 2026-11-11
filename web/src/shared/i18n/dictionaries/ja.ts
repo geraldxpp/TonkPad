@@ -1146,6 +1146,7 @@ export const ja: Dictionary = {
       smart: "スマートウォレットの購入",
       showVolume: "出来高",
       showMarks: "クジラとスマートウォレットの購入",
+      poweredBy: "データ提供：{source}",
     },
     stats: {
       label: "トークンの統計",

@@ -1152,6 +1152,8 @@ export const en = {
       smart: "Smart wallet buy",
       showVolume: "Volume",
       showMarks: "Whale and smart-wallet buys",
+      /** Credit for live candles; {source} is a link to the data provider. */
+      poweredBy: "Powered by {source}",
     },
     stats: {
       label: "Token stats",

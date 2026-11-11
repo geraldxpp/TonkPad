@@ -10,7 +10,7 @@ export interface Api {
   list: (query: LiveListQuery) => LiveList;
   overview: () => LiveOverview;
   shell: () => LiveShell;
-  token: (address: string) => TokenDetail | null;
+  token: (address: string) => TokenDetail | null | Promise<TokenDetail | null>;
   health: () => Record<string, unknown>;
 }
 
@@ -43,7 +43,7 @@ export function tokenMatches(sent: string | string[] | undefined, token: string)
 
 /** GET /health (public, for the host's health check), /v1/list, /v1/overview, /v1/shell. JSON only. */
 export function startServer(port: number, token: string | null, api: Api): Server {
-  const server = createServer((req, res) => {
+  const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://worker");
     const send = (status: number, body: unknown) => {
       res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
@@ -58,7 +58,7 @@ export function startServer(port: number, token: string | null, api: Api): Serve
         try { address = decodeURIComponent(url.pathname.slice("/v1/token/".length)); }
         catch { return send(400, { error: "invalid token address" }); }
         if (!validTokenAddress(address)) return send(400, { error: "invalid token address" });
-        const detail = api.token(address);
+        const detail = await api.token(address);
         return detail ? send(200, detail) : send(404, { error: "token not found" });
       }
       switch (url.pathname) {

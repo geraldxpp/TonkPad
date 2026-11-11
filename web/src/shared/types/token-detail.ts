@@ -40,6 +40,8 @@ export interface TokenChart {
   callout: ChartCallout | null;
   /** Market cap at which the token graduates; null once it has. */
   graduationCap: number | null;
+  /** Live candles from GeckoTerminal, whose terms ask for credit next to the chart. */
+  attribution?: "geckoterminal";
 }
 
 export type WalletTag = "smart" | "sniper" | "whale" | "devLock" | "curve";

@@ -1,5 +1,7 @@
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { LiveList, LiveListQuery, LiveOverview, LiveShell, LiveStatus } from "@/shared/types/live";
+import type { TokenDetail } from "@/shared/types/token-detail";
+import type { ChartBook } from "../charts/book";
 import type { TokenStore } from "../store";
 import { listView } from "./list";
 import { overviewView } from "./overview";
@@ -14,7 +16,16 @@ export interface ActivitySources {
   isSmart: (wallet: string) => boolean;
 }
 
-const NO_SOURCES: ActivitySources = { tradesOf: () => null, isSmart: () => false };
+/** What token pages draw on besides the store (main.ts; tests and fixtures leave out what they don't need). */
+export interface ViewOptions extends Partial<ActivitySources> {
+  /** Fetches trade candles for the pools of open tokens. */
+  charts?: ChartBook;
+  /** A Pons quote asset's USD price now, tokenized stocks included. */
+  quoteUsd?: (quote: string) => number | null;
+}
+
+/** How long a page's first request waits for a token's first GeckoTerminal candles. */
+const FIRST_CANDLES_WAIT = 2_000;
 
 function memo<T>(compute: () => T): () => T {
   let at = 0;
@@ -30,20 +41,22 @@ function memo<T>(compute: () => T): () => T {
 }
 
 /** The views the server answers with, recomputed at most once a second (the app caches them for 2 s on top). */
-export function createViews(store: TokenStore, status: LiveStatus, ingesting: readonly LaunchpadId[], sources: ActivitySources = NO_SOURCES) {
+export function createViews(store: TokenStore, status: LiveStatus, ingesting: readonly LaunchpadId[], options: ViewOptions = {}) {
   const overview = memo<LiveOverview>(() => overviewView(store.all(), ingesting, Date.now()));
   const shell = memo<LiveShell>(() => shellView(store.all(), { ...status }, Date.now()));
   const lists = new Map<string, { at: number; value: LiveList }>();
   const selected = new Map<string, number>();
 
-  function token(address: string) {
+  async function token(address: string): Promise<TokenDetail | null> {
     const found = findTrackedToken(store.all(), address);
     if (!found) return null;
     selected.set(found.address, Date.now());
     const oldest = selected.keys().next().value;
     if (selected.size > 500 && oldest) selected.delete(oldest);
-    const book = found.pons?.book ?? sources.tradesOf(found.address);
-    return tokenView(found, status, Date.now(), { book, isSmart: sources.isSmart });
+    const { charts, quoteUsd, tradesOf, isSmart = () => false } = options;
+    await charts?.open(found, FIRST_CANDLES_WAIT);
+    const book = found.pons?.book ?? tradesOf?.(found.address) ?? null;
+    return tokenView(found, status, Date.now(), { activity: { book, isSmart }, charts: { pools: charts, quoteUsd } });
   }
 
   function list(query: LiveListQuery): LiveList {

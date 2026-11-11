@@ -1,6 +1,7 @@
 import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { LiveStatus } from "@/shared/types/live";
+import { ChartBook } from "./charts/book";
 import { loadConfig, log } from "./config";
 import { every, throttledFailures } from "./loop";
 import { PonsBook } from "./pons/book";
@@ -8,6 +9,7 @@ import { PonsFeed } from "./pons/feed";
 import { startServer } from "./server";
 import { loadSnapshot, saveSnapshot } from "./snapshot";
 import { BATCH_SIZE, fetchMarket, RateLimitError } from "./sources/dexscreener";
+import { fetchPoolCandles } from "./sources/geckoterminal";
 import { ASSET_BATCH, fetchAssets } from "./sources/helius";
 import { NATIVE_ETH, USDG, WETH } from "./sources/pons";
 import { fetchGasGwei, fetchNativePrices, fetchQuotePrices } from "./sources/prices";
@@ -38,8 +40,15 @@ const store = new TokenStore();
 const pons = new PonsBook(store, (quote) => quoteUsd(quote));
 const ponsFeed = new PonsFeed(new RobinhoodRpc(config.robinhoodLogsRpcUrl), pons);
 const status: LiveStatus = { solUsd: null, ethUsd: null, rhGasGwei: null };
+/** Trade candles for the charts of tokens people have open (GeckoTerminal, about 5 calls a minute). */
+const charts = new ChartBook(fetchPoolCandles, (error) => fail("geckoterminal", error));
 // Token pages read Solana trades from Helius (trades/solana.ts) and Pons trades from the curve; smart money tags both.
-const views = createViews(store, status, INGESTING, { tradesOf: (a) => solanaTrades.bookOf(a), isSmart: (w) => smartWallets.count([w]) > 0 });
+const views = createViews(store, status, INGESTING, {
+  tradesOf: (a) => solanaTrades.bookOf(a),
+  isSmart: (w) => smartWallets.count([w]) > 0,
+  charts,
+  quoteUsd,
+});
 /** USD prices of the other assets Pons launches are paired with (tokenized stocks). */
 const quotePrices = new Map<string, number>();
 const startedAt = Date.now();
@@ -176,6 +185,7 @@ async function start(): Promise<void> {
   every(60_000, safety.refreshChainHolders);
   every(5_000, solanaTrades.refresh);
   every(20_000, refreshStatus);
+  every(1_000, () => charts.tick());
   every(60_000, async () => {
     const removed = store.prune(Date.now());
     pons.reindex();
@@ -199,6 +209,7 @@ async function start(): Promise<void> {
       blockscout: { enabled: config.blockscoutApiKey !== null, creditsToday: safety.chainCredits().used },
       trades: solanaTrades.usage(),
       ponsBlock: ponsFeed.cursor,
+      charts: charts.stats(),
     }),
   });
   log("worker", `listening on :${config.port}`);

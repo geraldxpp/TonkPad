@@ -3,7 +3,7 @@ import type { TokenDetail, TokenHolder } from "@/shared/types/token-detail";
 import type { TrackedToken } from "../model";
 import { PONS_SUPPLY } from "../pons/curve";
 import { toToken } from "../tokens";
-import { observedChart } from "./token-chart";
+import { type ChartInputs, liveChart } from "./token-chart";
 import { type ActivityContext, tradersView, tradesView } from "./token-activity";
 
 /** Addresses are single path segments. Solana case matters; EVM case does not. */
@@ -44,8 +44,15 @@ function holders(token: TrackedToken, supply: number | null, isSmart: (wallet: s
   });
 }
 
+/** What a token page draws on besides the token's own record: its trade book and its chart's candles. */
+export interface TokenViewInputs {
+  activity?: ActivityContext;
+  charts?: ChartInputs;
+}
+
 /** Same contract as the mock page, using only facts retained by the live worker. */
-export function tokenView(token: TrackedToken, status: LiveStatus, now: number, activity: ActivityContext = NO_ACTIVITY): TokenDetail {
+export function tokenView(token: TrackedToken, status: LiveStatus, now: number, inputs: TokenViewInputs = {}): TokenDetail {
+  const activity = inputs.activity ?? NO_ACTIVITY;
   const market = token.marketAt > 0;
   const native = token.chain === "sol" ? status.solUsd : status.ethUsd;
   const nativeUsd = native !== null && Number.isFinite(native) && native > 0 ? native : null;
@@ -69,7 +76,7 @@ export function tokenView(token: TrackedToken, status: LiveStatus, now: number, 
       holdersChange1h: null,
       top10Share: staleCurveHolders ? null : token.top10Share ?? null,
     },
-    chart: observedChart(token.mcapSeries),
+    chart: liveChart(token, nativeUsd, inputs.charts),
     flow1h: market ? { buys: token.windows.h1.buys, sells: token.windows.h1.sells } : null,
     trades: tradesView(token, activity, nativeUsd, now),
     holders: holders(token, supply, activity.isSmart),

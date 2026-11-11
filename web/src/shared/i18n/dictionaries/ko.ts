@@ -1146,6 +1146,7 @@ export const ko: Dictionary = {
       smart: "스마트 지갑 매수",
       showVolume: "거래량",
       showMarks: "고래 및 스마트 지갑 매수",
+      poweredBy: "데이터 제공: {source}",
     },
     stats: {
       label: "토큰 통계",

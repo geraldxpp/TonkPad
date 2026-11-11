@@ -1146,6 +1146,7 @@ export const de: Dictionary = {
       smart: "Smart-Wallet-Kauf",
       showVolume: "Volumen",
       showMarks: "Wal- und Smart-Wallet-Käufe",
+      poweredBy: "Daten von {source}",
     },
     stats: {
       label: "Token-Kennzahlen",

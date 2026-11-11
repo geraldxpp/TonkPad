@@ -1146,6 +1146,7 @@ export const vi: Dictionary = {
       smart: "Ví thông minh mua",
       showVolume: "Khối lượng",
       showMarks: "Lệnh mua của cá voi và ví thông minh",
+      poweredBy: "Dữ liệu do {source} cung cấp",
     },
     stats: {
       label: "Số liệu token",

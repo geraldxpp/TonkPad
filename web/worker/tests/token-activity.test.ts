@@ -48,7 +48,7 @@ describe("Pons curve trades", () => {
 describe("live trades and top traders on the token page", () => {
   it("shows a Pons token's curve trades with Blockscout links, and their wallets' totals in USD", () => {
     const { token } = ponsWithTrades(3_000);
-    const detail = tokenView(token, status, NOW, { book: token.pons!.book!, isSmart: () => false });
+    const detail = tokenView(token, status, NOW, { activity: { book: token.pons!.book!, isSmart: () => false } });
     expect(detail.trades.length).toBeGreaterThan(0);
     const first = detail.trades[0];
     expect(first.txUrl).toBe(`https://robinhoodchain.blockscout.com/tx/${token.pons!.book!.recent[0].tx}`);
@@ -67,7 +67,7 @@ describe("live trades and top traders on the token page", () => {
       t({ id: "s1", tx: "s1", at: NOW - 90_000, wallet: "Smart1", native: 1, usd: 100 }),
       t({ id: "s2", tx: "s2", at: NOW - 30_000, wallet: "Smart1", side: "sell", tokens: 100, native: 3, usd: null, marketCap: null }),
     ]);
-    const detail = tokenView(token, status, NOW, { book, isSmart: (w) => w === "Smart1" });
+    const detail = tokenView(token, status, NOW, { activity: { book, isSmart: (w) => w === "Smart1" } });
     expect(detail.trades.map((r) => [r.id, r.side, r.ageSeconds, r.tag, r.txUrl])).toEqual([
       ["s2", "sell", 30, "smart", "https://solscan.io/tx/s2"],
       ["s1", "buy", 90, "smart", "https://solscan.io/tx/s1"],

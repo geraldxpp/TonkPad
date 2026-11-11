@@ -1,12 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { newPonsState } from "../src/pons/curve";
+import type { Candle } from "@/shared/types/token-detail";
+import { ChartBook } from "../src/charts/book";
+import type { PoolHistory } from "../src/charts/pools";
+import { applyCurveTrade, newPonsState } from "../src/pons/curve";
+import type { RawCandle } from "../src/sources/geckoterminal";
+import { NATIVE_ETH } from "../src/sources/pons";
 import { TokenStore } from "../src/store";
 import { createViews } from "../src/views/cache";
 import { findTrackedToken, tokenView, validTokenAddress } from "../src/views/token";
 import { observedCandles } from "../src/views/token-chart";
-import { MIN, NOW, priced, tracked } from "./fixtures";
+import { address, MIN, NOW, priced, SEC, tracked } from "./fixtures";
 
 const status = { solUsd: 100, ethUsd: 3_000, rhGasGwei: null };
+const T = NOW / 1000;
+const round = (candle: Candle) => Object.fromEntries(Object.entries(candle).map(([key, v]) => [key, Math.round(v * 1e3) / 1e3]));
+/** `count` minutes of trades ending at NOW, each closing $1K of market cap higher, $150 traded a minute. */
+const minutes = (count: number, start = T - count * 60): RawCandle[] =>
+  Array.from({ length: count }, (_, i) => [start + i * 60, (30 + i) * 1e-6, (30.5 + i) * 1e-6, (29.5 + i) * 1e-6, (31 + i) * 1e-6, 150]);
+const pools = (history: Partial<PoolHistory>) => ({
+  history: () => ({ minute: [], minuteComplete: true, hour: null, hourComplete: false, fetchedAt: NOW, ...history }),
+});
 const evm = "0x1234567890abcdef1234567890abcdef12345678";
 const sol = "So11111111111111111111111111111111111111112";
 
@@ -63,12 +76,12 @@ describe("live token detail", () => {
     for (const value of ["GHOST", "../list", "a/b", "0x123", "%zz", "0".repeat(44)]) expect(validTokenAddress(value)).toBe(false);
   });
 
-  it("prioritizes selected tokens for the existing metadata and holder refresh loops", () => {
+  it("prioritizes selected tokens for the existing metadata and holder refresh loops", async () => {
     const store = new TokenStore();
     store.add(tracked({ address: sol, marketCap: 0 }));
     const views = createViews(store, status, []);
-    expect(views.token("missing")).toBeNull();
-    expect(views.token(sol)?.contract).toBe(sol);
+    expect(await views.token("missing")).toBeNull();
+    expect((await views.token(sol))?.contract).toBe(sol);
     expect(views.visibleAddresses().has(sol)).toBe(true);
   });
 });
@@ -82,3 +95,56 @@ describe("observed market-cap candles", () => {
     ]);
   });
 });
+
+describe("live trade candles", () => {
+  const pool = address("Pool");
+
+  it("draws an open token's GeckoTerminal candles as market cap, with volume in SOL and credit", async () => {
+    const store = new TokenStore();
+    store.add(priced(50_000, {}, { address: sol, pool, priceUsd: 5e-5 }));
+    const book = new ChartBook(async () => minutes(20), () => {}, () => NOW);
+    const views = createViews(store, status, [], { charts: book });
+    const { chart } = (await views.token(sol))!;
+    expect(chart).toMatchObject({ attribution: "geckoterminal", volumeAvailable: true });
+    expect(chart.candles["1m"]).toHaveLength(20);
+    expect(round(chart.candles["1m"][0])).toEqual({ time: T - 1_200, open: 30_000, high: 30_500, low: 29_500, close: 31_000, volume: 1.5 });
+    // 11:40–11:44 and 11:45–11:59, with nothing invented for 11:30–11:39.
+    expect(chart.candles["15m"].map((c) => [c.time, c.volume])).toEqual([[T - 1_800, 7.5], [T - 900, 22.5]]);
+    expect(round(chart.candles["1D"][0])).toMatchObject({ open: 30_000, close: 50_000, volume: 30 });
+  });
+
+  it("keeps the observed history when GeckoTerminal doesn't know the pool", async () => {
+    const store = new TokenStore();
+    store.add(priced(40_000, {}, { address: sol, pool, mcapSeries: [[NOW - MIN, 39_000], [NOW, 40_000]] }));
+    const views = createViews(store, status, [], { charts: new ChartBook(async () => null, () => {}, () => NOW) });
+    const { chart } = (await views.token(sol))!;
+    expect(chart).toMatchObject({ volumeAvailable: false });
+    expect(chart.attribution).toBeUndefined();
+    expect(chart.candles["1m"].map((c) => c.close)).toEqual([39_000, 40_000]);
+  });
+
+  it("moves the last candle with the newest market cap while the token trades", () => {
+    // The last fetched minute is 11:59; a market cap seen at 11:59:40 moves it.
+    const token = priced(52_500, { m5: { buys: 3 } }, { address: sol, pool, priceUsd: 5.25e-5, marketAt: NOW - 20 * SEC });
+    const view = () => tokenView(token, status, NOW, { charts: { pools: pools({ minute: minutes(20), fetchedAt: NOW - 50 * SEC }) } }).chart.candles["1m"];
+    expect(round(view().at(-1)!)).toEqual({ time: T - 60, open: 49_000, high: 52_500, low: 48_500, close: 52_500, volume: 1.5 });
+    token.windows.m5.buys = 0;
+    expect(round(view().at(-1)!)).toMatchObject({ close: 50_000 });
+  });
+
+  it("charts a Pons curve from its own trades, and puts them before the pool once it graduates", () => {
+    const pons = newPonsState({ curve: evm, quote: NATIVE_ETH, quoteDecimals: 18, threshold: 10, launchTx: "launch" });
+    applyCurveTrade(pons, { buy: true, quote: 1, tokens: 2e8, fee: 0, tax: 0, at: NOW - 30 * MIN });
+    const token = priced(56_250, {}, { address: evm, chain: "rh", launchpad: "pons", pons, createdAt: NOW - 30 * MIN });
+    const curve = tokenView(token, status, NOW).chart;
+    expect(curve).toMatchObject({ volumeAvailable: true });
+    expect(curve.attribution).toBeUndefined();
+    expect(curve.candles["1m"].map(round)).toEqual([{ time: T - 1_800, open: 12_000, high: 18_750, low: 12_000, close: 18_750, volume: 1 }]);
+    Object.assign(token, { graduated: true, pool: `0x${"ab".repeat(32)}`, priceUsd: 5.625e-5 });
+    const graduated = tokenView(token, status, NOW, { charts: { pools: pools({ minute: minutes(5) }) } }).chart;
+    expect(graduated).toMatchObject({ attribution: "geckoterminal", volumeAvailable: true });
+    expect(graduated.candles["1m"].map((c) => c.time)).toEqual([T - 1_800, T - 300, T - 240, T - 180, T - 120, T - 60]);
+    expect(graduated.candles["1m"][1].volume).toBeCloseTo(0.05, 9);
+  });
+});
+

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { curveProgressFromPrice, curveProgressFromReserve } from "../src/curve";
-import { type DexPair, pickMainPair, toMarketData } from "../src/sources/dexscreener";
+import { curvePool, type DexPair, pickMainPair, toMarketData } from "../src/sources/dexscreener";
 import { toAssetInfo } from "../src/sources/helius";
 import { isLaunch, parsePumpPortal } from "../src/sources/pumpportal";
 import { HOUR, MIN, NOW } from "./fixtures";
@@ -87,6 +87,17 @@ describe("pickMainPair", () => {
 
   it("flags a launch whose pools predate it as fake", () => {
     expect(pickMainPair([pair("raydium", NOW - 30 * 24 * HOUR)], "MintA", "pump", launchedAt)).toBe("invalid");
+  });
+
+  it("keeps the pair addresses GeckoTerminal knows the pools by", () => {
+    const curve = pair("pumpfun", launchedAt, { pairAddress: "CurvePair" });
+    const grad = pair("pumpswap", NOW - 5 * MIN, { pairAddress: "AmmPair" });
+    const junk = pair("pumpfun", launchedAt, { pairAddress: "JunkPair", quoteToken: { address: "Junk" }, volume: { h24: 9e9 } });
+    const pairs = [curve, grad, junk];
+    expect(curvePool(pairs, "MintA", "pump")).toBe("CurvePair");
+    expect(curvePool([grad], "MintA", "pump")).toBeNull();
+    expect(toMarketData(grad, false, curvePool(pairs, "MintA", "pump"))).toMatchObject({ pool: "AmmPair", curvePool: "CurvePair" });
+    expect(toMarketData({ dexId: "pumpfun" }, true)).toMatchObject({ pool: null, curvePool: null });
   });
 
   it("returns null while there is nothing to trust yet", () => {

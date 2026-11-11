@@ -1147,6 +1147,7 @@ export const pt: Dictionary = {
       smart: "Compra de smart wallet",
       showVolume: "Volume",
       showMarks: "Compras de baleias e smart wallets",
+      poweredBy: "Dados fornecidos por {source}",
     },
     stats: {
       label: "Dados do token",

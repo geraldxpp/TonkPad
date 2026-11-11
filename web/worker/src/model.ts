@@ -46,6 +46,10 @@ export interface TrackedToken {
   /** When market data last arrived, ms; 0 before the first refresh. */
   marketAt: number;
   dexId: string | null;
+  /** The trusted DexScreener pair's address (GeckoTerminal finds the pool's candles by it); absent in older snapshots. */
+  pool?: string | null;
+  /** The launchpad's bonding-curve pair, kept after graduation so the chart can show the curve's trades. */
+  curvePool?: string | null;
 
   // Bonding curve.
   curve: number;

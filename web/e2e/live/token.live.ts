@@ -21,18 +21,26 @@ test("each Explore selection opens its own live detail and survives reload", asy
   await page.screenshot({ path: testInfo.outputPath("token-live-1440.png"), fullPage: true });
 });
 
-test("observed charts show the selected market history without mock trades or balances", async ({ page }) => {
+test("trade candles show volume and credit GeckoTerminal, with no mock trades or balances", async ({ page }, testInfo) => {
   await page.goto(`/token/${LIVE_SOLANA.address}?tf=1m`);
   const chart = page.getByRole("region", { name: "Price chart" });
+  const readout = chart.getByTestId("chart-readout");
   await expect(chart.locator("canvas").first()).toBeVisible();
   // Price is the default once the supply is known; MCap is one click away.
-  await expect(chart.getByTestId("chart-readout")).toContainText("C $0.0000621");
-  await expect(chart.getByText("Observed market history; earlier candles may be unavailable.")).toBeVisible();
-  await expect(chart.getByTestId("chart-readout")).not.toContainText("Vol");
-  await expect(chart.getByRole("button", { name: /Indicators/ })).toHaveCount(0);
+  await expect(readout).toContainText("C $0.0000621");
+  await expect(readout).toContainText("Vol 1.50 SOL");
+  await expect(chart.getByRole("button", { name: /Indicators/ })).toBeVisible();
+  await expect(chart.getByText("Observed market history; earlier candles may be unavailable.")).toHaveCount(0);
+  await expect(chart).toContainText("Powered by GeckoTerminal");
+  await expect(chart.getByRole("link", { name: "GeckoTerminal", exact: true })).toHaveAttribute("href", "https://www.geckoterminal.com");
   await page.getByRole("group", { name: "Chart value" }).getByRole("button", { name: "MCap", exact: true }).click();
-  await expect(chart.getByTestId("chart-readout")).toContainText("C $62.1K");
+  await expect(readout).toContainText("C $62.1K");
+  await chart.getByRole("button", { name: "15m", exact: true }).click();
+  await expect(readout).toContainText("C $62.1K");
+  await expect(chart.locator("canvas").first()).toBeVisible();
+  await chart.screenshot({ path: testInfo.outputPath("token-live-chart-15m.png") });
 
+  // The Solana fixture has no trade book, so nothing stands in for its trades.
   await expect(page.getByText("Trade history is not available for this token yet.")).toBeVisible();
   const trade = page.getByRole("region", { name: "Trade", exact: true });
   // No simulated wallet: balances wait for a real one (e2e/live/wallet.live.ts).
@@ -41,6 +49,20 @@ test("observed charts show the selected market history without mock trades or ba
   await expect(trade.getByRole("button", { name: /Need funds/ })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Ask Captain Boo/ })).toHaveCount(0);
   await expect(page.getByText("Crew Rewards 2%", { exact: true })).toHaveCount(0);
+});
+
+test("observed charts show the market history the worker saw", async ({ page }) => {
+  await page.goto(`/token/${LIVE_ROBINHOOD.address}?tf=1m`);
+  const chart = page.getByRole("region", { name: "Price chart" });
+  const readout = chart.getByTestId("chart-readout");
+  await expect(chart.locator("canvas").first()).toBeVisible();
+  await expect(readout).toContainText("C $0.0000412");
+  await expect(chart.getByText("Observed market history; earlier candles may be unavailable.")).toBeVisible();
+  await expect(readout).not.toContainText("Vol");
+  await expect(chart.getByRole("button", { name: /Indicators/ })).toHaveCount(0);
+  await expect(chart.getByRole("link", { name: "GeckoTerminal" })).toHaveCount(0);
+  await page.getByRole("group", { name: "Chart value" }).getByRole("button", { name: "MCap", exact: true }).click();
+  await expect(readout).toContainText("C $41.2K");
 });
 
 test("live trades and top traders come from the worker's trade book", async ({ page }) => {
@@ -82,13 +104,17 @@ test("a fresh token shows unavailable facts instead of invented candles", async 
 test("German live details fit a light-theme phone", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => localStorage.setItem("tonkpad-theme", "light"));
-  await page.goto(`/de/token/${LIVE_ROBINHOOD.address}`);
-  await expect(page.getByRole("heading", { level: 1, name: LIVE_ROBINHOOD.name })).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.getByRole("region", { name: "Kurschart" }).locator("canvas").first()).toBeVisible();
-  await page.evaluate(() => document.fonts.ready);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: testInfo.outputPath("token-live-390-de-light.png"), fullPage: true });
+  for (const token of [LIVE_ROBINHOOD, LIVE_SOLANA]) {
+    await page.goto(`/de/token/${token.address}`);
+    await expect(page.getByRole("heading", { level: 1, name: token.name })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    const chart = page.getByRole("region", { name: "Kurschart" });
+    await expect(chart.locator("canvas").first()).toBeVisible();
+    if (token === LIVE_SOLANA) await expect(chart).toContainText("Daten von GeckoTerminal");
+    await page.evaluate(() => document.fonts.ready);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`token-live-390-de-light-${token.chain}.png`), fullPage: true });
+  }
 });
 
 test("worker auth and public unknown-token handling are preserved", async ({ request, page }) => {

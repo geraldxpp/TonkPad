@@ -82,6 +82,8 @@ export class TokenStore {
       token.liquidityUsd = data.liquidityUsd;
       token.windows = data.windows;
       token.dexId = data.dexId;
+      token.pool = data.pool ?? token.pool ?? null;
+      if (data.curvePool) token.curvePool = data.curvePool;
       token.marketAt = now;
       if (!data.onCurve && !token.graduated) {
         token.graduated = true;

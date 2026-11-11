@@ -26,7 +26,10 @@ function launch(label: string, over: Partial<LaunchEvent> = {}): LaunchEvent {
 }
 
 function market(over: Partial<MarketData> = {}): MarketData {
-  return { priceUsd: 0.00001, priceNative: 1e-7, marketCap: 10_000, liquidityUsd: 9_000, dexId: "pumpfun", onCurve: true, windows: windows({ h24: { buys: 12 } }), ...over };
+  return {
+    priceUsd: 0.00001, priceNative: 1e-7, marketCap: 10_000, liquidityUsd: 9_000, dexId: "pumpfun",
+    pool: address("Curve"), curvePool: address("Curve"), onCurve: true, windows: windows({ h24: { buys: 12 } }), ...over,
+  };
 }
 
 const asset = (over: Partial<AssetInfo> = {}): AssetInfo => ({
@@ -81,6 +84,14 @@ describe("TokenStore market data", () => {
     const store = storeWith(launch("a"));
     store.applyMarket(address("a"), market({ onCurve: false, dexId: "pumpswap" }), NOW + MIN);
     expect(store.get(address("a"))).toMatchObject({ graduated: true, graduatedAt: NOW + MIN, curve: 1, dexId: "pumpswap", liquidityUsd: 9_000 });
+  });
+
+  it("keeps the curve pair for the chart after the token moves to its pool", () => {
+    const store = storeWith(launch("a"));
+    store.applyMarket(address("a"), market(), NOW + 10 * SEC);
+    expect(store.get(address("a"))).toMatchObject({ pool: address("Curve"), curvePool: address("Curve") });
+    store.applyMarket(address("a"), market({ onCurve: false, dexId: "pumpswap", pool: address("Amm"), curvePool: null }), NOW + MIN);
+    expect(store.get(address("a"))).toMatchObject({ graduated: true, pool: address("Amm"), curvePool: address("Curve") });
   });
 
   it("leaves a token waiting when DexScreener has nothing yet", () => {
