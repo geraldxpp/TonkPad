@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { balancesPath, isWalletBalances } from "@/shared/wallet/balances";
 import { jsonRpc, readEvmBalances, readSolanaBalances, type RpcCall } from "@/shared/wallet/rpc";
+import { mainnetNetwork, TONK_TESTNET } from "@/shared/tonk/networks";
+import { tonkRpcUrl } from "@/shared/tonk/server/client";
 import { PUBLIC_RPC, walletRpcUrl } from "@/shared/wallet/server";
 
 const SOL_OWNER = "FLRettWhwj1oyn19GMQVF3xdGUtgZft4mRXBHTuWSuCv";
@@ -102,6 +104,24 @@ describe("walletRpcUrl", () => {
     expect(walletRpcUrl("sol", { HELIUS_API_KEY: "k", SOLANA_RPC_URL: "http://127.0.0.1:1/sol" })).toBe("http://127.0.0.1:1/sol");
     expect(walletRpcUrl("rh", {})).toBe(PUBLIC_RPC.rh);
     expect(walletRpcUrl("rh", { ROBINHOOD_RPC_URL: " https://example.test/rpc " })).toBe("https://example.test/rpc");
+    // Off the testnet site a launchpad RPC never replaces the site's own Robinhood Chain RPC for balances.
+    expect(walletRpcUrl("rh", { ROBINHOOD_RPC_URL: "https://example.test/rpc", TONK_RPC_URL: "https://launchpad.test/rpc" })).toBe("https://example.test/rpc");
+  });
+});
+
+describe("the launchpad's RPC", () => {
+  const mainnet = mainnetNetwork({ launchpad: `0x${"1".repeat(40)}`, migrator: `0x${"2".repeat(40)}`, block: "1" });
+
+  it("on mainnet prefers TONK_RPC_URL, then the site's Robinhood Chain RPC, then the public one", () => {
+    if (!mainnet) throw new Error("the deployment should connect");
+    expect(tonkRpcUrl(mainnet, {})).toBe("https://rpc.mainnet.chain.robinhood.com");
+    expect(tonkRpcUrl(mainnet, { ROBINHOOD_RPC_URL: " https://site.test/rpc " })).toBe("https://site.test/rpc");
+    expect(tonkRpcUrl(mainnet, { ROBINHOOD_RPC_URL: "https://site.test/rpc", TONK_RPC_URL: "https://launchpad.test/rpc" })).toBe("https://launchpad.test/rpc");
+  });
+
+  it("on testnet never takes the mainnet RPC, whatever is set", () => {
+    expect(tonkRpcUrl(TONK_TESTNET, { ROBINHOOD_RPC_URL: "https://site.test/rpc" })).toBe(TONK_TESTNET.rpcUrl);
+    expect(tonkRpcUrl(TONK_TESTNET, { TONK_RPC_URL: "https://launchpad.test/rpc" })).toBe("https://launchpad.test/rpc");
   });
 });
 

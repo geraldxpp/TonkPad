@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatEth } from "@/shared/tonk/format";
-import { isTestnetSite } from "@/shared/tonk/networks";
+import { LAUNCHPAD_AUDITED, tonkNetwork } from "@/shared/tonk/networks";
 import { isTxHash, type TonkSettingsJson } from "@/shared/tonk/types";
 import { useWalletBalances } from "@/shared/wallet/useWalletBalances";
 import { wallet } from "@/shared/wallet/wallet";
@@ -20,6 +20,7 @@ import { PreviewCard, TokenPreview } from "./components/PreviewCard";
 import { ReferDialog } from "./components/ReferDialog";
 import { ReviewDialog } from "./components/ReviewDialog";
 import { ScoreCard } from "./components/ScoreCard";
+import { BetaNotice } from "@/shared/ui/BetaNotice";
 import { Sheet } from "@/shared/ui/Sheet";
 import { StepNav } from "./components/StepNav";
 import { SummaryCard } from "./components/SummaryCard";
@@ -107,7 +108,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
         chainName={data.chainName}
         unit={unit}
         explorerUrl={data.explorerUrl}
-        tokenHref={isTestnetSite() ? (token) => href(`/token/${token}`) : undefined}
+        tokenHref={tonkNetwork() ? (token) => href(`/token/${token}`) : undefined}
         onBack={(launched) => {
           if (launched) state.reset();
           resetRun();
@@ -149,6 +150,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
           </button>
         </div>
       </div>
+      {data.mode === "mainnet" && !LAUNCHPAD_AUDITED ? <BetaNotice text={l.beta} className="mb-4" /> : null}
       {live.offline ? <p role="alert" className="m-0 mb-4 rounded-lg border border-warn/25 bg-warn/7 px-3.5 py-3 text-[13px] text-warn">{l.offline}</p> : null}
       <StepNav
         active={phone ? step : inView}

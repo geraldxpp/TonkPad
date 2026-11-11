@@ -47,7 +47,8 @@ const LOCKS: LockSettings[] = [
 ];
 
 describe("a launch's Mission score: the Creator Studio's preview and the worker agree", () => {
-  it.each([0, 0.0172, 0.0421, 0.0814, 0.2])("for a creator buy of %s of supply, across every lock and Crew setting", (share) => {
+  // 0.000001 is a dust buy: no lock on it can reach 1% of supply, so none counts on either side.
+  it.each([0, 0.000001, 0.0172, 0.0421, 0.0814, 0.2])("for a creator buy of %s of supply, across every lock and Crew setting", (share) => {
     for (const lock of LOCKS) {
       for (const crewBps of [0, 100, 200]) {
         const { bought, token } = launched(share, lock, crewBps);

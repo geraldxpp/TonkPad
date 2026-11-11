@@ -2,10 +2,10 @@ import { encodeFunctionData } from "viem";
 import { type CurveSettings, devBuyQuote, maxDevBuy } from "../curve";
 import { AGENT_VOICES, type AgentSettings, encodeAgent, encodeMetadata, LIMITS, normalizeTelegram, normalizeWebsite, normalizeX } from "../metadata";
 import type { TonkNetwork } from "../networks";
-import { CREATOR_OPTIONS, CREW_OPTIONS, isLocked, LOCK_TYPE_ID, lockedAmount, type LockSettings, lockTier, type LockType, MAX_LOCK_DAYS, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "../rules";
+import { CREATOR_OPTIONS, CREW_OPTIONS, effectiveTier, isLocked, LOCK_TYPE_ID, lockedAmount, type LockSettings, type LockType, MAX_LOCK_DAYS, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "../rules";
 import { curveSettings, type LaunchBuild, type LaunchRequest } from "../types";
 import { LAUNCHPAD_ABI } from "./abi";
-import { address, invalid, isRecord, padGas, refusal, requireFunds, text as string, unsigned } from "./build";
+import { address, invalid, isRecord, padGas, refusal, requireDeployedMigrator, requireFunds, text as string, unsigned } from "./build";
 import { TonkError, tonkClient } from "./client";
 import { readSettings } from "./settings";
 
@@ -51,7 +51,9 @@ function checkedLock(request: LaunchRequest, settings: CurveSettings): LockSetti
   const lock: LockSettings = request.lock === "none" ? { type: "none", sharePct: 0, days: 0 } : { type: request.lock, sharePct: request.share, days: request.days };
   if (lock.type !== "none" && (!isLocked(devBuy > BigInt(0), lock) || lock.sharePct > 100 || lock.days > MAX_LOCK_DAYS)) throw invalid("lock");
   if (request.crewBps + request.creatorBps > REWARD_POOL_BPS) throw invalid("fee pool");
-  if (request.creatorBps > TIER_CREATOR_MAX[lockTier(devBuy > BigInt(0), lock)]) throw invalid("creator tier");
+  // The tier counts only if the lock holds 1% of supply, as the mainnet contract rules (review finding M-2).
+  const bought = devBuyQuote(settings, devBuy, request.creatorBps).tokensOut;
+  if (request.creatorBps > TIER_CREATOR_MAX[effectiveTier(devBuy > BigInt(0), lock, bought)]) throw invalid("creator tier");
   return lock;
 }
 
@@ -86,6 +88,8 @@ export async function buildLaunch(network: TonkNetwork, request: LaunchRequest):
   const value = curve.launchFee + devBuy;
   const call = { address: network.launchpad, abi: LAUNCHPAD_ABI, functionName: "launchMission", args: [launchParams(request, lock)], account: request.creator as `0x${string}`, value } as const;
   const client = await tonkClient(network);
+  // A launch's own buy can complete its curve.
+  await requireDeployedMigrator(client, network);
   let gas: bigint;
   try {
     await client.simulateContract(call);

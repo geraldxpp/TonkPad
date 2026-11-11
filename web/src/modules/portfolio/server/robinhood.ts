@@ -4,6 +4,7 @@ import { jsonRpc, type RpcCall } from "@/shared/wallet/rpc";
 import { walletRpcUrl } from "@/shared/wallet/server";
 import { type ChainPortfolio, NO_CHANGE, type PortfolioAsset } from "../lib/types";
 import { cleanName, cleanSymbol, inChunks, numeric, record, toAmount } from "./clean";
+import { readCurvePrices } from "./curve";
 import { type DexPrice, readDexPrices } from "./dex";
 import { trimUnpriced } from "./solana";
 
@@ -139,6 +140,12 @@ export async function readRobinhoodPortfolio(owner: string, rpc: RpcCall = jsonR
     }),
     readDexPrices([WETH, ...addresses]),
   ]);
+  const eth = prices.get(WETH.toLowerCase());
+  // A tonkfun.fun launch still on its curve has no pool for DexScreener to list: its curve prices it.
+  const curve = await readCurvePrices(
+    addresses.filter((address) => !prices.has(address.toLowerCase()) && !STABLES.has(address)),
+    eth?.priceUsd ?? null,
+  ).catch(() => new Map<string, DexPrice>());
   const tokens = addresses.flatMap((address, index) => {
     const result = metas[index];
     const raw = held.get(address);
@@ -146,10 +153,8 @@ export async function readRobinhoodPortfolio(owner: string, rpc: RpcCall = jsonR
       if (result?.status === "rejected") partial = true;
       return [];
     }
-    return [token(address, raw, result.value, prices.get(address))];
+    return [token(address, raw, result.value, prices.get(address) ?? curve.get(address.toLowerCase()))];
   });
-
-  const eth = prices.get(WETH.toLowerCase());
   const raw = BigInt(wei);
   const balance = toAmount(raw, 18);
   const native: PortfolioAsset = {

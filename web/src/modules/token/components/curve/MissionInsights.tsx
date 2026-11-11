@@ -6,7 +6,7 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatTokens, formatTokensFull } from "@/shared/tonk/format";
 import { claimableAt, DAY_SECONDS, type DevLockState, lockedAt } from "@/shared/tonk/lock";
 import { type MissionJson, missionLock } from "@/shared/tonk/mission";
-import { explorerAddressUrl, type TonkNetwork } from "@/shared/tonk/networks";
+import { explorerAddressUrl, isTestnetSite, type TonkNetwork } from "@/shared/tonk/networks";
 import { formatDate, shortAddress } from "../../lib/format";
 import { type Insight, InsightsFrame } from "../InsightsCard";
 
@@ -81,7 +81,7 @@ export function MissionInsights({ mission, score, level, network }: MissionInsig
     lock && holding
       ? { icon: Lock, title: fmt(i.devLocked, { pct: Math.round(lock.lockedBps / 100) }), sub: lock.type === "time" ? t.launch.lock.time : fmt(t.token.stats.vest, { days }), tone: "text-locked" }
       : { icon: Lock, title: i.noLock, sub: i.canMove, tone: "text-warn" },
-    { icon: Users, title: "—", sub: `${i.top10} · ${t.launch.testnet.laterTitle}` },
+    { icon: Users, title: "—", sub: `${i.top10} · ${isTestnetSite() ? t.launch.testnet.laterTitle : t.native.soon}` },
     { icon: Wallet, title: shortAddress(mission.creator), sub: t.mission.facts.creator, mono: true },
   ];
   return (

@@ -36,6 +36,9 @@ export const ALLOWANCES = {
   tonkToken: { burst: 40, perSecond: 1 },
   tonkAccount: { burst: 40, perSecond: 1 },
   tonkTrade: { burst: 12, perSecond: 0.2 },
+  // A graduated token's pool: quotes refresh as the amount is typed, trades as rarely as curve trades.
+  tonkPoolQuote: { burst: 30, perSecond: 0.5 },
+  tonkPoolTrade: { burst: 12, perSecond: 0.2 },
   tonkAction: { burst: 8, perSecond: 0.1 },
   tonkMissions: { burst: 20, perSecond: 0.5 },
   // Portfolio: each connected wallet refreshes once a minute; activity loads per tab and per "Load more"; the market series are per chart range.

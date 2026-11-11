@@ -79,12 +79,31 @@ function launchBuyOf(mission: MissionJson, trades: readonly MissionTradeJson[]):
   return mission.lock && mission.lock.lockedBps > 0 ? (BigInt(mission.lock.total) * BigInt(10_000)) / BigInt(mission.lock.lockedBps) : BigInt(0);
 }
 
+/** A candle's prices and volume at `rate` dollars per coin. */
+const inDollars = (candle: Candle, rate: number): Candle => ({
+  time: candle.time,
+  open: candle.open * rate,
+  high: candle.high * rate,
+  low: candle.low * rate,
+  close: candle.close * rate,
+  volume: candle.volume * rate,
+});
+
 /**
- * A mission as the token page shows it, in the chain's coin: every figure
- * here comes from the launchpad's state or its trades. What needs an
- * indexer (holders, top traders) stays empty rather than made up.
+ * A mission as the token page shows it: every figure here comes from the
+ * launchpad's state or its trades. What needs an indexer (holders, top
+ * traders) stays empty rather than made up.
+ *
+ * Without `usdPerCoin` (the testnet site) the figures are in the chain's
+ * coin. With it (mainnet) the page counts in dollars like every other
+ * token: market figures at that price, and with no price yet (null) the
+ * market reads as unavailable rather than as ETH under a dollar sign.
+ * Liquidity and trade sizes stay in the coin either way.
  */
-export function missionDetail({ mission, trades }: MissionPageJson, network: TonkNetwork): TokenDetail {
+export function missionDetail({ mission, trades }: MissionPageJson, network: TonkNetwork, usdPerCoin?: number | null): TokenDetail {
+  const dollars = usdPerCoin !== undefined;
+  const rate = !dollars ? 1 : usdPerCoin !== null && Number.isFinite(usdPerCoin) && usdPerCoin > 0 ? usdPerCoin : null;
+  const money = (value: number) => (rate === null ? 0 : value * rate);
   const now = Math.floor(mission.readAt / 1000);
   const oldestFirst = [...trades].reverse();
   const [virtualEth, virtualTokens] = [BigInt(mission.virtualEth), BigInt(mission.virtualTokens)];
@@ -105,15 +124,20 @@ export function missionDetail({ mission, trades }: MissionPageJson, network: Ton
   });
   const details = decodeMetadata(mission.metadata);
   const agent = decodeAgent(mission.agentPrompt);
-  const candles = Object.fromEntries(CHART_TIMEFRAMES.map((tf) => [tf, candlesFrom(oldestFirst, TF_SECONDS[tf], now)])) as Record<ChartTimeframe, Candle[]>;
+  const candlesOf = (seconds: number): Candle[] => {
+    if (rate === null) return [];
+    const inCoin = candlesFrom(oldestFirst, seconds, now);
+    return rate === 1 ? inCoin : inCoin.map((candle) => inDollars(candle, rate));
+  };
+  const candles = Object.fromEntries(CHART_TIMEFRAMES.map((tf) => [tf, candlesOf(TF_SECONDS[tf])])) as Record<ChartTimeframe, Candle[]>;
   const shown: TokenTrade[] = trades.map((trade) => ({
     id: trade.id,
     ageSeconds: Math.max(0, now - trade.time),
     side: trade.side,
-    usd: null,
+    usd: dollars && rate !== null ? eth(trade.eth) * rate : null,
     native: eth(trade.eth),
     tokens: tokens(trade.tokens),
-    marketCap: capsOf(trade).after,
+    marketCap: rate === null ? null : capsOf(trade).after * rate,
     trader: trade.trader,
     tag: null,
     txUrl: explorerTxUrl(network, trade.tx),
@@ -130,12 +154,12 @@ export function missionDetail({ mission, trades }: MissionPageJson, network: Ton
       score: score.score,
       level: score.level,
       spark: { seed: 1, drift: 0, vol: 0 },
-      series: oldestFirst.map((trade) => capsOf(trade).after),
+      series: oldestFirst.map((trade) => money(capsOf(trade).after)),
       change24h: dayAgo > 0 ? ((cap - dayAgo) / dayAgo) * 100 : 0,
-      volume24h: day.reduce((sum, trade) => sum + eth(trade.eth), 0),
+      volume24h: money(day.reduce((sum, trade) => sum + eth(trade.eth), 0)),
       holders: null,
       smartWallets: 0,
-      marketCap: cap,
+      marketCap: money(cap),
       flags: {
         hot: false,
         og: false,
@@ -150,7 +174,7 @@ export function missionDetail({ mission, trades }: MissionPageJson, network: Ton
     },
     contract: mission.token,
     launchedAt: mission.launchedAt * 1000,
-    priceUsd: tokenPrice(virtualEth, virtualTokens),
+    priceUsd: rate === null ? null : tokenPrice(virtualEth, virtualTokens) * rate,
     supply: Number(TOTAL_SUPPLY / BigInt(10) ** BigInt(18)),
     description: details.description || null,
     links: { website: details.website || null, community: details.telegram || (details.x ? `https://x.com/${details.x.replace(/^@/, "")}` : null) },
@@ -169,10 +193,11 @@ export function missionDetail({ mission, trades }: MissionPageJson, network: Ton
     curve: mission.graduated ? null : shortAddress(network.launchpad),
     feePct: (100 + mission.crewBps + mission.creatorBps) / 100,
     devLock: lockOf(mission, network, now),
-    crew: mission.crewBps >= 100 ? { paidUsd: eth(mission.crewPaid), sharePct: mission.crewBps / 100, lastPayoutSeconds: 0, daily: [] } : null,
+    crew: mission.crewBps >= 100 ? { paidUsd: money(eth(mission.crewPaid)), sharePct: mission.crewBps / 100, lastPayoutSeconds: 0, daily: [] } : null,
     // The agent's brief is stored (the Agent mark says so), but no agent answers yet: nothing here is "live".
     agent: null,
-    nativeUsd: null,
+    nativeUsd: dollars ? rate : null,
+    ...(rate === null ? { marketAvailable: false } : {}),
     updatedAt: mission.readAt,
   };
 }

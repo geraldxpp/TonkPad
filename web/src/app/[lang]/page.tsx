@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { ExplorePage } from "@/modules/explore/ExplorePage";
 import { pageTitle } from "@/modules/shell/lib/meta";
+import { LaunchpadCorner } from "@/modules/shell/components/LaunchpadCorner";
 import { TestnetExplore } from "@/modules/shell/components/TestnetExplore";
 import { getI18n } from "@/shared/i18n/server";
-import { isTestnetSite } from "@/shared/tonk/networks";
+import { isTestnetSite, tonkNetwork } from "@/shared/tonk/networks";
 
 // The layout's title template only reaches child segments, and this page shares the layout's.
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,5 +14,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function Page({ searchParams }: PageProps<"/[lang]">) {
   if (isTestnetSite()) return <TestnetExplore />;
-  return <ExplorePage searchParams={searchParams} />;
+  return (
+    <>
+      <ExplorePage searchParams={searchParams} />
+      {/* Mainnet, once its launchpad is connected: its latest launches and a way in by address. */}
+      {tonkNetwork() ? <LaunchpadCorner /> : null}
+    </>
+  );
 }

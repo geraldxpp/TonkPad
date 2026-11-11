@@ -37,6 +37,19 @@ export function isLocked(hasDevBuy: boolean, lock: LockSettings): boolean {
   return hasDevBuy && lock.type !== "none" && lock.sharePct >= MIN_LOCK_SHARE && lock.days >= MIN_LOCK_DAYS;
 }
 
+/**
+ * A Creator Rewards tier above 0.5% also needs 1% of supply locked: 10M
+ * tokens, in wei. It's the mainnet contract's rule (review finding M-2), so
+ * a dust dev buy with a dust lock unlocks nothing.
+ */
+export const MIN_LOCKED_FOR_TIER = BigInt(10_000_000) * BigInt(10) ** BigInt(18);
+
+/** The tier a launch really reaches: its lock's tier, but none while the lock holds under 1% of supply. */
+export function effectiveTier(hasDevBuy: boolean, lock: LockSettings, bought: bigint): LockTier {
+  const tier = lockTier(hasDevBuy, lock);
+  return tier !== "none" && lockedAmount(bought, lock) < MIN_LOCKED_FOR_TIER ? "none" : tier;
+}
+
 /** Ironclad: 80%+ locked for 90+ days. Standard: 50%+ for 30+ days. Otherwise none. */
 export function lockTier(hasDevBuy: boolean, lock: LockSettings): LockTier {
   if (!isLocked(hasDevBuy, lock)) return "none";

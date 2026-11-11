@@ -45,6 +45,8 @@ export interface MissionJson {
   creatorHeld: string;
   /** The L2 block this read saw. Ordinary buys in the launch block and the next lose 99%. */
   block: number;
+  /** Once graduated, where graduated pools trade: the Uniswap pool's id, which a pool trade's receipt is matched to. */
+  pool?: string | null;
   buyingOpen: boolean;
   /** ms */
   readAt: number;
@@ -162,7 +164,9 @@ export type TxEventJson =
   | { kind: "extended"; token: string; lockEnd: number }
   | { kind: "edited"; token: string }
   | { kind: "rewards"; token: string; holder: string; amount: string }
-  | { kind: "withdrawn"; recipient: string; amount: string };
+  | { kind: "withdrawn"; recipient: string; amount: string }
+  // A swap on a graduated token's Uniswap pool, from the PoolManager's own Swap event: ETH and tokens in wei.
+  | { kind: "pool"; pool: string; side: TradeSide; eth: string; tokens: string };
 
 /** A stored lock in the launchpad's own units, for the lock maths. */
 export function missionLock(lock: MissionLockJson): DevLockState {

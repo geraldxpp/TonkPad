@@ -1,14 +1,18 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useShellLive } from "@/modules/shell/live/ShellLive";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
+import { tokenPrice } from "@/shared/tonk/curve";
 import type { ActionRequest, MissionJson, MissionPageJson, TradeSide } from "@/shared/tonk/mission";
-import { explorerAddressUrl, type TonkNetwork } from "@/shared/tonk/networks";
+import { explorerAddressUrl, isTestnetSite, LAUNCHPAD_AUDITED, type TonkNetwork } from "@/shared/tonk/networks";
+import { BetaNotice } from "@/shared/ui/BetaNotice";
 import { ActivityCard } from "./components/activity/ActivityCard";
 import { CreatorPanel } from "./components/curve/CreatorPanel";
 import { CurveStatus } from "./components/curve/CurveStatus";
 import { CurveTradePanel } from "./components/curve/CurveTradePanel";
+import { PoolTradePanel } from "./components/curve/PoolTradePanel";
 import { MissionInsights } from "./components/curve/MissionInsights";
 import { MissionTags } from "./components/curve/MissionTags";
 import { RewardsCard } from "./components/curve/RewardsCard";
@@ -22,7 +26,7 @@ import { useAction } from "./hooks/useAction";
 import { useMissionAccount } from "./hooks/useMissionAccount";
 import { useSentTrade } from "./hooks/useSentTrade";
 import { missionDetail } from "./lib/mission-detail";
-import { coinAmount } from "./lib/money";
+import { coinAmount, MONEY_UNIT } from "./lib/money";
 
 interface MissionViewProps {
   page: MissionPageJson;
@@ -42,7 +46,10 @@ interface MissionViewProps {
 export function MissionView({ page, network, onMission, onRefresh }: MissionViewProps) {
   const { t } = useI18n();
   const { mission } = page;
-  const detail = useMemo(() => missionDetail(page, network), [page, network]);
+  const shell = useShellLive();
+  // The testnet site counts in test ETH; mainnet in dollars at the live ETH price, and as unavailable until there is one.
+  const usdPerCoin = MONEY_UNIT ? undefined : (shell.data?.status.ethUsd ?? null);
+  const detail = useMemo(() => missionDetail(page, network, usdPerCoin), [page, network, usdPerCoin]);
   const view = useMissionAccount(mission.token);
   const { owner, account, refresh: refreshAccount } = view;
   // Whatever confirms (a trade, a claim, an edit), the page and the wallet's standing are read again.
@@ -54,12 +61,19 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
   const { state: action, start, reset: stopWatching } = useAction(refreshAll);
   const onAction = useCallback((request: ActionRequest) => void start(request), [start]);
   const isCreator = owner !== null && owner.toLowerCase() === mission.creator.toLowerCase();
-  const later = t.launch.testnet.laterTitle;
-  const panel = (side: TradeSide, close?: () => void) => (
-    <CurveTradePanel key={side} mission={mission} network={network} view={view} sent={sent} onSent={send} onDismiss={dismiss} onMission={onMission} initialSide={side} onClose={close} />
-  );
+  // What waits for the indexer: "not on testnet yet" there, "coming soon" on mainnet.
+  const later = isTestnetSite() ? t.launch.testnet.laterTitle : t.native.soon;
+  // Once graduated, trading moves to the token's Uniswap pool where this network has Uniswap's router.
+  const pool = mission.graduated && network.uniswap !== null;
+  const panel = (side: TradeSide, close?: () => void) =>
+    pool ? (
+      <PoolTradePanel key={side} mission={mission} network={network} view={view} sent={sent} onSent={send} onDismiss={dismiss} initialSide={side} onClose={close} />
+    ) : (
+      <CurveTradePanel key={side} mission={mission} network={network} view={view} sent={sent} onSent={send} onDismiss={dismiss} onMission={onMission} initialSide={side} onClose={close} />
+    );
   return (
     <div className="flex w-full min-w-0 flex-col gap-5 max-md:gap-4 max-md:pb-2">
+      {!isTestnetSite() && !LAUNCHPAD_AUDITED ? <BetaNotice text={t.launch.beta} /> : null}
       <TokenBreadcrumb name={mission.name} />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_336px] xl:grid-cols-[minmax(0,1fr)_360px] max-lg:gap-5">
         <div className="flex min-w-0 flex-col gap-5 max-md:gap-4">
@@ -80,10 +94,10 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
       <TradeDock
         token={tradeTokenOf(detail)}
         live
-        price={coinAmount(detail.priceUsd ?? 0)}
+        price={coinAmount(tokenPrice(BigInt(mission.virtualEth), BigInt(mission.virtualTokens)))}
         unit={network.unit}
         panel={panel}
-        notice={sent ? <CurveStatus sent={sent} token={mission.token} ticker={mission.symbol} network={network} onDismiss={dismiss} /> : null}
+        notice={sent ? <CurveStatus sent={sent} token={mission.token} ticker={mission.symbol} network={network} pool={mission.pool ?? null} onDismiss={dismiss} /> : null}
       />
     </div>
   );

@@ -27,6 +27,8 @@ export interface TradeFormInput {
   /** An earlier trade is still waiting for its receipt. */
   waiting: boolean;
   settings: TonkSettingsJson | null;
+  /** Trading on the graduated token's pool: the launchpad's pause and its launch-block wait don't apply there. */
+  pool?: boolean;
 }
 
 export interface TradeForm {
@@ -43,7 +45,7 @@ export interface TradeForm {
  * half, three quarters and Max of the tokens held for a sell), the balance
  * line, and the button, which names the first thing that is missing.
  */
-export function tradeForm({ t, mission, side, unit, owner, account, failed, amount, quoted, waiting, settings }: TradeFormInput): TradeForm {
+export function tradeForm({ t, mission, side, unit, owner, account, failed, amount, quoted, waiting, settings, pool = false }: TradeFormInput): TradeForm {
   const tr = t.token.trade;
   const m = t.mission.trade;
   const buy = side === "buy";
@@ -67,11 +69,11 @@ export function tradeForm({ t, mission, side, unit, owner, account, failed, amou
   const stopped = (label: string) => ({ label, disabled: true });
   const cta = !owner
     ? { label: t.header.connectWallet, disabled: false }
-    : mission.graduated
+    : mission.graduated && !pool
       ? stopped(m.graduated)
-      : mission.paused
+      : mission.paused && !pool
         ? stopped(m.paused)
-        : buy && !mission.buyingOpen
+        : buy && !mission.buyingOpen && !pool
           ? stopped(m.early)
           : !quoted
             ? stopped(tr.enter)

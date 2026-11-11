@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chainText, decodeAgent, decodeMetadata, encodeAgent, encodeMetadata, normalizeTelegram, normalizeWebsite, normalizeX } from "@/shared/tonk/metadata";
-import { parseTonkMode, TONK_TESTNET, tonkNetwork } from "@/shared/tonk/networks";
+import { mainnetNetwork, parseTonkMode, TONK_TESTNET, tonkNetwork } from "@/shared/tonk/networks";
 
 /** 👻: one character, two UTF-16 units. */
 const GHOST = "\u{1F47B}";
@@ -118,12 +118,48 @@ describe("what a mission stores", () => {
 });
 
 describe("the network mode", () => {
-  it("is off unless it names testnet or mock, and only testnet has contracts", () => {
-    expect([parseTonkMode(undefined), parseTonkMode(""), parseTonkMode("mainnet"), parseTonkMode(" Testnet "), parseTonkMode("mock")]).toEqual(["off", "off", "off", "testnet", "mock"]);
+  it("is off unless it names testnet, mainnet or mock", () => {
+    expect([parseTonkMode(undefined), parseTonkMode(""), parseTonkMode("main"), parseTonkMode(" Testnet "), parseTonkMode("MAINNET"), parseTonkMode("mock")]).toEqual(["off", "off", "off", "testnet", "mainnet", "mock"]);
     expect(tonkNetwork("testnet")).toBe(TONK_TESTNET);
     expect(tonkNetwork("mock")).toBeNull();
     expect(tonkNetwork("off")).toBeNull();
     expect(TONK_TESTNET.chainId).toBe(46630);
     expect(TONK_TESTNET.launchpad).toMatch(/^0x[0-9a-fA-F]{40}$/);
+  });
+
+  it("connects mainnet only once the deployment's addresses and block are set, and keeps them lowercase", () => {
+    // This build sets no deployment, so mainnet mode connects nothing and Launch stays "coming soon".
+    expect(tonkNetwork("mainnet")).toBeNull();
+    const deployment = { launchpad: " 0x4bB2D0A3F7c1E2b4a5C6d7E8f9A0b1C2d3E404d6 ", migrator: "0xC78C9b0a1D2e3F4a5B6c7D8e9F0a1B2c3D4e3d45", block: "111619078" };
+    expect(mainnetNetwork(deployment)).toEqual({
+      chainId: 4663,
+      name: "Robinhood Chain",
+      unit: "ETH",
+      rpcUrl: "https://rpc.mainnet.chain.robinhood.com",
+      explorerUrl: "https://robinhoodchain.blockscout.com",
+      faucetUrl: null,
+      launchpad: "0x4bb2d0a3f7c1e2b4a5c6d7e8f9a0b1c2d3e404d6",
+      migrator: "0xc78c9b0a1d2e3f4a5b6c7d8e9f0a1b2c3d4e3d45",
+      externalRouter: null,
+      uniswap: {
+        poolManager: "0x8366a39cc670b4001a1121b8f6a443a643e40951",
+        universalRouter: "0x204faca1764b154221e35c0d20abb3c525710498",
+        permit2: "0x000000000022d473030f116ddee9f6b43ac78ba3",
+        quoter: "0x8dc178efb8111bb0973dd9d722ebeff267c98f94",
+      },
+      launchpadBlock: 111619078,
+    });
+    expect(TONK_TESTNET.uniswap).toBeNull();
+    for (const bad of [
+      { ...deployment, launchpad: undefined },
+      { ...deployment, migrator: "0x123" },
+      { ...deployment, migrator: deployment.launchpad.trim().toLowerCase() },
+      { ...deployment, block: "" },
+      { ...deployment, block: "0" },
+      { ...deployment, block: "12.5" },
+      { ...deployment, block: "1e30" },
+    ]) {
+      expect(mainnetNetwork(bad)).toBeNull();
+    }
   });
 });

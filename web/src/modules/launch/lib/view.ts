@@ -1,5 +1,5 @@
 import { type BuyQuote, CURVE_SUPPLY, type CurveSettings, devBuyQuote, graduationTarget, marketCap, percentOf, PROTOCOL_FEE_BPS, TOTAL_SUPPLY } from "@/shared/tonk/curve";
-import { isLocked, lockedAmount, type LockSettings, type LockTier, lockTier, TIER_CREATOR_MAX } from "@/shared/tonk/rules";
+import { effectiveTier, isLocked, lockedAmount, type LockSettings, type LockTier, TIER_CREATOR_MAX } from "@/shared/tonk/rules";
 import { type LaunchScore, launchScore } from "@/shared/tonk/score";
 import { devBuyWei, type LaunchForm, lockSettings } from "./form";
 
@@ -44,7 +44,8 @@ export function launchView(form: LaunchForm, settings: CurveSettings): LaunchVie
   const bought = quote.tokensOut;
   const locks = isLocked(hasBuy, lock);
   const locked = locks ? lockedAmount(bought, lock) : BigInt(0);
-  const tier = lockTier(hasBuy, lock);
+  // A lock under 1% of supply unlocks no tier, as the mainnet contract rules.
+  const tier = effectiveTier(hasBuy, lock, bought);
   const crewDaily = (form.volume * form.crew) / 10_000;
   return {
     devBuy,

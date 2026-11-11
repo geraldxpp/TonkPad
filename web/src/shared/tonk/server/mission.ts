@@ -6,6 +6,7 @@ import type { MissionJson, MissionPageJson, MissionSummaryJson, MissionTradeJson
 import type { TonkNetwork } from "../networks";
 import { ARBSYS, ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
 import { TonkError, tonkClient } from "./client";
+import { poolIdAt } from "./pool";
 
 const LOCK_TYPES = ["none", "time", "linear"] as const;
 /** The newest trades the page reads; older history waits for the indexer. */
@@ -59,6 +60,8 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
     ]);
     const [lockType, lockedBps, lockStart, lockEnd, totalLocked, claimed] = lock;
     const type = LOCK_TYPES[lockType] ?? "none";
+    // A graduated token trades on its pool where this network has a router; its id is how a pool trade's receipt is recognised.
+    const pool = graduated && network.uniswap ? await poolIdAt(client, network, token, crewBps + creatorBps, blockNumber) : null;
     return {
       chainId: network.chainId,
       token: address,
@@ -82,6 +85,7 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
       lock: type === "none" || totalLocked === BigInt(0) ? null : { type, lockedBps, start: Number(lockStart), end: Number(lockEnd), total: String(totalLocked), claimed: String(claimed), checkpoint: String(checkpoint) },
       creatorHeld: String(creatorHeld),
       block: Number(block),
+      pool,
       buyingOpen: block > launchBlock + BigInt(1),
       readAt: Date.now(),
     };

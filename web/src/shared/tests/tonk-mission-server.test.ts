@@ -60,6 +60,8 @@ function chain() {
     /** What the contract answers when the call is simulated; a function to throw. */
     simulated: big(0) as bigint | (() => never),
     callFails: null as unknown,
+    /** The migrator the launchpad would graduate into: the deployed one unless a test says otherwise. */
+    migrator: TONK_TESTNET.migrator as string,
   };
 }
 type Chain = ReturnType<typeof chain>;
@@ -76,6 +78,8 @@ function fakeClient(state: Chain) {
         return state.checkpoint;
       case "paused":
         return state.paused;
+      case "graduationMigrator":
+        return state.migrator;
       case "name":
         return state.name;
       case "symbol":
@@ -377,6 +381,42 @@ describe("building a buy", () => {
     change(state);
     connect(state);
     await expect(buildTrade(TONK_TESTNET, BUY)).rejects.toMatchObject({ code });
+  });
+});
+
+describe("the deployed migrator", () => {
+  it("builds nothing that could complete a curve once the launchpad names another migrator", async () => {
+    const state = chain();
+    state.migrator = "0x00000000000000000000000000000000000bad00";
+    state.simulated = BOUGHT;
+    const client = connect(state);
+    await expect(buildTrade(TONK_TESTNET, BUY)).rejects.toMatchObject({ code: "migrator", status: 409 });
+    expect(client.simulateContract).not.toHaveBeenCalled();
+    expect(client.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: "graduationMigrator", blockNumber: state.block }));
+  });
+
+  it("still lets a holder sell: a sale never graduates a curve", async () => {
+    const state = chain();
+    state.migrator = "0x00000000000000000000000000000000000bad00";
+    state.allowance = big(SELL.amount);
+    state.simulated = SOLD_FOR;
+    connect(state);
+    const build = await buildTrade(TONK_TESTNET, SELL);
+    expect(build.step).toBe("trade");
+  });
+
+  it("matches the migrator whatever its letter case, and says unavailable when it can't be read", async () => {
+    const state = chain();
+    state.migrator = TONK_TESTNET.migrator.toLowerCase();
+    state.simulated = BOUGHT;
+    connect(state);
+    expect((await buildTrade(TONK_TESTNET, BUY)).step).toBe("trade");
+    const client = connect(chain());
+    client.readContract.mockImplementation(async ({ functionName }: { functionName: string }) => {
+      if (functionName === "graduationMigrator") throw new Error("socket hang up");
+      return fakeClient(chain()).readContract({ functionName });
+    });
+    await expect(buildTrade(TONK_TESTNET, BUY)).rejects.toMatchObject({ code: "unavailable" });
   });
 });
 

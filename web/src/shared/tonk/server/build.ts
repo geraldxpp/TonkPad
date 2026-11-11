@@ -1,6 +1,8 @@
 import { BaseError, ContractFunctionRevertedError, InsufficientFundsError, type PublicClient } from "viem";
 import { isEvmAddress } from "@/shared/lib/address";
+import type { TonkNetwork } from "../networks";
 import type { UnsignedTx } from "../types";
+import { LAUNCHPAD_ABI } from "./abi";
 import { TonkError } from "./client";
 
 /** Gas is estimated, then padded: Robinhood Chain's price moves with its parent chain's data cost. */
@@ -46,6 +48,56 @@ export function refusal(error: unknown): TonkError {
     if (/revert/i.test(error.message)) return new TonkError("refused", "reverted", 409);
   }
   return new TonkError("unavailable", "simulation failed");
+}
+
+/**
+ * A buy or a launch can complete a curve, which sends that curve's ETH and
+ * pool tokens to the launchpad's migrator. Neither is built unless that is
+ * still the migrator this site was deployed with (prompts/07-mainnet.md,
+ * decision 2). Sells and claims never graduate a curve, so holders can
+ * always leave whatever this says.
+ */
+export async function requireDeployedMigrator(client: PublicClient, network: TonkNetwork, blockNumber?: bigint): Promise<void> {
+  let migrator: string;
+  try {
+    migrator = await client.readContract({ address: network.launchpad, abi: LAUNCHPAD_ABI, functionName: "graduationMigrator", ...(blockNumber === undefined ? {} : { blockNumber }) });
+  } catch {
+    throw new TonkError("unavailable", "migrator unreadable");
+  }
+  if (migrator.toLowerCase() !== network.migrator.toLowerCase()) throw new TonkError("migrator", "the launchpad graduates into a migrator this site doesn't know", 409);
+}
+
+/** After an approval the chain is read again, at most this many times a second apart, until it reaches the approval's block. */
+const CATCH_UP_TRIES = 5;
+const CATCH_UP_MS = 1_000;
+/** How often a just-confirmed approval's receipt is asked for again before the sale gives up. */
+const RECEIPT_TRIES = 3;
+const RECEIPT_WAIT_MS = 1_000;
+
+/** The chain's head, never cached; after an approval, no earlier than its block (an RPC replica can lag a moment). */
+export async function headAtLeast(client: PublicClient, floor: bigint | null): Promise<bigint> {
+  for (let attempt = 0; ; attempt += 1) {
+    const head = await client.getBlockNumber({ cacheTime: 0 }).catch(() => {
+      throw new TonkError("unavailable", "block unreadable");
+    });
+    if (floor === null || head >= floor) return head;
+    if (attempt >= CATCH_UP_TRIES) throw new TonkError("unavailable", "the chain hasn't reached the approval yet");
+    await new Promise((resolve) => setTimeout(resolve, CATCH_UP_MS));
+  }
+}
+
+/**
+ * A just-confirmed approval's receipt, for a sale on the curve or on a pool.
+ * The page saw it confirmed, but this read may reach a replica a moment
+ * behind, or fail outright: asked again a few times before giving up.
+ */
+export async function approvalReceipt(client: PublicClient, hash: `0x${string}`) {
+  for (let attempt = 0; ; attempt += 1) {
+    const receipt = await client.getTransactionReceipt({ hash }).catch(() => null);
+    if (receipt) return receipt;
+    if (attempt >= RECEIPT_TRIES) throw new TonkError("unavailable", "approval receipt unreadable");
+    await new Promise((resolve) => setTimeout(resolve, RECEIPT_WAIT_MS));
+  }
 }
 
 /** An estimate with the margin every built transaction carries. */

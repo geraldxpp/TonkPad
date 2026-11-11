@@ -1,12 +1,12 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { tonkMode } from "@/shared/tonk/networks";
+import { tonkNetwork } from "@/shared/tonk/networks";
 import { loadLaunchData } from "./data/get-launch-data";
 import { LaunchScreen } from "./LaunchScreen";
 
 async function LaunchContent() {
   // The launchpad's own settings are read per request, never while the page is prerendered. The demo's are fixed.
-  if (tonkMode() === "testnet") await connection();
+  if (tonkNetwork()) await connection();
   return <LaunchScreen data={await loadLaunchData()} />;
 }
 

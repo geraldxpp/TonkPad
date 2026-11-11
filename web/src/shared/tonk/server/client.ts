@@ -17,7 +17,12 @@ export class TonkError extends Error {
       | "early"
       | "tokens"
       | "forbidden"
-      | "nothing",
+      | "nothing"
+      // Mainnet: the launchpad graduates into a migrator this site wasn't deployed with.
+      | "migrator"
+      // A graduated token's pool: still on its curve; graduated but its pool not open yet.
+      | "curve"
+      | "pending",
     message: string,
     readonly status = 502,
   ) {
@@ -28,9 +33,15 @@ export class TonkError extends Error {
 
 const RPC_TIMEOUT_MS = 12_000;
 
-/** The RPC the server reads the launchpad from: TONK_RPC_URL when set, else the network's public one. Never NEXT_PUBLIC_. */
+/**
+ * The RPC the server reads the launchpad from: TONK_RPC_URL when set; on
+ * mainnet, else the site's own Robinhood Chain RPC (ROBINHOOD_RPC_URL); else
+ * the network's public one. Never NEXT_PUBLIC_. A wrong chain is caught by
+ * `tonkClient`'s check.
+ */
 export function tonkRpcUrl(network: TonkNetwork, env: Readonly<Record<string, string | undefined>> = process.env): string {
-  return env.TONK_RPC_URL?.trim() || network.rpcUrl;
+  const site = network.chainId === 4663 ? env.ROBINHOOD_RPC_URL?.trim() : "";
+  return env.TONK_RPC_URL?.trim() || site || network.rpcUrl;
 }
 
 let current: { url: string; client: PublicClient; verified: Promise<void> | null } | null = null;

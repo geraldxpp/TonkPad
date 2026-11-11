@@ -24,7 +24,7 @@ export interface LiveSettings {
  * keeps its mock settings and never asks.
  */
 export function useLaunchSettings(data: LaunchData, fresh: TonkSettingsJson | null = null): LiveSettings {
-  const live = data.mode === "testnet";
+  const live = data.mode !== "mock";
   const { data: polled, error } = usePolling<TonkSettingsJson | null>(live ? SETTINGS_PATH : null, data.settings, SETTINGS_REFRESH_MS, data.settings ? SETTINGS_PATH : null);
   const last = isSettings(polled) ? polled : null;
   // What the server read while building a launch is newer than the last poll until the next one lands.

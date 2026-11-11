@@ -77,8 +77,17 @@ describe("a launch request", () => {
 });
 
 /** A client that simulates and estimates as told, with the creator's balance. */
-function fakeClient({ simulate = async () => ({}), balance = BigInt(10) ** BigInt(16) }: { simulate?: () => Promise<unknown>; balance?: bigint } = {}) {
-  return { simulateContract: vi.fn(simulate), estimateContractGas: vi.fn(async () => BigInt(1_500_000)), getBalance: vi.fn(async () => balance), getGasPrice: vi.fn(async () => BigInt(10_000_000)) };
+function fakeClient({ simulate = async () => ({}), balance = BigInt(10) ** BigInt(16), migrator = TONK_TESTNET.migrator as string }: { simulate?: () => Promise<unknown>; balance?: bigint; migrator?: string } = {}) {
+  return {
+    simulateContract: vi.fn(simulate),
+    estimateContractGas: vi.fn(async () => BigInt(1_500_000)),
+    getBalance: vi.fn(async () => balance),
+    getGasPrice: vi.fn(async () => BigInt(10_000_000)),
+    readContract: vi.fn(async ({ functionName }: { functionName: string }) => {
+      if (functionName === "graduationMigrator") return migrator;
+      throw new Error(`unexpected read ${functionName}`);
+    }),
+  };
 }
 const useClient = (client: ReturnType<typeof fakeClient>) => vi.mocked(tonkClient).mockResolvedValue(client as never);
 
@@ -108,6 +117,8 @@ describe("building a launch", () => {
     ["a lock without a dev buy", { devBuy: "0" }],
     ["a lock under 7 days", { lock: "time", days: 6, creatorBps: 50 }],
     ["a dev buy over the cap", { devBuy: "9000000000000000000" }],
+    // A dust dev buy: its 80% lock is far under 1% of supply, so no tier above 0.5% (review finding M-2).
+    ["Creator Rewards above 0.5% on a lock under 1% of supply", { devBuy: "1000000000" }],
   ] as [string, Partial<LaunchRequest>][])("refuses %s before asking the chain", async (_, patch) => {
     const client = fakeClient();
     useClient(client);
@@ -134,6 +145,13 @@ describe("building a launch", () => {
     useClient(fakeClient({ simulate: async () => Promise.reject(new Error("socket hang up")) }));
     await expect(buildLaunch(TONK_TESTNET, REQUEST)).rejects.toMatchObject({ code: "unavailable" });
   });
+
+  it("builds no launch once the launchpad names a migrator this site wasn't deployed with: its own buy could graduate", async () => {
+    const client = fakeClient({ migrator: "0x00000000000000000000000000000000000bad00" });
+    useClient(client);
+    await expect(buildLaunch(TONK_TESTNET, REQUEST)).rejects.toMatchObject({ code: "migrator", status: 409 });
+    expect(client.simulateContract).not.toHaveBeenCalled();
+  });
 });
 
 /** A log as a node returns it, for one of the launchpad's events. */
@@ -151,7 +169,7 @@ function log(address: string, eventName: "MissionLaunched" | "CurveTrade", index
     removed: false,
   };
 }
-const launched = (address: string) => log(address, "MissionLaunched", { token: TOKEN, creator: CREATOR }, ["Tonk Test One", "TTONE", "{}", 200, 100, 2, 8000, BigInt(1_800_000_000), BigInt(200_000_000_000_000)]);
+const launched = (address: string, lockType = 2) => log(address, "MissionLaunched", { token: TOKEN, creator: CREATOR }, ["Tonk Test One", "TTONE", "{}", 200, 100, lockType, 8000, BigInt(1_800_000_000), BigInt(200_000_000_000_000)]);
 const bought = (address: string, isBuy = true) =>
   log(address, "CurveTrade", { token: TOKEN, trader: CREATOR }, [isBuy, BigInt(200_000_000_000_000), BigInt(124_002_358) * BigInt(10) ** BigInt(18), BigInt(2_000_000_000_000), BigInt(0), BigInt(2_000_000_000_000), BigInt(1), BigInt(1), BigInt(1)]);
 
@@ -170,6 +188,11 @@ describe("a launch's receipt", () => {
     expect(missionFromLogs(TONK_TESTNET, [], 1)).toBeNull();
     // A launch with no dev buy has no trade: nothing bought.
     expect(missionFromLogs(TONK_TESTNET, [launched(TONK_TESTNET.launchpad)], 1)).toMatchObject({ bought: "0", locked: "0", protocolFee: "0" });
+  });
+
+  it("shows no lock for a no-lock launch, whatever share its event carries (review finding L-3)", () => {
+    const mission = missionFromLogs(TONK_TESTNET, [launched(TONK_TESTNET.launchpad, 0), bought(TONK_TESTNET.launchpad)], 1);
+    expect(mission).toMatchObject({ lockType: "none", lockedBps: 0, lockEnd: 0, locked: "0" });
   });
 });
 

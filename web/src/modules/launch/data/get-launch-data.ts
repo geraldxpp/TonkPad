@@ -1,11 +1,11 @@
 import { CHAINS } from "@/shared/config/chains";
-import { TONK_TESTNET, type TonkMode, tonkMode } from "@/shared/tonk/networks";
+import { type TonkMode, tonkMode, type TonkNetwork, tonkNetwork } from "@/shared/tonk/networks";
 import { readSettings } from "@/shared/tonk/server/settings";
 import type { TonkSettingsJson } from "@/shared/tonk/types";
 
 /** What the Creator Studio needs before the first paint. */
 export interface LaunchData {
-  /** "testnet" launches for real on Robinhood Chain Testnet; "mock" is the demo the tests run on. */
+  /** "testnet" and "mainnet" launch for real on their chain; "mock" is the demo the tests run on. */
   mode: Exclude<TonkMode, "off">;
   chainName: string;
   /** What amounts are counted in: "ETH" or "test ETH". */
@@ -32,14 +32,14 @@ export async function getLaunchData(): Promise<LaunchData> {
   return { mode: "mock", chainName: CHAINS.rh.name, unit: "ETH", explorerUrl: null, faucetUrl: null, settings: MOCK_SETTINGS };
 }
 
-/** Live data: the testnet launchpad's own settings, read on the server. */
-export async function getLiveLaunchData(): Promise<LaunchData> {
-  const network = TONK_TESTNET;
+/** Live data: the connected launchpad's own settings, read on the server. */
+export async function getLiveLaunchData(network: TonkNetwork, mode: "testnet" | "mainnet"): Promise<LaunchData> {
   const settings = await readSettings(network).catch(() => null);
-  return { mode: "testnet", chainName: network.name, unit: network.unit, explorerUrl: network.explorerUrl, faucetUrl: network.faucetUrl, settings };
+  return { mode, chainName: network.name, unit: network.unit, explorerUrl: network.explorerUrl, faucetUrl: network.faucetUrl, settings };
 }
 
-/** The loader for this build's mode. */
+/** The loader for this build's mode: live wherever a launchpad network is connected, the demo otherwise. */
 export function loadLaunchData(mode: TonkMode = tonkMode()): Promise<LaunchData> {
-  return mode === "testnet" ? getLiveLaunchData() : getLaunchData();
+  const network = tonkNetwork(mode);
+  return network && (mode === "testnet" || mode === "mainnet") ? getLiveLaunchData(network, mode) : getLaunchData();
 }

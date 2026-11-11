@@ -35,6 +35,16 @@ export function scoreLevel(score: number): ScoreLevel {
 }
 
 /**
+ * No lock counts unless 1% of supply or more is still locked 30 days out:
+ * the Locked badge's floor, and the contract's for a creator-fee tier. A
+ * dust launch buy with a dust lock earns nothing (review finding M-2). The
+ * worker applies the same floor to tonkfun.fun launches.
+ */
+function enoughLocked(lockedIn30Days: bigint): boolean {
+  return lockedIn30Days * BigInt(100) >= TOTAL_SUPPLY;
+}
+
+/**
  * v2 counts a creator lock when half or more of their tokens are locked with
  * 30+ days left. At launch those tokens are the launch buy, so the test is
  * made on the settings (rounding can't decide it). A time-lock holds its
@@ -44,6 +54,7 @@ export function scoreLevel(score: number): ScoreLevel {
  */
 export function lockCounts(bought: bigint, lock: LockSettings): boolean {
   if (bought <= BigInt(0) || lock.type === "none") return false;
+  if (!enoughLocked(stillLocked(lockedAmount(bought, lock), lock, 30))) return false;
   if (lock.type === "time") return lock.sharePct >= 50 && lock.days > 30;
   return lock.sharePct * (lock.days - 30) > 50 * lock.days;
 }
@@ -94,8 +105,9 @@ export interface MissionScoreInput {
 export function missionScore(input: MissionScoreInput): { score: number; level: ScoreLevel; rows: LaunchScore["rows"] } {
   const two = BigInt(2);
   const holdings = input.lockedNow + input.creatorHeld;
-  const halfOfHoldings = input.lockedIn30Days > BigInt(0) && input.lockedIn30Days * two >= holdings;
-  const halfOfLaunchBuy = input.lockedIn30Days > BigInt(0) && input.lockedIn30Days * two >= input.launchBuy;
+  const enough = enoughLocked(input.lockedIn30Days);
+  const halfOfHoldings = enough && input.lockedIn30Days * two >= holdings;
+  const halfOfLaunchBuy = enough && input.lockedIn30Days * two >= input.launchBuy;
   const share = percentOf(input.launchBuy, TOTAL_SUPPLY);
   const rows: LaunchScore["rows"] = [
     { key: "base", points: 50 },

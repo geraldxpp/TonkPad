@@ -1,7 +1,7 @@
-import { type CurveSettings, devBuyPresets, maxDevBuy } from "@/shared/tonk/curve";
+import { type CurveSettings, devBuyPresets, devBuyQuote, maxDevBuy } from "@/shared/tonk/curve";
 import { ethInputText, parseEthInput } from "@/shared/tonk/format";
 import { AGENT_VOICES, type AgentVoice } from "@/shared/tonk/metadata";
-import { CREATOR_OPTIONS, CREW_OPTIONS, type LockSettings, lockTier, type LockType, MAX_LOCK_DAYS, MIN_LOCK_DAYS, optionAtMost, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "@/shared/tonk/rules";
+import { CREATOR_OPTIONS, CREW_OPTIONS, effectiveTier, type LockSettings, type LockType, MAX_LOCK_DAYS, MIN_LOCK_DAYS, optionAtMost, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "@/shared/tonk/rules";
 
 /** Everything the Creator Studio collects. Amounts are kept as typed; fees are basis points. */
 export interface LaunchForm {
@@ -113,7 +113,9 @@ export function normalize(input: LaunchForm, settings: CurveSettings, changed: k
     form.lock = "none";
     notices.push({ key: "noBuy" });
   }
-  const creatorMax = TIER_CREATOR_MAX[lockTier(hasBuy, lockSettings(form))];
+  // A tier needs its lock to hold 1% of supply too: the tokens this dev buy gets, at the Creator Rewards asked for.
+  const bought = devBuyQuote(settings, devBuyWei(form) ?? BigInt(0), form.creator).tokensOut;
+  const creatorMax = TIER_CREATOR_MAX[effectiveTier(hasBuy, lockSettings(form), bought)];
   if (form.creator > creatorMax) {
     form.creator = optionAtMost(CREATOR_OPTIONS, creatorMax);
     notices.push({ key: "creatorTier", bps: form.creator });

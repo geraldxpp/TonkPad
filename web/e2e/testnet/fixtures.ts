@@ -14,6 +14,29 @@ export const FIXTURE_LAUNCHPAD = {
   gasPrice: "10000000",
 } as const;
 
+/**
+ * The same stand-in as Robinhood Chain mainnet, for the mainnet-mode run (FIXTURE_CHAIN=mainnet):
+ * its own port, chain 4663, a made-up deployment, and the contract's mainnet settings
+ * (0.005 ETH to launch, 1 ETH of virtual reserve). Nothing here is a real address.
+ */
+export const MAINNET_RPC_PORT = 8791;
+export const MAINNET_RPC_URL = `http://127.0.0.1:${MAINNET_RPC_PORT}`;
+export const MAINNET_APP_URL = "http://127.0.0.1:3103";
+export const MAINNET_DEPLOYMENT = {
+  launchpad: "0x7a4c000000000000000000000000000000000001",
+  migrator: "0x7a4c000000000000000000000000000000000002",
+  /** The migrator's pool guard: the hook every graduated pool's key names. */
+  guard: "0x7a4c000000000000000000000000000000002000",
+  block: "151000000",
+} as const;
+export const MAINNET_LAUNCHPAD = {
+  chainId: 4663,
+  launchFee: "5000000000000000",
+  virtualEth: "1000000000000000000",
+  virtualTokens: "1073000000000000000000000000",
+  gasPrice: "10000000",
+} as const;
+
 /** The e2e build's stub wallet holds 0.5 test ETH on the fixture; any other address holds nothing. */
 export const STUB_WALLET = STUB_ACCOUNTS.rh;
 export const STUB_BALANCE = "500000000000000000";

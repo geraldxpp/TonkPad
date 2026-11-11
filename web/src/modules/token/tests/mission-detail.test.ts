@@ -91,6 +91,50 @@ describe("a mission as the token page shows it", () => {
   });
 });
 
+describe("a mission on mainnet, where the page counts in dollars", () => {
+  const page = { mission: mission(), trades: [LAUNCH_BUY, SALE] };
+  const inCoin = missionDetail(page, TONK_TESTNET);
+
+  it("turns every market figure into dollars at the coin's price, and keeps liquidity and trade sizes in the coin", () => {
+    const detail = missionDetail(page, TONK_TESTNET, 3000);
+    expect(detail.priceUsd).toBeCloseTo((inCoin.priceUsd ?? 0) * 3000, 12);
+    expect(detail.token.marketCap).toBeCloseTo(inCoin.token.marketCap * 3000, 6);
+    expect(detail.token.volume24h).toBeCloseTo(inCoin.token.volume24h * 3000, 6);
+    expect(detail.token.series).toEqual((inCoin.token.series ?? []).map((value) => value * 3000));
+    expect(detail.token.change24h).toBeCloseTo(inCoin.token.change24h, 9);
+    expect(detail.stats.liquidity).toBe(inCoin.stats.liquidity);
+    expect(detail.nativeUsd).toBe(3000);
+    expect(detail.marketAvailable).toBeUndefined();
+    detail.trades.forEach((trade, index) => {
+      const coin = inCoin.trades[index];
+      expect(trade.native).toBe(coin.native);
+      expect(trade.usd).toBeCloseTo((coin.native ?? 0) * 3000, 9);
+      expect(trade.marketCap).toBeCloseTo((coin.marketCap ?? 0) * 3000, 6);
+    });
+    const [candle] = detail.chart.candles["1h"];
+    const [coinCandle] = inCoin.chart.candles["1h"];
+    expect(candle.close).toBeCloseTo(coinCandle.close * 3000, 6);
+    expect(candle.volume).toBeCloseTo(coinCandle.volume * 3000, 6);
+  });
+
+  it("shows the market as unavailable while there is no price, never ETH under a dollar sign", () => {
+    const detail = missionDetail(page, TONK_TESTNET, null);
+    expect(detail.marketAvailable).toBe(false);
+    expect(detail.priceUsd).toBeNull();
+    expect(detail.token.marketCap).toBe(0);
+    expect(detail.nativeUsd).toBeNull();
+    expect(Object.values(detail.chart.candles).every((candles) => candles.length === 0)).toBe(true);
+    expect(detail.trades.every((trade) => trade.usd === null && trade.marketCap === null && trade.native !== null)).toBe(true);
+    expect(missionDetail(page, TONK_TESTNET, Number.NaN).marketAvailable).toBe(false);
+  });
+
+  it("leaves the testnet site's figures in the coin, exactly as before", () => {
+    expect(inCoin.marketAvailable).toBeUndefined();
+    expect(inCoin.nativeUsd).toBeNull();
+    expect(inCoin.trades.every((trade) => trade.usd === null)).toBe(true);
+  });
+});
+
 describe("candles from a mission's trades", () => {
   it("opens at the cap before the first trade, fills quiet stretches flat and runs up to now", () => {
     const candles = candlesFrom([LAUNCH_BUY, SALE], 900, LAUNCHED + 4_200);

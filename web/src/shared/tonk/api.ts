@@ -1,4 +1,5 @@
-import type { ActionBuild, ActionRequest, MissionAccountJson, MissionJson, MissionPageJson, MissionSummaryJson, TradeBuild, TradeRequest } from "./mission";
+import type { ActionBuild, ActionRequest, MissionAccountJson, MissionJson, MissionPageJson, MissionSummaryJson, TradeBuild, TradeRequest, TradeSide } from "./mission";
+import type { PoolQuoteJson, PoolTradeBuild, PoolTradeRequest } from "./pool";
 import { isTxHash, type LaunchBuild, type LaunchRequest, type LaunchStatus, type TonkSettingsJson, type TxCall, type TxSender } from "./types";
 
 /** The server's reason, as a code the screen turns into words: "paused", "funds", "refused", "busy", "unavailable"… */
@@ -104,6 +105,22 @@ export function buildTrade(request: TradeRequest): Promise<TradeBuild> {
 /** Asks the server to check and build a claim, an extension, an edit, a reward claim or a withdrawal. Nothing is sent. */
 export function buildAction(request: ActionRequest): Promise<ActionBuild> {
   return call("/api/tonk/action", isActionBuild, post(request));
+}
+
+const isPoolQuote = (body: unknown): body is PoolQuoteJson =>
+  record(body) && typeof body.pool === "string" && (body.side === "buy" || body.side === "sell") && typeof body.amountIn === "string" && typeof body.out === "string" && typeof body.feeBps === "number";
+
+const isPoolBuild = (body: unknown): body is PoolTradeBuild =>
+  record(body) && isPoolQuote(body.quote) && (body.step === "moved" || ((body.step === "approve" || body.step === "allow" || body.step === "trade") && isTx(body.tx)));
+
+/** What a graduated token's pool gives now for an exact amount in. */
+export function fetchPoolQuote(token: string, side: TradeSide, amount: string, signal?: AbortSignal): Promise<PoolQuoteJson> {
+  return call(`/api/tonk/pool/quote?${new URLSearchParams({ token, side, amount })}`, isPoolQuote, { signal });
+}
+
+/** Asks the server to check a pool trade at one block and build it, or the approval it needs first. Nothing is sent. */
+export function buildPoolTrade(request: PoolTradeRequest): Promise<PoolTradeBuild> {
+  return call("/api/tonk/pool/trade", isPoolBuild, post(request));
 }
 
 /** The launchpad's latest launches, newest first. */

@@ -5,6 +5,7 @@ import type { TxEventJson } from "../mission";
 import { isTxHash, type LaunchedMission, type LaunchStatus, type TxCall, type TxSender } from "../types";
 import { LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
 import { TonkError, tonkClient } from "./client";
+import { POOL_MANAGER_ABI } from "./pool";
 
 const LOCK_TYPES: readonly LockType[] = ["none", "time", "linear"];
 const BPS = BigInt(10_000);
@@ -33,8 +34,9 @@ export function missionFromLogs(network: TonkNetwork, logs: Log[], block: number
     crewBps: crewFeeBps,
     creatorBps: creatorFeeBps,
     lockType: type,
-    lockedBps,
-    lockEnd: Number(lockEnd),
+    // With no lock the event still carries whatever share was asked for; the receipt shows none (review finding L-3).
+    lockedBps: type === "none" ? 0 : lockedBps,
+    lockEnd: type === "none" ? 0 : Number(lockEnd),
     devBuy: String(devBuyEth),
     bought: String(bought),
     locked: String(type === "none" ? BigInt(0) : (bought * BigInt(lockedBps)) / BPS),
@@ -65,6 +67,15 @@ export function txEvents(network: TonkNetwork, logs: Log[]): TxEventJson[] {
   for (const log of parseEventLogs({ abi: TOKEN_ABI, logs: logs.filter((entry) => !isPad(entry)) })) {
     if (log.eventName === "CrewRewardPaid") events.push({ kind: "rewards", token: log.address, holder: log.args.holder, amount: String(log.args.ethAmount) });
     else if (log.args.spender.toLowerCase() === network.launchpad.toLowerCase()) events.push({ kind: "approved", token: log.address, owner: log.args.owner, amount: String(log.args.value) });
+  }
+  // Swaps on graduated pools, only from Uniswap's own PoolManager: the swapper's deltas, so a buy pays ETH in (negative) and takes tokens out.
+  const manager = network.uniswap?.poolManager.toLowerCase();
+  if (manager) {
+    for (const log of parseEventLogs({ abi: POOL_MANAGER_ABI, eventName: "Swap", logs: logs.filter((entry) => entry.address.toLowerCase() === manager) })) {
+      const { id, amount0, amount1 } = log.args;
+      const buy = amount0 < BigInt(0);
+      events.push({ kind: "pool", pool: id, side: buy ? "buy" : "sell", eth: String(buy ? -amount0 : amount0), tokens: String(buy ? amount1 : -amount1) });
+    }
   }
   return events;
 }

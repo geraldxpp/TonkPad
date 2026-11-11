@@ -44,6 +44,14 @@ describe("keeping the form inside the launchpad's rules", () => {
     expect(change(filled({ lock: "time", days: 20, creator: 50 }), { days: 30 }).notices).toEqual([]);
   });
 
+  it("caps Creator Rewards at 0.5% while the lock holds under 1% of supply, as the mainnet contract rules", () => {
+    // 0.001 ETH on mainnet's 6 ETH reserve buys about 178,800 tokens: an Ironclad lock of 80% of them is far under 10M.
+    const dust = change(filled({ crew: 100, creator: 300 }), { devBuy: "0.001" });
+    expect(dust).toMatchObject({ form: { creator: 50 }, notices: [{ key: "creatorTier", bps: 50 }] });
+    // 0.1 ETH buys about 17.6M tokens: 80% locked is over 10M, so Ironclad's 4% stays open.
+    expect(change(filled({ crew: 0, creator: 400 }), { devBuy: "0.1" }).form.creator).toBe(400);
+  });
+
   it("drops the lock and caps Creator Rewards at 0.5% without a dev buy", () => {
     const { form, notices } = change(filled({ creator: 200 }), { devBuy: "0" });
     expect(form).toMatchObject({ lock: "none", creator: 50 });

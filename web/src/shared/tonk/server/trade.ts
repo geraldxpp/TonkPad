@@ -4,16 +4,10 @@ import type { TonkNetwork } from "../networks";
 import { quoteTrade } from "../quote";
 import { isTxHash } from "../types";
 import { LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
-import { address, invalid, isRecord, padGas, refusal, requireFunds, unsigned, wei, ZERO_ADDRESS } from "./build";
+import { address, approvalReceipt, headAtLeast, invalid, isRecord, padGas, refusal, requireDeployedMigrator, requireFunds, unsigned, wei, ZERO_ADDRESS } from "./build";
 import { TonkError, tonkClient } from "./client";
 import { readMissionAt } from "./mission";
 
-/** How long a build waits for the chain to reach a just-confirmed approval's block. */
-const CATCH_UP_TRIES = 5;
-const CATCH_UP_MS = 1_000;
-/** How often a just-confirmed approval's receipt is asked for again before the sale gives up. */
-const RECEIPT_TRIES = 3;
-const RECEIPT_WAIT_MS = 1_000;
 const same = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
 
 /** A trade request checked field by field. */
@@ -24,20 +18,6 @@ export function parseTradeRequest(body: unknown): TradeRequest {
   if (body.approval !== undefined && body.approval !== null && (typeof body.approval !== "string" || !isTxHash(body.approval))) throw invalid("approval");
   const approval = typeof body.approval === "string" ? body.approval : null;
   return { token: address(body.token, "token"), trader: address(body.trader, "trader"), side: body.side, amount: String(wei(body.amount, "amount")), minOut: String(wei(body.minOut, "minimum")), referrer, approval };
-}
-
-/**
- * A just-confirmed approval's receipt. The page saw it confirmed, but this
- * read may reach a replica a moment behind, or fail outright: asked again a
- * few times before giving up.
- */
-async function approvalReceipt(client: PublicClient, hash: `0x${string}`) {
-  for (let attempt = 0; ; attempt += 1) {
-    const receipt = await client.getTransactionReceipt({ hash }).catch(() => null);
-    if (receipt) return receipt;
-    if (attempt >= RECEIPT_TRIES) throw new TonkError("unavailable", "approval receipt unreadable");
-    await new Promise((resolve) => setTimeout(resolve, RECEIPT_WAIT_MS));
-  }
 }
 
 /**
@@ -53,18 +33,6 @@ async function approvalBlock(client: PublicClient, network: TonkNetwork, request
   );
   if (!approved) throw new TonkError("unavailable", "not this sale's approval");
   return receipt.blockNumber;
-}
-
-/** The chain's head, never cached; after an approval, no earlier than its block (an RPC replica can lag a moment). */
-async function headAtLeast(client: PublicClient, floor: bigint | null): Promise<bigint> {
-  for (let attempt = 0; ; attempt += 1) {
-    const head = await client.getBlockNumber({ cacheTime: 0 }).catch(() => {
-      throw new TonkError("unavailable", "block unreadable");
-    });
-    if (floor === null || head >= floor) return head;
-    if (attempt >= CATCH_UP_TRIES) throw new TonkError("unavailable", "the chain hasn't reached the approval yet");
-    await new Promise((resolve) => setTimeout(resolve, CATCH_UP_MS));
-  }
 }
 
 /**
@@ -96,6 +64,8 @@ export async function buildTrade(network: TonkNetwork, request: TradeRequest): P
   if (request.side === "buy") {
     // Ordinary buys in the launch block and the next lose 99% to the launch-block shield.
     if (!mission.buyingOpen) throw new TonkError("early", "inside the launch-block shield", 409);
+    // A buy can complete the curve: only into the migrator this site was deployed with (prompts/07-mainnet.md, decision 2).
+    await requireDeployedMigrator(client, network, blockNumber);
     const quote = quoteTrade(mission, "buy", amount, 0, { approvedMinOut: minOut });
     if (BigInt(quote.out) < minOut) return { step: "moved", mission };
     const call = { ...pad, functionName: "buy", args: [token, minOut, referrer], value: amount } as const;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getI18n } from "@/shared/i18n/server";
-import { tonkNetwork } from "@/shared/tonk/networks";
+import { isTestnetSite, TONK_TESTNET } from "@/shared/tonk/networks";
 import type { ShellData } from "../data/shell.mock";
 import { LiveIndicator } from "./LiveIndicator";
 import { StatusValue } from "./StatusValue";
@@ -17,7 +17,8 @@ const LINK = "text-text-3 hover:text-text-2";
 /** The footer: feed status, coin prices and gas, then the site links; centred like the page above it. */
 export async function StatusBar({ status }: StatusBarProps) {
   const { t, href } = await getI18n();
-  const testnet = tonkNetwork();
+  // Only the testnet site swaps the feed for its network's name; mainnet keeps the prices and gas.
+  const testnet = isTestnetSite() ? TONK_TESTNET : null;
   return (
     <footer className="border-t border-line bg-bg-deep text-[11px] text-text-3">
       <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 md:px-7">

@@ -51,6 +51,8 @@ export function isLockedMission(token: TrackedToken, now: number): boolean {
 export function creatorLock(token: TrackedToken, now: number): { ofHoldings: number; ofLaunchBuy: number } {
   const locked = lockedFor(token, POINTS_DAYS, now, token.creator);
   if (locked <= 0) return { ofHoldings: 0, ofLaunchBuy: 0 };
+  // A tonkfun.fun lock earns nothing under the badge's 1% of supply: a dust buy with a dust lock isn't a commitment (review finding M-2).
+  if (token.launchpad === "tonk" && locked < BADGE_MIN_SHARE * (token.supply ?? 0)) return { ofHoldings: 0, ofLaunchBuy: 0 };
   const holdings = lockedFor(token, 0, now, token.creator) + (token.creatorHeld ?? 0);
   const launchBuy = token.creatorBuyShare * (token.supply ?? 0);
   return {

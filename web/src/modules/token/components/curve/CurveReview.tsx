@@ -82,7 +82,7 @@ export function CurveReview({ open, onClose, mission, network, quote, crewBps, n
         <p className="m-0 flex items-start gap-2 rounded-lg border border-warn/25 bg-warn/7 px-3.5 py-3 text-[12px] leading-[1.6] text-warn">
           <TriangleAlert size={15} strokeWidth={2.2} className="mt-0.5 flex-none" aria-hidden="true" />
           <span>
-            <strong className="font-semibold">{m.completes}</strong> {fmt(m.completesBody, { refund: coin(quote.refund) })}
+            <strong className="font-semibold">{m.completes}</strong> {fmt(network.uniswap ? m.completesBodyPool : m.completesBody, { refund: coin(quote.refund) })}
           </span>
         </p>
       ) : null}

@@ -7,14 +7,15 @@ import { getTokenData } from "@/modules/token/data/get-token-data";
 import { TokenPage } from "@/modules/token/TokenPage";
 import { getI18n } from "@/shared/i18n/server";
 import { isLiveMode } from "@/shared/live/server";
-import { isTestnetSite } from "@/shared/tonk/networks";
+import { isTestnetSite, tonkNetwork } from "@/shared/tonk/networks";
 
-/** The token's name in the tab: from the chain on the testnet site, the live feed or the mock data elsewhere. */
+/** The token's name in the tab: from the chain for a launchpad mission, else the live feed or the mock data. */
 async function tokenName(address: string): Promise<string | null> {
-  if (isTestnetSite()) {
+  if (tonkNetwork()) {
     await connection();
     const mission = await getMissionData(address);
-    return mission.status === "ok" ? mission.page.mission.name : null;
+    if (mission.status === "ok") return mission.page.mission.name;
+    if (isTestnetSite()) return null;
   }
   if (isLiveMode()) {
     const live = await getLiveTokenData(address);

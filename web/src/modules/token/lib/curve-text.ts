@@ -15,6 +15,12 @@ export function runError(t: Dictionary, code: string | null, unit: string): stri
       return e.early;
     case "paused":
       return e.paused;
+    case "migrator":
+      return e.migrator;
+    case "pending":
+      return e.pending;
+    case "curve":
+      return e.curve;
     case "graduated":
       return e.graduated;
     case "funds":

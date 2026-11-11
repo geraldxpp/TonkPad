@@ -343,6 +343,7 @@ public addresses, so it may be public):
 | Value | What the site does |
 |---|---|
 | unset | Production. Launch stays "coming soon" and `/api/tonk/*` answer 404 `{ error: "closed" }`. |
+| `mainnet` | Robinhood Chain mainnet, once the launchpad is deployed (`../prompts/07-mainnet.md`). It connects only when `NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR` and `NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK` hold the deployment's read-back; until then Launch stays "coming soon". Swap, Bridge, Portfolio and Solana stay on. A token page shows a launchpad mission when the launchpad knows the address, figures in dollars at the live ETH price (unavailable without one), and every other token as before. Explore adds the latest launches and the address box under its list. A beta notice shows on Launch and on mission pages while `LAUNCHPAD_AUDITED` is false. |
 | `testnet` | The testnet site: real launches on Robinhood Chain Testnet (chain 46630). `rh` means the testnet everywhere, a TESTNET badge shows, the wallet offers only that network, and Solana and swaps are off (the swap routes refuse). Token pages read the launchpad (next section); Explore opens a token by its address and lists the latest launches; Swap says "Not on testnet yet". |
 | `mock` | The demo: the studio on the contract's mainnet defaults (0.005 ETH fee, 6 ETH reserve). No contract is called and a real wallet is never asked to sign. Put it in `web/.env.local` to work on the screen locally; the e2e tests set it themselves. |
 
@@ -354,7 +355,9 @@ graduation target and the dev-buy presets (the reserve ÷ 60, 24 and 12)
 follow whatever is deployed; nothing is hard-coded from the design.
 `rules.ts` holds the launch rules: a lock needs a dev buy, at least half of
 it and 7 days or more; Crew Rewards are off or 1%+; Crew and Creator share
-4%; the lock's tier caps Creator Rewards (0.5%, 2% or 4%). `score.ts` is the
+4%; the lock's tier caps Creator Rewards (0.5%, 2% or 4%), and a tier above
+0.5% also needs 10M tokens (1% of supply) locked, as the mainnet contract
+rules. `score.ts` is the
 launch-time Mission score: the worker's v2 rows plus +5 for Crew Rewards of
 1% or more, held to the worker's by `worker/tests/launch-score.test.ts`.
 
@@ -369,16 +372,40 @@ launch counts only when a confirmed receipt carries the launchpad's
 `MissionLaunched` event; the receipt screen shows what the chain recorded. A
 reload while it confirms keeps watching and sends nothing.
 
+**Mainnet guards.** Before building a buy or a launch, the server reads the
+launchpad's `graduationMigrator()` and refuses (`migrator`) unless it is the
+deployed migrator: either could complete a curve. Sells and claims are never
+refused for it. A paused launchpad refuses launches and curve trades
+(`paused`).
+
+**Graduated tokens** trade on their Uniswap v4 pool through Uniswap's official
+Universal Router (addresses in `networks.ts`; none on testnet, whose isolated
+Uniswap copy has no router). `GET /api/tonk/pool/quote` asks V4Quoter;
+`POST /api/tonk/pool/trade` reads the pool and the quote at one block, runs
+the exact swap there with the quote itself as its minimum, and only then
+builds it. A sell first approves Permit2 for exactly the amount, then allows
+the router exactly that for 30 minutes. A receipt counts only from the
+PoolManager's own `Swap` event on this token's pool. The swap encoding is held
+byte for byte to Foundry's `cast` (`src/shared/tests/fixtures/pool-vectors.json`).
+
 **Kept in the browser.** A draft is saved only by "Save draft"
 (`tonkpad-launch-draft:<chainId>`). A referrer's address from `?ref=` is
 remembered per network (`tonkpad-ref:<chainId>`) and named on that wallet's
 curve trades (never the trader's own address). Token images wait for hosting:
 until then a token shows its letter.
 
-**Settings.** `NEXT_PUBLIC_TONK_NETWORK` (above). `TONK_RPC_URL` (server only,
-optional) replaces the testnet's public RPC; it is used only if it answers
-with chain 46630. Every `/api/tonk/*` route has its own allowance in
+**Settings.** `NEXT_PUBLIC_TONK_NETWORK` (above), and on mainnet the three
+`NEXT_PUBLIC_TONK_*` deployment values. `TONK_RPC_URL` (server only,
+optional) replaces the network's public RPC; on mainnet `ROBINHOOD_RPC_URL`
+is used when it isn't set. Either is used only if it answers with the
+network's own chain. Every `/api/tonk/*` route has its own allowance in
 `src/shared/lib/rate-limit.ts`.
+
+**Mainnet on Vercel.** After the owner has deployed and the Safe has accepted
+ownership, add for **Production** (type Config): `NEXT_PUBLIC_TONK_NETWORK=mainnet`,
+`NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR` and
+`NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK`, then rebuild. `npm run test:e2e:mainnet`
+runs a mainnet-mode build against a local stand-in RPC first.
 
 **The testnet site on Vercel.** A `testnet` branch gets its own preview
 deployment. In the project's Environment Variables add

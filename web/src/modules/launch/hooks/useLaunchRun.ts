@@ -54,7 +54,7 @@ export function useLaunchRun({ mode, shown, onSettings, onSent }: RunOptions) {
           setState({ step: "idle", error: null, changed: true });
           return;
         }
-        if (mode !== "testnet" && process.env.NEXT_PUBLIC_WALLET_STUB !== "1") throw new TonkApiError("unavailable");
+        if (mode === "mock" && process.env.NEXT_PUBLIC_WALLET_STUB !== "1") throw new TonkApiError("unavailable");
         setState({ step: "sign", error: null, changed: false });
         const hash = await wallet.sendEvmTransaction(build.tx);
         setState(IDLE);

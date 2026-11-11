@@ -2,8 +2,9 @@ import { createServer } from "node:http";
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, encodeFunctionResult, type Hex, toEventSelector } from "viem";
 import { TONK_TESTNET } from "../../src/shared/tonk/networks";
 import { ARBSYS, ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "../../src/shared/tonk/server/abi";
+import { MIGRATOR_ABI } from "../../src/shared/tonk/server/pool";
 import { BLOCK, type FixtureMission, type FixtureTrade, MISSIONS, ZERO } from "./fixture-chain";
-import { FIXTURE_LAUNCHPAD, STUB_BALANCE, STUB_WALLET, TESTNET_RPC_PORT } from "./fixtures";
+import { FIXTURE_LAUNCHPAD, MAINNET_DEPLOYMENT, MAINNET_LAUNCHPAD, MAINNET_RPC_PORT, STUB_BALANCE, STUB_WALLET, TESTNET_RPC_PORT } from "./fixtures";
 
 /**
  * A local JSON-RPC stand-in for Robinhood Chain Testnet. It answers what the
@@ -15,7 +16,11 @@ import { FIXTURE_LAUNCHPAD, STUB_BALANCE, STUB_WALLET, TESTNET_RPC_PORT } from "
  */
 const hex = (value: string | number | bigint): Hex => `0x${BigInt(value).toString(16)}`;
 const same = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
-const PAD = TONK_TESTNET.launchpad;
+// FIXTURE_CHAIN=mainnet serves the same missions as Robinhood Chain mainnet, for the mainnet-mode run.
+const MAINNET = process.env.FIXTURE_CHAIN === "mainnet";
+const PAD = MAINNET ? MAINNET_DEPLOYMENT.launchpad : TONK_TESTNET.launchpad;
+const MIGRATOR = MAINNET ? MAINNET_DEPLOYMENT.migrator : TONK_TESTNET.migrator;
+const SETTINGS = MAINNET ? MAINNET_LAUNCHPAD : FIXTURE_LAUNCHPAD;
 const missionOf = (token: unknown) => MISSIONS.find((mission) => same(mission.token, String(token)));
 const big = (value: string | number) => BigInt(value);
 
@@ -26,13 +31,15 @@ function launchpadCall(data: Hex): Hex {
   const mission = missionOf(args?.[0]);
   switch (functionName) {
     case "launchFee":
-      return result(big(FIXTURE_LAUNCHPAD.launchFee));
+      return result(big(SETTINGS.launchFee));
     case "defaultVirtualEth":
-      return result(big(FIXTURE_LAUNCHPAD.virtualEth));
+      return result(big(SETTINGS.virtualEth));
     case "defaultVirtualTokens":
-      return result(big(FIXTURE_LAUNCHPAD.virtualTokens));
+      return result(big(SETTINGS.virtualTokens));
     case "paused":
       return result(false);
+    case "graduationMigrator":
+      return result(MIGRATOR);
     case "missions": {
       // An address the launchpad has never launched comes back as an empty record.
       if (!mission) return result([ZERO, ZERO, big(0), big(0), 0, 0, false, big(0), big(0), big(0), big(0), ZERO, "", ""]);
@@ -79,8 +86,26 @@ function tokenCall(mission: FixtureMission, data: Hex): Hex {
   }
 }
 
+/** The migrator's view of a graduated mission's pool: its key (ETH against the token, the guard as hook) and the position seeded there. */
+function migratorCall(data: Hex): Hex {
+  const { functionName, args } = decodeFunctionData({ abi: MIGRATOR_ABI, data });
+  const result = (value: unknown) => encodeFunctionResult({ abi: MIGRATOR_ABI, functionName, result: value } as never);
+  const token = String(args?.[0]);
+  const mission = missionOf(token);
+  const fee = mission ? (100 + mission.crewBps + mission.creatorBps) * 100 : 0;
+  switch (functionName) {
+    case "poolKey":
+      return result({ currency0: ZERO, currency1: token, fee: Number(args?.[1]), tickSpacing: 60, hooks: MAINNET_DEPLOYMENT.guard });
+    case "lockedPositions":
+      return result([mission?.token ?? ZERO, mission?.creator ?? ZERO, big(mission?.graduated ? 7 : 0), mission?.crewBps ?? 0, mission?.creatorBps ?? 0, fee, big(0), big(0), mission?.graduated === true]);
+    default:
+      throw new Error(`the fixture won't run ${functionName}`);
+  }
+}
+
 function call(to: string, data: Hex): Hex {
   if (same(to, PAD)) return launchpadCall(data);
+  if (same(to, MIGRATOR)) return migratorCall(data);
   if (same(to, ARBSYS)) return encodeFunctionResult({ abi: ARBSYS_ABI, functionName: "arbBlockNumber", result: big(BLOCK) });
   const mission = missionOf(to);
   if (mission) return tokenCall(mission, data);
@@ -143,8 +168,8 @@ const blockAt = (block: number) => ({
 });
 
 function answer(method: string, params: unknown[]): unknown {
-  if (method === "eth_chainId") return hex(FIXTURE_LAUNCHPAD.chainId);
-  if (method === "eth_gasPrice") return hex(FIXTURE_LAUNCHPAD.gasPrice);
+  if (method === "eth_chainId") return hex(SETTINGS.chainId);
+  if (method === "eth_gasPrice") return hex(SETTINGS.gasPrice);
   if (method === "eth_blockNumber") return hex(BLOCK);
   if (method === "eth_getBalance") return hex(same(String(params[0]), STUB_WALLET) ? STUB_BALANCE : 0);
   if (method === "eth_getBlockByNumber") return blockAt(String(params[0]).startsWith("0x") ? Number(BigInt(String(params[0]))) : BLOCK);
@@ -185,5 +210,5 @@ const server = createServer((request, response) => {
   });
 });
 
-server.listen(TESTNET_RPC_PORT, "127.0.0.1");
+server.listen(MAINNET ? MAINNET_RPC_PORT : TESTNET_RPC_PORT, "127.0.0.1");
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => server.close(() => process.exit(0)));

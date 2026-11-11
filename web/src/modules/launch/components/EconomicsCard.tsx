@@ -129,7 +129,8 @@ export function EconomicsCard({ state, view, unit, hiddenOnPhone }: StudioProps 
             </li>
           ))}
         </ul>
-        <p className={`${HELP} mt-3.5`}>{e.poolNote}</p>
+        <p className={`${HELP} mt-2.5`}>{e.tierFloor}</p>
+        <p className={`${HELP} mt-2`}>{e.poolNote}</p>
         <div role="status" aria-live="polite">
           {state.notices.map((item) => (
             <p key={item.key} className="m-0 mt-2.5 rounded-lg border border-warn/25 bg-warn/7 px-3 py-2.5 text-[12px] leading-[1.6] text-warn">

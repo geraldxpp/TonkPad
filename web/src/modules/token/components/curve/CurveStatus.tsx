@@ -15,6 +15,8 @@ interface CurveStatusProps {
   token: string;
   ticker: string;
   network: TonkNetwork;
+  /** A graduated token's pool id: its Swap is the trade to show. */
+  pool?: string | null;
   onDismiss: () => void;
 }
 
@@ -29,23 +31,35 @@ const netOf = (trade: Extract<TxEventJson, { kind: "trade" }>) => BigInt(trade.e
  * place, that one's result and link are shown, and it counts only if it
  * traded this token.
  */
-export function CurveStatus({ sent, token, ticker, network, onDismiss }: CurveStatusProps) {
+export function CurveStatus({ sent, token, ticker, network, pool = null, onDismiss }: CurveStatusProps) {
   const { t } = useI18n();
   const m = t.mission.trade;
   const { hash, tx, waiting } = sent;
   const trade = tx.events.find((event): event is Extract<TxEventJson, { kind: "trade" }> => event.kind === "trade" && event.token.toLowerCase() === token.toLowerCase());
+  // On a graduated token, the swap on this token's own pool (never another pool's, whatever the link says).
+  const swap = pool ? tx.events.find((event): event is Extract<TxEventJson, { kind: "pool" }> => event.kind === "pool" && event.pool.toLowerCase() === pool.toLowerCase()) : undefined;
   const graduated = tx.events.some((event) => event.kind === "graduated");
   let title = fmt(t.swap.steps.confirming, { chain: network.name });
   let body: string | null = tx.stalled ? m.stalled : tx.unreachable ? t.mission.stale : null;
   if (waiting && tx.stalled) title = m.stalledTitle;
   if (tx.state === "confirmed") {
-    title = trade ? (trade.side === "buy" ? fmt(m.doneBuy, { amount: formatTokens(BigInt(trade.tokens)), ticker }) : fmt(m.doneSell, { amount: formatEth(netOf(trade)), unit: network.unit })) : tx.replacedBy ? m.failedTitle : m.errors.other;
-    body = trade ? (graduated ? m.graduated : null) : tx.replacedBy ? runError(t, "replaced", network.unit) : null;
+    // A trade on the curve or a swap on this token's own pool: either is what this page sent, even from a replacement.
+    const done = trade
+      ? trade.side === "buy"
+        ? fmt(m.doneBuy, { amount: formatTokens(BigInt(trade.tokens)), ticker })
+        : fmt(m.doneSell, { amount: formatEth(netOf(trade)), unit: network.unit })
+      : swap
+        ? swap.side === "buy"
+          ? fmt(m.doneBuy, { amount: formatTokens(BigInt(swap.tokens)), ticker })
+          : fmt(m.doneSell, { amount: formatEth(BigInt(swap.eth)), unit: network.unit })
+        : null;
+    title = done ?? (tx.replacedBy ? m.failedTitle : m.errors.other);
+    body = trade ? (graduated ? (network.uniswap ? m.graduatedPool : m.graduated) : null) : swap ? null : tx.replacedBy ? runError(t, "replaced", network.unit) : null;
   } else if (!waiting) {
     title = m.failedTitle;
     body = runError(t, tx.state === "failed" ? "reverted" : "replaced", network.unit);
   }
-  const ok = tx.state === "confirmed" && trade !== undefined;
+  const ok = tx.state === "confirmed" && (trade !== undefined || swap !== undefined);
   return (
     <div role="status" aria-live="polite" className="flex flex-col gap-2 rounded-xl border border-line bg-raised p-3.5">
       <div className="flex items-start gap-2.5">

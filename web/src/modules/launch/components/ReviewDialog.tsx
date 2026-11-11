@@ -40,6 +40,7 @@ export function ReviewDialog({ open, onClose, state, view, settings, unit, chain
     network: t.swap.errors.network,
     funds: fmt(l.run.funds, { unit }),
     paused: l.run.paused,
+    migrator: l.run.migrator,
     refused: l.run.refused,
     invalid: l.run.refused,
     busy: l.run.busy,

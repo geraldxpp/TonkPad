@@ -1,12 +1,14 @@
 import { formatPrice, formatUsd, formatUsdCompact } from "@/shared/lib/format";
-import { tonkNetwork } from "@/shared/tonk/networks";
+import { isTestnetSite, TONK_TESTNET } from "@/shared/tonk/networks";
 
 /**
  * The testnet site counts in test ETH: faucet ETH has no dollar price, so no
  * figure there wears a dollar sign. Everywhere else the page counts in
- * dollars, exactly as before. The site's mode is fixed when it is built.
+ * dollars, exactly as before; on mainnet a mission's ETH figures are turned
+ * into dollars before they get here (`missionDetail`). The site's mode is
+ * fixed when it is built.
  */
-export const MONEY_UNIT: string | null = tonkNetwork()?.unit ?? null;
+export const MONEY_UNIT: string | null = isTestnetSite() ? TONK_TESTNET.unit : null;
 
 const SUBSCRIPT = "₀₁₂₃₄₅₆₇₈₉";
 
