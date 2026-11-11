@@ -6,6 +6,7 @@ import { runDryRuns } from "./dryrun";
 import { headStuckAlert, healthOf, lagAlert, snapshotOf, stallAlert, summaryAlert } from "./heartbeat";
 import { blockTime, head, one } from "./reads";
 import type { AlertRpc } from "./rpc";
+import { taxIntoCurve } from "./settings";
 import type { WatcherState } from "./state";
 import type { Address } from "./types";
 import { LOG_WINDOW, readWindows } from "./window";
@@ -117,8 +118,10 @@ export class Watcher {
     const top = await one(rpc, head());
     if (top !== this.head) [this.head, this.headMovedAt] = [top, now];
     if (this.secondsPerBlock === null) {
-      const [t1, t0] = await Promise.all([one(rpc, blockTime(top)), one(rpc, blockTime(Math.max(0, top - 10_000)))]);
-      this.secondsPerBlock = Math.max((t1 - t0) / 10_000, 0.01);
+      const [t1, t0, taxStays] = await Promise.all([one(rpc, blockTime(top)), one(rpc, blockTime(Math.max(0, top - 10_000))), taxIntoCurve(rpc, this.config.launchpad, top)]);
+      // Where the launch-block tax goes is read from the deployed code before any event is applied.
+      [this.secondsPerBlock, this.state.ledger.taxIntoCurve] = [Math.max((t1 - t0) / 10_000, 0.01), taxStays];
+      this.deps.log(taxStays ? "launch-block tax: kept in the curve (the testnet release before F-1)" : "launch-block tax: burned (the F-1/F-2 build)");
     }
     const target = top - CONFIRMATIONS;
     if (this.state.cursor === null) {

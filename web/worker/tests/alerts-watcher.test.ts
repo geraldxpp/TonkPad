@@ -1,36 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { LAUNCHPAD_EVENTS } from "../src/alerts/abi";
-import type { AlertConfig } from "../src/alerts/config";
-import { redactor } from "../src/alerts/deliver";
-import { Dispatcher } from "../src/alerts/dispatcher";
-import { freshState, parseState, serializeState } from "../src/alerts/state";
+import { parseState } from "../src/alerts/state";
 import { hexOf, lower } from "../src/alerts/types";
-import { CONFIRMATIONS, Watcher } from "../src/alerts/watcher";
-import { built, FakeRpc, GRADUATED, GRADUATION_TX, HEAD, LAUNCHPAD, MIGRATOR, OWNER, RECORDED, START_BLOCK, testConfig } from "./alerts-fixtures";
-
-const DEPLOYMENT = { chainId: 46630, launchpad: LAUNCHPAD, migrator: MIGRATOR };
-
-function setup(overrides: Partial<AlertConfig> = {}) {
-  let now = 1_800_000_000_000;
-  let tickMs = 0;
-  const clock = () => (now += tickMs);
-  const sent: string[] = [];
-  const logs: string[] = [];
-  const pings: number[] = [];
-  const saves: string[] = [];
-  const config = testConfig(overrides);
-  const state = freshState();
-  const dispatcher = new Dispatcher([{ name: "test", maxLength: 4096, send: async (text) => void sent.push(text) }], { header: "tonkfun.fun · Robinhood Chain Testnet", repeatMs: config.repeatMs, dryRun: false, log: (line) => logs.push(line), now: clock }, state.dispatch);
-  const rpc = new FakeRpc();
-  const redact = redactor(config.secrets.concat(config.rpcUrl));
-  const watcher = new Watcher(
-    config,
-    { rpc, dispatcher, log: (line) => logs.push(line), now: clock, save: async (s) => void saves.push(serializeState(s, DEPLOYMENT)), ping: async () => void pings.push(now), redact },
-    state,
-  );
-  return { watcher, rpc, sent, logs, pings, saves, state, advance: (ms: number) => (now += ms), drift: (ms: number) => (tickMs = ms) };
-}
+import { CONFIRMATIONS } from "../src/alerts/watcher";
+import { built, GRADUATED, GRADUATION_TX, HEAD, LAUNCHPAD, MIGRATOR, OWNER, RECORDED, START_BLOCK } from "./alerts-fixtures";
+import { DEPLOYMENT, setup } from "./alerts-harness";
 
 /** The recorded graduation's launchpad and migrator logs, as if they happened again at `block`. */
 const graduationAt = (block: number) =>
@@ -40,7 +15,7 @@ describe("the watcher on the recorded testnet chain", () => {
   it("rebuilds from the deployment block without alerting on history, then says it started", async () => {
     const { watcher, sent, pings, saves, logs } = setup();
     await watcher.tick();
-    expect(logs[0]).toBe(`rebuilding from the deployment block ${START_BLOCK}; history raises no alerts`);
+    expect(logs.slice(0, 2)).toEqual(["launch-block tax: kept in the curve (the testnet release before F-1)", `rebuilding from the deployment block ${START_BLOCK}; history raises no alerts`]);
     expect(sent).toHaveLength(1);
     expect(sent[0].split("\n")).toEqual([
       `🔵 tonkfun.fun · Robinhood Chain Testnet · block ${HEAD}`,

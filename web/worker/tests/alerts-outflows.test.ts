@@ -19,7 +19,8 @@ function recordedGraduation() {
     if (applied && event.source === "launchpad" && event.kind === "graduated") curveEthBefore.set(event.token, applied.curveEthBefore);
   }
   const events = decodeLogs(RECORDED.graduation.receipt.logs, LAUNCHPAD, MIGRATOR, new Set());
-  const facts: OutflowFacts = { curveEthBefore, txs: new Map<string, RawTx>([[GRADUATION_TX, RECORDED.graduation.tx]]), launchFee: null };
+  // The recorded testnet release kept the launch-block tax in the curve (before F-1).
+  const facts: OutflowFacts = { curveEthBefore, txs: new Map<string, RawTx>([[GRADUATION_TX, RECORDED.graduation.tx]]), launchFee: null, taxBurned: false };
   return { events, facts };
 }
 
@@ -56,7 +57,7 @@ describe("ETH transfers out, as the events account for them", () => {
   it("raises a large sale payout and a large credit withdrawal as warnings", () => {
     const sale = built(LAUNCHPAD_EVENTS, "CurveTrade", { token: GRADUATED, trader: TRADER, isBuy: false, grossEth: ETH * BigInt(3), tokenAmount: BigInt(1), protocolFee: ETH / BigInt(100), crewFee: BigInt(0), creatorFee: BigInt(0), newVirtualEth: BigInt(1), newVirtualTokens: BigInt(1), remainingCurveTokens: BigInt(1) }, { address: LAUNCHPAD, tx: "0x0a" });
     const withdrawal = built(MIGRATOR_EVENTS, "FallbackEthWithdrawn", { recipient: OWNER, amount: ETH * BigInt(2) }, { address: MIGRATOR, tx: "0x0b" });
-    const alerts = outflowAlerts(decodeLogs([sale, withdrawal], LAUNCHPAD, MIGRATOR, new Set()), { curveEthBefore: new Map(), txs: new Map(), launchFee: null }, ETH, ctx);
+    const alerts = outflowAlerts(decodeLogs([sale, withdrawal], LAUNCHPAD, MIGRATOR, new Set()), { curveEthBefore: new Map(), txs: new Map(), launchFee: null, taxBurned: true }, ETH, ctx);
     expect(alerts.map((a) => [a.key, a.severity, a.title, a.lines[0]])).toEqual([
       ["outflow:0x0a", "warning", "Large ETH outflow: 2.99 ETH", `• 2.99 ETH from the launchpad to ${ctx.token(TRADER)}: sale of ${ctx.token(GRADUATED)}`],
       ["outflow:0x0b", "warning", "Large ETH outflow: 2 ETH", `• 2 ETH from the migrator to ${ctx.token(OWNER)}: ETH credit withdrawal`],
@@ -66,7 +67,7 @@ describe("ETH transfers out, as the events account for them", () => {
   it("doesn't count a push that failed and became a credit", () => {
     const sale = built(LAUNCHPAD_EVENTS, "CurveTrade", { token: GRADUATED, trader: TRADER, isBuy: false, grossEth: ETH * BigInt(100), tokenAmount: BigInt(1), protocolFee: ETH, crewFee: BigInt(0), creatorFee: BigInt(0), newVirtualEth: BigInt(1), newVirtualTokens: BigInt(1), remainingCurveTokens: BigInt(1) }, { address: LAUNCHPAD, tx: "0x0c", logIndex: 2 });
     const credited = built(LAUNCHPAD_EVENTS, "FallbackEthCredited", { recipient: OWNER, amount: ETH }, { address: LAUNCHPAD, tx: "0x0c", logIndex: 1 });
-    const transfers = transfersOf(decodeLogs([credited, sale], LAUNCHPAD, MIGRATOR, new Set()), { curveEthBefore: new Map(), txs: new Map(), launchFee: null }, ctx);
+    const transfers = transfersOf(decodeLogs([credited, sale], LAUNCHPAD, MIGRATOR, new Set()), { curveEthBefore: new Map(), txs: new Map(), launchFee: null, taxBurned: true }, ctx);
     expect(transfers.map((t) => t.why)).toEqual([`sale of ${ctx.token(GRADUATED)}`]);
   });
 });

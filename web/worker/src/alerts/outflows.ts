@@ -18,6 +18,8 @@ export interface OutflowFacts {
   curveEthBefore: ReadonlyMap<Address, bigint>;
   txs: ReadonlyMap<string, RawTx>;
   launchFee: bigint | null;
+  /** The launch-block tax leaves the launchpad, burned to 0xdead (the mainnet build, F-1); before F-1 it stayed in the curve. */
+  taxBurned: boolean;
 }
 
 const fees = (e: { protocolFee: bigint; crewFee: bigint; creatorFee: bigint }, token: string): Transfer[] => [
@@ -35,6 +37,7 @@ export function transfersOf(events: readonly ChainEvent[], facts: OutflowFacts, 
     if (e.source === "launchpad") {
       const token = "token" in e ? ctx.token(e.token) : "";
       if (e.kind === "launched" && facts.launchFee !== null) out.push({ from: "launchpad", amount: facts.launchFee, to: "the treasury", why: "launch fee" });
+      if (e.kind === "bundleTax" && facts.taxBurned) out.push({ from: "launchpad", amount: e.penaltyEth, to: "0xdead (burned)", why: `launch-block tax on a buy of ${token}` });
       if (e.kind === "trade" && !e.isBuy) out.push({ from: "launchpad", amount: e.grossEth - e.protocolFee - e.crewFee - e.creatorFee, to: short(e.trader), why: `sale of ${token}` });
       if (e.kind === "trade") out.push(...fees(e, token));
       if (e.kind === "trade" && e.isBuy && e.remaining === ZERO) {
@@ -54,7 +57,12 @@ export function transfersOf(events: readonly ChainEvent[], facts: OutflowFacts, 
       if (e.kind === "poolLocked") out.push({ from: "migrator", amount: e.ethSeeded, to: "Uniswap's PoolManager", why: `pool seed of ${token}` });
       if (e.kind === "remainder") out.push({ from: "migrator", amount: e.ethToTreasury, to: "the treasury", why: "seeding remainder" });
       if (e.kind === "postGrad") {
-        out.push({ from: "migrator", amount: e.protocolEth, to: "the treasury", why: `pool fees of ${token}` });
+        // A token under the Crew floor refuses the Crew's share (F-2): it goes to the treasury in its own transfer,
+        // logged as CrewRewardRedirected, and PostGradRewardsDistributed counts it inside protocolEth.
+        const redirected = events.reduce((sum, r) => (r.source === "migrator" && r.kind === "crewRedirected" && r.token === e.token ? sum + r.amount : sum), ZERO);
+        const own = e.protocolEth >= redirected ? e.protocolEth - redirected : e.protocolEth;
+        out.push({ from: "migrator", amount: own, to: "the treasury", why: `pool fees of ${token}` });
+        if (own !== e.protocolEth) out.push({ from: "migrator", amount: redirected, to: "the treasury", why: `the Crew's share of ${token}'s pool fees, redirected (too few eligible holders)` });
         out.push({ from: "migrator", amount: e.crewEth, to: `${token}'s Crew holders`, why: "pool fees" });
         out.push({ from: "migrator", amount: e.creatorEth, to: `${token}'s creator`, why: "pool fees" });
       }

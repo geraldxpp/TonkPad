@@ -852,7 +852,11 @@ newest block, 20 blocks behind the head:
   launchpad, every live curve's real ETH reserve plus unclaimed ETH credits
   plus graduation ETH waiting for a migrator; the migrator, its unclaimed
   credits. The figures are rebuilt from events and corrected from the
-  contracts' own views. Every wei leaving either contract also leaves its
+  contracts' own views. The launch-block tax never enters a curve: the
+  mainnet build burns it to 0xdead in the same transaction (F-1). The testnet
+  release before F-1 kept it in the curve, and the watcher tells the two apart
+  from the deployed code (only the F-1/F-2 build answers
+  `CREW_ELIGIBLE_FLOOR()`). Every wei leaving either contract also leaves its
   accounting, so the surplus over what is owed can never fall: a fall is ETH
   that left with no event to account for it, and is raised even while the
   contract is still solvent. A shortfall or a fall is confirmed by re-reading
@@ -876,8 +880,11 @@ newest block, 20 blocks behind the head:
   about 10 RPC calls a second, so this simulation is how a graduation that
   reverts is caught.
 - **Large outflows.** Any single ETH transfer out of either contract at or
-  above `ALERT_LARGE_OUTFLOW_ETH`: sale payouts, fees, refunds of capped buys,
-  graduation liquidity and pool seeds, and credit withdrawals.
+  above `ALERT_LARGE_OUTFLOW_ETH`: sale payouts, fees, the burned launch-block
+  tax, refunds of capped buys, graduation liquidity and pool seeds, credit
+  withdrawals, and pool fees. A token under the 10M-token Crew floor refuses
+  its Crew share of pool fees (F-2); that share goes to the treasury and is
+  shown on its own line.
 - **The watcher itself.** It raises an alert when it falls more than
   `ALERT_MAX_LAG_SECONDS` behind the head, when no check has succeeded for as
   long (with the last error), and when the head hasn't moved for 5 minutes.
@@ -958,8 +965,9 @@ pings stop and healthchecks.io alerts you.
 rebuilds the testnet release in about a minute, logs "Launchpad watcher
 started", and shows the watcher under `alerts` at `localhost:8787/health`. The
 tests (`worker/tests/alerts-*.test.ts`) run on logs, receipts and replies
-recorded read-only from Robinhood Chain Testnet, and on the frozen mainnet
-build's ABI (`worker/tests/fixtures/alerts/`), with no network.
+recorded read-only from Robinhood Chain Testnet and on the ABI of the
+mainnet build with the F-1 and F-2 fixes, all in
+`worker/tests/fixtures/alerts/`, with no network.
 
 ## Deploy on Vercel
 

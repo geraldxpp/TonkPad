@@ -53,13 +53,14 @@ describe("the solvency ledger, rebuilt from the recorded testnet logs", () => {
     expect(ledger.missions.get(GRADUATED)).toMatchObject({ value: ZERO, graduated: true, progressBps: 10_000 });
   });
 
-  it("adds credits, the launch-block tax and graduation ETH waiting for a migrator, and clears them when paid", () => {
+  it("adds a curve's ETH, credits and graduation ETH waiting for a migrator, and clears them when paid", () => {
     const ledger = new Ledger();
     const apply = (abi: typeof LAUNCHPAD_EVENTS | typeof MIGRATOR_EVENTS, address: string, name: string, args: Record<string, unknown>) =>
       decodeLogs([built(abi, name, args, { address })], LAUNCHPAD, MIGRATOR, new Set()).forEach((e) => ledger.apply(e));
     apply(LAUNCHPAD_EVENTS, LAUNCHPAD, "FallbackEthCredited", { recipient: OWNER, amount: ETH });
     apply(MIGRATOR_EVENTS, MIGRATOR, "FallbackEthCredited", { recipient: OWNER, amount: ETH / BigInt(2) });
-    apply(LAUNCHPAD_EVENTS, LAUNCHPAD, "BundleTaxCollected", { token: LEADER, sniper: OWNER, penaltyEth: BigInt(99) });
+    // A buy of 100 wei with a 1 wei fee keeps 99 in the curve (the launch-block tax never does: alerts-shield.test.ts).
+    apply(LAUNCHPAD_EVENTS, LAUNCHPAD, "CurveTrade", { token: LEADER, trader: OWNER, isBuy: true, grossEth: BigInt(100), tokenAmount: BigInt(1), protocolFee: BigInt(1), crewFee: ZERO, creatorFee: ZERO, newVirtualEth: BigInt(1), newVirtualTokens: BigInt(1), remainingCurveTokens: ETH });
     apply(LAUNCHPAD_EVENTS, LAUNCHPAD, "MissionGraduated", { token: GRADUATED, dexPoolOrPosition: "0x0000000000000000000000000000000000000000", ethLiquidity: ETH * BigInt(2), tokenLiquidity: BigInt(1), creatorGradBonus: BigInt(1) });
     expect(ledger.owed("launchpad")).toEqual({ curves: BigInt(99), credits: ETH, pending: ETH * BigInt(2), total: ETH * BigInt(3) + BigInt(99) });
     expect(ledger.owed("migrator").total).toBe(ETH / BigInt(2));

@@ -2,7 +2,8 @@ import { type Abi, formatEther, formatUnits } from "viem";
 import { ROBINHOOD_UNISWAP } from "@/shared/tonk/networks";
 import { GUARD_VIEWS, LAUNCHPAD_VIEWS, MIGRATOR_VIEWS } from "./abi";
 import { type Alert, type AlertContext, addressLink, short } from "./alert";
-import { type Batch, view } from "./reads";
+import { type Batch, one, view } from "./reads";
+import type { AlertRpc } from "./rpc";
 import { type Address, lower } from "./types";
 
 /** Every owner-set value and contract link, as text: `launchpad.launchFee`, `migrator.owner`, `guard.migrator`… */
@@ -26,6 +27,16 @@ export function readSettings(batch: Batch, launchpad: Address, migrator: Address
   ];
   const getters = groups.flatMap(([prefix, to, abi, keys]) => keys.map((key) => [`${prefix}.${key}`, batch.add(view(to, abi, key, [], block, asText))] as const));
   return () => Object.fromEntries(getters.map(([key, get]) => [key, get() ?? "reverted"]));
+}
+
+/**
+ * Whether this deployment keeps the launch-block tax in the curve (the testnet
+ * release before F-1) rather than burning it (the mainnet build): only the
+ * F-1/F-2 build answers CREW_ELIGIBLE_FLOOR(). Code can't change, so it is
+ * read once, at the head, before any event is applied.
+ */
+export async function taxIntoCurve(rpc: AlertRpc, launchpad: Address, block: number): Promise<boolean> {
+  return (await one(rpc, view(launchpad, LAUNCHPAD_VIEWS, "CREW_ELIGIBLE_FLOOR", [], block, (r) => r as bigint))) === null;
 }
 
 const tokens = (raw: string) => `${Number(formatUnits(BigInt(raw), 18)).toLocaleString("en-US")} tokens`;

@@ -53,6 +53,13 @@ export class Ledger {
   readonly pending = new Map<Address, Entry>();
   /** Rows events touched since the last check: `mission:`, `credit:launchpad:`, `credit:migrator:` or `pending:` and an address. */
   readonly dirty = new Set<string>();
+  /**
+   * Where the launch-block tax goes. The mainnet build burns it to 0xdead in
+   * the same transaction (F-1), so it never enters a curve; the testnet
+   * release before F-1 kept it in the curve's real ETH. The watcher sets this
+   * from the deployed code before it applies any event.
+   */
+  taxIntoCurve = false;
 
   private mission(token: Address): MissionRow {
     let row = this.missions.get(token);
@@ -110,7 +117,8 @@ export class Ledger {
         return null;
       }
       case "bundleTax":
-        this.mission(event.token).value += event.penaltyEth;
+        // Burned in the same transaction on the mainnet build (an outflow, `outflows.ts`); kept in the curve before F-1.
+        if (this.taxIntoCurve) this.mission(event.token).value += event.penaltyEth;
         return null;
       case "graduated": {
         const row = this.mission(event.token);

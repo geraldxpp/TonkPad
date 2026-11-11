@@ -2,7 +2,7 @@ import { parseAbi } from "viem";
 
 /**
  * What the alerts read from tonkfun.fun's launchpad contracts, written from
- * the frozen mainnet build (forge out/, the internal audit freeze of 11 Nov
+ * the mainnet build with the F-1 and F-2 fixes (the internal audit, 11 Nov
  * 2026). `worker/tests/alerts-abi.test.ts` holds every event and function
  * here to that build's ABI (`tests/fixtures/alerts/frozen-abi.json`).
  */
@@ -52,6 +52,8 @@ export const LAUNCHPAD_VIEWS = parseAbi([
   "function pendingGraduationEth(address token) view returns (uint256)",
   "function getMissionTelemetry(address tokenAddr) view returns (uint256 priceInWeiPerToken, uint256 marketCapInWei, uint256 curveProgressBps, uint256 realEthInPool, uint256 totalCrewPaidWei, uint256 lockedTokensRemaining, uint64 lockEndTimestamp, bool isGraduated)",
   "function buy(address tokenAddr, uint256 minTokensOut, address referrer) payable returns (uint256 tokensOut)",
+  // Only the F-1/F-2 build has it: whether it answers tells the watcher where the launch-block tax goes.
+  "function CREW_ELIGIBLE_FLOOR() view returns (uint256)",
 ]);
 
 /** The migrator's views. */
@@ -71,7 +73,7 @@ export const MIGRATOR_VIEWS = parseAbi([
 export const GUARD_VIEWS = parseAbi(["function migrator() view returns (address)", "function poolManager() view returns (address)"]);
 
 /**
- * Every owner-only call on either contract (the frozen build's `onlyOwner`
+ * Every owner-only call on either contract (the mainnet build's `onlyOwner`
  * functions, Ownable2Step's own, and the testnet release's three-argument
  * Crew exclusion), so an owner's transaction can be named.
  */

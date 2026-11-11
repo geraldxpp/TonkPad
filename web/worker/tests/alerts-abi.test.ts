@@ -11,7 +11,7 @@ const shapes = (abi: Abi) => new Set(abi.filter((item): item is AbiEvent | AbiFu
 const frozen = { launchpad: shapes(RECORDED.abi.launchpad), migrator: shapes(RECORDED.abi.migrator), guard: shapes(RECORDED.abi.guard) };
 const ours = (abi: Abi) => abi.filter((item): item is AbiEvent | AbiFunction => item.type === "event" || item.type === "function");
 
-describe("the alerts' ABI, held to the frozen mainnet build", () => {
+describe("the alerts' ABI, held to the mainnet build (F-1 and F-2)", () => {
   it("reads every launchpad and migrator event and view exactly as the build declares it", () => {
     for (const item of ours(LAUNCHPAD_EVENTS).concat(ours(LAUNCHPAD_VIEWS))) expect(frozen.launchpad, shape(item)).toContain(shape(item));
     for (const item of ours(MIGRATOR_EVENTS).concat(ours(MIGRATOR_VIEWS))) expect(frozen.migrator, shape(item)).toContain(shape(item));
@@ -26,7 +26,7 @@ describe("the alerts' ABI, held to the frozen mainnet build", () => {
     expect(emitted(RECORDED.abi.migrator).filter((name) => !read(MIGRATOR_EVENTS).has(name))).toEqual([]);
   });
 
-  it("can name every onlyOwner function in the frozen sources, and Ownable2Step's", () => {
+  it("can name every onlyOwner function in the mainnet sources, and Ownable2Step's", () => {
     const named = new Set(ours(OWNER_CALLS).map((item) => item.name));
     expect(RECORDED.abi.ownerOnly.launchpad).toEqual([
       "excludeAddressFromTokenCrew", "executePendingMigration", "pause", "setDefaultVirtualReserves", "setGraduationMigrator", "setLaunchFee", "setProtocolTreasury", "setTestnetVirtualReserves", "unpause",

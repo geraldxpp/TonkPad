@@ -8,11 +8,13 @@ import { CONFIRMATIONS } from "../src/alerts/watcher";
 
 /**
  * Fixtures for the alert tests. The testnet-*.json files are recorded
- * read-only from Robinhood Chain Testnet's public RPC (the testnet release:
- * the same events and ETH accounting as the frozen build, minus its newer
- * events); frozen-abi.json is the frozen mainnet build's ABI. Events testnet
- * has never emitted (a pause, a Safe's transactions…) are built from the
- * frozen ABI with `built()`.
+ * read-only from Robinhood Chain Testnet's public RPC. That is the testnet
+ * release: the mainnet build's events minus its newer ones, and the same ETH
+ * accounting except that it keeps the launch-block tax in the curve, which
+ * the mainnet build burns (F-1). frozen-abi.json is the mainnet build's ABI.
+ * Events testnet has never emitted (a pause, a Safe's transactions…) are
+ * built from that ABI with `built()`; `alerts-scenario.ts` builds the
+ * mainnet build's launch-block tax and graduation.
  */
 const read = <T>(name: string): T => JSON.parse(readFileSync(new URL(`./fixtures/alerts/${name}`, import.meta.url), "utf8")) as T;
 

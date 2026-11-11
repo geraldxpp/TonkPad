@@ -1,7 +1,7 @@
 {
- "about": "The frozen mainnet build's ABI (forge out/, the internal audit freeze of 11 Nov 2026) and its onlyOwner functions, read from the sources whose sha256 matches reports/mainnet-freeze.json.",
+ "about": "The F-1/F-2 mainnet build's ABI and its onlyOwner functions, before the re-freeze. The ABI is forge's (out-rehearsal/) from the F-1/F-2 source of 22:07 on 11 Nov 2026 (keccak256 0xcd896bf36e429015\u2026, the launch-block tax paid to the treasury). The current source (sha256 154cc41585d0\u2026, the tax burned to 0xdead) differs from it only in the tax's recipient and comments, so its ABI is the same. Against the 11 Nov 12:57 freeze it adds CREW_ELIGIBLE_FLOOR() and changes no event. Replace it with the re-freeze's own build when there is one.",
  "sources": {
-  "src/TonkpadRobinhood.sol": "648269c32cbf8de79c3391067c37c1575d7ed61283b705d766608ff055c1591d",
+  "src/TonkpadRobinhood.sol": "154cc41585d0a0f25f7dc30e9462e3b0c31c01ef13b0f4f064fd5565b1c772f6",
   "src/TonkpadUniV4Migrator.sol": "0b2aacd09d931de57801507654e24538f2fb34c67803e6b19eff0662fc0bb1ac",
   "src/TonkPoolInitializationGuard.sol": "954c1567df49c8fdc18b853944b8bf6f27b279559caa5fcdc4af8d0a43bc0f0f"
  },
@@ -9,6 +9,19 @@
   {
    "type": "function",
    "name": "BUNDLE_TAX_BPS",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "CREW_ELIGIBLE_FLOOR",
    "inputs": [],
    "outputs": [
     {

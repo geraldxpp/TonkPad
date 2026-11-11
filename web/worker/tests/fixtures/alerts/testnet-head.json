@@ -546,6 +546,26 @@
      "timestamp": "0x6af4c5c2"
     }
    }
+  },
+  {
+   "label": "launchpad.CREW_ELIGIBLE_FLOOR",
+   "request": {
+    "method": "eth_call",
+    "params": [
+     {
+      "to": "0xb9bb81242ce7b40775ceadf3b591411f0320ec82",
+      "data": "0x37f216d4"
+     },
+     "latest"
+    ]
+   },
+   "reply": {
+    "error": {
+     "code": 3,
+     "message": "execution reverted",
+     "data": "0x"
+    }
+   }
   }
  ]
 }

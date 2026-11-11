@@ -66,8 +66,12 @@ export async function windowFacts(rpc: AlertRpc, config: AlertConfig, events: re
   return facts;
 }
 
-/** The alerts one window of events raises on its own: owner events, an owner Safe's transactions, graduations and large outflows. */
-export function windowAlerts(config: AlertConfig, events: readonly ChainEvent[], facts: WindowFacts, curveEthBefore: ReadonlyMap<Address, bigint>, settings: Settings | null, ctx: AlertContext): Alert[] {
+/**
+ * The alerts one window of events raises on its own: owner events, an owner
+ * Safe's transactions, graduations and large outflows. `taxBurned` is the
+ * deployment's launch-block tax rule (see Ledger.taxIntoCurve).
+ */
+export function windowAlerts(config: AlertConfig, events: readonly ChainEvent[], facts: WindowFacts, curveEthBefore: ReadonlyMap<Address, bigint>, settings: Settings | null, ctx: AlertContext, taxBurned: boolean): Alert[] {
   if (events.length === 0) return [];
   const fee = settings?.["launchpad.launchFee"];
   const launchFee = fee && /^\d+$/.test(fee) ? BigInt(fee) : null;
@@ -75,7 +79,7 @@ export function windowAlerts(config: AlertConfig, events: readonly ChainEvent[],
     ...ownerEventAlerts(events, ctx),
     ...safeAlerts(events, facts.txs, ctx),
     ...(facts.pool ? graduationAlerts(events, facts.receipts, ctx, facts.pool) : []),
-    ...outflowAlerts(events, { curveEthBefore, txs: facts.txs, launchFee }, config.largeOutflowWei, ctx),
+    ...outflowAlerts(events, { curveEthBefore, txs: facts.txs, launchFee, taxBurned }, config.largeOutflowWei, ctx),
   ];
 }
 
@@ -94,7 +98,7 @@ export async function applyWindow(rpc: AlertRpc, config: AlertConfig, state: Wat
     const applied = state.ledger.apply(event);
     if (applied && event.source === "launchpad" && event.kind === "graduated") before.set(event.token, applied.curveEthBefore);
   }
-  return facts ? windowAlerts(config, live, facts, before, state.settings, ctx()) : [];
+  return facts ? windowAlerts(config, live, facts, before, state.settings, ctx(), !state.ledger.taxIntoCurve) : [];
 }
 
 export interface WindowOptions {
