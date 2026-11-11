@@ -91,6 +91,11 @@ describe("the curve trade panel", () => {
     expect(within(card).getByText("26.65M")).toBeVisible();
   });
 
+  it("says how much of the supply eligible holders must own before the Crew fee starts, on builds with the floor", () => {
+    const card = panel({ mission: mission({ eligibleSupply: "5000000000000000000000000", crewFloor: "10000000000000000000000000" }) });
+    expect(within(card).getByText("1% protocol · 1% Creator · no Crew fee until eligible holders own 1% of the supply")).toBeVisible();
+  });
+
   it("offers the launchpad's presets, and a Max that keeps back the network fee", async () => {
     panel();
     expect(await screen.findByRole("button", { name: "0.000025" })).toBeVisible();

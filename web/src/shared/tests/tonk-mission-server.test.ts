@@ -1,6 +1,6 @@
 // @vitest-environment node
 // The launchpad's server code runs on viem, which needs Node's own Uint8Array.
-import { BaseError, ContractFunctionRevertedError, decodeFunctionData, encodeAbiParameters, encodeEventTopics, type Log, toEventSelector, toFunctionSelector } from "viem";
+import { BaseError, ContractFunctionRevertedError, decodeFunctionData, ExecutionRevertedError, HttpRequestError, encodeAbiParameters, encodeEventTopics, type Log, toEventSelector, toFunctionSelector } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearCache } from "@/shared/swap/server/cache";
 import { sellQuote } from "@/shared/tonk/curve";
@@ -48,6 +48,8 @@ function chain() {
     lock: [2, 8000, big(LAUNCHED), big(LAUNCHED + 180 * DAY), big("99201886792452830188679245"), big(0)] as [number, number, bigint, bigint, bigint, bigint],
     checkpoint: big(0),
     eligibleSupply: big("124002358490566037735849057"),
+    /** The token's Crew floor (10M tokens), or what reading it throws. */
+    crewFloor: big("10000000000000000000000000") as bigint | Error,
     crewPaid: big(0),
     held: { [CREATOR.toLowerCase()]: big("24800471698113207547169812") } as Record<string, bigint>,
     /** Wallets the token leaves out of the eligible supply. */
@@ -86,6 +88,9 @@ function fakeClient(state: Chain) {
         return state.symbol;
       case "eligibleSupply":
         return state.eligibleSupply;
+      case "CREW_ELIGIBLE_FLOOR":
+        if (state.crewFloor instanceof Error) throw state.crewFloor;
+        return state.crewFloor;
       case "isExcludedFromCrew":
         return state.excluded[String(args?.[0]).toLowerCase()] === true;
       case "totalCrewRewardsPaid":
@@ -650,5 +655,29 @@ describe("what a confirmed transaction did", () => {
       { kind: "rewards", token: TOKEN, holder: CREATOR, amount: "1000000000000" },
       { kind: "approved", token: TOKEN, owner: CREATOR, amount: "77" },
     ]);
+  });
+});
+
+describe("the Crew floor", () => {
+  it("reads the token's floor with the mission; an earlier build without it reads 1, and a failed read is an error", async () => {
+    const state = chain();
+    connect(state);
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).resolves.toMatchObject({ crewFloor: "10000000000000000000000000" });
+    clearCache();
+    state.crewFloor = new BaseError("reverted", { cause: new ContractFunctionRevertedError({ abi: TOKEN_ABI, functionName: "CREW_ELIGIBLE_FLOOR", message: "execution reverted" }) });
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).resolves.toMatchObject({ crewFloor: "1" });
+    clearCache();
+    state.crewFloor = new Error("socket hang up");
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).rejects.toMatchObject({ code: "unavailable" });
+  });
+
+  it("takes a provider's -32000 'execution reverted' for the earlier build too, but never an HTTP failure", async () => {
+    const state = chain();
+    connect(state);
+    state.crewFloor = new BaseError("call failed", { cause: new ExecutionRevertedError({ message: "execution reverted" }) });
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).resolves.toMatchObject({ crewFloor: "1" });
+    clearCache();
+    state.crewFloor = new BaseError("call failed", { cause: new HttpRequestError({ url: "https://rpc.invalid", status: 503 }) });
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).rejects.toMatchObject({ code: "unavailable" });
   });
 });

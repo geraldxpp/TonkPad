@@ -603,6 +603,7 @@ export const ko: Dictionary = {
       minLine: "최소 {amount} (슬리피지 {pct})",
       feeLine: "프로토콜 {protocol} · 크루 {crew} · 크리에이터 {creator}",
       feeLineWaived: "프로토콜 {protocol} · 크리에이터 {creator} · 자격 있는 보유자가 생길 때까지 크루 수수료 없음",
+      feeLineFloor: "프로토콜 {protocol} · 크리에이터 {creator} · 자격 있는 보유자의 보유량이 공급량의 {share}에 이를 때까지 크루 수수료 없음",
       reviewBuy: "매수 검토",
       reviewSell: "매도 검토",
       early: "곧 거래가 열립니다",

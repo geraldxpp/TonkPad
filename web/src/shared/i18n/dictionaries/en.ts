@@ -609,6 +609,7 @@ export const en = {
       minLine: "Min. {amount} at {pct} slippage",
       feeLine: "{protocol} protocol · {crew} Crew · {creator} Creator",
       feeLineWaived: "{protocol} protocol · {creator} Creator · no Crew fee until someone eligible holds the token",
+      feeLineFloor: "{protocol} protocol · {creator} Creator · no Crew fee until eligible holders own {share} of the supply",
       reviewBuy: "Review buy",
       reviewSell: "Review sell",
       early: "Trading opens in a moment",

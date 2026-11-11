@@ -9,7 +9,8 @@ import { useSlippage } from "@/shared/swap/slippage";
 import { formatEth, formatTokens, parseEthInput } from "@/shared/tonk/format";
 import type { MissionJson, TradeSide } from "@/shared/tonk/mission";
 import type { TonkNetwork } from "@/shared/tonk/networks";
-import { chargedCrewBps, quoteTrade } from "@/shared/tonk/quote";
+import { chargedCrewBps, crewFloorOf, quoteTrade } from "@/shared/tonk/quote";
+import { percentOf, TOTAL_SUPPLY } from "@/shared/tonk/curve";
 import { storedReferrer } from "@/shared/tonk/referral";
 import { wallet } from "@/shared/wallet/wallet";
 import { useCurveRun } from "../../hooks/useCurveRun";
@@ -97,7 +98,10 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
     void start({ token: mission.token, trader: owner, side, amount: quote.amountIn, minOut: quote.minOut, referrer: storedReferrer(window.localStorage, network.chainId, owner) });
   };
   const crew = chargedCrewBps(mission, trade);
-  const fees = { protocol: bpsPct(100), crew: bpsPct(crew), creator: bpsPct(mission.creatorBps) };
+  // With the contract's floor, a waived Crew fee says how much of the supply eligible holders must own first.
+  const floor = crewFloorOf(mission);
+  const fees = { protocol: bpsPct(100), crew: bpsPct(crew), creator: bpsPct(mission.creatorBps), share: `${percentOf(floor, TOTAL_SUPPLY)}%` };
+  const feeText = crew > 0 || mission.crewBps === 0 ? m.feeLine : floor > BigInt(1) ? m.feeLineFloor : m.feeLineWaived;
   const pick = (next: TradeSide) => {
     setSide(next);
     setText("");
@@ -169,7 +173,7 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
           <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
         </a>
       ) : null}
-      <span className="text-center text-[11px] leading-[1.6] text-text-3">{fmt(crew > 0 || mission.crewBps === 0 ? m.feeLine : m.feeLineWaived, fees)}</span>
+      <span className="text-center text-[11px] leading-[1.6] text-text-3">{fmt(feeText, fees)}</span>
       <CurveReview
         open={reviewing}
         onClose={() => {

@@ -269,8 +269,8 @@ test("the page says what stops a trade: graduated, the launch-block wait, a paus
   await tradePanel(page).getByRole("button", { name: "Sell", exact: true }).click();
   await tradePanel(page).getByLabel("You sell").fill("1000");
   await expect(tradePanel(page).getByRole("button", { name: "Review sell" })).toBeVisible();
-  // Nobody eligible holds it yet, so the contract charges no Crew fee.
-  await expect(tradePanel(page).getByText("1% protocol · 0.5% Creator · no Crew fee until someone eligible holds the token")).toBeVisible();
+  // Eligible holders own less than the contract's floor (1% of supply), so it charges no Crew fee yet.
+  await expect(tradePanel(page).getByText("1% protocol · 0.5% Creator · no Crew fee until eligible holders own 1% of the supply")).toBeVisible();
 
   // An empty wallet is pointed to the faucet.
   const account = (await (await request.get(`/api/tonk/account?token=${TTONE.token}&owner=${STUB_WALLET}`)).json()) as Record<string, unknown>;

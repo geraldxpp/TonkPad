@@ -604,6 +604,7 @@ export const ru: Dictionary = {
       minLine: "Мин. {amount} при проскальзывании {pct}",
       feeLine: "{protocol} протокол · {crew} команда · {creator} создатель",
       feeLineWaived: "{protocol} протокол · {creator} создатель · комиссии команды нет, пока токен не держит ни один подходящий держатель",
+      feeLineFloor: "{protocol} протокол · {creator} создатель · комиссии команды нет, пока подходящие держатели не владеют {share} предложения",
       reviewBuy: "Проверить покупку",
       reviewSell: "Проверить продажу",
       early: "Торги откроются через мгновение",

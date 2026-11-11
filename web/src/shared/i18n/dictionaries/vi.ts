@@ -603,6 +603,7 @@ export const vi: Dictionary = {
       minLine: "Tối thiểu {amount} với trượt giá {pct}",
       feeLine: "{protocol} giao thức · {crew} Crew · {creator} Nhà sáng tạo",
       feeLineWaived: "{protocol} giao thức · {creator} Nhà sáng tạo · chưa thu phí Crew cho đến khi có người đủ điều kiện nắm giữ token",
+      feeLineFloor: "{protocol} giao thức · {creator} Nhà sáng tạo · chưa thu phí Crew cho đến khi người đủ điều kiện nắm giữ {share} nguồn cung",
       reviewBuy: "Xem lại lệnh mua",
       reviewSell: "Xem lại lệnh bán",
       early: "Giao dịch sẽ mở trong giây lát",

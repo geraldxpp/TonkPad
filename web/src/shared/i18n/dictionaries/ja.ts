@@ -603,6 +603,7 @@ export const ja: Dictionary = {
       minLine: "最低 {amount}（スリッページ {pct}）",
       feeLine: "プロトコル {protocol} · クルー {crew} · クリエイター {creator}",
       feeLineWaived: "プロトコル {protocol} · クリエイター {creator} · 対象のホルダーが現れるまでクルー手数料なし",
+      feeLineFloor: "プロトコル {protocol} · クリエイター {creator} · 対象ホルダーの保有が供給量の{share}に達するまでクルー手数料なし",
       reviewBuy: "購入を確認",
       reviewSell: "売却を確認",
       early: "まもなく取引が始まります",

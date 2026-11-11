@@ -195,3 +195,25 @@ describe("a creator's lock, as the contract releases it", () => {
     expect(extendLock(LOCK, LOCK.end, 30 * DAY_SECONDS)).toBe("vested");
   });
 });
+
+describe("the Crew floor, on builds that have one (F-2)", () => {
+  const FLOOR = BigInt(10_000_000) * WEI;
+  const floored = (eligibleSupply: bigint) => mission({ crewFloor: String(FLOOR), eligibleSupply: String(eligibleSupply) });
+
+  it("charges no Crew fee until eligible holders own the floor, then the full fee; a dust holder alone no longer switches it on", () => {
+    expect(chargedCrewBps(floored(FLOOR - BigInt(1)))).toBe(0);
+    expect(chargedCrewBps(floored(FLOOR))).toBe(200);
+    expect(chargedCrewBps(floored(BigInt(1)))).toBe(0);
+    // Earlier builds charged from the first eligible unit.
+    expect(chargedCrewBps(mission({ eligibleSupply: "1" }))).toBe(200);
+  });
+
+  it("checks a sale after its tokens leave the eligible supply, and a buy before it trades", () => {
+    const two = floored(FLOOR * BigInt(2));
+    expect(chargedCrewBps(two, { side: "sell", amount: FLOOR, sellerEligible: true })).toBe(200);
+    expect(chargedCrewBps(two, { side: "sell", amount: FLOOR + BigInt(1), sellerEligible: true })).toBe(0);
+    expect(chargedCrewBps(two, { side: "sell", amount: FLOOR + BigInt(1), sellerEligible: false })).toBe(200);
+    expect(chargedCrewBps(floored(BigInt(0)), { side: "buy", amount: WEI, sellerEligible: true })).toBe(0);
+    expect(quoteTrade(floored(FLOOR - BigInt(1)), "buy", WEI / BigInt(1_000), 0).crewFee).toBe("0");
+  });
+});

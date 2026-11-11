@@ -46,6 +46,7 @@ export const TOKEN_ABI = parseAbi([
   "function allowance(address owner, address spender) view returns (uint256)",
   "function approve(address spender, uint256 value) returns (bool)",
   "function eligibleSupply() view returns (uint256)",
+  "function CREW_ELIGIBLE_FLOOR() view returns (uint256)",
   "function isExcludedFromCrew(address account) view returns (bool)",
   "function totalCrewRewardsPaid() view returns (uint256)",
   "function viewUnpaidRewards(address account) view returns (uint256)",

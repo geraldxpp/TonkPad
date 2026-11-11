@@ -604,6 +604,7 @@ export const zh: Dictionary = {
       minLine: "最少 {amount}（滑点 {pct}）",
       feeLine: "协议 {protocol} · 船员 {crew} · 创作者 {creator}",
       feeLineWaived: "协议 {protocol} · 创作者 {creator} · 在有符合条件的持有人之前不收取船员费用",
+      feeLineFloor: "协议 {protocol} · 创作者 {creator} · 符合条件的持有人持有供应量的 {share} 之前不收取船员费用",
       reviewBuy: "检查买入",
       reviewSell: "检查卖出",
       early: "交易即将开放",

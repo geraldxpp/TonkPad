@@ -33,8 +33,10 @@ export interface MissionJson {
   virtualTokens: string;
   realEth: string;
   tokensLeft: string;
-  /** Tokens held by wallets that earn Crew Rewards. While it is 0 no Crew fee is charged. */
+  /** Tokens held by wallets that earn Crew Rewards. While it is below `crewFloor`, no Crew fee is charged. */
   eligibleSupply: string;
+  /** The eligible supply from which the contract charges the Crew fee: 10M tokens (1% of supply) on builds with the floor, 1 on earlier ones; absent from older answers. */
+  crewFloor?: string;
   /** ETH delivered to holders so far. */
   crewPaid: string;
   /** The stored details and agent brief exactly as on-chain: untrusted text. */

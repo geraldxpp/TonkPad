@@ -603,6 +603,7 @@ export const tr: Dictionary = {
       minLine: "Min. {amount}, {pct} kayma ile",
       feeLine: "{protocol} protokol · {crew} Ekip · {creator} Yaratıcı",
       feeLineWaived: "{protocol} protokol · {creator} Yaratıcı · uygun biri token tutana kadar Ekip ücreti yok",
+      feeLineFloor: "{protocol} protokol · {creator} Yaratıcı · uygun sahipler arzın {share} kadarını tutana dek Ekip ücreti yok",
       reviewBuy: "Alımı incele",
       reviewSell: "Satışı incele",
       early: "İşlemler birazdan açılıyor",

@@ -71,6 +71,8 @@ function tokenCall(mission: FixtureMission, data: Hex): Hex {
       return result(mission.symbol);
     case "eligibleSupply":
       return result(big(mission.eligibleSupply));
+    case "CREW_ELIGIBLE_FLOOR":
+      return result(BigInt(10_000_000) * BigInt(10) ** BigInt(18));
     case "isExcludedFromCrew":
       return result(false);
     case "totalCrewRewardsPaid":

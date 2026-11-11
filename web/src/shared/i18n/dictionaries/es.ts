@@ -603,6 +603,7 @@ export const es: Dictionary = {
       minLine: "Mín. {amount} con {pct} de slippage",
       feeLine: "{protocol} protocolo · {crew} Crew · {creator} Creador",
       feeLineWaived: "{protocol} protocolo · {creator} Creador · sin comisión de Crew hasta que alguien elegible tenga el token",
+      feeLineFloor: "{protocol} protocolo · {creator} Creador · sin comisión de Crew hasta que los holders elegibles tengan el {share} del suministro",
       reviewBuy: "Revisar compra",
       reviewSell: "Revisar venta",
       early: "El trading abre en un momento",

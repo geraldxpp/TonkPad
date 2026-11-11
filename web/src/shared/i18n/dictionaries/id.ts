@@ -604,6 +604,7 @@ export const id: Dictionary = {
       minLine: "Min. {amount} dengan slippage {pct}",
       feeLine: "{protocol} protokol · {crew} Crew · {creator} Kreator",
       feeLineWaived: "{protocol} protokol · {creator} Kreator · tanpa biaya Crew sampai ada holder yang memenuhi syarat",
+      feeLineFloor: "{protocol} protokol · {creator} Kreator · tanpa biaya Crew sampai holder yang memenuhi syarat memegang {share} suplai",
       reviewBuy: "Tinjau pembelian",
       reviewSell: "Tinjau penjualan",
       early: "Trading segera dibuka",
