@@ -308,6 +308,7 @@ export const vi: Dictionary = {
     next: "Tiếp tục",
     back: "Quay lại",
     beta: "Beta: các hợp đồng này chưa được kiểm toán độc lập. Chỉ bỏ vào số tiền bạn có thể chấp nhận mất.",
+    invite: "Hiện việc phát hành chỉ dành cho người được mời. Trong những ngày đầu, chỉ nhà sáng tạo được mời mới có thể phát hành tại đây.",
     steps: {
       basics: "Token & thông tin cơ bản",
       lock: "Locked Mission",
@@ -498,6 +499,7 @@ export const vi: Dictionary = {
     },
     action: {
       review: "Xem lại lần phát hành",
+      inviteOnly: "Hiện chỉ dành cho người được mời",
       noFunds: "Không đủ {unit}",
       faucet: "Nhận ETH thử nghiệm",
       paused: "Việc phát hành đang tạm dừng",
@@ -546,6 +548,7 @@ export const vi: Dictionary = {
       unavailable: "Hiện không kết nối được Robinhood Chain. Hãy thử lại sau giây lát.",
       paused: "Việc phát hành đang tạm dừng. Chưa có gì được gửi đi.",
       migrator: "Việc phát hành đang tạm dừng trong lúc chúng tôi kiểm tra cài đặt của launchpad. Chưa có gì được gửi đi.",
+      invite: "Hiện việc phát hành chỉ dành cho người được mời và ví này không có trong danh sách. Chưa có gì được gửi đi.",
       busy: "Quá nhiều yêu cầu. Hãy thử lại sau giây lát.",
     },
     receipt: {

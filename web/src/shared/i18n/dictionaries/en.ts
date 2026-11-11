@@ -314,6 +314,7 @@ export const en = {
     next: "Continue",
     back: "Back",
     beta: "Beta: these contracts haven't had an independent audit yet. Only put in what you can afford to lose.",
+    invite: "Launch is invite-only for now. For the first days, only invited creators can launch here.",
     steps: {
       basics: "Token & basics",
       lock: "Locked Mission",
@@ -504,6 +505,7 @@ export const en = {
     },
     action: {
       review: "Review launch",
+      inviteOnly: "Invite-only for now",
       noFunds: "Not enough {unit}",
       faucet: "Get test ETH",
       paused: "Launches are paused",
@@ -552,6 +554,7 @@ export const en = {
       unavailable: "Robinhood Chain can't be reached right now. Try again in a moment.",
       paused: "Launches are paused right now. Nothing was sent.",
       migrator: "Launches are stopped while we check the launchpad's settings. Nothing was sent.",
+      invite: "Launches are invite-only for now, and this wallet isn't on the list. Nothing was sent.",
       busy: "Too many requests. Try again in a moment.",
     },
     receipt: {

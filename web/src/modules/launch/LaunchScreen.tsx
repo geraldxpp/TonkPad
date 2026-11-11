@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatEth } from "@/shared/tonk/format";
+import { isInvited, launchInvites } from "@/shared/tonk/invites";
 import { LAUNCHPAD_AUDITED, tonkNetwork } from "@/shared/tonk/networks";
 import { isTxHash, type TonkSettingsJson } from "@/shared/tonk/types";
 import { useWalletBalances } from "@/shared/wallet/useWalletBalances";
@@ -72,7 +73,9 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
   const unit = data.unit;
   const total = `${formatEth(view.payNow)} ${unit}`;
   const wrong = issuesIn(state.issues, "all");
-  const action = actionState(t, { hasVisibleErrors: wrong.some(state.showsError), owner, balance: balances ? BigInt(balances.native.raw) : null, payNow: view.payNow, offline: live.offline, paused: live.paused, unit });
+  // The guarded launch: while an invite list is set, only its wallets can launch from this studio.
+  const invited = isInvited(owner);
+  const action = actionState(t, { hasVisibleErrors: wrong.some(state.showsError), owner, invited, balance: balances ? BigInt(balances.native.raw) : null, payNow: view.payNow, offline: live.offline, paused: live.paused, unit });
   const afterStep = useAfterStep(step);
   /** Phones: shows another step, then focuses `focusId` or lands on the step bar. False when it's already showing. */
   const showStep = (next: number, focusId?: string) => {
@@ -151,6 +154,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
         </div>
       </div>
       {data.mode === "mainnet" && !LAUNCHPAD_AUDITED ? <BetaNotice text={l.beta} className="mb-4" /> : null}
+      {launchInvites() !== null && !invited ? <BetaNotice text={l.invite} className="mb-4" /> : null}
       {live.offline ? <p role="alert" className="m-0 mb-4 rounded-lg border border-warn/25 bg-warn/7 px-3.5 py-3 text-[13px] text-warn">{l.offline}</p> : null}
       <StepNav
         active={phone ? step : inView}

@@ -308,6 +308,7 @@ export const ko: Dictionary = {
     next: "계속",
     back: "뒤로",
     beta: "베타: 이 컨트랙트는 아직 독립 감사를 받지 않았습니다. 잃어도 괜찮은 만큼만 넣으세요.",
+    invite: "현재 런칭은 초대제로 운영됩니다. 처음 며칠 동안은 초대받은 크리에이터만 여기서 런칭할 수 있습니다.",
     steps: {
       basics: "토큰 및 기본 정보",
       lock: "Locked Mission",
@@ -498,6 +499,7 @@ export const ko: Dictionary = {
     },
     action: {
       review: "런칭 검토",
+      inviteOnly: "현재 초대제로 운영 중",
       noFunds: "{unit} 부족",
       faucet: "테스트 ETH 받기",
       paused: "런칭이 일시 중지됨",
@@ -546,6 +548,7 @@ export const ko: Dictionary = {
       unavailable: "지금 Robinhood Chain에 연결할 수 없습니다. 잠시 후 다시 시도하세요.",
       paused: "지금은 런칭이 일시 중지되었습니다. 아무것도 전송되지 않았습니다.",
       migrator: "런치패드 설정을 확인하는 동안 런칭이 중지되었습니다. 아무것도 전송되지 않았습니다.",
+      invite: "현재 런칭은 초대제이며, 이 지갑은 목록에 없습니다. 아무것도 전송되지 않았습니다.",
       busy: "요청이 너무 많습니다. 잠시 후 다시 시도하세요.",
     },
     receipt: {

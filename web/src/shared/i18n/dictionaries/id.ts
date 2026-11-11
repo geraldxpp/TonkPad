@@ -309,6 +309,7 @@ export const id: Dictionary = {
     next: "Lanjut",
     back: "Kembali",
     beta: "Beta: kontrak ini belum diaudit secara independen. Masukkan hanya dana yang sanggup Anda tanggung kehilangannya.",
+    invite: "Untuk saat ini peluncuran hanya dengan undangan. Pada hari-hari pertama, hanya kreator yang diundang yang bisa meluncurkan di sini.",
     steps: {
       basics: "Token & dasar",
       lock: "Locked Mission",
@@ -499,6 +500,7 @@ export const id: Dictionary = {
     },
     action: {
       review: "Tinjau peluncuran",
+      inviteOnly: "Saat ini hanya dengan undangan",
       noFunds: "{unit} tidak cukup",
       faucet: "Dapatkan ETH uji",
       paused: "Peluncuran dijeda",
@@ -547,6 +549,7 @@ export const id: Dictionary = {
       unavailable: "Robinhood Chain tidak dapat dijangkau saat ini. Coba lagi sebentar lagi.",
       paused: "Peluncuran sedang dijeda. Tidak ada yang dikirim.",
       migrator: "Peluncuran dihentikan sementara kami memeriksa pengaturan launchpad. Tidak ada yang dikirim.",
+      invite: "Untuk saat ini peluncuran hanya dengan undangan, dan dompet ini tidak ada dalam daftar. Tidak ada yang dikirim.",
       busy: "Terlalu banyak permintaan. Coba lagi sebentar lagi.",
     },
     receipt: {

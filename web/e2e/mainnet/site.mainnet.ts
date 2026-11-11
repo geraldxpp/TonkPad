@@ -39,6 +39,22 @@ test("Launch is live: the launchpad's own settings, the beta notice, the 1% lock
   await page.screenshot({ path: "e2e/screenshots/mainnet-launch-1440.png" });
 });
 
+test("while launches are invite-only, a wallet off the list is told so and can't review a launch", async ({ page }) => {
+  await connected(page);
+  const builds: unknown[] = [];
+  await page.route("**/api/tonk/launch", (route) => {
+    builds.push(route.request().postDataJSON());
+    return route.fulfill({ status: 403, json: { error: "invite" } });
+  });
+  await page.goto("/launch");
+  await expect(page.getByRole("note").filter({ hasText: "invite-only" })).toHaveText("Launch is invite-only for now. For the first days, only invited creators can launch here.");
+  const button = page.getByRole("button", { name: "Invite-only for now" }).first();
+  await expect(button).toHaveAttribute("aria-disabled", "true");
+  await button.click({ force: true });
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(builds).toEqual([]);
+});
+
 test("Explore lists the launchpad's latest launches and opens a launch by its address", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Latest launches" })).toBeVisible();

@@ -309,6 +309,7 @@ export const pt: Dictionary = {
     next: "Continuar",
     back: "Voltar",
     beta: "Beta: estes contratos ainda não passaram por uma auditoria independente. Coloque apenas o que você pode perder.",
+    invite: "Por enquanto, os lançamentos são só para convidados. Nos primeiros dias, apenas criadores convidados podem lançar aqui.",
     steps: {
       basics: "Token e dados básicos",
       lock: "Locked Mission",
@@ -499,6 +500,7 @@ export const pt: Dictionary = {
     },
     action: {
       review: "Revisar lançamento",
+      inviteOnly: "Só para convidados, por enquanto",
       noFunds: "{unit} insuficiente",
       faucet: "Obter ETH de teste",
       paused: "Os lançamentos estão pausados",
@@ -547,6 +549,7 @@ export const pt: Dictionary = {
       unavailable: "Não foi possível conectar à Robinhood Chain agora. Tente de novo em instantes.",
       paused: "Os lançamentos estão pausados agora. Nada foi enviado.",
       migrator: "Os lançamentos estão suspensos enquanto verificamos as configurações do launchpad. Nada foi enviado.",
+      invite: "Por enquanto, os lançamentos são só para convidados e esta carteira não está na lista. Nada foi enviado.",
       busy: "Muitas solicitações. Tente de novo em instantes.",
     },
     receipt: {

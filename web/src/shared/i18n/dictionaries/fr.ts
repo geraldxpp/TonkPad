@@ -308,6 +308,7 @@ export const fr: Dictionary = {
     next: "Continuer",
     back: "Retour",
     beta: "Bêta : ces contrats n’ont pas encore fait l’objet d’un audit indépendant. N’y mettez que ce que vous pouvez vous permettre de perdre.",
+    invite: "Les lancements sont sur invitation pour l’instant. Les premiers jours, seuls les créateurs invités peuvent lancer ici.",
     steps: {
       basics: "Token et bases",
       lock: "Locked Mission",
@@ -498,6 +499,7 @@ export const fr: Dictionary = {
     },
     action: {
       review: "Vérifier le lancement",
+      inviteOnly: "Sur invitation pour l’instant",
       noFunds: "Pas assez de {unit}",
       faucet: "Obtenir de l’ETH de test",
       paused: "Les lancements sont en pause",
@@ -546,6 +548,7 @@ export const fr: Dictionary = {
       unavailable: "Robinhood Chain est injoignable pour le moment. Réessayez dans un instant.",
       paused: "Les lancements sont en pause pour le moment. Rien n’a été envoyé.",
       migrator: "Les lancements sont suspendus le temps de vérifier les réglages du launchpad. Rien n’a été envoyé.",
+      invite: "Les lancements sont sur invitation pour l’instant, et ce wallet n’est pas sur la liste. Rien n’a été envoyé.",
       busy: "Trop de requêtes. Réessayez dans un instant.",
     },
     receipt: {

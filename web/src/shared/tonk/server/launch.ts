@@ -1,5 +1,6 @@
 import { encodeFunctionData } from "viem";
 import { type CurveSettings, devBuyQuote, maxDevBuy } from "../curve";
+import { isInvited, launchInvites } from "../invites";
 import { AGENT_VOICES, type AgentSettings, encodeAgent, encodeMetadata, LIMITS, normalizeTelegram, normalizeWebsite, normalizeX } from "../metadata";
 import type { TonkNetwork } from "../networks";
 import { CREATOR_OPTIONS, CREW_OPTIONS, effectiveTier, isLocked, LOCK_TYPE_ID, lockedAmount, type LockSettings, type LockType, MAX_LOCK_DAYS, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "../rules";
@@ -78,7 +79,10 @@ export function launchParams(request: LaunchRequest, lock: LockSettings) {
  * refusal or a short balance shows before any wallet opens), and its gas is
  * estimated. Nothing is sent from here: only the creator's wallet can.
  */
-export async function buildLaunch(network: TonkNetwork, request: LaunchRequest): Promise<LaunchBuild> {
+export async function buildLaunch(network: TonkNetwork, request: LaunchRequest, invites: ReadonlySet<string> | null = launchInvites()): Promise<LaunchBuild> {
+  // The guarded launch: while an invite list is set, this site builds launches only for the wallets on it.
+  // The launchpad contract stays permissionless; this only keeps the site's own studio to invited creators.
+  if (!isInvited(request.creator, invites)) throw new TonkError("invite", "launch is invite-only for now", 403);
   const settings = await readSettings(network, 0);
   const curve = curveSettings(settings);
   const lock = checkedLock(request, curve);

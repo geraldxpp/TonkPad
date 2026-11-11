@@ -126,6 +126,20 @@ describe("building a launch", () => {
     expect(client.simulateContract).not.toHaveBeenCalled();
   });
 
+  it("builds nothing for a wallet off the guarded launch's invite list, and builds for one on it", async () => {
+    const client = fakeClient();
+    useClient(client);
+    const reads = vi.mocked(readSettings).mock.calls.length;
+    const other = "0x9999999999999999999999999999999999999999";
+    await expect(buildLaunch(TONK_TESTNET, REQUEST, new Set([other]))).rejects.toMatchObject({ code: "invite", status: 403 });
+    await expect(buildLaunch(TONK_TESTNET, REQUEST, new Set())).rejects.toMatchObject({ code: "invite" });
+    // Refused before anything is read from the chain.
+    expect(client.simulateContract).not.toHaveBeenCalled();
+    expect(vi.mocked(readSettings).mock.calls.length).toBe(reads);
+    const build = await buildLaunch(TONK_TESTNET, REQUEST, new Set([other, CREATOR.toLowerCase()]));
+    expect(build.tx.to).toBe(TONK_TESTNET.launchpad);
+  });
+
   it("says why the launchpad or the wallet's balance won't allow it", async () => {
     vi.mocked(readSettings).mockResolvedValueOnce({ ...SETTINGS, paused: true });
     useClient(fakeClient());

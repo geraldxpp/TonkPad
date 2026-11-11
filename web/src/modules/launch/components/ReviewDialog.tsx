@@ -41,6 +41,7 @@ export function ReviewDialog({ open, onClose, state, view, settings, unit, chain
     funds: fmt(l.run.funds, { unit }),
     paused: l.run.paused,
     migrator: l.run.migrator,
+    invite: l.run.invite,
     refused: l.run.refused,
     invalid: l.run.refused,
     busy: l.run.busy,

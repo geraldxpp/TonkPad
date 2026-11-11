@@ -6,7 +6,7 @@ import type { Dictionary } from "@/shared/i18n/dictionaries/en";
 import { cn } from "@/shared/lib/cn";
 
 /** What the studio's main button does next. */
-export type ActionKind = "fix" | "connect" | "offline" | "paused" | "funds" | "review";
+export type ActionKind = "fix" | "connect" | "invite" | "offline" | "paused" | "funds" | "review";
 
 export interface ActionState {
   kind: ActionKind;
@@ -19,6 +19,8 @@ interface ActionInput {
   hasVisibleErrors: boolean;
   /** The connected Robinhood Chain wallet, if any. */
   owner: string | null;
+  /** Whether that wallet may launch here: always, unless the guarded launch's invite list leaves it out. */
+  invited: boolean;
   /** Its coin balance in wei, once read. */
   balance: bigint | null;
   payNow: bigint;
@@ -27,11 +29,12 @@ interface ActionInput {
   unit: string;
 }
 
-/** The button's state, in the order of what is missing: fields to fix, a wallet, the network, the launchpad, funds. */
+/** The button's state, in the order of what is missing: fields to fix, a wallet, an invite, the network, the launchpad, funds. */
 export function actionState(t: Dictionary, input: ActionInput): ActionState {
   const a = t.launch.action;
   if (input.hasVisibleErrors) return { kind: "fix", label: a.fix, disabled: false };
   if (!input.owner) return { kind: "connect", label: t.header.connectWallet, disabled: false };
+  if (!input.invited) return { kind: "invite", label: a.inviteOnly, disabled: true };
   if (input.offline) return { kind: "offline", label: a.unavailable, disabled: true };
   if (input.paused) return { kind: "paused", label: a.paused, disabled: true };
   if (input.balance !== null && input.balance < input.payNow) return { kind: "funds", label: fmt(a.noFunds, { unit: input.unit }), disabled: true };

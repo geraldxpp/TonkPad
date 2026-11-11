@@ -309,6 +309,7 @@ export const zh: Dictionary = {
     next: "继续",
     back: "返回",
     beta: "测试版：这些合约尚未经过独立审计。只投入你能承受损失的资金。",
+    invite: "目前发射仅限受邀。最初几天，只有受邀的创作者可以在这里发射。",
     steps: {
       basics: "代币与基础信息",
       lock: "Locked Mission",
@@ -499,6 +500,7 @@ export const zh: Dictionary = {
     },
     action: {
       review: "检查发射",
+      inviteOnly: "目前仅限受邀",
       noFunds: "{unit} 不足",
       faucet: "领取测试 ETH",
       paused: "发射已暂停",
@@ -547,6 +549,7 @@ export const zh: Dictionary = {
       unavailable: "暂时无法连接 Robinhood Chain，请稍后重试。",
       paused: "发射目前已暂停，未发送任何交易。",
       migrator: "我们正在检查发射台的设置，发射已暂停。未发送任何交易。",
+      invite: "目前发射仅限受邀，此钱包不在名单上。未发送任何交易。",
       busy: "请求过多，请稍后重试。",
     },
     receipt: {

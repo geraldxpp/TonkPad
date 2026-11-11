@@ -308,6 +308,7 @@ export const tr: Dictionary = {
     next: "Devam",
     back: "Geri",
     beta: "Beta: bu sözleşmeler henüz bağımsız bir denetimden geçmedi. Yalnızca kaybetmeyi göze alabileceğiniz kadarını yatırın.",
+    invite: "Başlatmalar şimdilik yalnızca davetle. İlk günlerde burada yalnızca davet edilen yaratıcılar başlatabilir.",
     steps: {
       basics: "Token ve temel bilgiler",
       lock: "Locked Mission",
@@ -498,6 +499,7 @@ export const tr: Dictionary = {
     },
     action: {
       review: "Başlatmayı gözden geçir",
+      inviteOnly: "Şimdilik yalnızca davetle",
       noFunds: "Yeterli {unit} yok",
       faucet: "Test ETH al",
       paused: "Başlatmalar duraklatıldı",
@@ -546,6 +548,7 @@ export const tr: Dictionary = {
       unavailable: "Robinhood Chain’e şu anda ulaşılamıyor. Biraz sonra tekrar deneyin.",
       paused: "Başlatmalar şu anda duraklatıldı. Hiçbir şey gönderilmedi.",
       migrator: "Launchpad ayarlarını kontrol ederken başlatmalar durduruldu. Hiçbir şey gönderilmedi.",
+      invite: "Başlatmalar şimdilik yalnızca davetle ve bu cüzdan listede değil. Hiçbir şey gönderilmedi.",
       busy: "Çok fazla istek. Biraz sonra tekrar deneyin.",
     },
     receipt: {

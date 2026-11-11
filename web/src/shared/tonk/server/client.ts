@@ -22,7 +22,9 @@ export class TonkError extends Error {
       | "migrator"
       // A graduated token's pool: still on its curve; graduated but its pool not open yet.
       | "curve"
-      | "pending",
+      | "pending"
+      // The guarded launch: this site launches only for invited creators (the contract itself stays open).
+      | "invite",
     message: string,
     readonly status = 502,
   ) {

@@ -308,6 +308,7 @@ export const ja: Dictionary = {
     next: "次へ",
     back: "戻る",
     beta: "ベータ版：これらのコントラクトはまだ独立した監査を受けていません。失っても構わない額だけを入れてください。",
+    invite: "現在、ローンチは招待制です。最初の数日間は、招待されたクリエイターのみがここでローンチできます。",
     steps: {
       basics: "トークンと基本情報",
       lock: "Locked Mission",
@@ -498,6 +499,7 @@ export const ja: Dictionary = {
     },
     action: {
       review: "ローンチを確認",
+      inviteOnly: "現在は招待制です",
       noFunds: "{unit} が不足しています",
       faucet: "テスト ETH を入手",
       paused: "ローンチは一時停止中です",
@@ -546,6 +548,7 @@ export const ja: Dictionary = {
       unavailable: "現在 Robinhood Chain に接続できません。しばらくしてからもう一度お試しください。",
       paused: "現在ローンチは一時停止中です。何も送信されていません。",
       migrator: "ローンチパッドの設定を確認しているため、ローンチを停止しています。何も送信されていません。",
+      invite: "現在ローンチは招待制で、このウォレットはリストに含まれていません。何も送信されていません。",
       busy: "リクエストが多すぎます。しばらくしてからもう一度お試しください。",
     },
     receipt: {

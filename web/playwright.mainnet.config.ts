@@ -35,6 +35,8 @@ export default defineConfig({
         NEXT_PUBLIC_TONK_LAUNCHPAD: MAINNET_DEPLOYMENT.launchpad,
         NEXT_PUBLIC_TONK_MIGRATOR: MAINNET_DEPLOYMENT.migrator,
         NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK: MAINNET_DEPLOYMENT.block,
+        // The guarded launch's invite list, without the stub wallet: Launch is invite-only for it.
+        NEXT_PUBLIC_TONK_LAUNCH_INVITES: "0x1111111111111111111111111111111111111111",
         TONK_RPC_URL: MAINNET_RPC_URL,
         ROBINHOOD_RPC_URL: MAINNET_RPC_URL,
         NEXT_PUBLIC_WALLET_STUB: "1",

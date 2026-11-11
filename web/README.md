@@ -420,10 +420,28 @@ network's own chain. Every `/api/tonk/*` route has its own allowance in
 `src/shared/lib/rate-limit.ts`.
 
 **Mainnet on Vercel.** After the owner has deployed and the Safe has accepted
-ownership, add for **Production** (type Config): `NEXT_PUBLIC_TONK_NETWORK=mainnet`,
-`NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR` and
-`NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK`, then rebuild. `npm run test:e2e:mainnet`
-runs a mainnet-mode build against a local stand-in RPC first.
+ownership, add these for **Production** (type Config), then rebuild:
+- `NEXT_PUBLIC_TONK_NETWORK=mainnet`;
+- `NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR` and
+  `NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK`;
+- for the guarded launch's first days, `NEXT_PUBLIC_TONK_LAUNCH_INVITES`.
+
+`npm run test:e2e:mainnet` runs a mainnet-mode build against a local
+stand-in RPC first.
+
+**Invite-only launches.** `NEXT_PUBLIC_TONK_LAUNCH_INVITES` lists invited
+creator wallets, separated by commas, spaces or new lines
+(`src/shared/tonk/invites.ts`). While it is set:
+- Launch shows "Launch is invite-only for now" to any other wallet, and its
+  main button says so.
+- `POST /api/tonk/launch` refuses to build their launch (403 `invite`).
+- A list whose entries are all malformed invites nobody, so a typo closes
+  Launch rather than opening it.
+
+Unset, Launch is open to every wallet. This gate belongs to the site alone.
+The launchpad contract stays permissionless, so anyone can still launch by
+calling it directly. It's a way to start small, not a security boundary.
+Monitoring still watches every launch.
 
 **The testnet site on Vercel.** A `testnet` branch gets its own preview
 deployment. In the project's Environment Variables add

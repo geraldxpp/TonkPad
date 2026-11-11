@@ -194,6 +194,7 @@ Astra uses only fresh wallets holding only test ETH, and never sees a seed phras
 - **Astra's attack pass and campaign** (`prompts/08-astra-brief.md`): no open defect, and no unexplained difference between the app and the chain.
 - **The app:** lint, typecheck, unit tests and every end-to-end run pass.
 - **Setup:** the Safe exists, the treasury is chosen, and the testnet pause and unpause are done.
+- **Guarded launch** (the internal audit's section 7): on the app side, `NEXT_PUBLIC_TONK_LAUNCH_INVITES` lists the invited creators for the first days, built 11 Nov. It's a soft gate: the contract stays permissionless, so monitoring watches every launch.
 - **Deployment checks** (the review's list):
   - the chain ID is 4663;
   - the migrator is built on the official PoolManager and PositionManager, and the PositionManager's Permit2 is the official one;

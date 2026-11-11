@@ -308,6 +308,7 @@ export const de: Dictionary = {
     next: "Weiter",
     back: "Zurück",
     beta: "Beta: Diese Verträge wurden noch nicht unabhängig geprüft. Setze nur ein, was du verlieren kannst.",
+    invite: "Starts sind vorerst nur auf Einladung möglich. In den ersten Tagen können hier nur eingeladene Creator starten.",
     steps: {
       basics: "Token & Grundlagen",
       lock: "Locked Mission",
@@ -498,6 +499,7 @@ export const de: Dictionary = {
     },
     action: {
       review: "Start prüfen",
+      inviteOnly: "Vorerst nur auf Einladung",
       noFunds: "Nicht genug {unit}",
       faucet: "Test-ETH holen",
       paused: "Starts sind pausiert",
@@ -546,6 +548,7 @@ export const de: Dictionary = {
       unavailable: "Robinhood Chain ist gerade nicht erreichbar. Versuch es gleich noch einmal.",
       paused: "Starts sind gerade pausiert. Es wurde nichts gesendet.",
       migrator: "Starts sind angehalten, während wir die Einstellungen des Launchpads prüfen. Es wurde nichts gesendet.",
+      invite: "Starts sind vorerst nur auf Einladung möglich, und diese Wallet steht nicht auf der Liste. Es wurde nichts gesendet.",
       busy: "Zu viele Anfragen. Versuch es gleich noch einmal.",
     },
     receipt: {
