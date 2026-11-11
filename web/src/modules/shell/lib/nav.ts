@@ -50,6 +50,11 @@ export function isTokenPath(pathname: string): boolean {
   return splitLocale(pathname).path.startsWith("/token/");
 }
 
+/** With a wallet connected, Portfolio swaps the phone tab bar for its Receive / Swap / Bridge bar. */
+export function isPortfolioPath(pathname: string): boolean {
+  return splitLocale(pathname).path === "/portfolio";
+}
+
 /**
  * The rail item that matches a pathname, in any language ("/es/swap" → swap).
  * The prerendered English pages see "/en/…", the browser "/…"; both match.

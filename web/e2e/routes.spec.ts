@@ -3,7 +3,6 @@ import { openExplore, pauseCarousel } from "./helpers";
 
 const RAIL = [
   ["Bridge", "/bridge", "Bridge"],
-  ["Portfolio", "/portfolio", "Portfolio"],
   ["Docs", "/docs", "Docs"],
 ] as const;
 
@@ -19,6 +18,15 @@ for (const [label, path, title] of RAIL) {
     await expect(nav.getByRole("link", { name: "Explore" })).not.toHaveAttribute("aria-current", "page");
   });
 }
+
+test("rail: Portfolio opens the portfolio screen", async ({ page }) => {
+  await openExplore(page);
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await nav.getByRole("link", { name: "Portfolio" }).click();
+  await expect(page).toHaveURL("/portfolio");
+  await expect(page.getByRole("heading", { level: 1, name: "A little more perspective." })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Portfolio" })).toHaveAttribute("aria-current", "page");
+});
 
 test("rail: Launch opens the Creator Studio", async ({ page }) => {
   await openExplore(page);

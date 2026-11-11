@@ -7,6 +7,8 @@ export interface TabItem<T extends string> {
   id: T;
   label: string;
   icon?: ReactNode;
+  /** After the label: a count, say. */
+  trailing?: ReactNode;
 }
 
 interface TabsProps<T extends string> {
@@ -22,10 +24,14 @@ interface TabsProps<T extends string> {
   /**
    * "md" and "panel" are pill groups (panel: raised, with 30 px tabs);
    * "underline" is a bare row of 56 px tabs with a cyan rule under the
-   * selected one, for tabs that sit along a card's edge.
+   * selected one, for tabs that sit along a card's edge; "flush" has no side
+   * padding, so the rule is exactly as wide as its label, and the selected
+   * label stays plain text.
    */
-  size?: "md" | "panel" | "underline";
+  size?: "md" | "panel" | "underline" | "flush";
 }
+
+const BARE_ROW = "flex min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 /**
  * ARIA tablist with a roving tab stop: Tab reaches the selected tab, the arrow
@@ -53,9 +59,11 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
       role="tablist"
       aria-label={label}
       className={cn(
-        size === "underline"
-          ? "flex min-w-0 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          : cn("flex flex-wrap gap-0.5 rounded-xl border border-line p-1", size === "panel" ? "bg-raised" : "bg-surface"),
+        size === "flush"
+          ? cn(BARE_ROW, "gap-[25px] max-[699px]:gap-[23px]")
+          : size === "underline"
+            ? cn(BARE_ROW, "gap-0.5")
+            : cn("flex flex-wrap gap-0.5 rounded-xl border border-line p-1", size === "panel" ? "bg-raised" : "bg-surface"),
         className,
       )}
     >
@@ -76,20 +84,27 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
             onClick={() => onChange?.(tab.id)}
             onKeyDown={(event) => move(event, index)}
             className={cn(
-              "inline-flex flex-none items-center gap-1.5 text-[13px] font-medium whitespace-nowrap",
-              size === "underline"
+              "inline-flex flex-none items-center whitespace-nowrap",
+              size === "flush"
                 ? cn(
-                    "h-14 border-b-2 px-2.5 focus-visible:[outline-offset:-4px]",
-                    active ? "border-accent text-accent-text" : "border-transparent text-text-2 hover:text-text",
+                    "h-[68px] gap-[7px] border-b-2 text-[14px] font-semibold focus-visible:[outline-offset:-4px] max-[699px]:h-[55px] max-[699px]:text-[13px]",
+                    active ? "border-accent text-text" : "border-transparent text-text-3 hover:text-text",
                   )
-                : cn(
-                    size === "panel" ? "h-[30px] rounded-lg px-3" : "h-8 rounded-[9px] px-3.5",
-                    active ? "bg-input text-text" : "bg-transparent text-text-2",
-                  ),
+                : size === "underline"
+                  ? cn(
+                      "h-14 gap-1.5 border-b-2 px-2.5 text-[13px] font-medium focus-visible:[outline-offset:-4px]",
+                      active ? "border-accent text-accent-text" : "border-transparent text-text-2 hover:text-text",
+                    )
+                  : cn(
+                      "gap-1.5 text-[13px] font-medium",
+                      size === "panel" ? "h-[30px] rounded-lg px-3" : "h-8 rounded-[9px] px-3.5",
+                      active ? "bg-input text-text" : "bg-transparent text-text-2",
+                    ),
             )}
           >
             {tab.icon}
             {tab.label}
+            {tab.trailing}
           </button>
         );
       })}

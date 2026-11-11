@@ -38,6 +38,10 @@ export const ALLOWANCES = {
   tonkTrade: { burst: 12, perSecond: 0.2 },
   tonkAction: { burst: 8, perSecond: 0.1 },
   tonkMissions: { burst: 20, perSecond: 0.5 },
+  // Portfolio: each connected wallet refreshes once a minute; activity loads per tab and per "Load more"; the market series are per chart range.
+  portfolio: { burst: 20, perSecond: 0.25 },
+  portfolioActivity: { burst: 20, perSecond: 0.25 },
+  portfolioMarket: { burst: 30, perSecond: 0.5 },
 } as const satisfies Record<string, Allowance>;
 
 export type RouteGroup = keyof typeof ALLOWANCES;

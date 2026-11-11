@@ -16,9 +16,9 @@ any mock Explore token. **Module 3 — Swap** (`/swap`) and **Module 4 — Launc
 the Creator Studio** (`/launch`, on the testnet site; "coming soon" on
 production) have their own sections below, and so does the **token page on
 the testnet site**, where a launched token is traded on its curve and its
-creator manages the lock. The other rail screens (`/live`,
-`/bridge`, `/portfolio`, `/docs`) show a "Coming in a later module" panel
-inside the shell.
+creator manages the lock. **Module 5 — Portfolio** (`/portfolio`) has its
+section too. The other rail screens (`/live`, `/bridge`, `/docs`) show a
+"Coming in a later module" panel inside the shell.
 
 ## Run it
 
@@ -517,6 +517,64 @@ answered in the browser and the stub wallet "sends" them. Its captures go to
 `e2e/screenshots/testnet/`, which isn't committed: they show the moment of
 the run (ages, what has unlocked). No test or script ever sends a
 transaction.
+
+## Portfolio
+
+`/portfolio` shows what the connected wallets hold on Robinhood Chain and
+Solana, read live from the chains: the total, a chart, each network's share,
+the holdings and the wallet's activity. It signs and sends nothing. The brief
+is `../prompts/05-portfolio.md`.
+
+**Holdings.** `GET /api/portfolio/[chain]/[owner]` accepts only an address in
+the chain's own format and reads through the server, with the keys wallets
+already use.
+
+- *Solana:* the SOL balance and every token account in both token programs,
+  then Jupiter's token search for names, art, prices and price moves.
+- *Robinhood Chain:* the ETH balance and `alchemy_getTokenBalances` through
+  `ROBINHOOD_RPC_URL`, priced from DexScreener. On a plain RPC with no token
+  index only the chain's base tokens are read, and the answer says it's partial.
+
+**What counts.** A token needs a real market to have a price: $1,000 of
+liquidity, and not flagged by Jupiter; on Robinhood Chain, a known quote coin
+or $10,000 of depth. Anyone can mint a token and airdrop it with a huge paper
+"value", so tokens without a price count for nothing and sit behind a warning.
+Stablecoins are known by address, never by ticker. If a network, a token
+program or the price source can't be read, the rest stands and the screen says
+the total may be low; only a wallet's own coin balance is essential.
+
+**The chart** is the wallet's current holdings at past prices, not a record of
+past balances (that would need an indexer): SOL and ETH from Coinbase's public
+candles (`GET /api/portfolio/market?range=`, nothing about a wallet in it, so
+one read serves everyone), other tokens from the market's own 5-minute, 1-hour,
+6-hour and 24-hour moves. A token with no longer history stays at its oldest
+known price, so it can't paint a rally. The screen says what the chart is and
+how much of the value it could trace.
+
+**Activity.** `GET /api/portfolio/[chain]/[owner]/activity?cursor=`, read only
+once its tab is opened: Helius's parsed transactions on Solana,
+`alchemy_getAssetTransfers` on Robinhood Chain, each turned into what the
+wallet gained and lost. Airdrops of tokens with no market and specks of SOL are
+left out. A page reads on past spam until it has something to show.
+
+**View state** (network, range, tab, search, sort, "Hide under $5", activity
+type) lives in the URL. Hiding balances is remembered on the device
+(`tonkpad-portfolio-hidden`). The CSV export guards every cell against
+spreadsheet formulas, since token names are written by whoever made the token.
+
+**On phones**, with a wallet connected, the Receive / Swap / Bridge bar takes
+the tab bar's place; without one the tab bar stays.
+
+**Testnet.** The screen says "Not on testnet yet" and the routes are closed:
+testnet tokens have no market to price them.
+
+**Settings.** No new keys: `HELIUS_API_KEY`, `JUPITER_API_KEY`,
+`ROBINHOOD_RPC_URL`, all server-only. Rate limits are in
+`src/shared/lib/rate-limit.ts`.
+
+**Tests.** `src/modules/portfolio/tests/` cover the parsers, every refusal, the
+chart maths and the CSV with the providers mocked. `e2e/portfolio.spec.ts`
+answers `/api/portfolio/*` in the browser and uses the stub wallet.
 
 ## Live data
 
