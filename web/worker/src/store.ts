@@ -4,6 +4,7 @@ import { curveProgressFromPrice } from "./curve";
 import { issuerByAuthorities } from "./issuers";
 import {
   cleanName,
+  cleanSaved,
   cleanSymbol,
   type GraduationEvent,
   type LaunchEvent,
@@ -161,7 +162,7 @@ export class TokenStore {
     for (const t of tokens) {
       const image = t.image ? repointArt(t.image, t.launchpad) : t.assetAt > 0 ? launchpadArt(t.address, t.launchpad) : null;
       const nextRefreshAt = t.pons && !t.graduated ? NOT_ON_DEXSCREENER : now;
-      this.tokens.set(t.address, { ...t, image, nextRefreshAt });
+      this.tokens.set(t.address, { ...t, ...cleanSaved(t), image, nextRefreshAt });
     }
     this.prune(now);
   }

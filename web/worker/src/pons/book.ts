@@ -75,8 +75,11 @@ export class PonsBook {
   meta(address: string, meta: PonsMeta): void {
     const token = this.store.get(address);
     if (!token) return;
-    if (meta.name) token.name = cleanName(meta.name);
-    if (meta.symbol) token.symbol = cleanSymbol(meta.symbol);
+    // A name or ticker with nothing visible counts as missing.
+    const name = cleanName(meta.name ?? "");
+    const symbol = cleanSymbol(meta.symbol ?? "");
+    if (name) token.name = name;
+    if (symbol) token.symbol = symbol;
     if (meta.logo) token.image = artUrl(meta.logo, "pons");
   }
 

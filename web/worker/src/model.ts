@@ -3,6 +3,7 @@ import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { IssuerId } from "./issuers";
 import type { PonsState } from "./pons/curve";
 import type { StreamLock } from "./sources/streamflow";
+import { clip, visibleText } from "./text";
 
 /** DexScreener's windows; the list toolbar's 5m / 1h / 6h / 24h map onto them. */
 export type WindowKey = "m5" | "h1" | "h6" | "h24";
@@ -152,17 +153,34 @@ export function newTrackedToken(launch: LaunchEvent, nativeUsd: number | null): 
   };
 }
 
-/** "GaWkukPjMKDyphGq6vMu4f1DmoWqv4jv5s9GyLTpo2FN" → "GaWk…o2FN" */
-/** A token name as the app shows it: trimmed, at most 48 characters. */
+const NAME_MAX = 48;
+const SYMBOL_MAX = 16;
+
+/**
+ * A token name as the app shows it: invisible characters dropped, spaces
+ * collapsed, at most 48 characters. "" when nothing is left, which shows
+ * like a missing name.
+ */
 export function cleanName(value: string): string {
-  return value.trim().slice(0, 48);
+  return clip(visibleText(value), NAME_MAX);
 }
 
-/** A ticker as the app shows it: no leading $, at most 16 characters. */
+/** A ticker as the app shows it: cleaned like a name, no leading $, at most 16 characters. */
 export function cleanSymbol(value: string): string {
-  return value.trim().replace(/^\$/, "").trim().slice(0, 16);
+  return clip(visibleText(value).replace(/^\$/, "").trim(), SYMBOL_MAX);
 }
 
+/**
+ * A saved token's name and ticker cleaned again, for snapshots from before
+ * the worker dropped invisible characters. The leading $ went when the ticker
+ * was first cleaned, so it isn't taken again.
+ */
+export function cleanSaved(token: Pick<TrackedToken, "name" | "symbol">): Pick<TrackedToken, "name" | "symbol"> {
+  const text = (value: unknown) => (typeof value === "string" ? visibleText(value) : "");
+  return { name: clip(text(token.name), NAME_MAX), symbol: clip(text(token.symbol), SYMBOL_MAX) };
+}
+
+/** "GaWkukPjMKDyphGq6vMu4f1DmoWqv4jv5s9GyLTpo2FN" → "GaWk…o2FN" */
 export function shortAddress(address: string): string {
   return address.length > 10 ? `${address.slice(0, 4)}…${address.slice(-4)}` : address;
 }

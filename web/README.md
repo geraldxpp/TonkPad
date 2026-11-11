@@ -632,6 +632,11 @@ as JSON. The app never calls the data providers itself.
   AMM it graduates to, quoted in SOL or a stablecoin), so a side pool can't
   fake a price, and a "launch" whose pools are older than the launch is
   dropped. Trending, Gainers and Heating up skip tokens under $4K.
+- **Names.** A token's name and ticker, from its launch, its metadata or its
+  contract, lose control, zero-width, direction and other invisible
+  characters, as the swap's do (`worker/src/text.ts`), and are cut at 48 and
+  16 characters without splitting one. One with nothing left shows like a
+  missing one. A restart cleans the saved ones again.
 - **Art.** Pump.fun tokens show Pump.fun's own copy from the moment they
   launch. Other tokens' art comes from their metadata; IPFS links are
   re-pointed from rate-limited public gateways to Pump.fun's gateway (or
