@@ -287,6 +287,8 @@ test("the page says what stops a trade: graduated, the launch-block wait, a paus
     return route.fulfill({ json: { ...read, mission: { ...read.mission, paused: true } } });
   });
   await expect(tradePanel(page).getByRole("button", { name: "Trading is paused" })).toHaveAttribute("aria-disabled", "true", { timeout: 15_000 });
+  // The whole page says so too, and what still works (campaign round 1).
+  await expect(page.getByRole("note").filter({ hasText: "The launchpad is paused" })).toContainText("Claims, withdrawals, lock extensions and edits still work.");
 });
 
 test("the page keeps the last figures and says so when the chain can't be reached", async ({ page }) => {

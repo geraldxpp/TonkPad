@@ -33,6 +33,8 @@ interface CurveRunOptions {
   onMission: (mission: MissionJson) => void;
   /** The wallet sent the trade; from here its hash is watched. */
   onSent: (hash: string) => void;
+  /** The price moved past the reviewed minimum: the server's newer state, for the review to show before another go. */
+  onMoved?: (mission: MissionJson) => void;
 }
 
 /**
@@ -44,7 +46,7 @@ interface CurveRunOptions {
  * the sale after the approval went through, it says so. Nothing is ever
  * sent from here but through the wallet.
  */
-export function useCurveRun({ onMission, onSent }: CurveRunOptions) {
+export function useCurveRun({ onMission, onSent, onMoved }: CurveRunOptions) {
   const [state, setState] = useState<CurveRunState>(IDLE);
   const watch = useRef<AbortController | null>(null);
   useEffect(() => () => watch.current?.abort(), []);
@@ -70,7 +72,10 @@ export function useCurveRun({ onMission, onSent }: CurveRunOptions) {
           const build = await buildTrade(approved ? { ...request, approval } : request);
           if (control.signal.aborted) return;
           onMission(build.mission);
-          if (build.step === "moved") return setState({ ...IDLE, moved: true, approval });
+          if (build.step === "moved") {
+            onMoved?.(build.mission);
+            return setState({ ...IDLE, moved: true, approval });
+          }
           if (build.step === "approve") {
             // Built at or after the confirmed approval's block, the launchpad still can't take the tokens.
             if (approved) throw new TonkApiError("approvedNotSent");
@@ -102,7 +107,7 @@ export function useCurveRun({ onMission, onSent }: CurveRunOptions) {
         setState({ ...IDLE, step: "failed", error: code, approval });
       }
     },
-    [onMission, onSent],
+    [onMission, onSent, onMoved],
   );
   return { state, start, reset };
 }

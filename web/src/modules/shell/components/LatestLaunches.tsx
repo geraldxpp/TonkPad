@@ -46,7 +46,7 @@ export async function LatestLaunches() {
               </span>
               <span className="font-mono text-[11px] text-text-3">{shortAddress(mission.token)}</span>
             </span>
-            <span className="flex-none text-[12px] text-text-3">{fmt(t.token.trades.ago, { time: formatAge(Math.max(0, now - mission.time) / 60) })}</span>
+            <span className="flex-none text-[12px] text-text-3">{fmt(t.token.trades.ago, { time: formatAge(Math.max(0, now - mission.time) / 60, t.token.trades.units) })}</span>
             <ArrowUpRight size={15} strokeWidth={2} className="flex-none text-text-3" aria-hidden="true" />
           </Link>
         </li>

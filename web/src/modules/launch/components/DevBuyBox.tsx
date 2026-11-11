@@ -42,7 +42,7 @@ export function DevBuyBox({ state, view, settings, unit }: StudioProps) {
           />
           <span className="flex-none font-mono text-[12px] text-text-2">{unit}</span>
         </div>
-        <div role="group" aria-label={b.devBuy} className="grid flex-[1_1_240px] grid-cols-4 gap-1.5 md:max-w-[340px]">
+        <div role="group" aria-label={b.devBuy} className="grid flex-[1_1_240px] grid-cols-4 gap-1.5 max-[440px]:grid-cols-2 md:max-w-[340px]">
           <button
             type="button"
             aria-pressed={!view.hasBuy}

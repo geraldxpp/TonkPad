@@ -23,8 +23,10 @@ export function MobileBar({ step, total, onBack, onNext, action }: MobileBarProp
     <div data-testid="launch-bar" className="fixed inset-x-0 bottom-[calc(60px+env(safe-area-inset-bottom))] z-30 flex items-center gap-2.5 border-t border-line bg-bg-deep/95 px-4 py-3 backdrop-blur-md md:hidden">
       <div className="flex min-w-0 flex-auto flex-col">
         <span className="text-[11px] text-text-3">{fmt(l.stepOf, { step })}</span>
-        <span className="truncate font-mono text-[14px] font-semibold">
-          {total} <small className="font-sans text-[10px] font-normal text-text-3">{l.summary.gas}</small>
+        {/* The gas note moves under the total when both don't fit, never cut to "+…". */}
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-1">
+          <span className="truncate font-mono text-[14px] font-semibold">{total}</span>
+          <small className="text-[10px] text-text-3">{l.summary.gas}</small>
         </span>
       </div>
       <button type="button" onClick={onBack} disabled={step === 1} aria-label={l.back} className="inline-flex size-11 flex-none items-center justify-center rounded-lg border border-line-strong bg-raised disabled:opacity-40">

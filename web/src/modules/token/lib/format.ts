@@ -1,4 +1,4 @@
-import { formatInteger, formatUsdCompact } from "@/shared/lib/format";
+import { type AgeUnits, ageIn, COMPACT_AGE, formatInteger, formatUsdCompact } from "@/shared/lib/format";
 import { coinAmount, MONEY_UNIT } from "./money";
 
 /** Token amounts as the export shows them: "3.13M", "784K", "15.7M". */
@@ -29,12 +29,12 @@ export function formatSigned(value: number): string {
   return `${value < 0 ? "−" : "+"}${formatInteger(Math.abs(value))}`;
 }
 
-/** Seconds → "2s", "14m", "3h", "2d" (the trades' "… ago"). */
-export function formatSeconds(seconds: number): string {
-  if (seconds < 60) return `${Math.max(0, Math.round(seconds))}s`;
-  if (seconds < 3_600) return `${Math.floor(seconds / 60)}m`;
-  if (seconds < 86_400) return `${Math.floor(seconds / 3_600)}h`;
-  return `${Math.floor(seconds / 86_400)}d`;
+/** Seconds → "2s", "14m", "3h", "2d" (the trades' "… ago"), or in a language's own units. */
+export function formatSeconds(seconds: number, units: AgeUnits = COMPACT_AGE): string {
+  if (seconds < 60) return ageIn(units.s, Math.max(0, Math.round(seconds)));
+  if (seconds < 3_600) return ageIn(units.m, Math.floor(seconds / 60));
+  if (seconds < 86_400) return ageIn(units.h, Math.floor(seconds / 3_600));
+  return ageIn(units.d, Math.floor(seconds / 86_400));
 }
 
 export { shortAddress } from "@/shared/lib/address";

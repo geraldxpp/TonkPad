@@ -130,12 +130,14 @@ export function missionDetail({ mission, trades }: MissionPageJson, network: Ton
     return rate === 1 ? inCoin : inCoin.map((candle) => inDollars(candle, rate));
   };
   const candles = Object.fromEntries(CHART_TIMEFRAMES.map((tf) => [tf, candlesOf(TF_SECONDS[tf])])) as Record<ChartTimeframe, Candle[]>;
+  // A buy shows what it paid and a sale what it got after fees: the figure on the trader's own receipt.
+  const settled = (trade: MissionTradeJson) => (trade.side === "sell" ? BigInt(trade.eth) - BigInt(trade.fees) : BigInt(trade.eth));
   const shown: TokenTrade[] = trades.map((trade) => ({
     id: trade.id,
     ageSeconds: Math.max(0, now - trade.time),
     side: trade.side,
-    usd: dollars && rate !== null ? eth(trade.eth) * rate : null,
-    native: eth(trade.eth),
+    usd: dollars && rate !== null ? eth(settled(trade)) * rate : null,
+    native: eth(settled(trade)),
     tokens: tokens(trade.tokens),
     marketCap: rate === null ? null : capsOf(trade).after * rate,
     trader: trade.trader,

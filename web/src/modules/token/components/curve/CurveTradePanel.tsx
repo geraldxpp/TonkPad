@@ -61,6 +61,8 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [text, setText] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  // The mission as the review opened on it: what the review shows and confirm sends, never changed by a refresh unseen.
+  const [frozen, setFrozen] = useState<MissionJson | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [slippageBps, setSlippage] = useSlippage();
   const settings = useLaunchpadSettings();
@@ -73,29 +75,36 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
   const sentNow = useCallback(
     (hash: string) => {
       setReviewing(false);
+      setFrozen(null);
       setText("");
       onSent(hash);
       onClose?.();
     },
     [onSent, onClose],
   );
-  const { state: run, start, reset } = useCurveRun({ onMission, onSent: sentNow });
+  // Only the server's "moved" brings newer figures into the review, with its notice.
+  const { state: run, start, reset } = useCurveRun({ onMission, onSent: sentNow, onMoved: setFrozen });
 
   const amount = parseEthInput(text);
   // Most wallets count toward the eligible supply; the account read says when this one doesn't.
   const sellerEligible = account?.crewExcluded !== true;
   const trade = amount !== null && amount > ZERO ? { side, amount, sellerEligible } : undefined;
   const quote = trade ? quoteTrade(mission, side, trade.amount, slippageBps, { sellerEligible }) : null;
+  const reviewed = frozen ?? mission;
+  const reviewQuote = trade ? quoteTrade(reviewed, side, trade.amount, slippageBps, { sellerEligible }) : null;
   const { presets, balance, short, cta } = tradeForm({ t, mission, side, unit, owner, account, failed: view.failed, amount, quoted: quote !== null, waiting: sent?.waiting === true, settings });
   const onCta = async () => {
-    if (owner) return setReviewing(true);
+    if (owner) {
+      setFrozen(mission);
+      return setReviewing(true);
+    }
     setConnecting(true);
     await wallet.connect("rh");
     setConnecting(false);
   };
   const confirm = () => {
-    if (!owner || !quote) return;
-    void start({ token: mission.token, trader: owner, side, amount: quote.amountIn, minOut: quote.minOut, referrer: storedReferrer(window.localStorage, network.chainId, owner) });
+    if (!owner || !reviewQuote) return;
+    void start({ token: mission.token, trader: owner, side, amount: reviewQuote.amountIn, minOut: reviewQuote.minOut, referrer: storedReferrer(window.localStorage, network.chainId, owner) });
   };
   const crew = chargedCrewBps(mission, trade);
   // With the contract's floor, a waived Crew fee says how much of the supply eligible holders must own first.
@@ -178,13 +187,14 @@ export function CurveTradePanel({ mission, network, view, sent, onSent, onDismis
         open={reviewing}
         onClose={() => {
           setReviewing(false);
+          setFrozen(null);
           reset();
         }}
-        mission={mission}
+        mission={reviewed}
         network={network}
-        quote={quote}
-        crewBps={crew}
-        needsApproval={!buy && account !== null && quote !== null && BigInt(account.allowance) < BigInt(quote.amountIn)}
+        quote={reviewQuote}
+        crewBps={chargedCrewBps(reviewed, trade)}
+        needsApproval={!buy && account !== null && reviewQuote !== null && BigInt(account.allowance) < BigInt(reviewQuote.amountIn)}
         referrer={owner ? storedReferrer(typeof window === "undefined" ? { getItem: () => null } : window.localStorage, network.chainId, owner) : null}
         run={run}
         onConfirm={confirm}

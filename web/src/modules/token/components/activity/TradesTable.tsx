@@ -68,7 +68,7 @@ export function TradesTable({ trades, coin, ticker }: TradesTableProps) {
             )}
             <span role="cell" className={cn(NUM, "text-text-2", WIDE)}>{formatAmount(trade.tokens)}</span>
             <span role="cell" className={cn(NUM, "text-text-3", WIDE)}>{trade.marketCap === null ? "—" : MONEY_UNIT ? coinAmount(trade.marketCap) : formatUsdCompact(trade.marketCap)}</span>
-            <span role="cell" className={cn(NUM, "text-text-3")}>{fmt(h.ago, { time: formatSeconds(trade.ageSeconds) })}</span>
+            <span role="cell" className={cn(NUM, "text-text-3")}>{fmt(h.ago, { time: formatSeconds(trade.ageSeconds, h.units) })}</span>
             <span role="cell" className={cn("flex justify-end text-text-3", WIDE)}>
               {tx ? (
                 <a href={tx} target="_blank" rel="noopener noreferrer" aria-label={h.viewTx} title={h.viewTx} className="rounded hover:text-text">

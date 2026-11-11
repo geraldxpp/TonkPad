@@ -7,6 +7,7 @@ import {
   localeCookie,
   LOCALES,
   localizePath,
+  plural,
   splitLocale,
   switchLocaleUrl,
 } from "@/shared/i18n/config";
@@ -88,5 +89,15 @@ describe("fmt", () => {
     expect(fmt("Buy {name}", { name: "Ghosty" })).toBe("Buy Ghosty");
     expect(fmt("{shown} of {total}", { shown: 10, total: "8,412" })).toBe("10 of 8,412");
     expect(fmt("Hi {who}", {})).toBe("Hi {who}");
+  });
+});
+
+describe("plural", () => {
+  it("takes each language's form for the count: 1 sell, 2 sells, and Russian's three (campaign round 1)", () => {
+    expect([1, 2].map((n) => plural("en", en.token.activity.sells, n))).toEqual(["1 sell", "2 sells"]);
+    expect([1, 3, 5, 21].map((n) => plural("ru", DICTIONARIES.ru.token.activity.sells, n))).toEqual(["1 продажа", "3 продажи", "5 продаж", "21 продажа"]);
+    expect([1, 2].map((n) => plural("de", DICTIONARIES.de.token.activity.buys, n))).toEqual(["1 Kauf", "2 Käufe"]);
+    expect(plural("en", en.token.stats.txns, 1284, "1,284")).toBe("1,284 txns");
+    expect(plural("ja", DICTIONARIES.ja.token.activity.buys, 1)).toBe("買い 1");
   });
 });

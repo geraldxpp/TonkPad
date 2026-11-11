@@ -58,7 +58,7 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
             >
               <span aria-hidden="true">{mode.icon}</span>
               <strong className="max-w-full text-[13px] font-medium text-text [overflow-wrap:anywhere] max-sm:text-[12px]">{mode.title}</strong>
-              <small className="max-w-full text-[11px] leading-[1.6] [overflow-wrap:anywhere] max-sm:text-[10px] max-sm:leading-[1.5]">{mode.sub}</small>
+              <small className="max-w-full text-[11px] leading-[1.6] hyphens-auto [overflow-wrap:anywhere] max-sm:text-[10px] max-sm:leading-[1.5]">{mode.sub}</small>
             </button>
           );
         })}

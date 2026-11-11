@@ -102,3 +102,11 @@ describe("formatAge", () => {
     expect(formatAge(minutes)).toBe(expected);
   });
 });
+
+describe("formatAge in a language's own units", () => {
+  it("writes Russian ages in Cyrillic, never a Latin m beside назад (campaign round 1)", () => {
+    const ru = { s: "{n} с", m: "{n} мин", h: "{n} ч", d: "{n} дн." };
+    expect([2, 180, 4_320].map((minutes) => formatAge(minutes, ru))).toEqual(["2 мин", "3 ч", "3 дн."]);
+    expect(formatAge(2)).toBe("2m");
+  });
+});

@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/shared/i18n/dictionaries/en";
 import { TonkApiError } from "@/shared/tonk/api";
+import { formatTokensFull } from "@/shared/tonk/format";
+import { quoteTrade } from "@/shared/tonk/quote";
 import type { MissionJson, TradeBuild, TxEventJson } from "@/shared/tonk/mission";
 import { TONK_TESTNET } from "@/shared/tonk/networks";
 import type { TonkSettingsJson, UnsignedTx } from "@/shared/tonk/types";
@@ -273,6 +275,29 @@ describe("the curve trade panel", () => {
     expect(handlers.onMission).toHaveBeenCalledWith(moved);
     expect(mocks.wallet.sendEvmTransaction).not.toHaveBeenCalled();
     expect(handlers.onSent).not.toHaveBeenCalled();
+  });
+
+  it("sends the minimum it reviewed: a refresh never changes the review unseen, only the server's moved does (campaign round 1)", async () => {
+    // A competing buy lands while the review is open, and the page's 5-second refresh carries it in.
+    const refreshed = mission({ virtualEth: "1796000000000000", block: 151_327_100 });
+    mocks.buildTrade
+      .mockResolvedValueOnce({ step: "moved", mission: refreshed } satisfies TradeBuild)
+      .mockResolvedValueOnce({ step: "trade", tx: tx(TONK_TESTNET.launchpad), quote: {} as never, mission: refreshed } satisfies TradeBuild);
+    const { rerender } = render(<CurveTradePanel mission={mission()} network={TONK_TESTNET} view={view()} sent={null} {...handlers} />);
+    type(tr.pay, "0.00005");
+    fireEvent.click(cta(m.trade.reviewBuy));
+    const review = screen.getByRole("dialog", { name: en.swap.reviewTitle });
+    rerender(<CurveTradePanel mission={refreshed} network={TONK_TESTNET} view={view()} sent={null} {...handlers} />);
+    expect(within(review).getByText("25,858,009.13 $TTONE")).toBeVisible();
+    fireEvent.click(within(review).getByRole("button", { name: "Buy $TTONE" }));
+    await waitFor(() => expect(mocks.buildTrade).toHaveBeenCalledWith(expect.objectContaining({ minOut: "25858009131036870347931452" })));
+    // The server says it moved past that minimum: the review shows the newer figures with the notice, and the next go sends them.
+    expect(await within(review).findByText(m.trade.moved)).toBeVisible();
+    const next = quoteTrade(refreshed, "buy", BigInt("50000000000000"), 100, { sellerEligible: true });
+    expect(within(review).getByText(`${formatTokensFull(BigInt(next.minOut))} $TTONE`)).toBeVisible();
+    fireEvent.click(within(review).getByRole("button", { name: "Buy $TTONE" }));
+    await waitFor(() => expect(handlers.onSent).toHaveBeenCalledWith(HASH));
+    expect(mocks.buildTrade).toHaveBeenLastCalledWith(expect.objectContaining({ minOut: next.minOut }));
   });
 
   it("says why it stopped when the wallet says no, and offers another go", async () => {

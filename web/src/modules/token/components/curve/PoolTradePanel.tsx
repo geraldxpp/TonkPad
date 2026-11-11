@@ -8,6 +8,7 @@ import { useSlippage } from "@/shared/swap/slippage";
 import { formatEth, formatTokens, parseEthInput } from "@/shared/tonk/format";
 import type { MissionJson, TradeSide } from "@/shared/tonk/mission";
 import type { TonkNetwork } from "@/shared/tonk/networks";
+import type { PoolQuoteJson } from "@/shared/tonk/pool";
 import { wallet } from "@/shared/wallet/wallet";
 import { useLaunchpadSettings } from "../../hooks/useLaunchpadSettings";
 import type { AccountView } from "../../hooks/useMissionAccount";
@@ -54,6 +55,8 @@ export function PoolTradePanel({ mission, network, view, sent, onSent, onDismiss
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [text, setText] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  // The quote as the review opened on it: what the review shows and confirm sends, never changed by a refresh unseen.
+  const [frozen, setFrozen] = useState<PoolQuoteJson | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [slippageBps, setSlippage] = useSlippage();
   const settings = useLaunchpadSettings();
@@ -65,6 +68,7 @@ export function PoolTradePanel({ mission, network, view, sent, onSent, onDismiss
   const sentNow = useCallback(
     (hash: string) => {
       setReviewing(false);
+      setFrozen(null);
       setText("");
       onSent(hash);
       onClose?.();
@@ -75,19 +79,25 @@ export function PoolTradePanel({ mission, network, view, sent, onSent, onDismiss
 
   const amount = parseEthInput(text);
   const { quote, error } = usePoolQuote(mission.token, side, amount !== null && amount > ZERO ? amount : null);
-  const basis = run.moved ?? quote;
-  const minOut = basis ? (BigInt(basis.out) * (BPS - BigInt(slippageBps))) / BPS : null;
+  const minOf = (basis: PoolQuoteJson | null) => (basis ? (BigInt(basis.out) * (BPS - BigInt(slippageBps))) / BPS : null);
+  const minOut = minOf(quote);
+  // Only the server's "moved" brings a fresher quote into the review, with its notice.
+  const reviewed = run.moved ?? frozen ?? quote;
+  const reviewMin = minOf(reviewed);
   const quoted = quote !== null && BigInt(quote.out) > ZERO;
   const { presets, balance, short, cta } = tradeForm({ t, mission, side, unit, owner, account, failed: view.failed, amount, quoted, waiting: sent?.waiting === true, settings, pool: true });
   const onCta = async () => {
-    if (owner) return setReviewing(true);
+    if (owner) {
+      setFrozen(quote);
+      return setReviewing(true);
+    }
     setConnecting(true);
     await wallet.connect("rh");
     setConnecting(false);
   };
   const confirm = () => {
-    if (!owner || !basis || minOut === null) return;
-    void start({ token: mission.token, trader: owner, side: basis.side, amount: basis.amountIn, minOut: String(minOut) });
+    if (!owner || !reviewed || reviewMin === null) return;
+    void start({ token: mission.token, trader: owner, side: reviewed.side, amount: reviewed.amountIn, minOut: String(reviewMin) });
   };
   const pick = (next: TradeSide) => {
     setSide(next);
@@ -165,12 +175,13 @@ export function PoolTradePanel({ mission, network, view, sent, onSent, onDismiss
         open={reviewing}
         onClose={() => {
           setReviewing(false);
+          setFrozen(null);
           reset();
         }}
         mission={mission}
         network={network}
-        quote={quote}
-        minOut={minOut}
+        quote={frozen ?? quote}
+        minOut={reviewMin}
         run={run}
         onConfirm={confirm}
       />
