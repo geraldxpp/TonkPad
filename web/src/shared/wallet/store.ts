@@ -1,5 +1,5 @@
 import type { ChainId } from "@/shared/types/chain";
-import { EMPTY_SNAPSHOT, type EvmTransactionRequest, isRejection, WalletActionError, type WalletDriver, type WalletSnapshot, type WalletState } from "./types";
+import { type BridgeTransactionRequest, EMPTY_SNAPSHOT, type EvmTransactionRequest, isRejection, WalletActionError, type WalletDriver, type WalletSnapshot, type WalletState } from "./types";
 
 /** Set while a wallet is connected, so the next visit restores it; nobody else loads the wallet code. */
 export const REMEMBER_KEY = "tonkpad-wallet";
@@ -20,6 +20,8 @@ export interface WalletStore {
   signSolanaTransaction(transaction: string): Promise<string>;
   /** Sends a Robinhood Chain transaction from the connected wallet. Throws a WalletActionError. */
   sendEvmTransaction(request: EvmTransactionRequest): Promise<string>;
+  /** Sends a bridge's transaction on its source network from the connected EVM wallet. Throws a WalletActionError. */
+  sendBridgeTransaction(request: BridgeTransactionRequest): Promise<string>;
 }
 
 type StorageAccess = () => Pick<Storage, "getItem" | "setItem" | "removeItem"> | null;
@@ -133,5 +135,6 @@ export function createWalletStore(loadDriver: () => Promise<WalletDriver>, stora
     },
     signSolanaTransaction: (transaction) => act((loaded) => loaded.signSolanaTransaction(transaction)),
     sendEvmTransaction: (request) => act((loaded) => loaded.sendEvmTransaction(request)),
+    sendBridgeTransaction: (request) => act((loaded) => loaded.sendBridgeTransaction(request)),
   };
 }

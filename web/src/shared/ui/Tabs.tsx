@@ -26,7 +26,7 @@ interface TabsProps<T extends string> {
    * "underline" is a bare row of 56 px tabs with a cyan rule under the
    * selected one, for tabs that sit along a card's edge; "flush" has no side
    * padding, so the rule is exactly as wide as its label, and the selected
-   * label stays plain text.
+   * label stays plain text (68 px tall, or --tab-h / --tab-h-phone).
    */
   size?: "md" | "panel" | "underline" | "flush";
 }
@@ -87,7 +87,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, panelId, 
               "inline-flex flex-none items-center whitespace-nowrap",
               size === "flush"
                 ? cn(
-                    "h-[68px] gap-[7px] border-b-2 text-[14px] font-semibold focus-visible:[outline-offset:-4px] max-[699px]:h-[55px] max-[699px]:text-[13px]",
+                    "h-[var(--tab-h,68px)] gap-[7px] border-b-2 text-[14px] font-semibold focus-visible:[outline-offset:-4px] max-[699px]:h-[var(--tab-h-phone,55px)] max-[699px]:text-[13px]",
                     active ? "border-accent text-text" : "border-transparent text-text-3 hover:text-text",
                   )
                 : size === "underline"

@@ -16,9 +16,10 @@ any mock Explore token. **Module 3 — Swap** (`/swap`) and **Module 4 — Launc
 the Creator Studio** (`/launch`, on the testnet site; "coming soon" on
 production) have their own sections below, and so does the **token page on
 the testnet site**, where a launched token is traded on its curve and its
-creator manages the lock. **Module 5 — Portfolio** (`/portfolio`) has its
-section too. The other rail screens (`/live`, `/bridge`, `/docs`) show a
-"Coming in a later module" panel inside the shell.
+creator manages the lock. **Module 5 — Portfolio** (`/portfolio`) and
+**Module 6 — Bridge** (`/bridge`) have their sections too. The other rail
+screens (`/live`, `/docs`) show a "Coming in a later module" panel inside the
+shell.
 
 ## Run it
 
@@ -575,6 +576,32 @@ testnet tokens have no market to price them.
 **Tests.** `src/modules/portfolio/tests/` cover the parsers, every refusal, the
 chart maths and the CSV with the providers mocked. `e2e/portfolio.spec.ts`
 answers `/api/portfolio/*` in the browser and uses the stub wallet.
+
+## Bridge
+
+`/bridge` moves a major asset between 17 networks, into Robinhood Chain above
+all. It compares every live route (Relay, Across, LI.FI and, for ETH from
+Ethereum, the canonical bridge), shows what arrives and what it costs, and
+follows a transfer through to arrival. The decisions behind it are in
+`../prompts/06-bridge.md`.
+
+| Variable | Needed | What it does |
+|---|---|---|
+| `BRIDGE_TRADING` | to go live | `on` lets the server build real transfers. Quotes work either way; until then the screen says "Bridging opens soon". |
+| `RELAY_API_KEY` | recommended | Relay's rate limits. Their docs say it will be required. |
+| `ACROSS_API_KEY`, `ACROSS_INTEGRATOR_ID` | recommended | Across's rate limits. |
+| `LIFI_API_KEY` | optional | Turns LI.FI on for every quote; without it LI.FI is only asked when nothing else has a route. |
+| `BRIDGE_PROVIDERS` | tests | `off` stops the server calling any provider. The e2e configs set it. |
+
+Balances on the other networks reuse `ROBINHOOD_RPC_URL`'s Alchemy key where
+that network is enabled, and fall back to public RPCs.
+
+`server/contracts.ts` lists the contracts each route may call or approve. A
+provider pointing anywhere else has its route dropped, so when a provider
+upgrades a contract that route is unavailable until the list is updated. To
+see which contracts a route uses, ask its quote API for each asset pair (quotes
+are read-only). Tests never call the real APIs, and a real transfer must never
+be run from a test or script.
 
 ## Live data
 

@@ -27,7 +27,7 @@ test("Launch reads the launchpad's own settings, and the site says it is the tes
 
 test("screens that aren't on the testnet yet say so, and swaps are closed", async ({ page, request }) => {
   // Explore says so above its address box and latest launches; the token page is on testnet (token.testnet.ts).
-  for (const path of ["/", "/swap", "/portfolio"]) {
+  for (const path of ["/", "/swap", "/portfolio", "/bridge"]) {
     await page.goto(path);
     await expect(page.getByText("Not on testnet yet"), path).toBeVisible();
     await expect(page.getByRole("link", { name: "Open Launch" }), path).toBeVisible();
@@ -38,6 +38,11 @@ test("screens that aren't on the testnet yet say so, and swaps are closed", asyn
   // Testnet tokens have no market, so there is no portfolio to add up here yet.
   const holdings = await request.get(`/api/portfolio/rh/${STUB_WALLET}`);
   expect([holdings.status(), await holdings.json()]).toEqual([404, { error: "closed" }]);
+
+  // The bridges only reach mainnets.
+  const bridge = await request.get("/api/bridge/quote?from=base&to=rh&asset=USDC&receive=USDG&amount=1000000");
+  expect(bridge.status()).toBe(404);
+  expect(await bridge.json()).toMatchObject({ error: "closed" });
 
   const quote = await request.get(`/api/swap/quote?chain=rh&from=ETH&to=${TOKEN}&amount=1000000000000000`);
   expect(quote.status()).toBe(403);

@@ -5,6 +5,7 @@ import { robinhood, robinhoodTestnet, solana } from "@reown/appkit/networks";
 import { isTestnetSite } from "@/shared/tonk/networks";
 import type { ChainId } from "@/shared/types/chain";
 import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
+import { BRIDGE_SOURCES } from "./bridge-sources";
 import { ensureEvmChain } from "./network";
 import { WalletActionError, type WalletDriver } from "./types";
 
@@ -16,6 +17,7 @@ import { WalletActionError, type WalletDriver } from "./types";
 const TESTNET = isTestnetSite();
 const EVM = TESTNET ? robinhoodTestnet : robinhood;
 const NETWORKS = { sol: solana, rh: EVM } as const;
+const EVM_NETWORKS = TESTNET ? ([EVM] as const) : ([EVM, ...BRIDGE_SOURCES] as const);
 
 /** How long a first Connect waits for AppKit to set up before opening the picker anyway. */
 const READY_WAIT_MS = 4_000;
@@ -69,8 +71,8 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
   const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content || "tonkfun.fun";
   const appKit = createAppKit({
     projectId,
-    adapters: TESTNET ? [new WagmiAdapter({ projectId, networks: [EVM] })] : [new SolanaAdapter(), new WagmiAdapter({ projectId, networks: [EVM] })],
-    networks: TESTNET ? [EVM] : [solana, EVM],
+    adapters: TESTNET ? [new WagmiAdapter({ projectId, networks: [EVM] })] : [new SolanaAdapter(), new WagmiAdapter({ projectId, networks: [...EVM_NETWORKS] })],
+    networks: TESTNET ? [EVM] : [solana, ...EVM_NETWORKS],
     defaultNetwork: TESTNET ? EVM : solana,
     metadata: { name: "tonkfun.fun", description, url: origin, icons: [`${origin}/icon.png`] },
     themeMode: pageTheme(),
@@ -177,6 +179,29 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       if (!provider || !from) throw new WalletActionError("failed");
       // The wallet's own answer decides: AppKit's record can be stale, and its switch fails silently by default.
       await ensureEvmChain({ chainId: () => walletChainId(provider), switchTo: () => moveTo("rh") }, NETWORKS.rh.id);
+      const hash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}) }],
+      });
+      if (typeof hash !== "string") throw new WalletActionError("failed");
+      return hash;
+    },
+    async sendBridgeTransaction({ chainId, to, data, value, gas }) {
+      const network = EVM_NETWORKS.find((item) => item.id === chainId);
+      const provider = appKit.getProvider<Eip1193>(NAMESPACES.rh);
+      const from = appKit.getAccount(NAMESPACES.rh)?.address;
+      if (!network || !provider || !from) throw new WalletActionError("failed");
+      // The same guard as a swap, on the transfer's own network: it can only go out where it was built for.
+      await ensureEvmChain(
+        {
+          chainId: () => walletChainId(provider),
+          switchTo: async () => {
+            if (appKit.getActiveChainNamespace() !== NAMESPACES.rh) await appKit.switchNetwork(network, { throwOnFailure: true });
+            await appKit.switchNetwork(network, { throwOnFailure: true });
+          },
+        },
+        chainId,
+      );
       const hash = await provider.request({
         method: "eth_sendTransaction",
         params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}) }],

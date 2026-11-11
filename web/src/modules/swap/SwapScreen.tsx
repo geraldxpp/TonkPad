@@ -1,6 +1,10 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { CHAINS } from "@/shared/config/chains";
+import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { amountText, FEE_RESERVE, formatFull, presetAmount } from "@/shared/swap/amounts";
 import type { QuoteRequest } from "@/shared/swap/api";
@@ -32,7 +36,7 @@ function rawBalance(token: SwapToken | null, view: WalletBalancesView): string |
  * scrolls away.
  */
 export function SwapScreen({ data }: { data: SwapData }) {
-  const { t } = useI18n();
+  const { t, href } = useI18n();
   const s = t.swap;
   const form = useSwapForm();
   const { accounts } = useWallet();
@@ -49,6 +53,7 @@ export function SwapScreen({ data }: { data: SwapData }) {
   const payRaw = rawBalance(from, payView);
   const receiveRaw = rawBalance(to, receiveView);
 
+  const short = form.raw !== null && payRaw !== null && BigInt(form.raw) > BigInt(payRaw);
   const [connecting, setConnecting] = useState(false);
   const [picking, setPicking] = useState<"from" | "to" | null>(null);
   const [reviewing, setReviewing] = useState(false);
@@ -119,6 +124,15 @@ export function SwapScreen({ data }: { data: SwapData }) {
             onReview={() => setReviewing(true)}
             actionRef={actionRef}
           />
+          {short ? (
+            <Link href={href(`/bridge?${new URLSearchParams({ to: form.chain, receive: form.chain === "rh" ? "ETH" : "SOL", return: "/swap" })}`)} className="flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent/6 px-3.5 py-2.5 hover:bg-accent/10">
+              <span className="flex flex-auto flex-col gap-0.5">
+                <span className="text-[12px] font-semibold">{fmt(t.token.trade.bridgeTitle, { chain: CHAINS[form.chain].name })}</span>
+                <span className="text-[11px] text-text-2">{t.token.trade.bridgeBody}</span>
+              </span>
+              <ArrowRight size={16} strokeWidth={2} className="flex-none text-accent-text" aria-hidden="true" />
+            </Link>
+          ) : null}
           <SwapAssurance />
         </div>
         <SwapSide from={from} to={to} listing={listingOf(to) ?? listingOf(from)} venues={view?.route ?? null} />

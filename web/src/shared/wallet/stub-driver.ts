@@ -1,5 +1,5 @@
 import type { ChainId } from "@/shared/types/chain";
-import { EMPTY_SNAPSHOT, WalletActionError, type WalletDriver, type WalletSnapshot } from "./types";
+import { type BridgeTransactionRequest, EMPTY_SNAPSHOT, WalletActionError, type WalletDriver, type WalletSnapshot } from "./types";
 
 /** The stub's fixed wallets (a valid Solana key and EVM address that belong to no one). */
 export const STUB_ACCOUNTS: Record<ChainId, string> = {
@@ -11,6 +11,17 @@ export const STUB_ACCOUNTS: Record<ChainId, string> = {
 export const STUB_REJECT_KEY = "tonkpad-wallet-stub-reject";
 /** The hash the stub returns for every Robinhood Chain transaction. */
 export const STUB_EVM_HASH = `0x${"5a".repeat(32)}`;
+/** Where the stub lists the bridge transactions it was asked to send, for the e2e tests to check. */
+export const STUB_BRIDGE_SENT_KEY = "tonkpad-wallet-stub-bridge-sent";
+
+function noteBridgeSend(request: BridgeTransactionRequest) {
+  try {
+    const sent: unknown = JSON.parse(localStorage.getItem(STUB_BRIDGE_SENT_KEY) ?? "[]");
+    localStorage.setItem(STUB_BRIDGE_SENT_KEY, JSON.stringify([...(Array.isArray(sent) ? sent : []), request]));
+  } catch {
+    // Nothing to keep.
+  }
+}
 
 const told = () => {
   try {
@@ -92,5 +103,10 @@ export function createStubDriver(): WalletDriver {
     setTheme: () => undefined,
     signSolanaTransaction: (transaction) => approve(transaction),
     sendEvmTransaction: () => approve(STUB_EVM_HASH),
+    sendBridgeTransaction: async (request) => {
+      const hash = await approve(STUB_EVM_HASH);
+      noteBridgeSend(request);
+      return hash;
+    },
   };
 }

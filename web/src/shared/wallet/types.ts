@@ -20,6 +20,11 @@ export interface EvmTransactionRequest {
   gas: string | null;
 }
 
+/** A transaction on one of the bridge's EVM networks. */
+export interface BridgeTransactionRequest extends EvmTransactionRequest {
+  chainId: number;
+}
+
 const ACTION_ERRORS = {
   rejected: "Rejected in the wallet",
   failed: "The wallet could not do this",
@@ -63,6 +68,8 @@ export interface WalletDriver {
   signSolanaTransaction(transaction: string): Promise<string>;
   /** Has the connected Robinhood Chain wallet send a transaction (switching it to the chain first); resolves with the hash. */
   sendEvmTransaction(request: EvmTransactionRequest): Promise<string>;
+  /** Has the connected EVM wallet send a bridge's transaction on its source network (moving it there first); resolves with the hash. */
+  sendBridgeTransaction(request: BridgeTransactionRequest): Promise<string>;
 }
 
 /**

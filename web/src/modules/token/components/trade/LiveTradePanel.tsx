@@ -13,6 +13,7 @@ import { useWalletBalances } from "@/shared/wallet/useWalletBalances";
 import { useLiveTrade } from "../../hooks/useLiveTrade";
 import { coinOf } from "../../lib/format";
 import { formatTokens, quoteTrade, type TradeQuote } from "../../lib/trade";
+import { BridgeLink } from "./BridgeBanner";
 import { LiveTradeAction } from "./LiveTradeAction";
 import { FeeLine, PresetRow, SettingsRow, SideAndOrder, useTradeSide } from "./TradeControls";
 import { coinOnChain, PayField, ReceiveField } from "./TradeFields";
@@ -75,6 +76,7 @@ export function LiveTradePanel({ token, initialSide, onClose }: TradePanelProps)
   return (
     <TradeCard name={token.name} onClose={onClose}>
       <SideAndOrder side={side} onSide={pick} chain={token.chain} />
+      {funds.owner && native !== null && quote.needsFunds ? <BridgeLink chain={token.chain} chainName={CHAINS[token.chain].name} coin={coin} address={token.address} /> : null}
       <PayField
         token={token}
         side={side}

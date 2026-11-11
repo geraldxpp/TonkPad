@@ -4,7 +4,7 @@ import { FIXTURE_RPC_URL } from "./e2e/live/wallet-fixtures";
 
 /** Run after the mock suite: both configurations build into .next. */
 // No real swap keys and trading closed, whatever a local .env.local holds: the browser stubs /api/swap where a test needs it.
-const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "" };
+const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "", BRIDGE_TRADING: "", BRIDGE_PROVIDERS: "off" };
 
 export default defineConfig({
   testDir: "./e2e/live",

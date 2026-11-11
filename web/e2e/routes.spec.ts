@@ -1,10 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { openExplore, pauseCarousel } from "./helpers";
 
-const RAIL = [
-  ["Bridge", "/bridge", "Bridge"],
-  ["Docs", "/docs", "Docs"],
-] as const;
+const RAIL = [["Docs", "/docs", "Docs"]] as const;
 
 for (const [label, path, title] of RAIL) {
   test(`rail: ${label} opens ${path} with the later-module panel`, async ({ page }) => {
@@ -18,6 +15,15 @@ for (const [label, path, title] of RAIL) {
     await expect(nav.getByRole("link", { name: "Explore" })).not.toHaveAttribute("aria-current", "page");
   });
 }
+
+test("rail: Bridge opens the bridge screen", async ({ page }) => {
+  await openExplore(page);
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await nav.getByRole("link", { name: "Bridge" }).click();
+  await expect(page).toHaveURL("/bridge");
+  await expect(page.getByRole("heading", { level: 1, name: "Your assets. More places." })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Bridge" })).toHaveAttribute("aria-current", "page");
+});
 
 test("rail: Portfolio opens the portfolio screen", async ({ page }) => {
   await openExplore(page);

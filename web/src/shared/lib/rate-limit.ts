@@ -42,6 +42,12 @@ export const ALLOWANCES = {
   portfolio: { burst: 20, perSecond: 0.25 },
   portfolioActivity: { burst: 20, perSecond: 0.25 },
   portfolioMarket: { burst: 30, perSecond: 0.5 },
+  // Bridge: routes refresh every 20 s and as you type; a transfer builds once or twice, and each one in flight is checked every few seconds.
+  bridgeQuote: { burst: 30, perSecond: 0.5 },
+  bridgeBalance: { burst: 40, perSecond: 1 },
+  bridgeBuild: { burst: 8, perSecond: 0.15 },
+  bridgeSend: { burst: 10, perSecond: 0.2 },
+  bridgeStatus: { burst: 120, perSecond: 2 },
 } as const satisfies Record<string, Allowance>;
 
 export type RouteGroup = keyof typeof ALLOWANCES;

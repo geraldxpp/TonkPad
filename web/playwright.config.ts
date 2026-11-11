@@ -9,7 +9,7 @@ const baseURL = `http://127.0.0.1:${PORT}`;
  * wallet (NEXT_PUBLIC_WALLET_STUB=1).
  */
 // No real swap keys and trading closed, whatever a local .env.local holds: the browser stubs /api/swap where a test needs it.
-const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "" };
+const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "", BRIDGE_TRADING: "", BRIDGE_PROVIDERS: "off" };
 
 export default defineConfig({
   testDir: "./e2e",

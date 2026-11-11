@@ -24,6 +24,7 @@ function fakeDriver(initial: WalletSnapshot = EMPTY_SNAPSHOT) {
     setTheme: vi.fn(),
     signSolanaTransaction: vi.fn(async (transaction: string) => `signed:${transaction}`),
     sendEvmTransaction: vi.fn(async () => "0xhash"),
+    sendBridgeTransaction: vi.fn(async () => "0xhash"),
   };
   return { driver, emit };
 }

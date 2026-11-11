@@ -8,7 +8,7 @@ import { TESTNET_APP_URL, TESTNET_RPC_URL } from "./e2e/testnet/fixtures";
  * all three configurations build into .next.
  */
 // No real swap keys and trading closed, whatever a local .env.local holds.
-const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "" };
+const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "", BRIDGE_TRADING: "", BRIDGE_PROVIDERS: "off" };
 
 export default defineConfig({
   testDir: "./e2e/testnet",
