@@ -10,8 +10,10 @@ describe("Hero", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Find your next move.");
     expect(screen.getByRole("link", { name: "Explore the market" })).toHaveAttribute("href", "#token-discovery");
     expect(screen.getByRole("link", { name: "Launch a token" })).toHaveAttribute("href", "/launch");
-    const market = screen.getByLabelText("Market overview");
-    expect(within(market).getByText("tokens today")).toBeInTheDocument();
+    const market = screen.getByLabelText("New tokens · last 24h");
+    expect(within(market).getByText("tokens launched · 24h")).toBeInTheDocument();
+    // The strip says what it counts: new tokens on the followed launchpads, not the whole market.
+    expect(market).toHaveAccessibleDescription("Counts tokens launched on tonkfun.fun, Pump.fun, Bonk.fun, and Pons in the last 24 hours, not the whole market.");
   });
 });
 

@@ -133,7 +133,7 @@ test.describe("under 768 px (phone layout)", () => {
     await openExplore(page);
     const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
     const coin = await page.getByRole("region", { name: "tonkfun.fun native coin, coming soon" }).boundingBox();
-    const market = await page.getByLabel("Market overview").boundingBox();
+    const market = await page.getByLabel("New tokens · last 24h").boundingBox();
     expect(coin!.y).toBeGreaterThan(heading!.y);
     expect(market!.y).toBeGreaterThan(coin!.y + coin!.height - 1);
     expect(coin!.width).toBeGreaterThan(340);
