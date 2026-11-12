@@ -126,6 +126,25 @@ describe("trade book", () => {
     expect(rows[1].realised).toBeCloseTo(8 * (10 / 40) - 1, 9);
   });
 
+  it("never pairs a sell with a buy that came after it", () => {
+    const book = newTradeBook();
+    recordTrades(book, [
+      // Sold tokens from before the book began, then bought back: no round trip on record.
+      trade({ id: "1", wallet: "Flip", side: "sell", tokens: 100, native: 5, at: NOW - 3 }),
+      trade({ id: "2", wallet: "Flip", side: "buy", tokens: 100, native: 4, at: NOW - 2 }),
+      trade({ id: "3", wallet: "Trip", side: "buy", tokens: 100, native: 4, at: NOW - 2 }),
+      trade({ id: "4", wallet: "Trip", side: "sell", tokens: 100, native: 5, at: NOW - 1 }),
+    ]);
+    expect(topTraders(book).map((r) => [r.wallet, r.realised])).toEqual([["Trip", 1]]);
+  });
+
+  it("carries on from an older snapshot's totals", () => {
+    const book = newTradeBook();
+    book.flows.Old = { bought: 10, sold: 0, boughtTokens: 100, soldTokens: 0, sells: 0, wins: 0 };
+    recordTrades(book, [trade({ id: "1", wallet: "Old", side: "sell", tokens: 50, native: 15, at: NOW })]);
+    expect(topTraders(book)[0]).toMatchObject({ wallet: "Old", realised: 15 - 5 });
+  });
+
   it("keeps the same order between refreshes when profits tie", () => {
     const book = newTradeBook();
     recordTrades(book, ["Z", "M", "A"].flatMap((wallet, i) => [

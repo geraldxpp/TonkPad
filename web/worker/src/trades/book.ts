@@ -33,6 +33,12 @@ export interface WalletFlow {
   soldTokens: number;
   sells: number;
   wins: number;
+  /** Tokens seen bought and not yet sold, and what they cost (absent in older snapshots). */
+  open?: number;
+  openCost?: number;
+  /** Realised profit so far on sells of tokens it was seen buying first, and how many tokens those sells covered. */
+  realised?: number;
+  matched?: number;
 }
 
 export interface TradeBook {
@@ -52,17 +58,42 @@ export const MAX_WALLETS = 2_000;
 
 export const newTradeBook = (): TradeBook => ({ recent: [], flows: {}, since: null });
 
+/** An older snapshot's flow kept only totals: start its running position from what they imply. */
+function positionOf(flow: WalletFlow): { open: number; openCost: number; realised: number; matched: number } {
+  if (flow.open !== undefined) return { open: flow.open, openCost: flow.openCost ?? 0, realised: flow.realised ?? 0, matched: flow.matched ?? 0 };
+  const matched = Math.min(flow.boughtTokens, flow.soldTokens);
+  const open = flow.boughtTokens - matched;
+  return { open, openCost: flow.boughtTokens > 0 ? flow.bought * (open / flow.boughtTokens) : 0, realised: realisedProfit(flow), matched };
+}
+
+/**
+ * Adds one trade to its wallet, in time order. A sell counts towards realised
+ * profit only for tokens the wallet was seen buying before it, at their
+ * average cost; selling first (tokens bought before the book began) says
+ * nothing about profit, so it doesn't count.
+ */
 function apply(flows: Record<string, WalletFlow>, trade: TradeRecord): void {
-  const flow = (flows[trade.wallet] ??= { bought: 0, sold: 0, boughtTokens: 0, soldTokens: 0, sells: 0, wins: 0 });
+  const flow = (flows[trade.wallet] ??= { bought: 0, sold: 0, boughtTokens: 0, soldTokens: 0, sells: 0, wins: 0, open: 0, openCost: 0, realised: 0, matched: 0 });
+  const position = positionOf(flow);
   if (trade.side === "buy") {
     flow.bought += trade.native;
     flow.boughtTokens += trade.tokens;
+    Object.assign(flow, { ...position, open: position.open + trade.tokens, openCost: position.openCost + trade.native });
     return;
   }
   if (flow.boughtTokens > 0 && trade.tokens > 0) {
     flow.sells += 1;
     if (trade.native / trade.tokens > flow.bought / flow.boughtTokens) flow.wins += 1;
   }
+  const covered = Math.min(trade.tokens, position.open);
+  if (covered > 0) {
+    const cost = position.openCost * (covered / position.open);
+    position.realised += trade.native * (covered / trade.tokens) - cost;
+    position.openCost -= cost;
+    position.open -= covered;
+    position.matched += covered;
+  }
+  Object.assign(flow, position);
   flow.sold += trade.native;
   flow.soldTokens += trade.tokens;
 }
@@ -101,11 +132,9 @@ export interface TraderRow {
 }
 
 /**
- * Realised profit on the tokens a wallet both bought and sold in the book:
- * what those sells got, less what those tokens cost at its average buy. A
- * book may begin after a wallet's first buys (Solana books start when a page
- * is opened), so tokens it sold beyond what it bought here have no known cost
- * and count for nothing, and tokens it still holds aren't counted either.
+ * Realised profit from a flow's totals alone (what an older snapshot kept):
+ * the sells' proceeds for as many tokens as it bought, less those tokens'
+ * average cost. Newer flows track it trade by trade (see apply).
  */
 export function realisedProfit(flow: WalletFlow): number {
   const matched = Math.min(flow.boughtTokens, flow.soldTokens);
@@ -114,15 +143,16 @@ export function realisedProfit(flow: WalletFlow): number {
 }
 
 /**
- * The most profitable wallets, best first: only wallets with both buys and
- * sells in the book rank, since a sell with no buy on record says nothing
+ * The most profitable wallets, best first: only wallets that sold tokens
+ * they were seen buying rank, since a sell with no buy before it says nothing
  * about profit. Ties go to the bigger buyer, then by address, so the order
  * holds still between refreshes.
  */
 export function topTraders(book: TradeBook, limit = 10): TraderRow[] {
   return Object.entries(book.flows)
-    .filter(([, flow]) => flow.boughtTokens > 0 && flow.soldTokens > 0)
-    .map(([wallet, flow]) => ({ wallet, bought: flow.bought, sold: flow.sold, realised: realisedProfit(flow), winRate: flow.sells > 0 ? flow.wins / flow.sells : null }))
+    .map(([wallet, flow]) => ({ wallet, flow, position: positionOf(flow) }))
+    .filter(({ position }) => position.matched > 0)
+    .map(({ wallet, flow, position }) => ({ wallet, bought: flow.bought, sold: flow.sold, realised: position.realised, winRate: flow.sells > 0 ? flow.wins / flow.sells : null }))
     .sort((a, b) => b.realised - a.realised || b.bought - a.bought || (a.wallet < b.wallet ? -1 : 1))
     .slice(0, limit);
 }
