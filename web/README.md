@@ -17,9 +17,9 @@ the Creator Studio** (`/launch`, on the testnet site; "coming soon" on
 production) have their own sections below, and so does the **token page on
 the testnet site**, where a launched token is traded on its curve and its
 creator manages the lock. **Module 5 — Portfolio** (`/portfolio`) and
-**Module 6 — Bridge** (`/bridge`) have their sections too. The other rail
-screens (`/live`, `/docs`) show a "Coming in a later module" panel inside the
-shell.
+**Module 6 — Bridge** (`/bridge`) have their sections too, and so does
+**Module 11 — Docs** (`/docs`). `/live` shows a "Coming in a later module"
+panel inside the shell.
 
 ## Run it
 
@@ -67,6 +67,7 @@ src/
     swap/       Swap: the card, token picker, Recent, token and route cards
     launch/     Launch: the Creator Studio's cards, preview, summary, review and receipt; hooks/, lib/, data/, tests/
     security/   Security: the report, scope, rules, rewards and checks cards; lib/ (contact, rewards, scope, frozen build), data/, tests/
+    docs/       Docs: the ten section cards and the contents; lib/ (figures, contracts, sections), hooks/, data/, tests/
   shared/       ui/ primitives, lib/ (format, seeded-random, sparkline, url-params), config/, types/,
                 i18n/ (languages, dictionaries, getI18n / useI18n)
   styles/       tokens.css (design tokens), animations.css (all motion), globals.css (Tailwind theme)
@@ -710,6 +711,24 @@ from the contract project's `reports/mainnet-freeze.json` into
 `src/modules/security/lib/frozen-build.ts`: a new freeze means updating that
 file. The reply time (48 hours) is in each dictionary's
 `security.report.expect`.
+
+## Docs
+
+`/docs` (module 11, `../prompts/11-docs.md`) explains the app and the launchpad in
+plain words: the five screens, launching, the bonding curve, the fees, the
+locks, Crew Rewards, the launch-block tax, the Mission score and badges,
+safety, and an FAQ. Every rule on it was checked against the frozen build
+(5c199225) and `shared/tonk/`; a contract change means rereading it.
+
+The page is static. Its live figures (the launch fee, the starting reserves,
+the starting market cap, the graduation point and the paused state) are read
+in the browser from `/api/tonk/settings`, as the Creator Studio reads them,
+and on mainnet they're also shown in dollars at the live ETH price. Where the
+launchpad can't be read, each figure says it is unavailable; the demo shows
+the deployment's settings and says it is a demo. The mainnet addresses
+(launchpad, migrator, pool guard, token factory and the owner Safe) are copied
+from the contract project's `reports/mainnet-deployment.json` into
+`src/modules/docs/lib/contracts.ts`: a new deployment means updating that file.
 
 ## Live data
 

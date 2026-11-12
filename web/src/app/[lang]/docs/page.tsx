@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LaterPanel } from "@/modules/shell/components/LaterPanel";
+import { DocsPage } from "@/modules/docs/DocsPage";
 import { getI18n } from "@/shared/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -7,7 +7,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.meta.docs };
 }
 
-export default async function Page() {
-  const { t } = await getI18n();
-  return <LaterPanel title={t.meta.docs} />;
+export default function Page() {
+  return <DocsPage />;
 }

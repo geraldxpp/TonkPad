@@ -32,6 +32,7 @@ web/src/
     portfolio/         module 5: the Portfolio screen; server/ reads holdings, activity and market history behind /api/portfolio/*
     bridge/            module 6: the Bridge screen; server/ compares Relay, Across, LI.FI and the canonical bridge behind /api/bridge/*
     security/          the Security page (/security, from the footer): report, scope with the frozen build's hashes, rules, rewards, checks
+    docs/              module 11: the Docs page (/docs), ten sections checked against the deployed contracts; its live figures read the launchpad in the browser, the mainnet addresses are lib/contracts.ts
   shared/
     ui/                Badge, ChainMark, PadMark, TokenAvatar, ScorePill, CurveBar, Sparkline, Segmented, Tabs, Button, IconButton, Chip, Sheet
     lib/               format.ts, seeded-random.ts, sparkline.ts, cn.ts
