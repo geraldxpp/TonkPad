@@ -13,6 +13,7 @@ const TONE: Record<TransferState, string> = {
   delivered: "bg-pos/12 text-pos",
   refunded: "bg-warn/12 text-warn",
   failed: "bg-neg/12 text-neg",
+  dropped: "bg-warn/12 text-warn",
 };
 
 interface RecentPanelProps {

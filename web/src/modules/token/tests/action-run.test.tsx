@@ -2,11 +2,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ActionRequest, TxEventJson } from "@/shared/tonk/mission";
 import type { LaunchStatus, UnsignedTx } from "@/shared/tonk/types";
-import { didAction, useAction } from "../hooks/useAction";
+import { actionFromUrl, didAction, useAction } from "../hooks/useAction";
 
-const mocks = vi.hoisted(() => ({ buildAction: vi.fn(), fetchLaunchStatus: vi.fn(), send: vi.fn() }));
+const mocks = vi.hoisted(() => ({ buildAction: vi.fn(), fetchLaunchStatus: vi.fn(), send: vi.fn(), params: new URLSearchParams(), setParams: vi.fn() }));
 vi.mock("@/shared/wallet/wallet", () => ({ wallet: { sendEvmTransaction: mocks.send } }));
 vi.mock("@/shared/tonk/api", async (actual) => ({ ...(await actual<typeof import("@/shared/tonk/api")>()), buildAction: mocks.buildAction, fetchLaunchStatus: mocks.fetchLaunchStatus }));
+// The URL as Next.js reports it: here it never catches up with what the page wrote.
+vi.mock("@/modules/shell/hooks/useUrlParams", () => ({ useUrlParams: () => ({ params: mocks.params, setParams: mocks.setParams }) }));
 
 const OWNER = "0xd0d0620Bcf60F15a0aC75753fCc0EbF2d65b268f";
 const PAD = "0xB9bb81242ce7B40775CEADF3b591411f0320Ec82";
@@ -24,6 +26,8 @@ beforeEach(() => {
   mocks.buildAction.mockReset().mockResolvedValue({ tx: TX });
   mocks.send.mockReset().mockResolvedValue(SENT);
   mocks.fetchLaunchStatus.mockReset();
+  mocks.setParams.mockReset();
+  mocks.params = new URLSearchParams();
 });
 
 async function run(request: ActionRequest = EXTEND) {
@@ -79,5 +83,54 @@ describe("what each action leaves in its receipt", () => {
     const shared = { kind: "shared", protocolEth: "1", crewEth: "0", creatorEth: "1", tokensBurned: "0" } as const;
     expect(didAction({ kind: "share", token: TOKEN_A, owner: OWNER }, [{ ...shared, token: TOKEN_A.toLowerCase() }])).toBe(true);
     expect(didAction({ kind: "share", token: TOKEN_A, owner: OWNER }, [{ ...shared, token: TOKEN_B }])).toBe(false);
+  });
+});
+
+describe("an action's hash in the URL (campaign round 1)", () => {
+  it("goes into the URL once the wallet has sent it, and leaves it when the person stops watching", async () => {
+    settles({ events: [extended(TOKEN_A)] });
+    const onDone = vi.fn();
+    const hook = renderHook(() => useAction(onDone, { token: TOKEN_A, owner: OWNER }));
+    await act(async () => void (await hook.result.current.start(EXTEND)));
+    expect(mocks.setParams).toHaveBeenCalledWith({ action: `extend:${SENT}` });
+    await waitFor(() => expect(hook.result.current.state.step).toBe("done"));
+    act(() => hook.result.current.reset());
+    expect(mocks.setParams).toHaveBeenLastCalledWith({ action: null });
+  });
+
+  it("after a reload, watches the same hash again with every action held, and sends nothing", async () => {
+    mocks.params = new URLSearchParams({ action: `extend:${SENT}` });
+    let land: (status: LaunchStatus) => void = () => {};
+    mocks.fetchLaunchStatus.mockImplementation(() => new Promise<LaunchStatus>((resolve) => (land = resolve)));
+    const onDone = vi.fn();
+    const hook = renderHook(() => useAction(onDone, { token: TOKEN_A, owner: OWNER }));
+    await waitFor(() => expect(hook.result.current.state).toMatchObject({ step: "confirming", kind: "extend", hash: SENT }));
+    expect(mocks.fetchLaunchStatus).toHaveBeenCalledWith(SENT, null);
+    await act(async () => land({ state: "confirmed", mission: null, events: [extended(TOKEN_A)], block: 1, sender: null, replacedBy: null, replacedCall: null }));
+    await waitFor(() => expect(hook.result.current.state).toMatchObject({ step: "done", hash: SENT }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(mocks.buildAction).not.toHaveBeenCalled();
+    expect(mocks.send).not.toHaveBeenCalled();
+  });
+
+  it("takes the same hash up again after a remount, as React's strict mode does, instead of leaving it stuck", async () => {
+    mocks.params = new URLSearchParams({ action: `extend:${SENT}` });
+    settles({ events: [extended(TOKEN_A)] });
+    const hook = renderHook(() => useAction(vi.fn(), { token: TOKEN_A, owner: OWNER }), { reactStrictMode: true });
+    await waitFor(() => expect(hook.result.current.state).toMatchObject({ step: "done", hash: SENT }));
+  });
+
+  it("after a reload, counts a replacement only if its receipt shows this action on this token", async () => {
+    mocks.params = new URLSearchParams({ action: `extend:${SENT}` });
+    settles({ events: [extended(TOKEN_B)], replacedBy: OTHER, replacedCall: { to: PAD, data: TX.data, value: "0" } });
+    const hook = renderHook(() => useAction(vi.fn(), { token: TOKEN_A, owner: OWNER }));
+    await waitFor(() => expect(hook.result.current.state).toMatchObject({ step: "failed", error: "replaced" }));
+  });
+
+  it("reads only a known action and a real hash", () => {
+    expect(actionFromUrl(`withdraw:${SENT}`)).toEqual({ kind: "withdraw", hash: SENT });
+    expect(actionFromUrl(`drain:${SENT}`)).toBeNull();
+    expect(actionFromUrl("extend:0x1234")).toBeNull();
+    expect(actionFromUrl(null)).toBeNull();
   });
 });

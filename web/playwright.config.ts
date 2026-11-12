@@ -10,6 +10,8 @@ const baseURL = `http://127.0.0.1:${PORT}`;
  */
 // No real swap keys and trading closed, whatever a local .env.local holds: the browser stubs /api/swap where a test needs it.
 const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "", BRIDGE_TRADING: "", BRIDGE_PROVIDERS: "off" };
+// The Security page as it is before the owner sets anything: no contact, no bounty amounts.
+const NO_SECURITY = { NEXT_PUBLIC_SECURITY_CONTACT: "", NEXT_PUBLIC_BOUNTY_CRITICAL: "", NEXT_PUBLIC_BOUNTY_HIGH: "", NEXT_PUBLIC_BOUNTY_MEDIUM: "", NEXT_PUBLIC_BOUNTY_LOW: "" };
 
 export default defineConfig({
   testDir: "./e2e",
@@ -32,7 +34,7 @@ export default defineConfig({
     url: baseURL,
     // The stub wallet stands in for Reown: no real wallets or wallet network in tests.
     // The Creator Studio runs as the demo: mock settings, and /api/tonk/* answered in the browser.
-    env: { NEXT_PUBLIC_WALLET_STUB: "1", NEXT_PUBLIC_TONK_NETWORK: "mock", ...NO_SWAP },
+    env: { NEXT_PUBLIC_WALLET_STUB: "1", NEXT_PUBLIC_TONK_NETWORK: "mock", ...NO_SWAP, ...NO_SECURITY },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },

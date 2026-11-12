@@ -8,6 +8,9 @@ export function missionCurve(mission: MissionJson): MissionCurve {
   return { virtualEth: BigInt(mission.virtualEth), virtualTokens: BigInt(mission.virtualTokens), tokensLeft: BigInt(mission.tokensLeft), realEth: BigInt(mission.realEth) };
 }
 
+/** The eligible supply from which the Crew fee is charged, as the mission's token reports it. */
+export const crewFloorOf = (mission: MissionJson): bigint => BigInt(mission.crewFloor ?? "1");
+
 /** A trade, as far as the Crew fee is concerned. */
 export interface CrewTrade {
   side: TradeSide;
@@ -17,8 +20,9 @@ export interface CrewTrade {
 }
 
 /**
- * The Crew fee the contract charges: none while nobody eligible holds the
- * token. A buy checks before it trades. A sell checks after its tokens have
+ * The Crew fee the contract charges: none while the eligible supply is below
+ * the contract's floor (10M tokens on current builds, the first unit on
+ * earlier ones). A buy checks before it trades. A sell checks after its tokens have
  * moved to the launchpad, which is excluded, so an eligible seller's own
  * tokens no longer count: the last eligible holder selling out pays no Crew
  * fee. Without a trade, the fee as it stands.
@@ -26,7 +30,7 @@ export interface CrewTrade {
 export function chargedCrewBps(mission: MissionJson, trade?: CrewTrade): number {
   const before = BigInt(mission.eligibleSupply);
   const after = trade?.side === "sell" && trade.sellerEligible ? before - trade.amount : before;
-  return after > ZERO ? mission.crewBps : 0;
+  return after >= crewFloorOf(mission) ? mission.crewBps : 0;
 }
 
 export interface QuoteOptions {

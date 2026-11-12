@@ -155,6 +155,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
       </div>
       {data.mode === "mainnet" && !LAUNCHPAD_AUDITED ? <BetaNotice text={l.beta} className="mb-4" /> : null}
       {launchInvites() !== null && !invited ? <BetaNotice text={l.invite} className="mb-4" /> : null}
+      {live.paused ? <BetaNotice text={l.pausedNotice} className="mb-4" /> : null}
       {live.offline ? <p role="alert" className="m-0 mb-4 rounded-lg border border-warn/25 bg-warn/7 px-3.5 py-3 text-[13px] text-warn">{l.offline}</p> : null}
       <StepNav
         active={phone ? step : inView}

@@ -66,6 +66,7 @@ src/
     token/      Token Detail: components/ (chart, activity, trade, mission), hooks/, lib/, data/, tests/
     swap/       Swap: the card, token picker, Recent, token and route cards
     launch/     Launch: the Creator Studio's cards, preview, summary, review and receipt; hooks/, lib/, data/, tests/
+    security/   Security: the report, scope, rules, rewards and checks cards; lib/ (contact, rewards, scope, frozen build), data/, tests/
   shared/       ui/ primitives, lib/ (format, seeded-random, sparkline, url-params), config/, types/,
                 i18n/ (languages, dictionaries, getI18n / useI18n)
   styles/       tokens.css (design tokens), animations.css (all motion), globals.css (Tailwind theme)
@@ -74,7 +75,7 @@ src/
   shared/tonk/  tonkfun.fun's launchpad: networks and addresses, curve and lock maths, rules, launch-time score;
                 server/ reads the chain and builds launches behind /api/tonk/*
   app/api/live/ /api/live/list|overview|shell and /api/live/token/[address], server-side proxies to the worker
-worker/         the live-data worker (Node + tsx): src/ (sources/, views/, store, score) and tests/
+worker/         the live-data worker (Node + tsx): src/ (sources/, views/, alerts/, store, score) and tests/
 e2e/            Playwright specs and screenshots
 ```
 
@@ -686,6 +687,30 @@ see which contracts a route uses, ask its quote API for each asset pair (quotes
 are read-only). Tests never call the real APIs, and a real transfer must never
 be run from a test or script.
 
+## Security
+
+`/security`, linked from the footer, is the launchpad's security page for its
+mainnet release (`../prompts/08-internal-audit.md`, section 7): how to report a
+vulnerability, the scope, the rules, the rewards and what was checked. It is
+static: the text comes from the dictionaries, the rest from public build-time
+values, so set these in Vercel and rebuild.
+
+| Variable | What it does |
+|---|---|
+| `NEXT_PUBLIC_SECURITY_CONTACT` | Where reports go: an email address or an `https://` link. Unset, or anything else, shows "Coming soon". |
+| `NEXT_PUBLIC_BOUNTY_CRITICAL`, `_HIGH`, `_MEDIUM`, `_LOW` | Each severity's reward as it should read, e.g. `$25,000` or `5 ETH` (40 characters at most); the page shows "Up to {amount}". Unset, it says "Decided case by case". |
+
+The scope's addresses are the mainnet deployment's own values
+(`NEXT_PUBLIC_TONK_LAUNCHPAD` and `_MIGRATOR`, read in mainnet mode only):
+until they're set the page says "Not deployed yet", and the testnet site says
+"Listed on the mainnet site" rather than show its own contracts. The pool
+guard has no setting of its own, so the page points to the migrator's
+`initializationGuard()`. The source hashes are the frozen build's, copied
+from the contract project's `reports/mainnet-freeze.json` into
+`src/modules/security/lib/frozen-build.ts`: a new freeze means updating that
+file. The reply time (48 hours) is in each dictionary's
+`security.report.expect`.
+
 ## Live data
 
 The worker (`worker/src/main.ts`) is one small Node process that keeps every
@@ -814,6 +839,136 @@ as JSON. The app never calls the data providers itself.
   (`worker/.state/`, ignored by git), including how far it has read the
   Pons logs, and picks up where it left off.
 
+## Launchpad alerts
+
+The worker also watches tonkfun.fun's own launchpad and migrator on one
+network, Robinhood Chain mainnet (4663) or testnet (46630), and tells the
+owner within a minute when something looks wrong (`worker/src/alerts/`). It
+only reads the chain: it holds no key and sends nothing on chain. Every 10 s
+it reads the two contracts' logs (and an owner Safe's), then checks at the
+newest block, 20 blocks behind the head:
+
+- **Solvency.** Each contract's ETH balance must cover what it owes: the
+  launchpad, every live curve's real ETH reserve plus unclaimed ETH credits
+  plus graduation ETH waiting for a migrator; the migrator, its unclaimed
+  credits. The figures are rebuilt from events and corrected from the
+  contracts' own views. The launch-block tax never enters a curve: the
+  mainnet build burns it to 0xdead in the same transaction (F-1). The testnet
+  release before F-1 kept it in the curve, and the watcher tells the two apart
+  from the deployed code (only the F-1/F-2 build answers
+  `CREW_ELIGIBLE_FLOOR()`). Every wei leaving either contract also leaves its
+  accounting, so the surplus over what is owed can never fall: a fall is ETH
+  that left with no event to account for it, and is raised even while the
+  contract is still solvent. A shortfall or a fall is confirmed by re-reading
+  every row at the same block before it is raised.
+- **Owner actions.** Every pause, unpause, ownership transfer started or
+  accepted, migrator set, Crew exclusion and migrator treasury change, each
+  time. The launchpad's setters that log nothing (launch fee, treasury,
+  reserves) are compared every 30 s. When the owner is a Safe, each
+  transaction it runs is named call by call, MultiSend batches included,
+  along with any change to the Safe's signers, threshold or modules. The
+  contracts must keep pointing at each other, at the pool guard and, on
+  mainnet, at Uniswap's own PoolManager and PositionManager.
+- **Graduation.** A curve that sells out must, in the same transaction, log
+  MissionGraduated into the migrator, initialize Uniswap's ETH pool with the
+  guard as its hook, and hand the migrator its position. Each graduated
+  token's position must stay locked. Once a minute, the graduating buy of
+  every curve at least 50% sold (and of the curve furthest along) is
+  simulated at the newest block. A curve whose graduation would revert is
+  raised with the revert's reason until a simulation passes again. A reverted
+  transaction leaves no log, and scanning every block's transactions costs
+  about 10 RPC calls a second, so this simulation is how a graduation that
+  reverts is caught.
+- **Large outflows.** Any single ETH transfer out of either contract at or
+  above `ALERT_LARGE_OUTFLOW_ETH`: sale payouts, fees, the burned launch-block
+  tax, refunds of capped buys, graduation liquidity and pool seeds, credit
+  withdrawals, and pool fees. A token under the 10M-token Crew floor refuses
+  its Crew share of pool fees (F-2); that share goes to the treasury and is
+  shown on its own line.
+- **The watcher itself.** It raises an alert when it falls more than
+  `ALERT_MAX_LAG_SECONDS` behind the head, when no check has succeeded for as
+  long (with the last error), and when the head hasn't moved for 5 minutes.
+  It says when it starts and sends an all-clear every `ALERT_SUMMARY_HOURS`,
+  so a silent channel means a dead watcher. `ALERT_HEARTBEAT_URL` adds an
+  outside dead man's switch for when the whole worker is down. `/health`
+  shows `alerts.lastBlock` and `alerts.lastAlertAt`.
+
+One-off alerts are sent once. Lasting ones (a shortfall, a failing
+graduation, a lag) repeat every `ALERT_REPEAT_MINUTES` while they last, and a
+"Resolved" follows once a check finds them gone. Each cycle's alerts go out as
+one plain-text message, most severe first. For example:
+
+```
+🔴 tonkfun.fun · Robinhood Chain · block 111900240
+
+🔴 Launchpad is short of ETH
+It holds 12.4 ETH but owes 12.5 ETH: 12.4 ETH in live curves, 0.1 ETH in unclaimed ETH credits, 0 ETH waiting for a migrator.
+Short by 0.1 ETH at block 111900240.
+https://robinhoodchain.blockscout.com/address/0x…
+
+🟠 Owner action: launch fee changed
+0.005 ETH → 0.01 ETH, between blocks 111900101 and 111900240.
+```
+
+The other alerts read: "Launchpad PAUSED", "Ownership transfer started on
+the launchpad", "Owner Safe acted on the contracts" with each call (such as
+`setLaunchFee(0.01 ETH) on the launchpad`), "Graduation of $TKN would revert"
+with its reason, "Graduation of $TKN went wrong" with what the receipt
+lacked, "$TKN graduated: 2.93 ETH moved" and "Large ETH outflow" with each
+transfer, "Watcher is behind the chain" and "Watcher has stopped reading the
+chain". A token appears only as its ticker (letters and digits) and address,
+never in its own words. Telegram gets plain text, and the webhook gets every
+mention turned off.
+
+**Settings** (Railway variables on the worker). The network and contracts
+reuse the app's names.
+
+| Variable | |
+|---|---|
+| `NEXT_PUBLIC_TONK_NETWORK` | `mainnet` or `testnet` turns the watcher on; anything else leaves it off |
+| `NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR`, `NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK` | The deployment's read-back, as for the site; required on mainnet. On testnet, unset means the testnet release in `networks.ts` |
+| `TONK_POOL_GUARD` | Optional: the pool guard from the deployment's read-back. The migrator's `initializationGuard()` must match it |
+| `TONK_RPC_URL` | Optional; secret if it holds a key. Default: the network's public RPC. It must answer `eth_getLogs` over wide ranges and `eth_call` with state overrides (the public RPCs do; Alchemy's free plan allows 10-block log queries) |
+| `ALERT_TELEGRAM_BOT_TOKEN`, `ALERT_TELEGRAM_CHAT_ID` | Secret: Telegram (below) |
+| `ALERT_WEBHOOK_URL` | Secret: a Discord-compatible webhook |
+| `ALERT_HEARTBEAT_URL` | Optional: a dead man's switch pinged once a minute (below) |
+| `ALERT_DRY_RUN` | `1` logs alerts and sends nothing |
+| `ALERT_LARGE_OUTFLOW_ETH` | Default `1` |
+| `ALERT_REPEAT_MINUTES` | Default `30` |
+| `ALERT_MAX_LAG_SECONDS` | Default `90` |
+| `ALERT_GRADUATION_CHECK_FROM_PCT` | Default `50`: curves this far along get the graduation dry run |
+| `ALERT_SUMMARY_HOURS` | Default `24`; `0` sends no all-clear |
+| `ALERT_POLL_SECONDS` | Default `10` |
+| `ALERT_STATE_PATH` | Default: beside `SNAPSHOT_PATH` (`/data/alerts-4663.json` on Railway) |
+
+With no channel set, alerts are only logged. Secrets go in Railway's
+variables only, never in a file: the worker never logs or sends them, and
+redacts them from errors. The watcher saves its place, ledger and sent alerts
+on the volume. Without that file (a first start, or a new deployment) it
+rebuilds from the deployment block, says nothing about history, and then
+announces itself.
+
+**Telegram.** In Telegram, message @BotFather, send `/newbot`, and copy the
+token it gives you. Start a chat with the new bot, or add it to a private
+group, and send it any message. Then open
+`https://api.telegram.org/bot<token>/getUpdates` in your own browser and copy
+`"chat":{"id":…}`; a group's id is negative. Set both variables in Railway,
+then redeploy. "Launchpad watcher started" should arrive within a minute.
+
+**Dead man's switch.** At healthchecks.io (or similar), create a check with
+a 1-minute period and a few minutes' grace. Point its notifications at the
+same Telegram chat, and set its ping URL as `ALERT_HEARTBEAT_URL`. The worker
+pings it after each good check, so if Railway or the worker goes down, the
+pings stop and healthchecks.io alerts you.
+
+**Try it.** `NEXT_PUBLIC_TONK_NETWORK=testnet ALERT_DRY_RUN=1 npm run worker`
+rebuilds the testnet release in about a minute, logs "Launchpad watcher
+started", and shows the watcher under `alerts` at `localhost:8787/health`. The
+tests (`worker/tests/alerts-*.test.ts`) run on logs, receipts and replies
+recorded read-only from Robinhood Chain Testnet and on the ABI of the
+mainnet build with the F-1 and F-2 fixes, all in
+`worker/tests/fixtures/alerts/`, with no network.
+
 ## Deploy on Vercel
 
 - Import the repository and set **Root Directory** to `web`. The framework
@@ -836,7 +991,8 @@ as JSON. The app never calls the data providers itself.
     **Custom Start Command** `npm run worker`; **Healthcheck Path** `/health`.
   - **Variables** `HELIUS_API_KEY`, `JUPITER_API_KEY`, `ROBINHOOD_RPC_URL`,
     `WORKER_TOKEN` (a long random string, e.g. `openssl rand -hex 32`),
-    `SNAPSHOT_PATH=/data/snapshot.json` and `PORT=8080`.
+    `SNAPSHOT_PATH=/data/snapshot.json` and `PORT=8080`; for the launchpad
+    watcher, the variables in *Launchpad alerts*.
   - **Volume** mounted at `/data`, so restarts keep the last day of tokens.
   - **Networking** → Generate Domain on port 8080. `https://<domain>/health` should answer
     `{"ok":true,…}`; `/v1/*` answers 401 without the token.

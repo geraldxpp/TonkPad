@@ -1,6 +1,6 @@
 "use client";
 
-import { fmt } from "@/shared/i18n/config";
+import { fmt, plural } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { formatInteger } from "@/shared/lib/format";
@@ -23,7 +23,7 @@ interface Stat {
  * share single borders however the grid wraps.
  */
 export function StatsStrip({ detail }: { detail: TokenDetail }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const s = t.token.stats;
   const { token, stats } = detail;
   const marketAvailable = detail.marketAvailable !== false;
@@ -36,7 +36,7 @@ export function StatsStrip({ detail }: { detail: TokenDetail }) {
       label: s.volume,
       value: marketAvailable ? amount(token.volume24h) : "—",
       unit: marketAvailable ? MONEY_UNIT : null,
-      sub: !marketAvailable || stats.txns24h === null ? unknown : fmt(s.txns, { count: formatInteger(stats.txns24h) }),
+      sub: !marketAvailable || stats.txns24h === null ? unknown : plural(lang, s.txns, stats.txns24h, formatInteger(stats.txns24h)),
       tone: "text-text-3",
     },
     {

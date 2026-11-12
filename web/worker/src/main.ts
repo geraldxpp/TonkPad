@@ -1,6 +1,7 @@
 import type { ChainId } from "@/shared/types/chain";
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { LiveStatus } from "@/shared/types/live";
+import { type Alerts, startAlerts } from "./alerts";
 import { ChartBook } from "./charts/book";
 import { loadConfig, log } from "./config";
 import { every, throttledFailures } from "./loop";
@@ -58,6 +59,8 @@ let quotesFetchedAt = 0;
 /** Helius calls and estimated credits since start, reported by /health to watch the budget. */
 let heliusCalls = 0;
 let heliusCredits = 0;
+/** The launchpad watcher (alerts/), when the environment turns it on. */
+let alerts: Alerts | null = null;
 
 const fail = throttledFailures();
 
@@ -166,6 +169,11 @@ async function restore(): Promise<void> {
 
 async function start(): Promise<void> {
   await restore();
+  // The watcher runs beside the live data; if it can't start, the worker still serves the screens.
+  alerts = await startAlerts().catch((error: unknown) => {
+    log("alerts", `not started: ${error instanceof Error ? error.name : "error"}`);
+    return null;
+  });
   await refreshStatus();
   connectPumpPortal({
     onLaunch: (event) => {
@@ -210,13 +218,14 @@ async function start(): Promise<void> {
       trades: solanaTrades.usage(),
       ponsBlock: ponsFeed.cursor,
       charts: charts.stats(),
+      alerts: alerts?.health() ?? { enabled: false },
     }),
   });
   log("worker", `listening on :${config.port}`);
 
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
-      void save().finally(() => process.exit(0));
+      void Promise.all([save(), alerts?.save()]).finally(() => process.exit(0));
     });
   }
 }

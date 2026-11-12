@@ -47,7 +47,8 @@ describe("a mission as the token page shows it", () => {
   it("lists the trades newest first with the cap each one left, in the coin, and never a dollar figure", () => {
     const both = missionDetail({ mission: mission(), trades: [SALE, LAUNCH_BUY] }, TONK_TESTNET);
     expect(both.trades.map((trade) => [trade.side, trade.usd, trade.native, trade.tokens, trade.trader, trade.ageSeconds])).toEqual([
-      ["sell", null, 0.000017685132127443, 10_000_000, SALE.trader, 1_200],
+      // The sale shows what the seller got: 0.0000176851 gross less 0.0000007074 in fees, as on its receipt (campaign round 1).
+      ["sell", null, 0.000016977726842347, 10_000_000, SALE.trader, 1_200],
       ["buy", null, 0.0002, 124_002_358.490566, CREATOR, 4_200],
     ]);
     expect(both.trades[1].marketCap).toBeCloseTo(0.00178715, 8);

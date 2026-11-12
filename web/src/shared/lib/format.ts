@@ -80,9 +80,22 @@ export function formatChange(value: number, decimals = 1): string {
   return `${sign}${Math.abs(value).toFixed(decimals)}%`;
 }
 
-/** Minutes since launch → "26m", "6h", "18d". */
-export function formatAge(minutes: number): string {
-  if (minutes < 60) return `${Math.max(0, Math.floor(minutes))}m`;
-  if (minutes < 60 * 24) return `${Math.floor(minutes / 60)}h`;
-  return `${Math.floor(minutes / (60 * 24))}d`;
+/** How a language writes a short age, {n} being the number: "{n}m" here, "{n} мин" in Russian. */
+export interface AgeUnits {
+  s: string;
+  m: string;
+  h: string;
+  d: string;
+}
+
+/** The compact ages of tables and rows: "45s", "26m", "6h", "18d". */
+export const COMPACT_AGE: AgeUnits = { s: "{n}s", m: "{n}m", h: "{n}h", d: "{n}d" };
+
+export const ageIn = (template: string, n: number) => template.replace("{n}", String(n));
+
+/** Minutes since launch → "26m", "6h", "18d", or in a language's own units. */
+export function formatAge(minutes: number, units: AgeUnits = COMPACT_AGE): string {
+  if (minutes < 60) return ageIn(units.m, Math.max(0, Math.floor(minutes)));
+  if (minutes < 60 * 24) return ageIn(units.h, Math.floor(minutes / 60));
+  return ageIn(units.d, Math.floor(minutes / (60 * 24)));
 }

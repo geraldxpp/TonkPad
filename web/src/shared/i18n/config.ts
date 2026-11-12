@@ -71,3 +71,17 @@ export function localeName(locale: Locale): string {
 export function fmt(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => (key in values ? String(values[key]) : match));
 }
+
+/** A counted word's forms: "one" for 1, "few" and "many" where the language has them (Russian), "other" for the rest. */
+export interface PluralForms {
+  one: string;
+  few: string;
+  many: string;
+  other: string;
+}
+
+/** The form `lang` uses for `count` ("1 sell", "5 продаж"), its {count} filled with `shown`, the count as displayed. */
+export function plural(lang: string, forms: PluralForms, count: number, shown: string = String(count)): string {
+  const rule = new Intl.PluralRules(lang).select(count);
+  return fmt(rule === "one" || rule === "few" || rule === "many" ? forms[rule] : forms.other, { count: shown });
+}

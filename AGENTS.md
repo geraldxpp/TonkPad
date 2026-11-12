@@ -31,6 +31,7 @@ web/src/
     launch/            module 4: the Creator Studio (four cards, token preview, Mission score, summary, review, receipt)
     portfolio/         module 5: the Portfolio screen; server/ reads holdings, activity and market history behind /api/portfolio/*
     bridge/            module 6: the Bridge screen; server/ compares Relay, Across, LI.FI and the canonical bridge behind /api/bridge/*
+    security/          the Security page (/security, from the footer): report, scope with the frozen build's hashes, rules, rewards, checks
   shared/
     ui/                Badge, ChainMark, PadMark, TokenAvatar, ScorePill, CurveBar, Sparkline, Segmented, Tabs, Button, IconButton, Chip, Sheet
     lib/               format.ts, seeded-random.ts, sparkline.ts, cn.ts

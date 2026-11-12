@@ -1,4 +1,4 @@
-import type { PublicClient } from "viem";
+import { BaseError, ContractFunctionRevertedError, ContractFunctionZeroDataError, ExecutionRevertedError, type PublicClient } from "viem";
 import { cached } from "@/shared/swap/server/cache";
 import { shortAddress } from "@/shared/lib/address";
 import { chainText } from "../metadata";
@@ -32,6 +32,26 @@ type Address = `0x${string}`;
 const unavailable = (what: string) => new TonkError("unavailable", what);
 
 /**
+ * The eligible supply from which a token's curve charges the Crew fee. Builds
+ * before the floor (the earlier testnet launchpads) charged from the first
+ * eligible unit: they revert on the unknown getter, and read as 1. The revert
+ * comes as code 3 from Robinhood Chain's own RPC; another provider may send it
+ * as -32000 "execution reverted", which viem names ExecutionRevertedError. Any
+ * other failure is a failed read, never taken for an answer.
+ */
+async function readCrewFloor(client: PublicClient, coin: { address: Address; abi: typeof TOKEN_ABI; blockNumber?: bigint }): Promise<bigint> {
+  try {
+    return await client.readContract({ ...coin, functionName: "CREW_ELIGIBLE_FLOOR" });
+  } catch (error) {
+    const reverted =
+      error instanceof BaseError &&
+      error.walk((cause) => cause instanceof ContractFunctionRevertedError || cause instanceof ContractFunctionZeroDataError || cause instanceof ExecutionRevertedError) !== null;
+    if (reverted) return BigInt(1);
+    throw error;
+  }
+}
+
+/**
  * A mission's state at one block: the launchpad's record of it, its lock,
  * and its token's Crew figures. `blockNumber` pins every read to one block,
  * so a trade simulated at that block sees exactly this state.
@@ -46,13 +66,14 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
   const [address, creator, launchedAt, launchBlock, crewBps, creatorBps, graduated, virtualEth, virtualTokens, realEth, tokensLeft, , metadata, agentPrompt] = mission;
   if (address.toLowerCase() !== token.toLowerCase()) throw new TonkError("missing", "not a mission of this launchpad", 404);
   try {
-    const [lock, checkpoint, paused, name, symbol, eligibleSupply, crewPaid, creatorHeld, block] = await Promise.all([
+    const [lock, checkpoint, paused, name, symbol, eligibleSupply, crewFloor, crewPaid, creatorHeld, block] = await Promise.all([
       client.readContract({ ...pad, functionName: "devLocks", args: [token] }),
       client.readContract({ ...pad, functionName: "devVestedCheckpoint", args: [token] }),
       client.readContract({ ...pad, functionName: "paused" }),
       client.readContract({ ...coin, functionName: "name" }),
       client.readContract({ ...coin, functionName: "symbol" }),
       client.readContract({ ...coin, functionName: "eligibleSupply" }),
+      readCrewFloor(client, coin),
       client.readContract({ ...coin, functionName: "totalCrewRewardsPaid" }),
       client.readContract({ ...coin, functionName: "balanceOf", args: [creator] }),
       // The L2 block as the contract's own shield reads it.
@@ -79,6 +100,7 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
       realEth: String(realEth),
       tokensLeft: String(tokensLeft),
       eligibleSupply: String(eligibleSupply),
+      crewFloor: String(crewFloor),
       crewPaid: String(crewPaid),
       metadata: stored(metadata),
       agentPrompt: stored(agentPrompt),

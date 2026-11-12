@@ -8,6 +8,8 @@ export interface TransferTracking {
   requestId: string | null;
   /** The bridge LI.FI picked. */
   tool: string | null;
+  /** Solana: the last block height its blockhash allows. Past it, a transaction the chain has no record of never lands. Absent on older records. */
+  validUntil?: number | null;
 }
 
 /** One way across, as the screen shows it. Amounts are base units of the arriving asset. */
@@ -67,9 +69,11 @@ export interface BridgeBuild {
  * Where a transfer stands. "source": its first transaction is confirming.
  * "transit": between networks. "delivered": it landed. "refunded": it came
  * back on the source network. "failed": the source transaction reverted, or
- * the route says it needs support.
+ * the route says it needs support. "dropped": the network dropped the source
+ * transaction before it landed (a Solana blockhash past its last valid height),
+ * so nothing left the wallet.
  */
-export type TransferState = "source" | "transit" | "delivered" | "refunded" | "failed";
+export type TransferState = "source" | "transit" | "delivered" | "refunded" | "failed" | "dropped";
 
 export interface BridgeStatus {
   state: TransferState;

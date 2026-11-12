@@ -22,9 +22,12 @@ export async function GET(request: Request) {
     const tool = params.get("tool");
     const sender = params.get("sender") ?? "";
     const raw = params.get("raw") ?? "";
+    // Solana only: the last block height the source transaction's blockhash allows.
+    const until = params.get("validUntil");
+    const validUntil = until !== null && /^\d{1,15}$/.test(until) && from?.vm === "svm" ? Number(until) : null;
     if (!from || !to || !isTxHash(from, tx) || !isProvider(provider) || !isNetworkAddress(from, sender) || !/^\d{1,60}$/.test(raw)) throw new BridgeError("invalid", "bad transfer", 400);
     if ((requestId !== null && !REQUEST_ID.test(requestId)) || (tool !== null && !TOOL.test(tool))) throw new BridgeError("invalid", "bad transfer", 400);
-    return jsonResponse(await transferStatus({ from, to, tx, provider, requestId, tool, sender, raw }, bridgeConfig()));
+    return jsonResponse(await transferStatus({ from, to, tx, provider, requestId, tool, sender, raw, validUntil }, bridgeConfig()));
   } catch (error) {
     return errorResponse(error);
   }

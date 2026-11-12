@@ -73,7 +73,11 @@ export function HeaderActions({ token, links }: HeaderActionsProps) {
   const { notice, copy } = useCopyNotice();
 
   const share = async () => {
-    const url = window.location.href;
+    // The view travels with the link; the sharer's own transaction in flight (`?tx=`, `?action=`) never does.
+    const link = new URL(window.location.href);
+    link.searchParams.delete("tx");
+    link.searchParams.delete("action");
+    const url = link.toString();
     if (typeof navigator.share === "function") {
       await navigator.share({ title: `${token.name} ($${token.ticker})`, url }).catch(() => undefined);
       return;

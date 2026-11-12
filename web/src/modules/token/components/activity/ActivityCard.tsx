@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
-import { fmt } from "@/shared/i18n/config";
+import { fmt, plural } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatInteger } from "@/shared/lib/format";
 import type { TokenDetail } from "@/shared/types/token-detail";
@@ -25,7 +25,7 @@ const parseTab = (raw: string | null): ActivityTab => TABS.find((tab) => tab ===
 
 /** The last hour's buys against sells, above the trades. */
 function FlowSummary({ flow }: { flow: TokenDetail["flow1h"] }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const a = t.token.activity;
   if (!flow) {
     return <p className="border-b border-line px-5 py-3.5 text-[11px] text-text-3 max-md:px-3.5">{t.token.live.unavailable}</p>;
@@ -35,11 +35,11 @@ function FlowSummary({ flow }: { flow: TokenDetail["flow1h"] }) {
   return (
     <div title={a.flow} className="flex items-center gap-3 border-b border-line px-5 py-3.5 text-[11px] text-text-3 max-md:gap-2 max-md:px-3.5">
       <span aria-hidden="true" className="size-[5px] flex-none rounded-full bg-pos" />
-      <span className="flex-none font-mono font-medium text-pos">{fmt(a.buys, { count: formatInteger(flow.buys) })}</span>
+      <span className="flex-none font-mono font-medium text-pos">{plural(lang, a.buys, flow.buys, formatInteger(flow.buys))}</span>
       <span aria-hidden="true" className="h-[3px] min-w-6 flex-1 overflow-hidden rounded-full bg-neg/55">
         <span className="block h-full rounded-full bg-pos" style={{ width: `${buyShare}%` }} />
       </span>
-      <span className="flex-none font-mono font-medium text-neg">{fmt(a.sells, { count: formatInteger(flow.sells) })}</span>
+      <span className="flex-none font-mono font-medium text-neg">{plural(lang, a.sells, flow.sells, formatInteger(flow.sells))}</span>
       <span aria-hidden="true" className="size-[5px] flex-none rounded-full bg-neg" />
       <span className="flex-none">{a.hour}</span>
     </div>

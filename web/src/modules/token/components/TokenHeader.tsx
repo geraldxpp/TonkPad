@@ -55,7 +55,7 @@ export function TokenHeader({ detail, explorerUrl, tags }: { detail: TokenDetail
               {CHAINS[token.chain].name}
             </span>
             <span aria-hidden="true">·</span>
-            <span>{fmt(t.token.trades.ago, { time: formatAge(token.ageMinutes) })}</span>
+            <span>{fmt(t.token.trades.ago, { time: formatAge(token.ageMinutes, t.token.trades.units) })}</span>
           </div>
         </div>
         <HeaderActions token={token} links={detail.links} />

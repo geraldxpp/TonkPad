@@ -55,6 +55,9 @@ export async function StatusBar({ status }: StatusBarProps) {
         <Link href={href("/terms")} className={LINK}>
           {t.status.terms}
         </Link>
+        <Link href={href("/security")} className={LINK}>
+          {t.status.security}
+        </Link>
         <span>© 2026 tonkfun.fun</span>
       </div>
     </footer>
