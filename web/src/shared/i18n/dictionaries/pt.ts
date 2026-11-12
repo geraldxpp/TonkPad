@@ -1147,6 +1147,8 @@ export const pt: Dictionary = {
       refundedBody: "A rota não conseguiu entregar, então voltou à sua carteira em {network}.",
       failed: "Não foi concluída",
       failedBody: "A transação falhou ou a rota informou um problema.",
+      dropped: "Não enviada",
+      droppedBody: "{network} descartou a transação antes de ela ser registrada, então nada saiu da sua carteira. Você pode enviá-la de novo.",
       slow: "Está demorando mais que o normal. Continua sendo acompanhada: você pode fechar e ver em Recentes.",
       step1Title: "Confirmação na origem",
       step1Body: "Confirmada na carteira e na rede",
@@ -1173,6 +1175,7 @@ export const pt: Dictionary = {
         delivered: "Recebido",
         refunded: "Devolvido",
         failed: "Falhou",
+        dropped: "Não enviada",
       },
     },
     action: {

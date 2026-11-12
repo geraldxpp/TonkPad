@@ -7,7 +7,7 @@ import type { RecentTransfer, TransferState } from "./types";
 export const RECENT_KEY = "tonkpad-bridge-recent";
 const LIMIT = 30;
 const EMPTY: readonly RecentTransfer[] = [];
-const STATES: ReadonlySet<TransferState> = new Set(["source", "transit", "delivered", "refunded", "failed"]);
+const STATES: ReadonlySet<TransferState> = new Set(["source", "transit", "delivered", "refunded", "failed", "dropped"]);
 
 let cache: readonly RecentTransfer[] | null = null;
 const listeners = new Set<() => void>();

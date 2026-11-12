@@ -20,6 +20,7 @@ const STEP_STATES: Record<TransferState, [StepState, StepState, StepState]> = {
   delivered: ["complete", "complete", "complete"],
   refunded: ["complete", "stopped", "pending"],
   failed: ["stopped", "pending", "pending"],
+  dropped: ["stopped", "pending", "pending"],
 };
 
 interface ProgressDialogProps {
@@ -47,6 +48,7 @@ export function ProgressDialog({ transfer, now, onClose, nextHref, nextLabel }: 
     delivered: [p.delivered, fmt(p.deliveredBody, { network: to?.name ?? "" })],
     refunded: [p.refunded, fmt(p.refundedBody, { network: from?.name ?? "" })],
     failed: [p.failed, p.failedBody],
+    dropped: [p.dropped, fmt(p.droppedBody, { network: from?.name ?? "" })],
   };
   const steps: [string, string][] = [
     [p.step1Title, p.step1Body],

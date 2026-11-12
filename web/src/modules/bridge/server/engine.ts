@@ -119,5 +119,11 @@ export async function buildBridge(request: BridgeRequest, routeId: string, revie
   const plan: PricedPlan = await planner(request, config);
   if (BigInt(plan.route.outAmount) * REVIEW_TOLERANCE.of < BigInt(reviewedOut) * REVIEW_TOLERANCE.keep) throw new BridgeError("price-moved", "the quote fell", 409);
   const [approvals, transaction] = await Promise.all([approvalsFor(plan, request), plan.solana ? assembleRelayTransaction(plan.solana, request.sender, rpcFor(request.from)) : null]);
-  return { route: finishRoutes([plan], request)[0], approvals, evm: plan.evm, solana: transaction ? { transaction } : null, tracking: plan.tracking };
+  return {
+    route: finishRoutes([plan], request)[0],
+    approvals,
+    evm: plan.evm,
+    solana: transaction ? { transaction: transaction.transaction } : null,
+    tracking: { ...plan.tracking, validUntil: transaction?.validUntil ?? null },
+  };
 }

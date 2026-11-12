@@ -1147,6 +1147,8 @@ export const zh: Dictionary = {
       refundedBody: "路线未能送达，资产已退回你在 {network} 的钱包。",
       failed: "转账未完成",
       failedBody: "交易失败，或路线报告了问题。",
+      dropped: "未发送",
+      droppedBody: "{network} 在交易上链前将其丢弃，钱包中没有任何资金转出。你可以重新发送。",
       slow: "比平时更久，仍在跟踪：可关闭并在“最近”中查看。",
       step1Title: "来源确认",
       step1Body: "钱包和网络已确认",
@@ -1173,6 +1175,7 @@ export const zh: Dictionary = {
         delivered: "已到账",
         refunded: "已退回",
         failed: "失败",
+        dropped: "未发送",
       },
     },
     action: {

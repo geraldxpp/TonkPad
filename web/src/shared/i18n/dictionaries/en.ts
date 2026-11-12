@@ -1158,6 +1158,8 @@ export const en = {
       refundedBody: "The route couldn't deliver it, so it went back to your wallet on {network}.",
       failed: "It didn't go through",
       failedBody: "The transaction failed or the route reported a problem.",
+      dropped: "Not sent",
+      droppedBody: "{network} dropped the transaction before it landed, so nothing left your wallet. You can send it again.",
       slow: "Taking longer than usual. It's still being followed: you can close this and check back in Recent.",
       step1Title: "Source confirmation",
       step1Body: "Confirmed in your wallet and on the network",
@@ -1184,6 +1186,7 @@ export const en = {
         delivered: "Arrived",
         refunded: "Refunded",
         failed: "Failed",
+        dropped: "Not sent",
       },
     },
     action: {

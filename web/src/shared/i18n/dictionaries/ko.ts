@@ -1146,6 +1146,8 @@ export const ko: Dictionary = {
       refundedBody: "경로에서 전달하지 못해 {network} 지갑으로 돌아갔습니다.",
       failed: "완료되지 않았습니다",
       failedBody: "거래가 실패했거나 경로에서 문제를 보고했습니다.",
+      dropped: "전송되지 않음",
+      droppedBody: "{network}에서 트랜잭션이 처리되기 전에 폐기되어 지갑에서 빠져나간 것은 없습니다. 다시 보낼 수 있습니다.",
       slow: "평소보다 오래 걸리고 있습니다. 계속 추적 중이니 닫고 최근 항목에서 확인하세요.",
       step1Title: "보내는 곳 확인",
       step1Body: "지갑과 네트워크에서 확인",
@@ -1172,6 +1174,7 @@ export const ko: Dictionary = {
         delivered: "도착",
         refunded: "환불됨",
         failed: "실패",
+        dropped: "전송 안 됨",
       },
     },
     action: {

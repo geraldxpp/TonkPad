@@ -1146,6 +1146,8 @@ export const fr: Dictionary = {
       refundedBody: "La route n’a pas pu livrer : c’est revenu dans votre wallet sur {network}.",
       failed: "Le transfert a échoué",
       failedBody: "La transaction a échoué ou la route a signalé un problème.",
+      dropped: "Non envoyée",
+      droppedBody: "{network} a abandonné la transaction avant qu’elle n’aboutisse : rien n’a quitté votre wallet. Vous pouvez la renvoyer.",
       slow: "C’est plus long que d’habitude. Le suivi continue : vous pouvez fermer et revenir dans Récents.",
       step1Title: "Confirmation au départ",
       step1Body: "Confirmée dans votre wallet et sur le réseau",
@@ -1172,6 +1174,7 @@ export const fr: Dictionary = {
         delivered: "Arrivé",
         refunded: "Remboursé",
         failed: "Échec",
+        dropped: "Non envoyée",
       },
     },
     action: {

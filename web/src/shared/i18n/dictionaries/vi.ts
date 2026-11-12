@@ -1146,6 +1146,8 @@ export const vi: Dictionary = {
       refundedBody: "Tuyến không giao được nên đã quay về ví của bạn trên {network}.",
       failed: "Giao dịch không thành công",
       failedBody: "Giao dịch thất bại hoặc tuyến báo lỗi.",
+      dropped: "Chưa được gửi",
+      droppedBody: "{network} đã loại bỏ giao dịch trước khi nó được ghi nhận, nên không có gì rời khỏi ví của bạn. Bạn có thể gửi lại.",
       slow: "Lâu hơn bình thường. Vẫn đang theo dõi: bạn có thể đóng và xem lại ở Gần đây.",
       step1Title: "Xác nhận ở nguồn",
       step1Body: "Đã xác nhận trong ví và trên mạng",
@@ -1172,6 +1174,7 @@ export const vi: Dictionary = {
         delivered: "Đã nhận",
         refunded: "Đã hoàn",
         failed: "Thất bại",
+        dropped: "Chưa gửi",
       },
     },
     action: {

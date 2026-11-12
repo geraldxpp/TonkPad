@@ -16,20 +16,31 @@ export interface StatusQuery {
   tool: string | null;
   sender: string;
   raw: string;
+  /** Solana: the last block height the source transaction's blockhash allows. */
+  validUntil: number | null;
 }
 
 /** A Solana signature is 64 bytes in base58; an EVM hash 0x and 32 bytes. */
 export const isTxHash = (network: BridgeNetwork, tx: string): boolean => (network.vm === "svm" ? /^[1-9A-HJ-NP-Za-km-z]{80,90}$/.test(tx) : /^0x[\da-fA-F]{64}$/.test(tx));
 
-type Source = { state: "pending" | "confirmed" | "failed"; receipt: unknown };
+type Source = { state: "pending" | "confirmed" | "failed" | "dropped"; receipt: unknown };
 
-/** Whether the first transaction has landed. A network that won't answer counts as still pending. */
-export async function sourceState(network: BridgeNetwork, tx: string): Promise<Source> {
+/**
+ * Whether the first transaction has landed. A network that won't answer counts as still pending. A Solana
+ * transaction the chain has no record of, once the chain is past the last height its blockhash allows, was
+ * dropped: it can never land, and nothing left the wallet. That is the chain's rule, never a timer.
+ */
+export async function sourceState(network: BridgeNetwork, tx: string, validUntil: number | null = null): Promise<Source> {
   const rpc = rpcFor(network);
   if (network.vm === "svm") {
+    // The height first: a transaction that lands just before the height passes is then still found below.
+    const height = validUntil === null ? null : await rpc("getBlockHeight", [{ commitment: "confirmed" }]).catch(() => null);
     const result = await rpc("getSignatureStatuses", [[tx], { searchTransactionHistory: true }]).catch(() => null);
     const entry = isRecord(result) && Array.isArray(result.value) ? result.value[0] : null;
-    if (!isRecord(entry)) return { state: "pending", receipt: null };
+    if (!isRecord(entry)) {
+      const dropped = isRecord(result) && typeof height === "number" && validUntil !== null && height > validUntil;
+      return { state: dropped ? "dropped" : "pending", receipt: null };
+    }
     if (entry.err) return { state: "failed", receipt: null };
     return { state: entry.confirmationStatus === "confirmed" || entry.confirmationStatus === "finalized" ? "confirmed" : "pending", receipt: null };
   }
@@ -47,7 +58,8 @@ export async function transferStatus(query: StatusQuery, config: BridgeConfig): 
 }
 
 async function rawStatus(query: StatusQuery, config: BridgeConfig): Promise<BridgeStatus> {
-  const source = await sourceState(query.from, query.tx);
+  const source = await sourceState(query.from, query.tx, query.validUntil);
+  if (source.state === "dropped") return { state: "dropped", destinationTx: null };
   if (source.state === "failed") return { state: "failed", destinationTx: null };
   if (source.state === "pending") return { state: "source", destinationTx: null };
   switch (query.provider) {

@@ -1146,6 +1146,8 @@ export const ja: Dictionary = {
       refundedBody: "ルートが届けられなかったため、{network} のウォレットに戻りました。",
       failed: "完了しませんでした",
       failedBody: "取引が失敗したか、ルートで問題が報告されました。",
+      dropped: "送信されませんでした",
+      droppedBody: "{network} がトランザクションを取り込む前に破棄したため、ウォレットからは何も出ていません。もう一度送信できます。",
       slow: "通常より時間がかかっています。追跡は続いています。閉じて履歴で確認できます。",
       step1Title: "送信元の確認",
       step1Body: "ウォレットとネットワークで確認",
@@ -1172,6 +1174,7 @@ export const ja: Dictionary = {
         delivered: "到着",
         refunded: "返金済み",
         failed: "失敗",
+        dropped: "未送信",
       },
     },
     action: {

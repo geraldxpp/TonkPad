@@ -1147,6 +1147,8 @@ export const id: Dictionary = {
       refundedBody: "Rute tidak bisa mengantarkannya, jadi kembali ke dompet Anda di {network}.",
       failed: "Tidak berhasil",
       failedBody: "Transaksi gagal atau rute melaporkan masalah.",
+      dropped: "Tidak terkirim",
+      droppedBody: "{network} membatalkan transaksi sebelum masuk, jadi tidak ada dana yang keluar dari wallet Anda. Anda bisa mengirimnya lagi.",
       slow: "Lebih lama dari biasanya. Masih dipantau: Anda bisa menutup dan memeriksa di Terbaru.",
       step1Title: "Konfirmasi asal",
       step1Body: "Dikonfirmasi di dompet dan jaringan",
@@ -1173,6 +1175,7 @@ export const id: Dictionary = {
         delivered: "Tiba",
         refunded: "Dikembalikan",
         failed: "Gagal",
+        dropped: "Tidak terkirim",
       },
     },
     action: {

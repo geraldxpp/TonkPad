@@ -46,7 +46,7 @@ export const isQuote = (body: unknown): body is BridgeQuote => record(body) && A
 
 export const isBuild = (body: unknown): body is BridgeBuild => record(body) && isRoute(body.route) && Array.isArray(body.approvals) && record(body.tracking) && (record(body.evm) || record(body.solana));
 
-const STATES = new Set(["source", "transit", "delivered", "refunded", "failed"]);
+const STATES = new Set(["source", "transit", "delivered", "refunded", "failed", "dropped"]);
 export const isStatus = (body: unknown): body is BridgeStatus => record(body) && typeof body.state === "string" && STATES.has(body.state);
 
 const query = (request: RoutesRequest) => {
@@ -79,6 +79,7 @@ export function fetchStatus(transfer: RecentTransfer): Promise<BridgeStatus> {
   const params = new URLSearchParams({ from: transfer.from.network, to: transfer.to.network, tx: transfer.sourceTx, provider: transfer.tracking.provider, sender: transfer.sender, raw: transfer.raw });
   if (transfer.tracking.requestId) params.set("requestId", transfer.tracking.requestId);
   if (transfer.tracking.tool) params.set("tool", transfer.tracking.tool);
+  if (transfer.tracking.validUntil) params.set("validUntil", String(transfer.tracking.validUntil));
   return call(`/api/bridge/status?${params}`, isStatus);
 }
 

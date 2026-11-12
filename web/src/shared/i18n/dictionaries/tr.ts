@@ -1146,6 +1146,8 @@ export const tr: Dictionary = {
       refundedBody: "Rota teslim edemedi, bu yüzden {network} üzerindeki cüzdanınıza döndü.",
       failed: "Gerçekleşmedi",
       failedBody: "İşlem başarısız oldu ya da rota bir sorun bildirdi.",
+      dropped: "Gönderilmedi",
+      droppedBody: "{network} işlemi gerçekleşmeden düşürdü, bu yüzden cüzdanınızdan hiçbir şey çıkmadı. Tekrar gönderebilirsiniz.",
       slow: "Normalden uzun sürüyor. Takip ediliyor: kapatıp Son işlemler'den bakabilirsiniz.",
       step1Title: "Kaynak onayı",
       step1Body: "Cüzdanda ve ağda onaylandı",
@@ -1172,6 +1174,7 @@ export const tr: Dictionary = {
         delivered: "Ulaştı",
         refunded: "İade edildi",
         failed: "Başarısız",
+        dropped: "Gönderilmedi",
       },
     },
     action: {
