@@ -13,7 +13,7 @@ import { CreatorPanel } from "./components/curve/CreatorPanel";
 import { CurveStatus } from "./components/curve/CurveStatus";
 import { CurveTradePanel } from "./components/curve/CurveTradePanel";
 import { PoolTradePanel } from "./components/curve/PoolTradePanel";
-import { MissionInsights } from "./components/curve/MissionInsights";
+import { MissionInsights, type Top10 } from "./components/curve/MissionInsights";
 import { MissionTags } from "./components/curve/MissionTags";
 import { PoolFees } from "./components/curve/PoolFees";
 import { RewardsCard } from "./components/curve/RewardsCard";
@@ -24,8 +24,10 @@ import { TokenBreadcrumb } from "./components/TokenBreadcrumb";
 import { TokenHeader } from "./components/TokenHeader";
 import { TradeDock } from "./components/trade/TradeDock";
 import { useAction } from "./hooks/useAction";
+import { useIndexer } from "./hooks/useIndexer";
 import { useMissionAccount } from "./hooks/useMissionAccount";
 import { useSentTrade } from "./hooks/useSentTrade";
+import { withIndexer } from "./lib/indexer";
 import { missionDetail } from "./lib/mission-detail";
 import { coinAmount, MONEY_UNIT } from "./lib/money";
 
@@ -51,7 +53,10 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
   const shell = useShellLive();
   // The testnet site counts in test ETH; mainnet in dollars at the live ETH price, and as unavailable until there is one.
   const usdPerCoin = MONEY_UNIT ? undefined : (shell.data?.status.ethUsd ?? null);
-  const detail = useMemo(() => missionDetail(page, network, usdPerCoin), [page, network, usdPerCoin]);
+  // Holders, top traders and the top-10 share come from the live-data worker on mainnet; the testnet site has no indexer yet.
+  const testnet = isTestnetSite();
+  const indexer = useIndexer(mission.token, !testnet);
+  const detail = useMemo(() => withIndexer(missionDetail(page, network, usdPerCoin), indexer), [page, network, usdPerCoin, indexer]);
   const view = useMissionAccount(mission.token);
   const { owner, account, refresh: refreshAccount } = view;
   // Whatever confirms (a trade, a claim, an edit), the page and the wallet's standing are read again.
@@ -63,8 +68,15 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
   const { state: action, start, reset: stopWatching } = useAction(refreshAll, { token: mission.token, owner });
   const onAction = useCallback((request: ActionRequest) => void start(request), [start]);
   const isCreator = owner !== null && owner.toLowerCase() === mission.creator.toLowerCase();
-  // What waits for the indexer: "not on testnet yet" there, "coming soon" on mainnet.
-  const later = isTestnetSite() ? t.launch.testnet.laterTitle : t.native.soon;
+  // Why the holders or traders list is empty: not on testnet yet; on mainnet, still loading or the worker can't be reached.
+  const indexerNote = testnet ? t.launch.testnet.laterTitle : indexer.status === "loading" ? t.token.live.loading : t.token.live.unavailable;
+  const notes = {
+    trades: t.mission.noTrades,
+    holders: indexer.status === "ok" ? t.token.live.emptyHolders : indexerNote,
+    // Top traders are in dollars: without the ETH price there are none to show, even with trades.
+    traders: indexer.status === "ok" ? (usdPerCoin === null ? t.token.live.unavailable : t.mission.noTrades) : indexerNote,
+  };
+  const top10: Top10 = testnet ? "later" : indexer.status === "ok" ? (indexer.top10Share === null ? "unavailable" : { share: indexer.top10Share }) : indexer.status;
   // Once graduated, trading moves to the token's Uniswap pool where this network has Uniswap's router.
   const pool = mission.graduated && network.uniswap !== null;
   // The launchpad's pause holds buys and sells on the curve only; a graduated pool trades on.
@@ -86,8 +98,8 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
           {owner ? <UnpaidEth amount={BigInt(account?.unpaidEth ?? "0")} owner={owner} network={network} action={action} onAction={onAction} onStop={stopWatching} /> : null}
           {isCreator && owner ? <CreatorPanel mission={mission} network={network} owner={owner} action={action} onAction={onAction} onStop={stopWatching} /> : null}
           <MarketCard detail={detail} />
-          <ActivityCard detail={detail} empty={{ trades: t.mission.noTrades, holders: later, traders: later }} />
-          <MissionInsights mission={mission} score={detail.token.score} level={detail.token.level} network={network} />
+          <ActivityCard detail={detail} empty={notes} />
+          <MissionInsights mission={mission} score={detail.token.score} level={detail.token.level} network={network} top10={top10} />
         </div>
         <aside aria-label={t.token.aside} className="min-w-0 lg:sticky lg:top-6">
           <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-1", mission.crewBps === 0 && "md:grid-cols-1")}>

@@ -1313,6 +1313,11 @@ export const fr: Dictionary = {
       supply: "Offre",
       crew: "Récompenses de crew gagnées",
       curve: "Courbe de bonding",
+      locked: "Verrouillé (créateur)",
+      pool: "Pool Uniswap",
+      migrator: "Migrateur",
+      burned: "Brûlé",
+      system: "Détenu par un contrat : il ne compte pas comme holder",
     },
     traders: {
       label: "Meilleurs traders",
@@ -1321,6 +1326,7 @@ export const fr: Dictionary = {
       bought: "Acheté",
       sold: "Vendu",
       win: "Taux de réussite",
+      held: "Encore détenu",
     },
     tags: {
       smart: "Smart",

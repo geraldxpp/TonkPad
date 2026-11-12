@@ -1314,6 +1314,11 @@ export const pt: Dictionary = {
       supply: "Oferta",
       crew: "Recompensas da crew recebidas",
       curve: "Curva de bonding",
+      locked: "Bloqueado (criador)",
+      pool: "Pool da Uniswap",
+      migrator: "Migrador",
+      burned: "Queimado",
+      system: "Em posse de um contrato: não conta como holder",
     },
     traders: {
       label: "Top traders",
@@ -1322,6 +1327,7 @@ export const pt: Dictionary = {
       bought: "Comprado",
       sold: "Vendido",
       win: "Taxa de acerto",
+      held: "Ainda em carteira",
     },
     tags: {
       smart: "Smart",

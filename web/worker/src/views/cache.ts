@@ -6,6 +6,7 @@ import type { TokenStore } from "../store";
 import { listView } from "./list";
 import { overviewView } from "./overview";
 import { shellView } from "./shell";
+import type { SystemAddresses } from "../tonk/holders";
 import type { TradeBook } from "../trades/book";
 import { findTrackedToken, tokenView } from "./token";
 
@@ -22,6 +23,8 @@ export interface ViewOptions extends Partial<ActivitySources> {
   charts?: ChartBook;
   /** A Pons quote asset's USD price now, tokenized stocks included. */
   quoteUsd?: (quote: string) => number | null;
+  /** tonkfun.fun's launchpad, migrator and PoolManager, when the worker follows it. */
+  tonk?: SystemAddresses;
 }
 
 /** How long a page's first request waits for a token's first GeckoTerminal candles. */
@@ -53,10 +56,10 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
     selected.set(found.address, Date.now());
     const oldest = selected.keys().next().value;
     if (selected.size > 500 && oldest) selected.delete(oldest);
-    const { charts, quoteUsd, tradesOf, isSmart = () => false } = options;
+    const { charts, quoteUsd, tradesOf, tonk, isSmart = () => false } = options;
     await charts?.open(found, FIRST_CANDLES_WAIT);
     const book = found.pons?.book ?? tradesOf?.(found.address) ?? null;
-    return tokenView(found, status, Date.now(), { activity: { book, isSmart }, charts: { pools: charts, quoteUsd } });
+    return tokenView(found, status, Date.now(), { activity: { book, isSmart }, charts: { pools: charts, quoteUsd }, tonk });
   }
 
   function list(query: LiveListQuery): LiveList {

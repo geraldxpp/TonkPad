@@ -839,6 +839,51 @@ as JSON. The app never calls the data providers itself.
   (`worker/.state/`, ignored by git), including how far it has read the
   Pons logs, and picks up where it left off.
 
+## tonkfun.fun launches in Explore (the launchpad indexer)
+
+The worker lists tonkfun.fun's own launches like any other token: chain `rh`,
+launchpad `tonk`, ranked by the same rules, in every Explore tab including
+Locked Missions (`worker/src/tonk/`, module 10, `prompts/10-launchpad-indexer.md`).
+It only reads Robinhood Chain: no key, nothing sent.
+
+- **On mainnet only.** It follows the deployment the app is built for
+  (`NEXT_PUBLIC_TONK_NETWORK=mainnet` and the three `NEXT_PUBLIC_TONK_` values),
+  from the launchpad's deployment block, with `TONK_RPC_URL` or else the
+  worker's `ROBINHOOD_LOGS_RPC_URL`. `/health` shows it under `tonk` (its block,
+  how far behind the head, and how many launches).
+- **The whole history.** Chunked `eth_getLogs` windows of up to 10,000 blocks,
+  halved while the RPC refuses a range, 20 blocks behind the head. A window
+  is read whole (the launchpad's and migrator's logs, the tokens' Transfers,
+  the pools' Swaps, then block times, stored briefs, dev locks and pool keys)
+  and applied at once; the snapshot keeps the cursor, and launches are never
+  pruned. A snapshot from another deployment is dropped and read again.
+- **Prices.** On the curve, from each `CurveTrade`'s new reserves; after
+  graduation, from the token's own pool only: its id comes from the migrator's
+  `poolKey(token, fee)`, used only when it is the guarded key (the guard
+  checked as the app checks it), and only Uniswap's PoolManager's `Swap` for
+  that id counts. Look-alike pools and events from other contracts are ignored.
+  Never DexScreener for these tokens.
+- **Holders, exact.** From each token's `Transfer` events: wallet-to-wallet
+  transfers and everything after graduation count. The launchpad (curve and
+  the creator's locked tokens), the PoolManager, the migrator and 0xdead are
+  labelled, not counted; under one token is dust. The token page lists them
+  with "Locked (creator)" as its own row, and the top-10 share is the 10
+  largest counted holders'.
+- **Top traders.** Per wallet, curve and pool together: ETH in (a launch-block
+  buy's burned 99% included) and out, realised profit at the wallet's average
+  buy, and what it still holds. A trade counts for the wallet whose balance
+  moved, so a pool trade through a router counts for its taker.
+- **The Mission score and Locked badge** are the token page's own functions on
+  the same chain facts (`worker/tests/tonk-score.test.ts` holds them together).
+- **The token page** on mainnet reads holders, top traders and the top-10
+  share from `/api/live/token/<address>` every 15 s, and says "Data
+  unavailable" when the worker can't answer, never a stand-in. The testnet
+  site keeps "Not on testnet yet".
+- **Tests** run a simulated chain through the contracts' own maths
+  (`worker/tests/tonk-chain.ts`, `tonk-scenario.ts`): a launch, buys and sells,
+  a transfer, graduation, pool trades and look-alikes. The mainnet e2e run
+  starts the real feed over it (`e2e/mainnet/fixture-worker.ts`).
+
 ## Launchpad alerts
 
 The worker also watches tonkfun.fun's own launchpad and migrator on one

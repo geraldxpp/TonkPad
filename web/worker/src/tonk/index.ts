@@ -4,9 +4,12 @@ import type { TokenStore } from "../store";
 import { TonkBook } from "./book";
 import { type FeedEnv, loadTonkFeedConfig } from "./config";
 import { TonkFeed } from "./feed";
+import type { SystemAddresses } from "./holders";
 
 /** What the worker holds on to: one poll, what the snapshot keeps, and the /health block. */
 export interface TonkFeedHandle {
+  /** The contracts whose balances a launch's holders show labelled. */
+  system: SystemAddresses;
   /** Reads the chain, then prices every launch at the ETH price now; returns how many launches it found. A failed read throws after the pricing. */
   poll: (ethUsd: number | null) => Promise<number>;
   saved: () => NonNullable<Snapshot["tonk"]>;
@@ -29,9 +32,11 @@ export function createTonkFeed(store: TokenStore, env: FeedEnv, logsRpcUrl: stri
   const { config, note } = loadTonkFeedConfig(env, logsRpcUrl);
   log(note);
   if (!config) return null;
-  const book = new TonkBook(store, { launchpad: config.launchpad, migrator: config.migrator, poolManager: config.poolManager });
+  const system: SystemAddresses = { launchpad: config.launchpad, migrator: config.migrator, poolManager: config.poolManager };
+  const book = new TonkBook(store, system);
   const feed = new TonkFeed(new HttpRpc(config.rpcUrl), config, book, null, Date.now, log);
   return {
+    system,
     async poll(ethUsd) {
       try {
         return (await feed.poll()).launches;

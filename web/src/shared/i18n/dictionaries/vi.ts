@@ -1313,6 +1313,11 @@ export const vi: Dictionary = {
       supply: "Tỷ lệ",
       crew: "Thưởng crew đã nhận",
       curve: "Đường cong bonding",
+      locked: "Đã khóa (người tạo)",
+      pool: "Pool Uniswap",
+      migrator: "Hợp đồng chuyển đổi",
+      burned: "Đã đốt",
+      system: "Do hợp đồng nắm giữ nên không tính là người nắm giữ",
     },
     traders: {
       label: "Trader hàng đầu",
@@ -1321,6 +1326,7 @@ export const vi: Dictionary = {
       bought: "Đã mua",
       sold: "Đã bán",
       win: "Tỷ lệ thắng",
+      held: "Còn nắm giữ",
     },
     tags: {
       smart: "Thông minh",

@@ -1314,6 +1314,11 @@ export const zh: Dictionary = {
       supply: "占比",
       crew: "已获船员奖励",
       curve: "联合曲线",
+      locked: "已锁定（创建者）",
+      pool: "Uniswap 池",
+      migrator: "迁移合约",
+      burned: "已销毁",
+      system: "由合约持有，不计入持有人",
     },
     traders: {
       label: "顶级交易者",
@@ -1322,6 +1327,7 @@ export const zh: Dictionary = {
       bought: "买入额",
       sold: "卖出额",
       win: "胜率",
+      held: "仍持有",
     },
     tags: {
       smart: "聪明钱",

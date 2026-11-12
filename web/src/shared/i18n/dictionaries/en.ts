@@ -1326,6 +1326,11 @@ export const en = {
       supply: "Supply",
       crew: "Crew rewards earned",
       curve: "Bonding curve",
+      locked: "Locked (creator)",
+      pool: "Uniswap pool",
+      migrator: "Migrator",
+      burned: "Burned",
+      system: "Held by a contract, so not counted as a holder",
     },
     traders: {
       label: "Top traders",
@@ -1334,6 +1339,7 @@ export const en = {
       bought: "Bought",
       sold: "Sold",
       win: "Win rate",
+      held: "Still held",
     },
     tags: {
       smart: "Smart",

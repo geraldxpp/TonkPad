@@ -1313,6 +1313,11 @@ export const tr: Dictionary = {
       supply: "Arz",
       crew: "Kazanılan ekip ödülleri",
       curve: "Bonding eğrisi",
+      locked: "Kilitli (yaratıcı)",
+      pool: "Uniswap havuzu",
+      migrator: "Geçiş sözleşmesi",
+      burned: "Yakıldı",
+      system: "Bir sözleşmede tutuluyor, sahip sayılmaz",
     },
     traders: {
       label: "En iyi trader’lar",
@@ -1321,6 +1326,7 @@ export const tr: Dictionary = {
       bought: "Alınan",
       sold: "Satılan",
       win: "Kazanma oranı",
+      held: "Hâlâ elinde",
     },
     tags: {
       smart: "Akıllı",

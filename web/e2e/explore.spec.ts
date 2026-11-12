@@ -37,6 +37,18 @@ test("list tabs filter the table and write ?tab=", async ({ page }) => {
   await expectSearch(page, "");
 });
 
+test("Locked Missions lists tonkfun.fun's launches, and a launch's page shows its holders", async ({ page }) => {
+  await page.getByRole("tab", { name: "Locked Missions" }).click();
+  await expectShowing(page, 4);
+  await tokenRows(page).filter({ hasText: "Ghosty" }).getByRole("link", { name: "Ghosty" }).click();
+  await expect(page).toHaveURL(/\/token\/GHOST$/);
+  const activity = page.getByRole("region", { name: "Activity" });
+  await activity.getByRole("tab", { name: "Holders · 1,204" }).click();
+  const holders = activity.getByRole("table", { name: "Holders" });
+  await expect(holders.getByText("Bonding curve")).toBeVisible();
+  await expect(holders.getByRole("row")).toHaveCount(7);
+});
+
 test("ranks restart at 1 after filtering", async ({ page }) => {
   await page.getByRole("tab", { name: "Locked Missions" }).click();
   // Wait for the filtered list before reading it (evaluateAll doesn't retry).

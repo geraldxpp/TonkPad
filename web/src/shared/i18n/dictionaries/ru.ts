@@ -1314,6 +1314,11 @@ export const ru: Dictionary = {
       supply: "Доля",
       crew: "Получено наград команды",
       curve: "Бондинг-кривая",
+      locked: "Заблокировано (создатель)",
+      pool: "Пул Uniswap",
+      migrator: "Мигратор",
+      burned: "Сожжено",
+      system: "Хранится контрактом и не считается держателем",
     },
     traders: {
       label: "Лучшие трейдеры",
@@ -1322,6 +1327,7 @@ export const ru: Dictionary = {
       bought: "Куплено",
       sold: "Продано",
       win: "Доля побед",
+      held: "Ещё держит",
     },
     tags: {
       smart: "Умный",

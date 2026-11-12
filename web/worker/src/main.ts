@@ -54,6 +54,7 @@ const views = createViews(store, status, INGESTING, {
   isSmart: (w) => smartWallets.count([w]) > 0,
   charts,
   quoteUsd,
+  tonk: tonk?.system,
 });
 /** USD prices of the other assets Pons launches are paired with (tokenized stocks). */
 const quotePrices = new Map<string, number>();

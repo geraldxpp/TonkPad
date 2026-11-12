@@ -1313,6 +1313,11 @@ export const ko: Dictionary = {
       supply: "비중",
       crew: "받은 크루 보상",
       curve: "본딩 커브",
+      locked: "잠김(생성자)",
+      pool: "Uniswap 풀",
+      migrator: "마이그레이션 컨트랙트",
+      burned: "소각됨",
+      system: "컨트랙트 보유: 보유자로 세지 않음",
     },
     traders: {
       label: "상위 트레이더",
@@ -1321,6 +1326,7 @@ export const ko: Dictionary = {
       bought: "매수액",
       sold: "매도액",
       win: "승률",
+      held: "보유 중",
     },
     tags: {
       smart: "스마트",

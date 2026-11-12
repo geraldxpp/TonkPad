@@ -1,6 +1,7 @@
 import { tokenPrice } from "@/shared/tonk/curve";
 import type { MissionLockJson } from "@/shared/tonk/mission";
 import { emptyWindows, type MarketWindows, type WindowKey } from "../model";
+import type { WalletFlow } from "./traders";
 
 /**
  * A tonkfun.fun launch as the feed follows it, from the launchpad's events
@@ -38,6 +39,10 @@ export interface TonkState {
   balances: Record<string, string>;
   /** The balances changed since the holder figures were last worked out. */
   holdersDirty?: boolean;
+  /** Each wallet's trades, curve and pool, since the launch (traders.ts). */
+  flows?: Record<string, WalletFlow>;
+  /** Wallets the launch-block shield taxed, in order (at most 50): tagged Sniper. */
+  snipers?: string[];
 }
 
 /** [ms, 1 for a buy or 0 for a sell, gross ETH, ETH per token just after] */

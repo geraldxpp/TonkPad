@@ -1313,6 +1313,11 @@ export const ja: Dictionary = {
       supply: "保有率",
       crew: "獲得したクルー報酬",
       curve: "ボンディングカーブ",
+      locked: "ロック中（作成者）",
+      pool: "Uniswap プール",
+      migrator: "移行コントラクト",
+      burned: "バーン済み",
+      system: "コントラクトが保有：ホルダーには数えません",
     },
     traders: {
       label: "トップトレーダー",
@@ -1321,6 +1326,7 @@ export const ja: Dictionary = {
       bought: "購入額",
       sold: "売却額",
       win: "勝率",
+      held: "保有中",
     },
     tags: {
       smart: "スマート",

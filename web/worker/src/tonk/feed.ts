@@ -9,6 +9,7 @@ import type { TonkFeedConfig } from "./config";
 import { decodeFeedLogs, type Sources, type TonkEvent } from "./events";
 import { checkpointOf, devLockOf, type DevLockRow, guardedPoolId, logsWhere, missionOf, poolKeyOf } from "./reads";
 import { checkGuard } from "./guard";
+import { taxesOf, TxMoves } from "./wallets";
 
 /** Blocks the feed stays behind the head, so a load-balanced RPC's slower nodes have every log it asks for. */
 export const CONFIRMATIONS = 20;
@@ -135,13 +136,17 @@ export class TonkFeed {
     }));
     const lockRows = locks.map(([token, row, checkpoint]) => [token, lockJson(got(row(), "devLocks"), got(checkpoint(), "devVestedCheckpoint"))] as const);
 
+    // Who really traded in each transaction, and what the launch-block shield took from a buy.
+    const moves = new TxMoves(events.filter((e): e is Extract<TonkEvent, { kind: "transfer" }> => e.kind === "transfer"), this.book.system);
+    const ctx = { pools, walletOf: moves.walletOf.bind(moves), taxOf: taxesOf(events) };
+
     // Applied in one go, with no await in between, so a snapshot never sees half of it.
     let launched = 0;
     let trades = 0;
     for (const e of launches) if (this.book.launch(e, facts.get(e.token) as LaunchFacts)) launched += 1;
     for (const e of events) {
       if (e.kind === "launched") continue;
-      if (this.book.apply(e, timeOf(e.block), pools) && (e.kind === "trade" || e.kind === "swap")) trades += 1;
+      if (this.book.apply(e, timeOf(e.block), ctx) && (e.kind === "trade" || e.kind === "swap")) trades += 1;
     }
     for (const [token, lock] of lockRows) this.book.setLock(token, lock);
     this.cursor = to;

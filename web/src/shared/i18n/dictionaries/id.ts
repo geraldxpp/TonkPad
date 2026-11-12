@@ -1314,6 +1314,11 @@ export const id: Dictionary = {
       supply: "Pasokan",
       crew: "Hadiah crew diterima",
       curve: "Kurva bonding",
+      locked: "Terkunci (kreator)",
+      pool: "Pool Uniswap",
+      migrator: "Migrator",
+      burned: "Dibakar",
+      system: "Dipegang kontrak, tidak dihitung sebagai holder",
     },
     traders: {
       label: "Trader teratas",
@@ -1322,6 +1327,7 @@ export const id: Dictionary = {
       bought: "Dibeli",
       sold: "Dijual",
       win: "Tingkat menang",
+      held: "Masih dipegang",
     },
     tags: {
       smart: "Smart",

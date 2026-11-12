@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
-import type { WalletTag } from "@/shared/types/token-detail";
+import type { HolderLabel, WalletTag } from "@/shared/types/token-detail";
 import { walletDot } from "../../lib/display";
 import { shortAddress } from "../../lib/format";
 
@@ -18,14 +18,16 @@ const TAG: Record<WalletTag, string> = {
 interface WalletCellProps {
   /** Full or shortened address; null is the bonding curve. */
   address: string | null;
+  /** A system holder, shown by its role rather than its address (the address stays in the tooltip). */
+  label?: HolderLabel;
   tag: WalletTag | null;
   className?: string;
 }
 
 /** A wallet's colour square, address and tag, as every activity table shows it. */
-export function WalletCell({ address, tag, className }: WalletCellProps) {
+export function WalletCell({ address, label, tag, className }: WalletCellProps) {
   const { t } = useI18n();
-  const name = address ? shortAddress(address) : t.token.holders.curve;
+  const name = label ? t.token.holders[label] : address ? shortAddress(address) : t.token.holders.curve;
   return (
     <span role="cell" className={cn("flex min-w-0 items-center gap-2", className)}>
       <span aria-hidden="true" className="size-3.5 flex-none rounded" style={{ background: walletDot(address ?? name) }} />

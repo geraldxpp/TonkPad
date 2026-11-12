@@ -6,7 +6,8 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatTokens, formatTokensFull } from "@/shared/tonk/format";
 import { claimableAt, DAY_SECONDS, type DevLockState, lockedAt } from "@/shared/tonk/lock";
 import { type MissionJson, missionLock } from "@/shared/tonk/mission";
-import { explorerAddressUrl, isTestnetSite, type TonkNetwork } from "@/shared/tonk/networks";
+import { explorerAddressUrl, type TonkNetwork } from "@/shared/tonk/networks";
+import { top10Band } from "../../lib/display";
 import { formatDate, shortAddress } from "../../lib/format";
 import { type Insight, InsightsFrame } from "../InsightsCard";
 
@@ -56,22 +57,29 @@ function LockFacts({ lock, now, ticker, network }: LockFactsProps) {
   );
 }
 
+/** The top 10 holders' share: the indexer's figure, or why there is none yet. */
+export type Top10 = { share: number } | "loading" | "unavailable" | "later";
+
 interface MissionInsightsProps {
   mission: MissionJson;
   /** The Mission score from the chain's facts. */
   score: number;
   level: "Safe" | "Caution" | "Risky";
   network: TonkNetwork;
+  top10: Top10;
 }
 
 /**
  * "Token insights" for a mission read from the chain: the Mission score from
- * the rows the chain answers, the creator's lock, and the creator. What needs
- * the indexer (the top holders' share) says so instead of guessing.
+ * the rows the chain answers, the creator's lock, and the creator; and the
+ * top holders' share from the indexer, or why it isn't there (loading, not
+ * reachable, or not on testnet yet) instead of a guess.
  */
-export function MissionInsights({ mission, score, level, network }: MissionInsightsProps) {
+export function MissionInsights({ mission, score, level, network, top10 }: MissionInsightsProps) {
   const { t } = useI18n();
   const i = t.token.insights;
+  const band = typeof top10 === "object" ? top10Band(top10.share) : null;
+  const top10Note = band ? t.token.stats[band.label] : top10 === "later" ? t.launch.testnet.laterTitle : top10 === "unavailable" ? t.token.live.unavailable : null;
   const now = Math.floor(mission.readAt / 1000);
   const lock = mission.lock ? missionLock(mission.lock) : null;
   // A lock that has run out, or been claimed in full, holds nothing back any more.
@@ -81,7 +89,12 @@ export function MissionInsights({ mission, score, level, network }: MissionInsig
     lock && holding
       ? { icon: Lock, title: fmt(i.devLocked, { pct: Math.round(lock.lockedBps / 100) }), sub: lock.type === "time" ? t.launch.lock.time : fmt(t.token.stats.vest, { days }), tone: "text-locked" }
       : { icon: Lock, title: i.noLock, sub: i.canMove, tone: "text-warn" },
-    { icon: Users, title: "—", sub: `${i.top10} · ${isTestnetSite() ? t.launch.testnet.laterTitle : t.native.soon}` },
+    {
+      icon: Users,
+      title: typeof top10 === "object" ? `${(top10.share * 100).toFixed(1)}%` : "—",
+      sub: top10Note ? `${i.top10} · ${top10Note}` : i.top10,
+      tone: band?.tone,
+    },
     { icon: Wallet, title: shortAddress(mission.creator), sub: t.mission.facts.creator, mono: true },
   ];
   return (

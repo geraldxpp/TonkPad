@@ -64,9 +64,14 @@ export interface TokenTrade {
   txUrl: string | null;
 }
 
+/** A contract that holds a tonkfun.fun launch's tokens for it: labelled in the list, never counted as a holder. */
+export type HolderLabel = "curve" | "locked" | "pool" | "migrator" | "burned";
+
 export interface TokenHolder {
   /** Shortened address, or null for the bonding curve. */
   address: string | null;
+  /** A system holder's role (live tonkfun.fun launches): shown by name, without a rank. */
+  label?: HolderLabel;
   tag: WalletTag | null;
   /** Share of supply, 0–1. */
   share: number;
@@ -83,6 +88,8 @@ export interface TopTrader {
   soldUsd: number;
   /** 0–1: the share of the wallet's sells that beat its average buy (live); null before it has sold. */
   winRate: number | null;
+  /** Whole tokens the wallet still holds (live tonkfun.fun launches, from the token's Transfers). */
+  held?: number;
 }
 
 /** The creator's locked allocation, read from its lock contract. */

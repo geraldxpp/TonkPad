@@ -65,17 +65,43 @@ test("Explore lists the launchpad's latest launches and opens a launch by its ad
   await expect(page.getByRole("heading", { level: 1, name: "Tonk Test One" })).toBeVisible();
 });
 
-test("a mission's page: the beta notice, its explorer, and a market that waits for the ETH price rather than guess", async ({ page }) => {
+test("a mission's page: the beta notice, its explorer, and its holders and top traders from the indexer", async ({ page }) => {
   await page.goto(`/token/${TTONE.token}`);
   await expect(page.getByRole("heading", { level: 1, name: "Tonk Test One" })).toBeVisible();
   await expect(page.getByRole("note").filter({ hasText: "Beta:" })).toHaveText(BETA);
   await expect(page.getByRole("main").getByRole("link", { name: "View token on the explorer" })).toHaveAttribute("href", `${EXPLORER}/address/${TTONE.token}`);
-  // No live feed in this run, so no ETH price: figures in ETH never appear under a dollar sign, and nothing says test ETH.
+  // Mainnet counts in ETH and dollars, never in test ETH, and never with the testnet's wording.
   await expect(page.getByText("test ETH")).toHaveCount(0);
-  // What waits for the indexer is "coming soon" here, never the testnet's wording.
   await expect(page.getByText(/Not on testnet yet/)).toHaveCount(0);
-  await expect(page.getByText("Top 10 holders · Coming soon")).toBeVisible();
+  // The top 10 holders' share, as the worker counts it: system addresses and dust left out.
+  await expect(page.getByText(/^Top 10 holders · (healthy|spread|concentrated)$/)).toBeVisible();
+  const activity = page.getByRole("region", { name: "Activity" });
+  await activity.getByRole("tab", { name: "Holders · 7" }).click();
+  const holders = activity.getByRole("table", { name: "Holders" });
+  // The creator's locked tokens and the pool are labelled, with no rank: they aren't counted.
+  for (const label of ["Locked (creator)", "Uniswap pool"]) {
+    const row = holders.getByRole("row").filter({ hasText: label });
+    await expect(row).toHaveCount(1);
+    await expect(row.getByRole("cell").first()).toHaveText("—");
+  }
+  await page.screenshot({ path: "e2e/screenshots/mainnet-token-holders-1440.png" });
+  await activity.getByRole("tab", { name: "Top traders" }).click();
+  const traders = activity.getByRole("table", { name: "Top traders" });
+  await expect(traders.getByRole("columnheader", { name: "Still held" })).toBeVisible();
+  // The best realised profit first: the wallet that sold out, on the curve and the pool.
+  await expect(traders.getByRole("row").nth(1).getByRole("cell").nth(1)).toHaveText(/^\+\$/);
   await expect(tradePanel(page).getByLabel("You pay")).toBeVisible();
+});
+
+test("when the indexer can't be reached, holders, top traders and the top-10 share say so, never a stand-in", async ({ page }) => {
+  await page.route("**/api/live/token/**", (route) => route.fulfill({ status: 502, json: { error: "live data unavailable" } }));
+  await page.goto(`/token/${TTONE.token}?tab=holders`);
+  const activity = page.getByRole("region", { name: "Activity" });
+  await expect(activity.getByRole("tab", { name: "Holders · —" })).toBeVisible();
+  await expect(activity.getByText("Data unavailable")).toBeVisible();
+  await expect(page.getByText("Top 10 holders · Data unavailable")).toBeVisible();
+  await activity.getByRole("tab", { name: "Top traders" }).click();
+  await expect(activity.getByText("Data unavailable")).toBeVisible();
 });
 
 test("a graduated mission trades on its Uniswap pool: the quote, the review, the wallet, then the swap its receipt shows", async ({ page }) => {

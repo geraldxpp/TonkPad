@@ -3,6 +3,9 @@ import type { TokenDetail, TokenHolder } from "@/shared/types/token-detail";
 import type { TrackedToken } from "../model";
 import { PONS_SUPPLY } from "../pons/curve";
 import { toToken } from "../tokens";
+import type { SystemAddresses } from "../tonk/holders";
+import type { TonkToken } from "../tonk/launch";
+import { tonkHolders, tonkTraderRows } from "../tonk/view";
 import { type ChartInputs, liveChart } from "./token-chart";
 import { type ActivityContext, tradersView, tradesView } from "./token-activity";
 
@@ -44,10 +47,12 @@ function holders(token: TrackedToken, supply: number | null, isSmart: (wallet: s
   });
 }
 
-/** What a token page draws on besides the token's own record: its trade book and its chart's candles. */
+/** What a token page draws on besides the token's own record: its trade book, its chart's candles, and tonkfun.fun's system addresses. */
 export interface TokenViewInputs {
   activity?: ActivityContext;
   charts?: ChartInputs;
+  /** The launchpad, migrator and PoolManager, whose balances a tonkfun.fun launch's holders show labelled. */
+  tonk?: SystemAddresses;
 }
 
 /** Same contract as the mock page, using only facts retained by the live worker. */
@@ -59,6 +64,8 @@ export function tokenView(token: TrackedToken, status: LiveStatus, now: number, 
   const supply = wholeSupply(token);
   const liquidity = token.liquidityUsd;
   const staleCurveHolders = Boolean(token.pons && token.graduated && !token.holdersAt);
+  // A tonkfun.fun launch's holders and traders come from its feed: exact, with its system addresses labelled.
+  const launch = token.tonk && inputs.tonk ? { token: token as TonkToken, system: inputs.tonk } : null;
   return {
     source: "live",
     marketAvailable: market,
@@ -79,8 +86,8 @@ export function tokenView(token: TrackedToken, status: LiveStatus, now: number, 
     chart: liveChart(token, nativeUsd, inputs.charts),
     flow1h: market ? { buys: token.windows.h1.buys, sells: token.windows.h1.sells } : null,
     trades: tradesView(token, activity, nativeUsd, now),
-    holders: holders(token, supply, activity.isSmart),
-    topTraders: tradersView(token, activity, nativeUsd),
+    holders: launch ? tonkHolders(launch.token, launch.system, activity.isSmart) : holders(token, supply, activity.isSmart),
+    topTraders: launch ? tonkTraderRows(launch.token, nativeUsd, activity.isSmart) : tradersView(token, activity, nativeUsd),
     curve: token.pons && !token.graduated ? token.pons.curve : null,
     feePct: null,
     devLock: null,

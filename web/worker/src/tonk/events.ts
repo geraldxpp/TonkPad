@@ -17,7 +17,7 @@ export type FeedEvent =
   | { kind: "lockChanged"; token: Address }
   | { kind: "metadata"; token: Address; agentPrompt: string }
   | { kind: "poolLocked"; token: Address; fee: number; ethSeeded: bigint; tokensSeeded: bigint }
-  | { kind: "swap"; pool: Hex; amount0: bigint; amount1: bigint; sqrtPriceX96: bigint }
+  | { kind: "swap"; pool: Hex; sender: Address; amount0: bigint; amount1: bigint; sqrtPriceX96: bigint }
   | { kind: "transfer"; token: Address; from: Address; to: Address; value: bigint };
 
 export type TonkEvent = Where & FeedEvent;
@@ -71,7 +71,7 @@ function migratorEvent(log: RawLog): FeedEvent | null {
 
 function swapEvent(log: RawLog): FeedEvent {
   const a = decode(POOL_EVENTS, log).args;
-  return { kind: "swap", pool: lower(String(a.id)), amount0: a.amount0 as bigint, amount1: a.amount1 as bigint, sqrtPriceX96: a.sqrtPriceX96 as bigint };
+  return { kind: "swap", pool: lower(String(a.id)), sender: lower(String(a.sender)), amount0: a.amount0 as bigint, amount1: a.amount1 as bigint, sqrtPriceX96: a.sqrtPriceX96 as bigint };
 }
 
 function transferEvent(log: RawLog): FeedEvent | null {

@@ -5,12 +5,28 @@ import { pushSample, SERIES_MAX, type TokenStore } from "../store";
 import type { TonkEvent } from "./events";
 import { applyTransfer, holderFigures, type SystemAddresses } from "./holders";
 import { hasAgent, type LaunchFacts, launchedToken, type TonkToken } from "./launch";
-import { curvePrice, ethOf, poolPrice, recordTrade, SUPPLY, tonkWindows, trimTrades } from "./state";
+import { curvePrice, ethOf, poolPrice, recordTrade, SUPPLY, type TonkState, tonkWindows, trimTrades } from "./state";
+import { recordFlow } from "./traders";
 
 const MINUTE = 60_000;
 const ZERO = BigInt(0);
 
 type Of<K extends TonkEvent["kind"]> = Extract<TonkEvent, { kind: K }>;
+
+/** What a window adds to its events: the pools it graduated, who really traded, and what the launch-block shield took. */
+export interface ApplyContext {
+  pools: ReadonlyMap<string, { id: string; fee: number }>;
+  walletOf: (tx: string, token: string, buy: boolean, named: string) => string;
+  taxOf: (tx: string, token: string, buyer: string) => bigint;
+}
+
+/** Wallets remembered as the shield's snipers, per launch. */
+const SNIPERS = 50;
+
+function noteSniper(s: TonkState, sniper: string): void {
+  const snipers = (s.snipers ??= []);
+  if (snipers.length < SNIPERS && !snipers.includes(sniper)) snipers.push(sniper);
+}
 
 /**
  * tonkfun.fun's launches in the store. Launches, curve trades, the
@@ -53,10 +69,15 @@ export class TonkBook {
   }
 
   /** Applies one event at its block's time (ms); launches are applied first, by `launch`. */
-  apply(e: TonkEvent, at: number, pools: ReadonlyMap<string, { id: string; fee: number }>): boolean {
+  apply(e: TonkEvent, at: number, ctx: ApplyContext): boolean {
     switch (e.kind) {
       case "trade":
-        return this.trade(e, at);
+        return this.trade(e, at, ctx);
+      case "bundleTax": {
+        const t = this.tracked(e.token);
+        if (t) noteSniper(t.tonk, e.sniper);
+        return t !== null;
+      }
       case "graduated": {
         const t = this.tracked(e.token);
         if (!t || t.graduated) return false;
@@ -67,7 +88,7 @@ export class TonkBook {
       }
       case "poolLocked": {
         const t = this.tracked(e.token);
-        const pool = pools.get(e.token);
+        const pool = ctx.pools.get(e.token);
         if (!t || !pool || t.tonk.pool) return false;
         t.tonk.pool = pool;
         this.pools.set(pool.id, t.address as Address);
@@ -76,7 +97,7 @@ export class TonkBook {
         return true;
       }
       case "swap":
-        return this.swap(e, at);
+        return this.swap(e, at, ctx);
       case "transfer": {
         const t = this.tracked(e.token);
         if (t) applyTransfer(t.tonk, e.from, e.to, e.value);
@@ -92,7 +113,7 @@ export class TonkBook {
     }
   }
 
-  private trade(e: Of<"trade">, at: number): boolean {
+  private trade(e: Of<"trade">, at: number, ctx: ApplyContext): boolean {
     const t = this.tracked(e.token);
     if (!t || t.graduated) return false;
     const s = t.tonk;
@@ -111,16 +132,21 @@ export class TonkBook {
     s.tokensLeft = String(e.left);
     s.realEth = String(BigInt(s.realEth) + (e.isBuy ? e.gross - e.fees : -e.gross));
     recordTrade(s, at, e.isBuy, ethOf(e.gross), curvePrice(e.virtualEth, e.virtualTokens));
+    // A buy cost its gross ETH plus any launch-block tax; a sell paid out its gross less the fees.
+    const paid = e.isBuy ? e.gross + ctx.taxOf(e.tx, e.token, e.trader) : e.gross - e.fees;
+    recordFlow(s, ctx.walletOf(e.tx, e.token, e.isBuy, e.trader), e.isBuy, ethOf(paid), ethOf(e.tokens));
     return true;
   }
 
-  private swap(e: Of<"swap">, at: number): boolean {
+  private swap(e: Of<"swap">, at: number, ctx: ApplyContext): boolean {
     const address = this.pools.get(e.pool);
     const t = address ? this.tracked(address) : null;
     if (!t || (e.amount0 === ZERO && e.amount1 === ZERO)) return false;
     // The swapper's deltas: a buy pays ETH in (negative) and takes tokens out.
     const buy = e.amount0 < ZERO;
-    recordTrade(t.tonk, at, buy, ethOf(buy ? -e.amount0 : e.amount0), poolPrice(e.sqrtPriceX96));
+    const [eth, tokens] = buy ? [-e.amount0, e.amount1] : [e.amount0, -e.amount1];
+    recordTrade(t.tonk, at, buy, ethOf(eth), poolPrice(e.sqrtPriceX96));
+    recordFlow(t.tonk, ctx.walletOf(e.tx, t.address, buy, e.sender), buy, ethOf(eth), ethOf(tokens));
     return true;
   }
 
