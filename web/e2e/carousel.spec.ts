@@ -35,6 +35,13 @@ test.describe("Heating up carousel", () => {
   });
 
   test("Next and Previous step one card", async ({ page }) => {
+    // Start mid-copy. The reel glides on its own, and a step back from near the start wraps round by one copy,
+    // so a start that had drifted near either end made the step look wrong (a timing flake under load).
+    const loop = await row(page).evaluate((el) => {
+      const track = el.firstElementChild as HTMLElement;
+      return (track.children[1] as HTMLElement).offsetLeft - (track.children[0] as HTMLElement).offsetLeft;
+    });
+    await row(page).evaluate((el, at) => (el.scrollLeft = at), Math.round(loop / 2));
     const before = await scrollLeft(page);
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect.poll(() => scrollLeft(page)).toBeGreaterThan(before + 200);
