@@ -1506,6 +1506,7 @@ export const es: Dictionary = {
       sold: "Vendido",
       win: "Tasa de acierto",
       held: "Aún en cartera",
+      since: "Ordenado por ganancia realizada en las operaciones de los últimos {time}. Las wallets que compraron antes no se clasifican.",
     },
     tags: {
       smart: "Smart",

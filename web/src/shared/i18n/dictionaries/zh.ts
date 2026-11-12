@@ -1507,6 +1507,7 @@ export const zh: Dictionary = {
       sold: "卖出额",
       win: "胜率",
       held: "仍持有",
+      since: "按最近 {time} 内交易的已实现利润排序。在此之前买入的钱包不参与排名。",
     },
     tags: {
       smart: "聪明钱",

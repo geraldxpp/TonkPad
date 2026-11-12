@@ -102,9 +102,37 @@ describe("trade book", () => {
       trade({ id: "6", wallet: "C", side: "buy", tokens: 10, native: 5, at: NOW }), // hasn't sold: not a top trader yet
     ]);
     expect(topTraders(book)).toEqual([
-      { wallet: "A", bought: 1, sold: 2.25, winRate: 0.5 },
-      { wallet: "B", bought: 1, sold: 1.5, winRate: 1 },
+      { wallet: "A", bought: 1, sold: 2.25, realised: 1.25, winRate: 0.5 },
+      { wallet: "B", bought: 1, sold: 1.5, realised: 0.5, winRate: 1 },
     ]);
+    expect(book.since).toBe(NOW - 5);
+  });
+
+  it("ranks by realised profit on what the book saw bought and sold, never a sell with no buy on record", () => {
+    const book = newTradeBook();
+    recordTrades(book, [
+      // Bought before the book began: a big sell, but no cost on record, so no rank.
+      trade({ id: "1", wallet: "Early", side: "sell", tokens: 1_000, native: 50, at: NOW - 9 }),
+      // Holds most of what it bought: its profit is on the tokens it sold, not its cash out.
+      trade({ id: "2", wallet: "Holder", side: "buy", tokens: 100, native: 10, at: NOW - 8 }),
+      trade({ id: "3", wallet: "Holder", side: "sell", tokens: 10, native: 3, at: NOW - 7 }),
+      // Sold more than the book saw it buy: only the 10 tokens it was seen buying count.
+      trade({ id: "4", wallet: "Partial", side: "buy", tokens: 10, native: 1, at: NOW - 6 }),
+      trade({ id: "5", wallet: "Partial", side: "sell", tokens: 40, native: 8, at: NOW - 5 }),
+    ]);
+    const rows = topTraders(book);
+    expect(rows.map((r) => r.wallet)).toEqual(["Holder", "Partial"]);
+    expect(rows[0].realised).toBeCloseTo(3 - 1, 9);
+    expect(rows[1].realised).toBeCloseTo(8 * (10 / 40) - 1, 9);
+  });
+
+  it("keeps the same order between refreshes when profits tie", () => {
+    const book = newTradeBook();
+    recordTrades(book, ["Z", "M", "A"].flatMap((wallet, i) => [
+      trade({ id: `${wallet}b`, wallet, side: "buy", tokens: 10, native: 1, at: NOW - 10 + i }),
+      trade({ id: `${wallet}s`, wallet, side: "sell", tokens: 10, native: 2, at: NOW - 5 + i }),
+    ]));
+    expect(topTraders(book).map((r) => r.wallet)).toEqual(["A", "M", "Z"]);
   });
 
   it("drops the least active wallets past its limit", () => {

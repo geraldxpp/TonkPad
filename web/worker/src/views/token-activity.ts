@@ -67,7 +67,7 @@ export function tradersView(token: TrackedToken, ctx: ActivityContext, coinUsd: 
   return topTraders(book).map((row) => ({
     address: row.wallet,
     tag: tagOf(row.wallet, token, ctx),
-    pnlUsd: (row.sold - row.bought) * rate,
+    pnlUsd: row.realised * rate,
     boughtUsd: row.bought * rate,
     soldUsd: row.sold * rate,
     winRate: row.winRate,

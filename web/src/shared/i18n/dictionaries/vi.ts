@@ -1506,6 +1506,7 @@ export const vi: Dictionary = {
       sold: "Đã bán",
       win: "Tỷ lệ thắng",
       held: "Còn nắm giữ",
+      since: "Xếp theo lợi nhuận đã chốt từ giao dịch trong {time} qua. Ví đã mua trước đó không được xếp hạng.",
     },
     tags: {
       smart: "Thông minh",

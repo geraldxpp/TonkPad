@@ -1507,6 +1507,7 @@ export const id: Dictionary = {
       sold: "Dijual",
       win: "Tingkat menang",
       held: "Masih dipegang",
+      since: "Diurutkan menurut laba terealisasi dari transaksi {time} terakhir. Wallet yang membeli sebelum itu tidak diurutkan.",
     },
     tags: {
       smart: "Smart",

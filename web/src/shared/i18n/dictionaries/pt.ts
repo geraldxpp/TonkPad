@@ -1507,6 +1507,7 @@ export const pt: Dictionary = {
       sold: "Vendido",
       win: "Taxa de acerto",
       held: "Ainda em carteira",
+      since: "Ordenado pelo lucro realizado nas negociações dos últimos {time}. Carteiras que compraram antes disso não entram no ranking.",
     },
     tags: {
       smart: "Smart",

@@ -39,13 +39,18 @@ export interface TradeBook {
   /** Newest first. */
   recent: TradeRecord[];
   flows: Record<string, WalletFlow>;
+  /**
+   * When the oldest trade the book has taken in was made, ms: the flows only
+   * know trades from then on (absent in older snapshots).
+   */
+  since?: number | null;
 }
 
 export const RECENT_TRADES = 100;
 /** Wallets kept per book; past this the least active are dropped. */
 export const MAX_WALLETS = 2_000;
 
-export const newTradeBook = (): TradeBook => ({ recent: [], flows: {} });
+export const newTradeBook = (): TradeBook => ({ recent: [], flows: {}, since: null });
 
 function apply(flows: Record<string, WalletFlow>, trade: TradeRecord): void {
   const flow = (flows[trade.wallet] ??= { bought: 0, sold: 0, boughtTokens: 0, soldTokens: 0, sells: 0, wins: 0 });
@@ -78,6 +83,7 @@ export function recordTrades(book: TradeBook, trades: readonly TradeRecord[]): n
     apply(book.flows, trade);
   }
   if (fresh.length === 0) return 0;
+  book.since = Math.min(book.since ?? Number.POSITIVE_INFINITY, fresh[0].at);
   book.recent = [...fresh.reverse(), ...book.recent].sort((a, b) => b.at - a.at).slice(0, RECENT_TRADES);
   prune(book.flows);
   return fresh.length;
@@ -88,15 +94,35 @@ export interface TraderRow {
   /** In the traded coin. */
   bought: number;
   sold: number;
+  /** Realised profit, in the traded coin: see realisedProfit. */
+  realised: number;
   /** Share of the wallet's sells that beat its average buy; null before it has sold. */
   winRate: number | null;
 }
 
-/** The wallets that took the most out (sold minus bought), best first. */
+/**
+ * Realised profit on the tokens a wallet both bought and sold in the book:
+ * what those sells got, less what those tokens cost at its average buy. A
+ * book may begin after a wallet's first buys (Solana books start when a page
+ * is opened), so tokens it sold beyond what it bought here have no known cost
+ * and count for nothing, and tokens it still holds aren't counted either.
+ */
+export function realisedProfit(flow: WalletFlow): number {
+  const matched = Math.min(flow.boughtTokens, flow.soldTokens);
+  if (matched <= 0) return 0;
+  return flow.sold * (matched / flow.soldTokens) - flow.bought * (matched / flow.boughtTokens);
+}
+
+/**
+ * The most profitable wallets, best first: only wallets with both buys and
+ * sells in the book rank, since a sell with no buy on record says nothing
+ * about profit. Ties go to the bigger buyer, then by address, so the order
+ * holds still between refreshes.
+ */
 export function topTraders(book: TradeBook, limit = 10): TraderRow[] {
   return Object.entries(book.flows)
-    .filter(([, flow]) => flow.sold > 0)
-    .sort(([, a], [, b]) => b.sold - b.bought - (a.sold - a.bought))
-    .slice(0, limit)
-    .map(([wallet, flow]) => ({ wallet, bought: flow.bought, sold: flow.sold, winRate: flow.sells > 0 ? flow.wins / flow.sells : null }));
+    .filter(([, flow]) => flow.boughtTokens > 0 && flow.soldTokens > 0)
+    .map(([wallet, flow]) => ({ wallet, bought: flow.bought, sold: flow.sold, realised: realisedProfit(flow), winRate: flow.sells > 0 ? flow.wins / flow.sells : null }))
+    .sort((a, b) => b.realised - a.realised || b.bought - a.bought || (a.wallet < b.wallet ? -1 : 1))
+    .slice(0, limit);
 }

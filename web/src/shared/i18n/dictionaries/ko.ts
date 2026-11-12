@@ -1506,6 +1506,7 @@ export const ko: Dictionary = {
       sold: "매도액",
       win: "승률",
       held: "보유 중",
+      since: "최근 {time} 거래의 실현 수익 순입니다. 그 전에 매수한 지갑은 순위에 넣지 않습니다.",
     },
     tags: {
       smart: "스마트",

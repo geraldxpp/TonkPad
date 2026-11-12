@@ -145,6 +145,12 @@ export interface TokenDetail {
   trades: TokenTrade[];
   holders: TokenHolder[];
   topTraders: TopTrader[];
+  /**
+   * When the trades behind Top traders begin, ms: set where the worker has only part
+   * of a token's trades (a Solana token is followed while its page is open), so the
+   * page can say so; absent or null where it has every trade (tonkfun.fun launches).
+   */
+  tradersSince?: number | null;
   /** Shortened curve address, while there is one. */
   curve: string | null;
   feePct: number | null;

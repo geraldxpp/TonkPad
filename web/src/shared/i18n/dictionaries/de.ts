@@ -1506,6 +1506,7 @@ export const de: Dictionary = {
       sold: "Verkauft",
       win: "Trefferquote",
       held: "Noch gehalten",
+      since: "Nach realisiertem Gewinn aus den Trades der letzten {time} sortiert. Wallets, die vorher gekauft haben, werden nicht gewertet.",
     },
     tags: {
       smart: "Smart",

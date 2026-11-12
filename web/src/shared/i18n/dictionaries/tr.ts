@@ -1506,6 +1506,7 @@ export const tr: Dictionary = {
       sold: "Satılan",
       win: "Kazanma oranı",
       held: "Hâlâ elinde",
+      since: "Son {time} içindeki işlemlerin gerçekleşmiş kârına göre sıralı. Bundan önce alan cüzdanlar sıralanmaz.",
     },
     tags: {
       smart: "Akıllı",

@@ -1525,6 +1525,7 @@ export const en = {
       sold: "Sold",
       win: "Win rate",
       held: "Still held",
+      since: "Ranked by realised profit on the trades of the last {time}. Wallets that bought before then aren't ranked.",
     },
     tags: {
       smart: "Smart",

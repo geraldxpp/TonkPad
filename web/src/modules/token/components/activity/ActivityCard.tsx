@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
 import { fmt, plural } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
-import { formatInteger } from "@/shared/lib/format";
+import { formatAge, formatInteger } from "@/shared/lib/format";
 import type { TokenDetail } from "@/shared/types/token-detail";
 import { Tabs } from "@/shared/ui/Tabs";
 import { coinOf } from "../../lib/format";
@@ -89,6 +89,12 @@ export function ActivityCard({ detail, empty: emptyNotes }: { detail: TokenDetai
         {empty ? <p className="px-5 py-10 text-center text-[13px] text-text-3">{emptyText}</p> : null}
         {!empty && tab === "trades" ? <TradesTable trades={detail.trades.slice(0, limit)} coin={coinOf(token.chain)} ticker={token.ticker} /> : null}
         {!empty && tab === "holders" ? <HoldersTable holders={detail.holders.slice(0, limit)} ticker={token.ticker} /> : null}
+        {!empty && tab === "traders" && typeof detail.tradersSince === "number" ? (
+          // A Solana token's trades are followed while its page is open: say how far back the ranking reaches.
+          <p className="m-0 px-5 pt-3 pb-1 text-[12px] text-text-3">
+            {fmt(t.token.traders.since, { time: formatAge(Math.max(0, detail.updatedAt - detail.tradersSince) / 60_000, t.token.trades.units) })}
+          </p>
+        ) : null}
         {!empty && tab === "traders" ? <TradersTable traders={detail.topTraders.slice(0, limit)} /> : null}
         {tab === "about" ? <AboutCard detail={detail} /> : null}
       </div>

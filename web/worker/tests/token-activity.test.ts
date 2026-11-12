@@ -56,7 +56,10 @@ describe("live trades and top traders on the token page", () => {
     // The curve's early buyers are the snipers.
     const early = token.pons!.earlyBuyers ?? [];
     for (const row of detail.trades) expect(row.tag).toBe(early.includes(row.trader) ? "sniper" : null);
-    for (const row of detail.topTraders) expect(row.pnlUsd).toBeCloseTo(row.soldUsd - row.boughtUsd, 6);
+    // Only wallets seen buying rank, best realised profit first.
+    for (const row of detail.topTraders) expect(row.boughtUsd).toBeGreaterThan(0);
+    const pnl = detail.topTraders.map((row) => row.pnlUsd);
+    expect(pnl).toEqual([...pnl].sort((a, b) => b - a));
   });
 
   it("shows a Solana token's Helius trades with Solscan links, ages, smart tags and USD totals", () => {
@@ -76,6 +79,8 @@ describe("live trades and top traders on the token page", () => {
     expect(detail.trades[0].usd).toBeCloseTo(300);
     expect(detail.trades[0].marketCap).toBeNull();
     expect(detail.topTraders).toEqual([{ address: "Smart1", tag: "smart", pnlUsd: 200, boughtUsd: 100, soldUsd: 300, winRate: 1 }]);
+    // The book began with the first trade it took in, and the page says so.
+    expect(detail.tradersSince).toBe(NOW - 90_000);
   });
 
   it("lists nothing without a trade book", () => {

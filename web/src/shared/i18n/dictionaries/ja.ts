@@ -1506,6 +1506,7 @@ export const ja: Dictionary = {
       sold: "売却額",
       win: "勝率",
       held: "保有中",
+      since: "直近 {time} の取引の確定利益で並べています。それより前に買ったウォレットは対象外です。",
     },
     tags: {
       smart: "スマート",
