@@ -665,6 +665,7 @@ export const fr: Dictionary = {
     stale: "La chaîne est injoignable pour le moment. Voici les derniers chiffres lus.",
     noTrades: "Aucune transaction pour l’instant.",
     pausedNotice: "Le launchpad est en pause : l’achat et la vente sur la courbe sont suspendus pour l’instant. Les réclamations, retraits, prolongations de verrouillage et modifications fonctionnent toujours.",
+    pausedNoticeSells: "Le launchpad est en pause : l’achat sur la courbe est suspendu pour l’instant. La vente reste ouverte, et les réclamations, retraits, prolongations de verrouillage et modifications fonctionnent toujours.",
     facts: {
       locked: "Encore verrouillé",
       unlocked: "Déverrouillé à ce jour",
@@ -682,6 +683,7 @@ export const fr: Dictionary = {
       reviewSell: "Vérifier la vente",
       early: "Le trading ouvre dans un instant",
       paused: "Le trading est en pause",
+      buyPaused: "Les achats sont en pause",
       graduated: "Diplômé : le trading dans le pool arrive plus tard",
       shortCoin: "Pas assez de {unit}",
       reviewSub: "Vérifiez une fois. Votre wallet signe.",

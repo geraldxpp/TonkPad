@@ -666,6 +666,7 @@ export const id: Dictionary = {
     stale: "Chain tidak dapat dijangkau saat ini. Ini adalah angka terakhir yang terbaca.",
     noTrades: "Belum ada transaksi.",
     pausedNotice: "Launchpad sedang dijeda: beli dan jual di kurva ditahan untuk sementara. Klaim, penarikan, perpanjangan kunci, dan pengeditan tetap berjalan.",
+    pausedNoticeSells: "Launchpad sedang dijeda: pembelian di kurva ditahan untuk sementara. Penjualan tetap terbuka, dan klaim, penarikan, perpanjangan kunci, serta pengeditan tetap berjalan.",
     facts: {
       locked: "Masih terkunci",
       unlocked: "Sudah terbuka sejauh ini",
@@ -683,6 +684,7 @@ export const id: Dictionary = {
       reviewSell: "Tinjau penjualan",
       early: "Trading segera dibuka",
       paused: "Trading sedang dijeda",
+      buyPaused: "Pembelian dijeda",
       graduated: "Lulus: trading di pool menyusul",
       shortCoin: "{unit} tidak cukup",
       reviewSub: "Periksa sekali. Dompet Anda yang menandatangani.",

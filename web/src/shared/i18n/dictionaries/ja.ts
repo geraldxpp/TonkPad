@@ -665,6 +665,7 @@ export const ja: Dictionary = {
     stale: "現在チェーンに接続できません。最後に読み取った数値を表示しています。",
     noTrades: "まだ取引はありません。",
     pausedNotice: "ローンチパッドは一時停止中です。カーブでの売買は現在保留されています。請求、引き出し、ロックの延長、編集は引き続き利用できます。",
+    pausedNoticeSells: "ローンチパッドは一時停止中です。カーブでの購入は現在保留されています。売却は引き続き可能で、請求、引き出し、ロックの延長、編集も利用できます。",
     facts: {
       locked: "ロック中",
       unlocked: "これまでのアンロック",
@@ -682,6 +683,7 @@ export const ja: Dictionary = {
       reviewSell: "売却を確認",
       early: "まもなく取引が始まります",
       paused: "取引は一時停止中です",
+      buyPaused: "購入は一時停止中です",
       graduated: "卒業済み：プールでの取引は後日対応",
       shortCoin: "{unit} が足りません",
       reviewSub: "一度確認してください。署名はあなたのウォレットで行います。",

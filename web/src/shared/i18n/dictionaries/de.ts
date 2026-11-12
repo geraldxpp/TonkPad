@@ -665,6 +665,7 @@ export const de: Dictionary = {
     stale: "Die Chain ist gerade nicht erreichbar. Das sind die zuletzt gelesenen Zahlen.",
     noTrades: "Noch keine Trades.",
     pausedNotice: "Das Launchpad ist pausiert: Kaufen und Verkaufen auf der Kurve ruhen vorerst. Claims, Auszahlungen, Verlängerungen der Sperre und Bearbeitungen funktionieren weiter.",
+    pausedNoticeSells: "Das Launchpad ist pausiert: Kaufen auf der Kurve ruht vorerst. Verkaufen bleibt möglich, und Claims, Auszahlungen, Verlängerungen der Sperre und Bearbeitungen funktionieren weiter.",
     facts: {
       locked: "Noch gesperrt",
       unlocked: "Bisher freigegeben",
@@ -682,6 +683,7 @@ export const de: Dictionary = {
       reviewSell: "Verkauf prüfen",
       early: "Handel öffnet gleich",
       paused: "Handel ist pausiert",
+      buyPaused: "Kaufen ist pausiert",
       graduated: "Graduiert: Pool-Handel folgt später",
       shortCoin: "Nicht genug {unit}",
       reviewSub: "Einmal prüfen. Deine Wallet signiert.",

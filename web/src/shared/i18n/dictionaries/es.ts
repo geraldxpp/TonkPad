@@ -665,6 +665,7 @@ export const es: Dictionary = {
     stale: "No se puede conectar con la cadena ahora. Estas son las últimas cifras leídas.",
     noTrades: "Aún no hay operaciones.",
     pausedNotice: "El launchpad está en pausa: comprar y vender en la curva queda en espera por ahora. Los reclamos, retiros, extensiones del bloqueo y ediciones siguen funcionando.",
+    pausedNoticeSells: "El launchpad está en pausa: comprar en la curva queda en espera por ahora. Vender sigue abierto, y los reclamos, retiros, extensiones del bloqueo y ediciones siguen funcionando.",
     facts: {
       locked: "Aún bloqueado",
       unlocked: "Desbloqueado hasta ahora",
@@ -682,6 +683,7 @@ export const es: Dictionary = {
       reviewSell: "Revisar venta",
       early: "El trading abre en un momento",
       paused: "El trading está en pausa",
+      buyPaused: "La compra está en pausa",
       graduated: "Graduado: el trading en el pool llegará después",
       shortCoin: "No tienes suficiente {unit}",
       reviewSub: "Revísalo una vez. Tu wallet lo firma.",

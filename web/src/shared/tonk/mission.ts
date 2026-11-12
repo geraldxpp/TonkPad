@@ -27,8 +27,13 @@ export interface MissionJson {
   crewBps: number;
   creatorBps: number;
   graduated: boolean;
-  /** The launchpad's owner has paused launches and curve trading. */
+  /** The launchpad's owner has paused it: launches and curve buys stop. */
   paused: boolean;
+  /**
+   * Whether a holder can sell back to the curve right now. A build with patch A (12 Nov 2026) keeps sells open
+   * while paused; earlier builds stop them too. Read from the contract itself; absent on older answers.
+   */
+  sellingOpen?: boolean;
   virtualEth: string;
   virtualTokens: string;
   realEth: string;
@@ -177,3 +182,6 @@ export type TxEventJson =
 export function missionLock(lock: MissionLockJson): DevLockState {
   return { type: lock.type, lockedBps: lock.lockedBps, start: lock.start, end: lock.end, total: BigInt(lock.total), claimed: BigInt(lock.claimed), checkpoint: BigInt(lock.checkpoint) };
 }
+
+/** Whether a holder can sell back to this mission's curve now: on any build, from the contract's own answer. */
+export const canSell = (mission: Pick<MissionJson, "paused" | "sellingOpen">): boolean => mission.sellingOpen ?? !mission.paused;

@@ -74,7 +74,7 @@
     - **Who:** the Safe, with two signatures.
     - **How:** the Safe app → contract interaction → `pause()`.
     - **When:** any unexplained difference between the app and the chain, a reported exploit, or a migrator change you didn't make.
-    - **While paused,** launches and curve buys and sells stop, while pool trading, transfers and claims carry on. The app reads `paused()` and says exactly that. A pause freezes curve sells too (M-4), so reopen as soon as it's safe.
+    - **While paused,** launches and curve buys stop (and graduation, which only a buy can trigger), while curve sells, pool trading, transfers and claims carry on. Selling stays open by patch A, the owner's decision of 12 Nov 2026 after the comparison with Pons, so a pause can never trap holders on a curve. The app reads `paused()` and asks the contract whether it still takes sells, so it says exactly what holds on each build. Reopen as soon as it's safe, since curves can't grow while paused.
     - **Never renounce ownership** (M-4's fix makes it impossible). Renouncing while paused would freeze every curve's ETH for good.
 
 ## 2b. The second review (Astra, 11 Nov) against this plan
@@ -110,7 +110,7 @@ Claude's review session re-reviewed the five fixes (`contract-review-claude.md`,
 | N-3: contract-wallet holders can be excluded for good (needs the owner key) | The code check stops the owner excluding ordinary wallets. But a holder's Safe, a 4337 account or an EIP-7702 wallet has code, and exclusion is one-way. What the wallet earned is paid out, and it earns nothing more on that token. | **Accept.** Publish the policy (pools and vaults only) and watch `CrewExcluded`. Optional: refuse EIP-7702 delegations. |
 
 Two residuals stay:
-- A pause also freezes curve sells (M-4).
+- A pause also froze curve sells (M-4). Patch A (12 Nov 2026) keeps sells open while paused.
 - The app must apply M-2's floor, and it does. The Studio and the server refuse a tier above 0.5% without 10M tokens locked. The Mission score counts a lock only if it locks at least 1% of supply, whatever the creator fee.
 
 **The owner's answer, 11 Nov,** given in the main session: "also you can ahead on the fixes for" D-01 and D-02. The rehearsal session is making both in the `mainnet` copy, with Astra's reproductions kept as regression tests. Then every suite runs again and the review session re-reviews the diff.

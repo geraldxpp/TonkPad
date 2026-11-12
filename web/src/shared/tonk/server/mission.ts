@@ -29,6 +29,7 @@ const nameOf = (name: string, token: string) => chainText(name, NAME_MAX) || sho
 const tickerOf = (symbol: string, token: string) => chainText(symbol, TICKER_MAX) || token.slice(2, 8).toUpperCase();
 
 type Address = `0x${string}`;
+const NOBODY: Address = "0x0000000000000000000000000000000000000000";
 const unavailable = (what: string) => new TonkError("unavailable", what);
 
 /**
@@ -47,6 +48,24 @@ async function readCrewFloor(client: PublicClient, coin: { address: Address; abi
       error instanceof BaseError &&
       error.walk((cause) => cause instanceof ContractFunctionRevertedError || cause instanceof ContractFunctionZeroDataError || cause instanceof ExecutionRevertedError) !== null;
     if (reverted) return BigInt(1);
+    throw error;
+  }
+}
+
+/**
+ * Whether a paused launchpad still takes sells (patch A, 12 Nov 2026, took the pause off sell()). A zero sale
+ * is simulated at the mission's block: an earlier build stops at the pause (EnforcedPause); a patched one gets
+ * past it and fails on the amount. A revert that names nothing reads as paused; a failed read is an error.
+ */
+async function sellsWhilePaused(client: PublicClient, pad: { address: Address; abi: typeof LAUNCHPAD_ABI; blockNumber?: bigint }, token: Address): Promise<boolean> {
+  try {
+    await client.simulateContract({ ...pad, functionName: "sell", args: [token, BigInt(0), BigInt(0), NOBODY] });
+    return true;
+  } catch (error) {
+    if (!(error instanceof BaseError)) throw error;
+    const named = error.walk((cause) => cause instanceof ContractFunctionRevertedError);
+    if (named instanceof ContractFunctionRevertedError) return named.data?.errorName !== "EnforcedPause";
+    if (error.walk((cause) => cause instanceof ExecutionRevertedError) !== null) return false;
     throw error;
   }
 }
@@ -81,6 +100,7 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
     ]);
     const [lockType, lockedBps, lockStart, lockEnd, totalLocked, claimed] = lock;
     const type = LOCK_TYPES[lockType] ?? "none";
+    const sellingOpen = paused === true ? await sellsWhilePaused(client, pad, token) : true;
     // A graduated token trades on its pool where this network has a router; its id is how a pool trade's receipt is recognised.
     const pool = graduated && network.uniswap ? await poolIdAt(client, network, token, crewBps + creatorBps, blockNumber) : null;
     return {
@@ -95,6 +115,7 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
       creatorBps,
       graduated,
       paused: paused === true,
+      sellingOpen,
       virtualEth: String(virtualEth),
       virtualTokens: String(virtualTokens),
       realEth: String(realEth),

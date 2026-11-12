@@ -1,5 +1,5 @@
 import { encodeFunctionData, parseEventLogs, type PublicClient } from "viem";
-import type { TradeBuild, TradeRequest } from "../mission";
+import { canSell, type TradeBuild, type TradeRequest } from "../mission";
 import type { TonkNetwork } from "../networks";
 import { quoteTrade } from "../quote";
 import { isTxHash } from "../types";
@@ -53,7 +53,8 @@ export async function buildTrade(network: TonkNetwork, request: TradeRequest): P
   const blockNumber = await headAtLeast(client, floor);
   const mission = await readMissionAt(client, network, token, blockNumber);
   if (mission.graduated) throw new TonkError("graduated", "curve trading is over", 409);
-  if (mission.paused) throw new TonkError("paused", "trading is paused", 409);
+  // A pause stops buys; sells only where the deployed contract stops them too (builds before patch A).
+  if (request.side === "buy" ? mission.paused : !canSell(mission)) throw new TonkError("paused", "trading is paused", 409);
 
   const amount = BigInt(request.amount);
   const minOut = BigInt(request.minOut);

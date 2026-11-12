@@ -122,6 +122,15 @@ describe("the curve trade panel", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("while paused, keeps selling open where the contract still takes sells, and says buying is paused (patch A)", () => {
+    panel({ mission: mission({ paused: true, sellingOpen: true }), view: view({ tokens: "5000000000000000000000000" }) });
+    type(tr.pay, "0.00005");
+    expect(cta(m.trade.buyPaused)).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(cta(tr.sell));
+    type(tr.sellAmount, "1000");
+    expect(cta(m.trade.reviewSell)).not.toHaveAttribute("aria-disabled");
+  });
+
   it("says when the wallet is short, with the faucet for test ETH and the balance for tokens", () => {
     panel();
     type(tr.pay, "0.5");

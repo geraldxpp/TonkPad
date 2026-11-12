@@ -280,15 +280,25 @@ test("the page says what stops a trade: graduated, the launch-block wait, a paus
   await expect(tradePanel(page).getByRole("button", { name: "Not enough test ETH" })).toHaveAttribute("aria-disabled", "true");
   await expect(tradePanel(page).getByRole("link", { name: "Get test ETH" })).toHaveAttribute("href", "https://faucet.testnet.chain.robinhood.com");
 
-  // The launchpad's owner pauses trading: the page's next read of the chain says so.
+  // The launchpad's owner pauses it: the page's next read of the chain says so. First a build before patch A,
+  // whose pause stops sells too (the contract's own answer, read by the server).
   await page.unroute("**/api/tonk/account?**");
+  let sellsWhilePaused = false;
   await page.route(`**/api/tonk/token/${TTONE.token}`, async (route) => {
     const read = (await (await route.fetch()).json()) as { mission: Record<string, unknown>; trades: unknown[] };
-    return route.fulfill({ json: { ...read, mission: { ...read.mission, paused: true } } });
+    return route.fulfill({ json: { ...read, mission: { ...read.mission, paused: true, sellingOpen: sellsWhilePaused } } });
   });
   await expect(tradePanel(page).getByRole("button", { name: "Trading is paused" })).toHaveAttribute("aria-disabled", "true", { timeout: 15_000 });
   // The whole page says so too, and what still works (campaign round 1).
   await expect(page.getByRole("note").filter({ hasText: "The launchpad is paused" })).toContainText("Claims, withdrawals, lock extensions and edits still work.");
+
+  // A build with patch A (12 Nov 2026) keeps selling open while paused: the sale stays offered, and the page says so.
+  sellsWhilePaused = true;
+  await expect(page.getByRole("note").filter({ hasText: "The launchpad is paused" })).toContainText("Selling stays open", { timeout: 15_000 });
+  await expect(tradePanel(page).getByRole("button", { name: "Buying is paused" })).toHaveAttribute("aria-disabled", "true");
+  await tradePanel(page).getByRole("button", { name: "Sell", exact: true }).click();
+  await tradePanel(page).getByLabel("You sell").fill("1000");
+  await expect(tradePanel(page).getByRole("button", { name: "Review sell" })).toBeVisible();
 });
 
 test("the page keeps the last figures and says so when the chain can't be reached", async ({ page }) => {

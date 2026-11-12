@@ -9,7 +9,7 @@ export interface TonkSettingsJson {
   launchFee: string;
   virtualEth: string;
   virtualTokens: string;
-  /** The owner has paused launches and curve trading. */
+  /** The owner has paused launches and curve buys (and, on builds before patch A, curve sells). */
   paused: boolean;
   /** The chain's gas price in wei, when known. */
   gasPrice: string | null;

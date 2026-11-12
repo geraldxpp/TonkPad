@@ -665,6 +665,7 @@ export const vi: Dictionary = {
     stale: "Hiện không kết nối được với chuỗi. Đây là các số liệu đọc được gần nhất.",
     noTrades: "Chưa có giao dịch nào.",
     pausedNotice: "Launchpad đang tạm dừng: mua và bán trên đường cong tạm thời bị hoãn. Nhận, rút tiền, gia hạn khóa và chỉnh sửa vẫn hoạt động.",
+    pausedNoticeSells: "Launchpad đang tạm dừng: việc mua trên đường cong tạm thời bị hoãn. Bán vẫn mở, và nhận, rút tiền, gia hạn khóa và chỉnh sửa vẫn hoạt động.",
     facts: {
       locked: "Vẫn đang khóa",
       unlocked: "Đã mở khóa đến nay",
@@ -682,6 +683,7 @@ export const vi: Dictionary = {
       reviewSell: "Xem lại lệnh bán",
       early: "Giao dịch sẽ mở trong giây lát",
       paused: "Giao dịch đang tạm dừng",
+      buyPaused: "Mua đang tạm dừng",
       graduated: "Đã tốt nghiệp: giao dịch trong pool sẽ có sau",
       shortCoin: "Không đủ {unit}",
       reviewSub: "Kiểm tra một lần. Ví của bạn sẽ ký.",

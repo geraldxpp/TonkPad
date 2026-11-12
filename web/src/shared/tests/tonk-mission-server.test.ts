@@ -61,6 +61,8 @@ function chain() {
     gasPrice: big(100_000_000),
     /** What the contract answers when the call is simulated; a function to throw. */
     simulated: big(0) as bigint | (() => never),
+    /** Patch A: a paused launchpad still takes sells (its zero-sale probe fails on the amount, not the pause). */
+    pausedSells: false,
     callFails: null as unknown,
     /** The migrator the launchpad would graduate into: the deployed one unless a test says otherwise. */
     migrator: TONK_TESTNET.migrator as string,
@@ -109,8 +111,11 @@ function fakeClient(state: Chain) {
         throw new Error(`unexpected read ${functionName}`);
     }
   });
-  const simulateContract = vi.fn(async (call: { functionName: string }) => {
-    void call;
+  const simulateContract = vi.fn(async (call: { functionName: string; args?: readonly unknown[] }) => {
+    // The zero sale that asks whether a paused launchpad still takes sells.
+    if (call.functionName === "sell" && call.args?.[1] === big(0)) {
+      throw state.pausedSells ? reverted(LAUNCHPAD_ABI, "Tonkpad: Zero tokens") : new BaseError("reverted", { cause: new ContractFunctionRevertedError({ abi: LAUNCHPAD_ABI, functionName: "sell", data: "0xd93c0665" }) });
+    }
     if (typeof state.simulated === "function") return state.simulated();
     return { result: state.simulated };
   });
@@ -679,5 +684,31 @@ describe("the Crew floor", () => {
     clearCache();
     state.crewFloor = new BaseError("call failed", { cause: new HttpRequestError({ url: "https://rpc.invalid", status: 503 }) });
     await expect(readMission(TONK_TESTNET, TOKEN, 0)).rejects.toMatchObject({ code: "unavailable" });
+  });
+});
+
+describe("a pause, on builds with and without patch A", () => {
+  it("reads from the contract whether a paused launchpad still takes sells", async () => {
+    const state = chain();
+    const client = connect(state);
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).resolves.toMatchObject({ paused: false, sellingOpen: true });
+    expect(client.simulateContract).not.toHaveBeenCalled();
+    clearCache();
+    state.paused = true;
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).resolves.toMatchObject({ paused: true, sellingOpen: false });
+    clearCache();
+    state.pausedSells = true;
+    await expect(readMission(TONK_TESTNET, TOKEN, 0)).resolves.toMatchObject({ paused: true, sellingOpen: true });
+  });
+
+  it("while paused refuses buys always, and sells only where the contract stops them too", async () => {
+    const state = chain();
+    state.paused = true;
+    connect(state);
+    await expect(buildTrade(TONK_TESTNET, BUY)).rejects.toMatchObject({ code: "paused" });
+    await expect(buildTrade(TONK_TESTNET, SELL)).rejects.toMatchObject({ code: "paused" });
+    state.pausedSells = true;
+    await expect(buildTrade(TONK_TESTNET, BUY)).rejects.toMatchObject({ code: "paused" });
+    expect(await buildTrade(TONK_TESTNET, SELL)).toMatchObject({ step: "approve" });
   });
 });

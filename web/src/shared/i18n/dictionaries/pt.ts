@@ -666,6 +666,7 @@ export const pt: Dictionary = {
     stale: "Não foi possível conectar à blockchain agora. Estes são os últimos números lidos.",
     noTrades: "Ainda não há negociações.",
     pausedNotice: "O launchpad está pausado: comprar e vender na curva estão suspensos por enquanto. Resgates, saques, extensões do bloqueio e edições continuam funcionando.",
+    pausedNoticeSells: "O launchpad está pausado: comprar na curva está suspenso por enquanto. Vender continua aberto, e resgates, saques, extensões do bloqueio e edições continuam funcionando.",
     facts: {
       locked: "Ainda bloqueado",
       unlocked: "Desbloqueado até agora",
@@ -683,6 +684,7 @@ export const pt: Dictionary = {
       reviewSell: "Revisar venda",
       early: "A negociação abre em instantes",
       paused: "A negociação está pausada",
+      buyPaused: "A compra está pausada",
       graduated: "Graduado: a negociação no pool vem depois",
       shortCoin: "{unit} insuficiente",
       reviewSub: "Confira uma vez. Sua carteira assina.",

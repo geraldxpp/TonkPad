@@ -677,6 +677,7 @@ export const en = {
     stale: "The chain can't be reached right now. These are the last figures read.",
     noTrades: "No trades yet.",
     pausedNotice: "The launchpad is paused: buying and selling on the curve are on hold for now. Claims, withdrawals, lock extensions and edits still work.",
+    pausedNoticeSells: "The launchpad is paused: buying on the curve is on hold for now. Selling stays open, and claims, withdrawals, lock extensions and edits still work.",
     facts: {
       locked: "Still locked",
       unlocked: "Unlocked so far",
@@ -694,6 +695,7 @@ export const en = {
       reviewSell: "Review sell",
       early: "Trading opens in a moment",
       paused: "Trading is paused",
+      buyPaused: "Buying is paused",
       graduated: "Graduated: pool trading comes later",
       shortCoin: "Not enough {unit}",
       reviewSub: "Check it once. Your wallet signs it.",

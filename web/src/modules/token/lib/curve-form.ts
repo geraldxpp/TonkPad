@@ -1,7 +1,7 @@
 import { fmt } from "@/shared/i18n/config";
 import type { Dictionary } from "@/shared/i18n/dictionaries/en";
 import { ethInputText, formatEth, formatTokens } from "@/shared/tonk/format";
-import type { MissionAccountJson, MissionJson, TradeSide } from "@/shared/tonk/mission";
+import { canSell, type MissionAccountJson, type MissionJson, type TradeSide } from "@/shared/tonk/mission";
 import type { TonkSettingsJson } from "@/shared/tonk/types";
 
 const ZERO = BigInt(0);
@@ -71,8 +71,8 @@ export function tradeForm({ t, mission, side, unit, owner, account, failed, amou
     ? { label: t.header.connectWallet, disabled: false }
     : mission.graduated && !pool
       ? stopped(m.graduated)
-      : mission.paused && !pool
-        ? stopped(m.paused)
+      : !pool && (buy ? mission.paused : !canSell(mission))
+        ? stopped(buy && canSell(mission) ? m.buyPaused : m.paused)
         : buy && !mission.buyingOpen && !pool
           ? stopped(m.early)
           : !quoted

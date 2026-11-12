@@ -665,6 +665,7 @@ export const tr: Dictionary = {
     stale: "Zincire şu anda ulaşılamıyor. Bunlar okunan son rakamlar.",
     noTrades: "Henüz işlem yok.",
     pausedNotice: "Launchpad duraklatıldı: eğride alım ve satım şimdilik beklemede. Talepler, çekimler, kilit uzatmaları ve düzenlemeler çalışmaya devam ediyor.",
+    pausedNoticeSells: "Launchpad duraklatıldı: eğride alım şimdilik beklemede. Satış açık kalıyor; talepler, çekimler, kilit uzatmaları ve düzenlemeler de çalışmaya devam ediyor.",
     facts: {
       locked: "Hâlâ kilitli",
       unlocked: "Şimdiye kadar açılan",
@@ -682,6 +683,7 @@ export const tr: Dictionary = {
       reviewSell: "Satışı incele",
       early: "İşlemler birazdan açılıyor",
       paused: "İşlemler duraklatıldı",
+      buyPaused: "Alım duraklatıldı",
       graduated: "Mezun: havuzda işlem daha sonra gelecek",
       shortCoin: "Yeterli {unit} yok",
       reviewSub: "Bir kez kontrol edin. Cüzdanınız imzalar.",

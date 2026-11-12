@@ -666,6 +666,7 @@ export const zh: Dictionary = {
     stale: "暂时无法连接链，以下为最后一次读取的数据。",
     noTrades: "暂无交易。",
     pausedNotice: "启动台已暂停：曲线上的买入和卖出暂时搁置。领取、提现、延长锁仓和编辑仍可正常使用。",
+    pausedNoticeSells: "启动台已暂停：曲线上的买入暂时搁置。卖出仍然开放，领取、提现、延长锁仓和编辑也可正常使用。",
     facts: {
       locked: "仍在锁定",
       unlocked: "已解锁",
@@ -683,6 +684,7 @@ export const zh: Dictionary = {
       reviewSell: "检查卖出",
       early: "交易即将开放",
       paused: "交易已暂停",
+      buyPaused: "买入已暂停",
       graduated: "已毕业：资金池交易稍后推出",
       shortCoin: "{unit} 不足",
       reviewSub: "检查一遍，由你的钱包签名。",

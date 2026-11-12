@@ -665,6 +665,7 @@ export const ko: Dictionary = {
     stale: "지금 체인에 연결할 수 없습니다. 마지막으로 읽은 수치입니다.",
     noTrades: "아직 거래가 없습니다.",
     pausedNotice: "런치패드가 일시 중지되었습니다. 커브에서의 매수와 매도는 당분간 보류됩니다. 청구, 출금, 잠금 연장, 편집은 계속 사용할 수 있습니다.",
+    pausedNoticeSells: "런치패드가 일시 중지되었습니다. 커브에서의 매수는 당분간 보류됩니다. 매도는 계속 가능하며, 청구, 출금, 잠금 연장, 편집도 사용할 수 있습니다.",
     facts: {
       locked: "아직 잠금 중",
       unlocked: "지금까지 해제됨",
@@ -682,6 +683,7 @@ export const ko: Dictionary = {
       reviewSell: "매도 검토",
       early: "곧 거래가 열립니다",
       paused: "거래가 일시 중지되었습니다",
+      buyPaused: "매수가 일시 중지됨",
       graduated: "졸업: 풀 거래는 추후 지원",
       shortCoin: "{unit}이(가) 부족합니다",
       reviewSub: "한 번 확인하세요. 서명은 내 지갑에서 합니다.",
