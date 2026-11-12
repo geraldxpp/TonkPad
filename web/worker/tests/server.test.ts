@@ -15,6 +15,8 @@ const api: Api = {
   overview: () => ({ updatedAt: 1 }) as LiveOverview,
   shell: () => ({ tape: [], chainCounts: { all: 0, sol: 0, rh: 0 }, status: { solUsd: null, ethUsd: null, rhGasGwei: null }, updatedAt: 1 }),
   token: (address) => address === ADDRESS ? detail : null,
+  prices: (ids) => ({ prices: ids.includes(ADDRESS) ? [{ address: ADDRESS, chain: "sol", symbol: "SEL", name: "Selected token", priceUsd: 1, marketCap: 1_000, change1h: 0, change24h: 0, at: 1 }] : [] }),
+  launches: () => ({ launches: [] }),
   health: () => ({ ok: true }),
 };
 
@@ -51,6 +53,15 @@ describe("worker HTTP server", () => {
   it("answers JSON errors for unknown paths and other methods", async () => {
     expect((await get("/v1/nothing", TOKEN)).status).toBe(404);
     expect((await fetch(`${base}/health`, { method: "POST" })).status).toBe(405);
+  });
+
+  it("serves alert prices and launches by address", async () => {
+    const headers = { "x-worker-token": TOKEN };
+    const prices = await fetch(`${base}/v1/prices?ids=${ADDRESS},bad`, { headers });
+    expect(prices.status).toBe(200);
+    expect(((await prices.json()) as { prices: unknown[] }).prices).toHaveLength(1);
+    const launches = await fetch(`${base}/v1/launches`, { headers });
+    expect(await launches.json()).toEqual({ launches: [] });
   });
 
   it("serves selected token details through the same authenticated API", async () => {

@@ -17,7 +17,6 @@ export interface ShellData {
   chainCounts: Record<ChainFilterValue, number>;
   /** null while a live value hasn't arrived yet. */
   status: LiveStatus;
-  unreadAlerts: number;
 }
 
 /** Mock data for the chrome shared by every screen (ported from the reference). */
@@ -34,5 +33,4 @@ export const SHELL_MOCK: ShellData = {
   ],
   chainCounts: { all: 8_412, sol: 5_941, rh: 2_471 },
   status: { solUsd: 182.4, ethUsd: 3_412, rhGasGwei: 0.02 },
-  unreadAlerts: 3,
 };

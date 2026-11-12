@@ -1,8 +1,7 @@
-import { Bell } from "lucide-react";
 import { Suspense } from "react";
+import { AlertsBell } from "@/shared/alerts/components/AlertsBell";
 import { getI18n } from "@/shared/i18n/server";
 import { isTestnetSite } from "@/shared/tonk/networks";
-import { IconButton } from "@/shared/ui/IconButton";
 import type { ShellData } from "../data/shell.mock";
 import { ChainFilter } from "./ChainFilter";
 import { ChainTrigger } from "./ChainTrigger";
@@ -73,14 +72,7 @@ export async function TopBar({ data }: TopBarProps) {
           <div id="tk-topbar-slot" className="contents" />
           <LanguageMenu />
           <ThemeToggle className="max-md:size-8" />
-          <IconButton
-            label={t.header.alerts}
-            size={40}
-            className="max-md:size-8 md:rounded-lg md:border-transparent md:bg-transparent md:hover:bg-raised"
-          >
-            <Bell size={18} strokeWidth={1.8} className="max-md:size-4" />
-            <span className="absolute top-[9px] right-[9px] size-1.5 rounded-full bg-accent shadow-[0_0_0_2px_var(--bg)] max-md:top-[6px] max-md:right-[6px]" />
-          </IconButton>
+          <AlertsBell className="max-md:size-8 md:rounded-lg md:border-transparent md:bg-transparent md:hover:bg-raised" />
           <WalletButton />
         </div>
       </header>

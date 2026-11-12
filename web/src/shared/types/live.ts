@@ -96,3 +96,44 @@ export interface LiveShell {
   status: LiveStatus;
   updatedAt: number;
 }
+
+/** At most this many tokens per /v1/prices or /v1/launches request (an alert list's worth). */
+export const MAX_ALERT_IDS = 25;
+
+/** One token's market now (/v1/prices): what price alerts check. */
+export interface LivePrice {
+  address: string;
+  chain: ChainId;
+  symbol: string;
+  name: string;
+  priceUsd: number;
+  marketCap: number;
+  /** Price change in percent over the last hour and day. */
+  change1h: number;
+  change24h: number;
+  /** When the market data arrived, ms. */
+  at: number;
+}
+
+export interface LivePrices {
+  prices: LivePrice[];
+}
+
+/** One tonkfun.fun launch as it stands (/v1/launches): what launchpad alerts compare between checks. */
+export interface LiveLaunch {
+  address: string;
+  symbol: string;
+  name: string;
+  /** ms since epoch. */
+  launchedAt: number;
+  graduatedAt: number | null;
+  /** When the creator's lock ends, ms; null without a lock. */
+  lockEnd: number | null;
+  /** Locked tokens the creator has claimed so far, raw units as a decimal string; null without a lock. */
+  lockClaimed: string | null;
+}
+
+export interface LiveLaunches {
+  /** The newest launches first, then any asked for by address. */
+  launches: LiveLaunch[];
+}

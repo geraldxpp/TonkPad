@@ -1,4 +1,5 @@
 import { type ReactNode, Suspense } from "react";
+import { AlertsHost } from "@/shared/alerts/components/AlertsHost";
 import { isLiveMode } from "@/shared/live/server";
 import { tonkNetwork } from "@/shared/tonk/networks";
 import type { ShellData } from "../data/shell.mock";
@@ -23,8 +24,8 @@ export function AppShell({ data, children }: AppShellProps) {
   return (
     <ShellLiveProvider live={isLiveMode()}>
       <div className="relative flex min-h-screen items-stretch overflow-clip bg-bg font-sans text-[14px] text-text">
-        <Suspense fallback={<SideRailView activeId={null} unreadAlerts={data.unreadAlerts} />}>
-          <SideRail unreadAlerts={data.unreadAlerts} />
+        <Suspense fallback={<SideRailView activeId={null} />}>
+          <SideRail />
         </Suspense>
         {/* On phones the rail is a fixed bottom tab bar, so leave room for it. */}
         <div className="relative z-[1] flex min-w-0 flex-1 flex-col max-md:pb-[calc(64px+env(safe-area-inset-bottom))]">
@@ -41,6 +42,7 @@ export function AppShell({ data, children }: AppShellProps) {
           ) : null}
         </div>
       </div>
+      <AlertsHost />
     </ShellLiveProvider>
   );
 }

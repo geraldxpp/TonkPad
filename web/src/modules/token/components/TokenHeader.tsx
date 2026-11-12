@@ -58,7 +58,7 @@ export function TokenHeader({ detail, explorerUrl, tags }: { detail: TokenDetail
             <span>{fmt(t.token.trades.ago, { time: formatAge(token.ageMinutes, t.token.trades.units) })}</span>
           </div>
         </div>
-        <HeaderActions token={token} links={detail.links} />
+        <HeaderActions token={token} links={detail.links} market={{ chain: token.chain, priceUsd: detail.priceUsd, marketCap: token.marketCap }} />
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2">
         <CopyAddress contract={detail.contract} />

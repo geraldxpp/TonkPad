@@ -2,9 +2,11 @@
 
 import { Check, Copy, Globe, Send, Share2, Star } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { AlertMeButton } from "@/shared/alerts/components/AlertMeButton";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
+import type { ChainId } from "@/shared/types/chain";
 import type { Token } from "@/shared/types/token";
 import { useWatchlist } from "../hooks/useWatchlist";
 import { safeUrl } from "../lib/display";
@@ -64,10 +66,12 @@ export function CopyAddress({ contract }: { contract: string }) {
 interface HeaderActionsProps {
   token: Pick<Token, "address" | "name" | "ticker">;
   links: { website: string | null; community: string | null };
+  /** The market now, for the alert bell; without it (or a price) there's no bell. */
+  market?: { chain: ChainId; priceUsd: number | null; marketCap: number };
 }
 
-/** The token's own links (only those it has), Share and the watchlist star. */
-export function HeaderActions({ token, links }: HeaderActionsProps) {
+/** The token's own links (only those it has), Share, the alert bell and the watchlist star. */
+export function HeaderActions({ token, links, market }: HeaderActionsProps) {
   const { t } = useI18n();
   const { watched, toggle } = useWatchlist(token.address);
   const { notice, copy } = useCopyNotice();
@@ -98,6 +102,14 @@ export function HeaderActions({ token, links }: HeaderActionsProps) {
         <a href={community} target="_blank" rel="noopener noreferrer nofollow" aria-label={t.token.community} title={t.token.community} className={SQUARE}>
           <Send size={16} strokeWidth={1.8} aria-hidden="true" />
         </a>
+      ) : null}
+      {market ? (
+        <AlertMeButton
+          token={{ address: token.address, chain: market.chain, symbol: token.ticker, name: token.name }}
+          priceUsd={market.priceUsd}
+          marketCap={market.marketCap}
+          className={SQUARE}
+        />
       ) : null}
       <button
         type="button"

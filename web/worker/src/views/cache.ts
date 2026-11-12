@@ -3,6 +3,7 @@ import type { LiveList, LiveListQuery, LiveOverview, LiveShell, LiveStatus } fro
 import type { TokenDetail } from "@/shared/types/token-detail";
 import type { ChartBook } from "../charts/book";
 import type { TokenStore } from "../store";
+import { launchesView, pricesView } from "./alerts";
 import { listView } from "./list";
 import { overviewView } from "./overview";
 import { shellView } from "./shell";
@@ -98,5 +99,9 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
     return seen;
   }
 
-  return { overview, shell, list, token, visibleAddresses, openedAddresses };
+  /** For alerts: neither marks a token opened, so neither spends Helius credits. */
+  const prices = (ids: string[]) => pricesView(store, ids);
+  const launches = (ids: string[]) => launchesView(store, ids);
+
+  return { overview, shell, list, token, prices, launches, visibleAddresses, openedAddresses };
 }

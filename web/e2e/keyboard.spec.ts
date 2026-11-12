@@ -34,7 +34,6 @@ test("every Tab stop shows the focus ring, and the key controls are all reachabl
   for (const expected of [
     "a:tonkfun.fun home",
     "a:Explore",
-    "button:Alerts, 3 new",
     "input:",
     "div:Live ticker",
     "All Chains", // the pill's text also holds its aria-hidden S/R marks

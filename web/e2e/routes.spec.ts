@@ -54,7 +54,8 @@ test("Explore is the active rail item on /", async ({ page }) => {
     "aria-current",
     "page",
   );
-  await expect(page.getByRole("button", { name: "Alerts, 3 new" })).toBeVisible();
+  // No made-up count: with nothing unread the rail's Alerts item is just "Alerts".
+  await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Alerts", exact: true })).toBeVisible();
 });
 
 test("token cards and table names link to /token/<TICKER>", async ({ page }) => {

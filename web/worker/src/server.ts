@@ -2,8 +2,9 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { createServer, type Server } from "node:http";
 import { isChainId } from "@/shared/config/chains";
 import { isLaunchpadId } from "@/shared/config/launchpads";
-import type { LiveList, LiveListQuery, LiveOverview, LiveShell, LiveTabId, LiveTimeframe } from "@/shared/types/live";
+import type { LiveLaunches, LiveList, LiveListQuery, LiveOverview, LivePrices, LiveShell, LiveTabId, LiveTimeframe } from "@/shared/types/live";
 import type { TokenDetail } from "@/shared/types/token-detail";
+import { parseIds } from "./views/alerts";
 import { validTokenAddress } from "./views/token";
 
 export interface Api {
@@ -11,6 +12,9 @@ export interface Api {
   overview: () => LiveOverview;
   shell: () => LiveShell;
   token: (address: string) => TokenDetail | null | Promise<TokenDetail | null>;
+  /** Alerts: prices of up to 25 tokens, and tonkfun.fun launches as they stand. Neither marks a token opened. */
+  prices: (ids: string[]) => LivePrices;
+  launches: (ids: string[]) => LiveLaunches;
   health: () => Record<string, unknown>;
 }
 
@@ -68,6 +72,10 @@ export function startServer(port: number, token: string | null, api: Api): Serve
           return send(200, api.overview());
         case "/v1/shell":
           return send(200, api.shell());
+        case "/v1/prices":
+          return send(200, api.prices(parseIds(url.searchParams.get("ids"))));
+        case "/v1/launches":
+          return send(200, api.launches(parseIds(url.searchParams.get("ids"))));
         default:
           return send(404, { error: "not found" });
       }

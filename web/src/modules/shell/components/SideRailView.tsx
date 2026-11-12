@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useUnreadAlerts } from "@/shared/alerts/hooks";
+import { setAlertsPanel } from "@/shared/alerts/panel";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { useTheme } from "../hooks/useTheme";
@@ -13,7 +15,6 @@ import { ThemeIcon } from "./ThemeToggle";
 
 interface SideRailViewProps {
   activeId: NavId | null;
-  unreadAlerts: number;
   /** False on token pages, whose Buy / Sell bar takes the phone tab bar's place. */
   phoneTabs?: boolean;
 }
@@ -30,7 +31,8 @@ const SECTION = "hidden w-full px-3 text-[10px] font-medium tracking-[0.12em] te
  * bottom edge; the logo moves into the top bar. Theme flips light/dark; More
  * opens Settings (wallet, theme and language).
  */
-export function SideRailView({ activeId, unreadAlerts, phoneTabs = true }: SideRailViewProps) {
+export function SideRailView({ activeId, phoneTabs = true }: SideRailViewProps) {
+  const unread = useUnreadAlerts();
   const { t, href } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -64,7 +66,8 @@ export function SideRailView({ activeId, unreadAlerts, phoneTabs = true }: SideR
               key={item.id}
               item={item}
               active={item.id === activeId}
-              badge={item.id === "alerts" ? unreadAlerts : undefined}
+              badge={item.id === "alerts" ? unread : undefined}
+              buttonProps={item.id === "alerts" ? { "aria-haspopup": "dialog", onClick: () => setAlertsPanel(true) } : undefined}
             />
           ))}
         </div>

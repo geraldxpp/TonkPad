@@ -47,6 +47,12 @@ test("screens that aren't on the testnet yet say so, and swaps are closed", asyn
   const quote = await request.get(`/api/swap/quote?chain=rh&from=ETH&to=${TOKEN}&amount=1000000000000000`);
   expect(quote.status()).toBe(403);
   expect(await quote.json()).toMatchObject({ error: "closed" });
+  // Alerts aren't on testnet yet either: the panel says so, and their price route is closed.
+  await page.goto("/");
+  await page.getByRole("button", { name: "Alerts", exact: true }).first().click();
+  await expect(page.getByRole("dialog", { name: "Alerts" })).toContainText("Alerts aren't on testnet yet.");
+  const prices = await request.get("/api/live/prices?ids=PEPE");
+  expect([prices.status(), await prices.json()]).toEqual([404, { error: "closed" }]);
 });
 
 test("the launchpad's routes answer from the chain, and refuse what breaks a rule", async ({ request }) => {
