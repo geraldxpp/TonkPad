@@ -1,5 +1,8 @@
-import type { LiveLaunch } from "@/shared/types/live";
+import { ALERT_LAUNCHPADS, type AlertLaunchpad, type LiveLaunch } from "@/shared/types/live";
+import { MAX_SEEN } from "./storage";
 import type { AlertRule, AlertSettings, FeedItem, LaunchSeen } from "./types";
+
+const isAlertPad = (pad: string): pad is AlertLaunchpad => (ALERT_LAUNCHPADS as readonly string[]).includes(pad);
 
 /** A level re-arms once the figure is this far back on the other side of the line (1%). */
 export const LEVEL_BAND = 0.01;
@@ -48,11 +51,16 @@ export function levelValid(direction: "above" | "below", value: number, now: num
 
 const sameAddress = (a: string, b: string) => (a.startsWith("0x") ? a.toLowerCase() === b.toLowerCase() : a === b);
 
+/** A busy launchpad reports at most this many launchpad-wide alerts per check, so a rush doesn't flood the feed. */
+export const PER_PAD_CAP = 5;
+
 /**
- * What changed on tonkfun.fun's launchpad since the last check: new launches,
- * and for watched tokens a graduation, a lock ending, a claim or an
- * extension. The first check only records what it sees, so turning a switch
- * on never floods the feed with old news.
+ * What changed on the launchpads since the last check: tonkfun.fun's new
+ * launches; each switched-on launchpad's graduations and launches turning
+ * hot; and for watched tokens a graduation (any launchpad) or a tonkfun.fun
+ * lock ending, claimed or extended. A first check, and a launchpad seen for
+ * the first time, only record, so switching on never floods the feed with
+ * old news.
  */
 export function diffLaunches(
   seen: LaunchSeen | null,
@@ -62,14 +70,35 @@ export function diffLaunches(
   now: number,
 ): { drafts: FeedDraft[]; seen: LaunchSeen } {
   const drafts: FeedDraft[] = [];
+  const perPad = new Map<string, number>();
+  const padDraft = (pad: AlertLaunchpad, draft: FeedDraft) => {
+    const count = perPad.get(pad) ?? 0;
+    if (count >= PER_PAD_CAP) return;
+    perPad.set(pad, count + 1);
+    drafts.push(draft);
+  };
   const tokens: LaunchSeen["tokens"] = {};
+  const graduated: LaunchSeen["graduated"] = { ...seen?.graduated };
+  const hotBefore = new Set(seen?.hot ?? []);
+  const hotNow = new Set<string>();
   let newest = seen?.newest ?? 0;
+  const known = (pad: AlertLaunchpad) => seen !== null && seen.graduated[pad] !== undefined;
+
   for (const launch of launches) {
-    const token = { address: launch.address, chain: "rh" as const, symbol: launch.symbol, name: launch.name };
+    const token = { address: launch.address, chain: launch.chain, symbol: launch.symbol, name: launch.name };
+    const pad = isAlertPad(launch.launchpad) ? launch.launchpad : null;
     const before = seen?.tokens[launch.address];
-    if (seen && settings.launches && launch.launchedAt > seen.newest) drafts.push({ kind: "launch", token });
-    if (seen && before && watched.some((w) => sameAddress(w, launch.address))) {
-      if (settings.graduations && before.graduatedAt === null && launch.graduatedAt !== null) drafts.push({ kind: "graduated", token });
+    const isWatched = watched.some((w) => sameAddress(w, launch.address));
+    if (seen && settings.launches && launch.launchpad === "tonk" && launch.launchedAt > seen.newest) padDraft("tonk", { kind: "launch", token, pad: "tonk" });
+    if (pad && known(pad) && launch.graduatedAt !== null && launch.graduatedAt > (seen?.graduated[pad] ?? Infinity)) {
+      if (settings.pads[pad].graduations && !isWatched) padDraft(pad, { kind: "graduated", token, pad });
+    }
+    if (pad && launch.hot) {
+      hotNow.add(launch.address);
+      if (known(pad) && settings.pads[pad].hot && !hotBefore.has(launch.address)) padDraft(pad, { kind: "hot", token, pad });
+    }
+    if (seen && before && isWatched) {
+      if (settings.graduations && before.graduatedAt === null && launch.graduatedAt !== null) drafts.push({ kind: "graduated", token, ...(pad ? { pad } : {}) });
       if (settings.locks && launch.lockEnd !== null && before.lockEnd !== null) {
         if (launch.lockEnd > before.lockEnd) drafts.push({ kind: "extended", token });
         else if (launch.lockEnd > seen.checkedAt && launch.lockEnd <= now) drafts.push({ kind: "unlocked", token });
@@ -79,8 +108,12 @@ export function diffLaunches(
       }
     }
     tokens[launch.address] = { graduatedAt: launch.graduatedAt, lockEnd: launch.lockEnd, lockClaimed: launch.lockClaimed };
-    newest = Math.max(newest, launch.launchedAt);
+    if (launch.launchpad === "tonk") newest = Math.max(newest, launch.launchedAt);
+    if (pad && launch.graduatedAt !== null) graduated[pad] = Math.max(graduated[pad] ?? 0, launch.graduatedAt);
   }
-  // Launch times are the chain's, so the newest one seen (not this browser's clock) marks what counts as new.
-  return { drafts, seen: { newest, checkedAt: now, tokens } };
+  // Every followed launchpad counts as seen from now on, even with no graduation listed yet.
+  for (const pad of ALERT_LAUNCHPADS) graduated[pad] ??= 0;
+  const hot = [...new Set([...hotBefore, ...hotNow])].slice(-MAX_SEEN);
+  // Launch times are the chain's and the worker's, so the newest ones seen (not this browser's clock) mark what counts as new.
+  return { drafts, seen: { newest, checkedAt: now, tokens, graduated, hot } };
 }

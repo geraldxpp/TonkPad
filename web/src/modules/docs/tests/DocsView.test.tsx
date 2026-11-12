@@ -58,10 +58,10 @@ describe("DocsView", () => {
     expect(within(score).getByRole("img", { name: "Hot" })).toBeInTheDocument();
   });
 
-  it("says plainly there was no outside audit, links to the Security page, and names the Safe account", async () => {
+  it("links to the Security page and names the Safe account, with no outside-audit warning", async () => {
     render(<DocsView t={en} href={(path) => localizePath("de", path)} data={await demo()} />);
     const safety = region("Safety");
-    expect(within(safety).getByRole("note")).toHaveTextContent("Beta: there has been no outside audit.");
+    expect(within(safety).queryByText(/outside audit/)).toBeNull();
     expect(within(safety).getByRole("link", { name: "What was checked, and how to report a flaw: the Security page" })).toHaveAttribute("href", "/de/security");
     expect(within(safety).getByText(/owned by the team's Safe account/)).toBeInTheDocument();
   });

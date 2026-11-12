@@ -60,7 +60,10 @@ describe("the bell and the panel", () => {
     expect(readRules()[0].on).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Delete alert: PEPE Moves 20% within 1 hour" }));
     expect(readRules()).toEqual([]);
-    expect(screen.getByRole("switch", { name: "Every new launch" })).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "tonkfun.fun: Every new launch" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("switch", { name: "Pump.fun: Graduations" }));
+    expect(screen.getByRole("switch", { name: "Pump.fun: Graduations" })).toHaveAttribute("aria-checked", "true");
+    for (const pad of ["Bonk.fun", "Pons"]) expect(screen.getByRole("switch", { name: `${pad}: Hot launches` })).toBeInTheDocument();
   });
 
   it("says it isn't on testnet yet, and the token page has no bell there", () => {

@@ -2,7 +2,11 @@ import { readWatchlist } from "@/shared/lib/watchlist";
 import { type LiveLaunch, type LivePrice, MAX_ALERT_IDS } from "@/shared/types/live";
 import { checkRule, diffLaunches, type FeedDraft } from "./check";
 import { newId, readFeed, readRules, readSeen, readSettings, writeFeed, writeRules, writeSeen } from "./storage";
-import type { FeedItem } from "./types";
+import type { AlertSettings, FeedItem } from "./types";
+
+/** Whether any launchpad switch is on: only then are launches read. */
+export const launchpadSwitchOn = (s: AlertSettings) =>
+  s.launches || s.graduations || s.locks || Object.values(s.pads).some((pad) => pad.graduations || pad.hot);
 
 export interface CheckDeps {
   fetchPrices: (ids: readonly string[]) => Promise<LivePrice[]>;
@@ -37,8 +41,8 @@ export async function runCheck(deps: CheckDeps): Promise<FeedItem[]> {
     if (armed.size > 0) writeRules(readRules().map((rule) => ({ ...rule, armed: armed.get(rule.id) ?? rule.armed })));
   }
   const settings = readSettings();
-  if (deps.fetchLaunches && (settings.launches || settings.graduations || settings.locks)) {
-    const watched = readWatchlist().filter((address) => address.startsWith("0x")).slice(0, MAX_ALERT_IDS);
+  if (deps.fetchLaunches && launchpadSwitchOn(settings)) {
+    const watched = readWatchlist().slice(0, MAX_ALERT_IDS);
     const result = diffLaunches(readSeen(), await deps.fetchLaunches(watched), settings, watched, deps.now());
     drafts.push(...result.drafts);
     writeSeen(result.seen);

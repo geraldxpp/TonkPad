@@ -6,7 +6,7 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { tokenPrice } from "@/shared/tonk/curve";
 import { type ActionRequest, canSell, type MissionJson, type MissionPageJson, type TradeSide } from "@/shared/tonk/mission";
-import { explorerAddressUrl, isTestnetSite, LAUNCHPAD_AUDITED, type TonkNetwork } from "@/shared/tonk/networks";
+import { explorerAddressUrl, isTestnetSite, type TonkNetwork } from "@/shared/tonk/networks";
 import { BetaNotice } from "@/shared/ui/BetaNotice";
 import { ActivityCard } from "./components/activity/ActivityCard";
 import { CreatorPanel } from "./components/curve/CreatorPanel";
@@ -89,7 +89,6 @@ export function MissionView({ page, network, onMission, onRefresh }: MissionView
     );
   return (
     <div className="flex w-full min-w-0 flex-col gap-5 max-md:gap-4 max-md:pb-2">
-      {!isTestnetSite() && !LAUNCHPAD_AUDITED ? <BetaNotice text={t.launch.beta} /> : null}
       {curvePaused ? <BetaNotice text={canSell(mission) ? t.mission.pausedNoticeSells : t.mission.pausedNotice} /> : null}
       <TokenBreadcrumb name={mission.name} />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_336px] xl:grid-cols-[minmax(0,1fr)_360px] max-lg:gap-5">

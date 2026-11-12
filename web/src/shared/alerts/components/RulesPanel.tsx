@@ -9,20 +9,11 @@ import { cn } from "@/shared/lib/cn";
 import { IconButton } from "@/shared/ui/IconButton";
 import { ruleText } from "../describe";
 import { removeRule, setRuleOn, updateSettings, useAlertSettings } from "../hooks";
-import { launchpadAlerts } from "../mode";
 import type { AlertRule, AlertSettings } from "../types";
-import { Toggle } from "./Toggle";
+import { LaunchpadSwitches } from "./LaunchpadSwitches";
+import { Toggle, ToggleRow } from "./Toggle";
 
 const ROW = "flex items-center gap-3 py-2";
-
-function SettingRow({ label, on, onChange }: { label: string; on: boolean; onChange: (on: boolean) => void }) {
-  return (
-    <div className={ROW}>
-      <Toggle on={on} onChange={onChange} label={label} />
-      <span className="min-w-0 flex-1 text-[13px] text-text-2">{label}</span>
-    </div>
-  );
-}
 
 /** Browser notifications: switching on asks the browser's permission then, never on page load. */
 function NotifyRow({ settings }: { settings: AlertSettings }) {
@@ -38,7 +29,7 @@ function NotifyRow({ settings }: { settings: AlertSettings }) {
   };
   return (
     <div className="flex flex-col gap-1">
-      <SettingRow label={a.notify} on={settings.notify} onChange={(on) => void turn(on)} />
+      <ToggleRow label={a.notify} on={settings.notify} onChange={(on) => void turn(on)} />
       <p className="m-0 text-[12px] text-text-3">{a.notifyHint}</p>
       {blocked ? <p role="status" className="m-0 text-[12px] text-warn">{a.notifyBlocked}</p> : null}
     </div>
@@ -80,15 +71,7 @@ export function RulesPanel({ rules, onNavigate }: { rules: readonly AlertRule[];
           })}
         </ul>
       )}
-      {launchpadAlerts() ? (
-        <section aria-labelledby="alerts-launchpad" className="flex flex-col gap-1 border-t border-line pt-4">
-          <h3 id="alerts-launchpad" className="m-0 text-[12px] font-semibold tracking-[0.04em] text-text-3 uppercase">{a.launchpad}</h3>
-          <SettingRow label={a.launches} on={settings.launches} onChange={(on) => updateSettings({ launches: on })} />
-          <SettingRow label={a.graduations} on={settings.graduations} onChange={(on) => updateSettings({ graduations: on })} />
-          <SettingRow label={a.locks} on={settings.locks} onChange={(on) => updateSettings({ locks: on })} />
-          <p className="m-0 text-[12px] text-text-3">{a.watchHint}</p>
-        </section>
-      ) : null}
+      <LaunchpadSwitches settings={settings} />
       <section className="border-t border-line pt-4">
         <NotifyRow settings={settings} />
       </section>

@@ -56,10 +56,10 @@ describe("SecurityView", () => {
     expect(within(rewards).queryByText(/Up to/)).toBeNull();
   });
 
-  it("says plainly there was no outside audit, and lists what was checked", () => {
+  it("lists what was checked, with no outside-audit warning", () => {
     render(<SecurityView s={en.security} data={UNSET} />);
     const checked = region("What was checked");
-    expect(within(checked).getByRole("note")).toHaveTextContent(/^There was no outside audit\. The launchpad contracts were reviewed internally, not by an outside auditor/);
+    expect(within(checked).queryByRole("note")).toBeNull();
     const items = within(checked).getAllByRole("listitem").map((item) => item.textContent);
     expect(items).toHaveLength(7);
     for (const tool of ["Slither", "Aderyn", "Foundry", "Medusa", "Halmos"]) expect(items.join(" ")).toContain(tool);

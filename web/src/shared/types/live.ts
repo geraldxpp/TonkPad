@@ -119,9 +119,15 @@ export interface LivePrices {
   prices: LivePrice[];
 }
 
-/** One tonkfun.fun launch as it stands (/v1/launches): what launchpad alerts compare between checks. */
+/** The launchpads whose launches the worker follows, and so the launchpads alerts can watch. */
+export const ALERT_LAUNCHPADS = ["tonk", "pump", "bonk", "pons"] as const satisfies readonly LaunchpadId[];
+export type AlertLaunchpad = (typeof ALERT_LAUNCHPADS)[number];
+
+/** One launch as it stands (/v1/launches): what launchpad alerts compare between checks. */
 export interface LiveLaunch {
   address: string;
+  chain: ChainId;
+  launchpad: LaunchpadId;
   symbol: string;
   name: string;
   /** ms since epoch. */
@@ -131,9 +137,11 @@ export interface LiveLaunch {
   lockEnd: number | null;
   /** Locked tokens the creator has claimed so far, raw units as a decimal string; null without a lock. */
   lockClaimed: string | null;
+  /** Launched within the hour and Hot now: Explore's flame (20 or more buys in 15 minutes). */
+  hot: boolean;
 }
 
 export interface LiveLaunches {
-  /** The newest launches first, then any asked for by address. */
+  /** tonkfun.fun's newest launches, each followed launchpad's recent graduations and hot launches, then any asked for by address. */
   launches: LiveLaunch[];
 }

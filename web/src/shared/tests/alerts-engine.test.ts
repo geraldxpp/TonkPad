@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { runCheck } from "@/shared/alerts/engine";
-import { addRule, removeRule } from "@/shared/alerts/hooks";
+import { addRule, removeRule, setPadSwitch } from "@/shared/alerts/hooks";
 import {
   FEED_KEY,
   MAX_FEED,
@@ -14,6 +14,7 @@ import {
   SETTINGS_KEY,
   writeFeed,
   writeRules,
+  writeSeen,
   writeSettings,
 } from "@/shared/alerts/storage";
 import type { AlertRule, FeedItem } from "@/shared/alerts/types";
@@ -34,7 +35,11 @@ describe("alert storage", () => {
     expect(readRules().map((r) => r.id)).toEqual(["ok", "long"]);
     expect(readRules()[1].token.symbol).toHaveLength(MAX_TEXT);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ launches: "yes", notify: true }));
-    expect(readSettings()).toEqual({ launches: false, graduations: false, locks: false, notify: true });
+    expect(readSettings()).toMatchObject({ launches: false, graduations: false, locks: false, notify: true });
+    expect(readSettings().pads.pump).toEqual({ graduations: false, hot: false });
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ pads: { pump: { hot: true }, moon: { hot: true } } }));
+    expect(readSettings().pads.pump).toEqual({ graduations: false, hot: true });
+    expect("moon" in readSettings().pads).toBe(false);
   });
 
   it("keeps at most 25 rules and the last 100 feed items", () => {
@@ -77,8 +82,8 @@ describe("a round of checks", () => {
     expect(readRules().map((r) => r.id)).toEqual(["a"]);
   });
 
-  it("checks the launchpad only with a switch on, asking about watched EVM tokens", async () => {
-    const launches: LiveLaunch[] = [{ address: "0x00000000000000000000000000000000000000a1", symbol: "A1", name: "A", launchedAt: 5, graduatedAt: null, lockEnd: null, lockClaimed: null }];
+  it("checks the launchpads only with a switch on, asking about watched tokens on any chain", async () => {
+    const launches: LiveLaunch[] = [{ address: "0x00000000000000000000000000000000000000a1", chain: "rh", launchpad: "tonk", symbol: "A1", name: "A", launchedAt: 5, graduatedAt: null, lockEnd: null, lockClaimed: null, hot: false }];
     const fetchLaunches = vi.fn(async () => launches);
     const deps = { fetchPrices: async () => [], fetchLaunches, now: () => 10 };
     await runCheck(deps);
@@ -86,8 +91,15 @@ describe("a round of checks", () => {
     writeSettings({ ...readSettings(), launches: true });
     localStorage.setItem(WATCHLIST_KEY, JSON.stringify(["PEPE", launches[0].address]));
     await runCheck(deps);
-    expect(fetchLaunches).toHaveBeenCalledWith([launches[0].address]);
+    expect(fetchLaunches).toHaveBeenCalledWith(["PEPE", launches[0].address]);
     expect(readSeen()?.newest).toBe(5);
     expect(localStorage.getItem(FEED_KEY)).toBeNull();
+  });
+
+  it("starts from a fresh record when a launchpad switch is turned on", () => {
+    writeSeen({ newest: 1, checkedAt: 1, tokens: {}, graduated: { pump: 1 }, hot: [] });
+    setPadSwitch("pump", "hot", true);
+    expect(readSeen()).toBeNull();
+    expect(readSettings().pads.pump).toEqual({ graduations: false, hot: true });
   });
 });

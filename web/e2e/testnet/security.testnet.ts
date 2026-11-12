@@ -12,5 +12,5 @@ test("the footer links to the security page, which leaves the mainnet addresses 
   await expect(scope.getByText("Listed on the mainnet site")).toHaveCount(3);
   await expect(scope.getByText("Not deployed yet")).toHaveCount(0);
   await expect(scope.getByRole("link")).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "What was checked", exact: true }).getByRole("note")).toContainText("There was no outside audit.");
+  await expect(page.getByRole("region", { name: "What was checked", exact: true }).getByRole("note")).toHaveCount(0);
 });

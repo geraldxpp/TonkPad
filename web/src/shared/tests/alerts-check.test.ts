@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { checkRule, diffLaunches, levelValid, type Quote } from "@/shared/alerts/check";
 import { DEFAULT_SETTINGS } from "@/shared/alerts/storage";
-import type { AlertRule, LaunchSeen } from "@/shared/alerts/types";
-import type { LiveLaunch } from "@/shared/types/live";
+import type { AlertRule, AlertSettings, LaunchSeen, PadSwitches } from "@/shared/alerts/types";
+import { ALERT_LAUNCHPADS, type LiveLaunch } from "@/shared/types/live";
 
 const TOKEN = { address: "PEPE", chain: "sol" as const, symbol: "PEPE", name: "Pepe" };
 const quote = (patch: Partial<Quote>): Quote => ({ priceUsd: 1, marketCap: 1_000_000, change1h: 0, change24h: 0, ...patch });
@@ -58,18 +58,24 @@ const NOW = Date.UTC(2026, 10, 12, 12);
 const A = "0x00000000000000000000000000000000000000a1";
 const B = "0x00000000000000000000000000000000000000b2";
 const launch = (address: string, patch: Partial<LiveLaunch> = {}): LiveLaunch => ({
-  address, symbol: address.slice(-2).toUpperCase(), name: "Mission", launchedAt: NOW - 3_600_000, graduatedAt: null, lockEnd: NOW + 86_400_000, lockClaimed: "0", ...patch,
+  address, chain: "rh", launchpad: "tonk", symbol: address.slice(-2).toUpperCase(), name: "Mission", launchedAt: NOW - 3_600_000, graduatedAt: null, lockEnd: NOW + 86_400_000, lockClaimed: "0", hot: false, ...patch,
 });
-const ALL = { ...DEFAULT_SETTINGS, launches: true, graduations: true, locks: true };
+const mint = (label: string, patch: Partial<LiveLaunch> = {}) => launch(label.padEnd(44, "1"), { chain: "sol", launchpad: "pump", lockEnd: null, lockClaimed: null, symbol: label, ...patch });
+const pads = (on: Partial<PadSwitches>): AlertSettings["pads"] =>
+  Object.fromEntries(ALERT_LAUNCHPADS.map((pad) => [pad, { graduations: false, hot: false, ...on }])) as AlertSettings["pads"];
+const ALL: AlertSettings = { ...DEFAULT_SETTINGS, launches: true, graduations: true, locks: true, pads: pads({ graduations: true, hot: true }) };
+const kinds = (drafts: ReturnType<typeof diffLaunches>["drafts"]) => drafts.map((d) => `${d.kind}:${d.token.symbol}${d.pad ? `@${d.pad}` : ""}`);
 
 describe("launchpad alerts", () => {
   it("only records on the first check, so switching on never floods the feed", () => {
-    const first = diffLaunches(null, [launch(A), launch(B)], ALL, [A, B], NOW);
+    const first = diffLaunches(null, [launch(A), launch(B), mint("HOT1", { hot: true })], ALL, [A, B], NOW);
     expect(first.drafts).toEqual([]);
     expect(first.seen.newest).toBe(NOW - 3_600_000);
+    expect(first.seen.hot).toEqual(["HOT1".padEnd(44, "1")]);
+    expect(Object.keys(first.seen.graduated).sort()).toEqual([...ALERT_LAUNCHPADS].sort());
   });
 
-  it("reports a new launch, and for watched tokens a graduation, a claim, an extension and a lock ending", () => {
+  it("reports a tonkfun.fun launch, and for watched tokens a graduation, a claim, an extension and a lock ending", () => {
     const seen: LaunchSeen = diffLaunches(null, [launch(A), launch(B, { lockEnd: NOW + 30_000 })], ALL, [A, B], NOW).seen;
     const C = "0x00000000000000000000000000000000000000c3";
     const later = NOW + 60_000;
@@ -78,15 +84,31 @@ describe("launchpad alerts", () => {
       launch(B, { lockEnd: NOW + 30_000 }),
       launch(C, { launchedAt: later }),
     ];
-    const kinds = diffLaunches(seen, next, ALL, [A.toUpperCase().replace("0X", "0x"), B], later).drafts.map((d) => `${d.kind}:${d.token.symbol}`);
-    expect(kinds).toEqual(["graduated:A1", "extended:A1", "claimed:A1", "unlocked:B2", "launch:C3"]);
+    expect(kinds(diffLaunches(seen, next, ALL, [A.toUpperCase().replace("0X", "0x"), B], later).drafts)).toEqual([
+      "graduated:A1@tonk", "extended:A1", "claimed:A1", "unlocked:B2", "launch:C3@tonk",
+    ]);
   });
 
-  it("says nothing about tokens nobody watches, or kinds switched off", () => {
-    const seen = diffLaunches(null, [launch(A)], ALL, [], NOW).seen;
-    const changed = [launch(A, { graduatedAt: NOW + 1 })];
-    expect(diffLaunches(seen, changed, ALL, [], NOW + 2).drafts).toEqual([]);
-    expect(diffLaunches(seen, changed, { ...ALL, graduations: false }, [A], NOW + 2).drafts).toEqual([]);
+  it("reports each switched-on launchpad's graduations and launches turning hot, once each", () => {
+    const seen = diffLaunches(null, [mint("OLD", { hot: true }), mint("GRAD")], ALL, [], NOW).seen;
+    const next = [mint("OLD", { hot: true }), mint("GRAD", { graduatedAt: NOW + 1_000 }), mint("NEW", { hot: true })];
+    const second = diffLaunches(seen, next, ALL, [], NOW + 2_000);
+    expect(kinds(second.drafts)).toEqual(["graduated:GRAD@pump", "hot:NEW@pump"]);
+    expect(diffLaunches(second.seen, next, ALL, [], NOW + 3_000).drafts).toEqual([]);
+  });
+
+  it("caps a busy launchpad at 5 alerts a check", () => {
+    const seen = diffLaunches(null, [], ALL, [], NOW).seen;
+    const rush = Array.from({ length: 7 }, (_, i) => mint(`G${i}`, { graduatedAt: NOW + i + 1 }));
+    expect(diffLaunches(seen, rush, ALL, [], NOW + 10).drafts).toHaveLength(5);
+  });
+
+  it("says a watched token graduated on any launchpad, and nothing for kinds switched off", () => {
+    const seen = diffLaunches(null, [mint("MINE"), launch(A)], ALL, [], NOW).seen;
+    const watchedOnly: AlertSettings = { ...DEFAULT_SETTINGS, graduations: true, pads: pads({}) };
+    const graduated = [mint("MINE", { graduatedAt: NOW + 1 }), launch(A, { graduatedAt: NOW + 1 })];
+    expect(kinds(diffLaunches(seen, graduated, watchedOnly, ["MINE".padEnd(44, "1")], NOW + 2).drafts)).toEqual(["graduated:MINE@pump"]);
+    expect(diffLaunches(seen, graduated, { ...DEFAULT_SETTINGS, pads: pads({}) }, [], NOW + 2).drafts).toEqual([]);
     expect(diffLaunches(seen, [launch(B, { launchedAt: NOW })], { ...ALL, launches: false }, [], NOW + 2).drafts).toEqual([]);
   });
 });

@@ -47,7 +47,8 @@ test("the footer's Docs link opens the docs: every section in order, with the de
   await expect(figure(page, "fee")).toHaveText("0.005 ETH");
   await expect(figure(page, "reserves")).toHaveText("1 ETH and 1,073,000,000 tokens, virtual");
   await expect(page.getByText("Demo figures, not read from a chain.").first()).toBeVisible();
-  await expect(region(page, "Safety").getByRole("note")).toContainText("Beta: there has been no outside audit.");
+  // No outside-audit warning (the owner removed it, 12 Nov 2026).
+  await expect(region(page, "Safety").getByText(/outside audit/)).toHaveCount(0);
 });
 
 test("a section's link can be shared: /docs#fees opens at Fees, and the contents beside it jump to any section", async ({ page }) => {

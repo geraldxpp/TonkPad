@@ -9,7 +9,6 @@ import { expectTokenImage, serveTokenImages } from "../helpers";
 // the local stand-in serving as Robinhood Chain mainnet: nothing is simulated or sent there, so what the server
 // would build is answered here, in the browser, and the stub wallet "sends" it without signing anything.
 
-const BETA = "Beta: these contracts haven't had an independent audit yet. Only put in what you can afford to lose.";
 const EXPLORER = "https://robinhoodchain.blockscout.com";
 const ROUTER = "0x204faca1764b154221e35c0d20abb3c525710498";
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -30,7 +29,7 @@ const GRAD_OUT = "4000000000000000000000000";
 test("Launch is live: the launchpad's own settings, the beta notice, the 1% lock rule, and no testnet marks", async ({ page }) => {
   await page.goto("/launch");
   await expect(page.getByRole("heading", { level: 1, name: "Launch a mission." })).toBeVisible();
-  await expect(page.getByRole("note").filter({ hasText: "Beta:" })).toHaveText(BETA);
+  await expect(page.getByRole("note").filter({ hasText: "audit" })).toHaveCount(0);
   await expect(page.getByRole("banner").getByText("Testnet", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Demo", { exact: true })).toHaveCount(0);
   // 0.005 ETH to launch, read from the launchpad, in ETH rather than test ETH.
@@ -69,7 +68,7 @@ test("Explore lists the launchpad's latest launches and opens a launch by its ad
 test("a mission's page: the beta notice, its explorer, and its holders and top traders from the indexer", async ({ page }) => {
   await page.goto(`/token/${TTONE.token}`);
   await expect(page.getByRole("heading", { level: 1, name: "Tonk Test One" })).toBeVisible();
-  await expect(page.getByRole("note").filter({ hasText: "Beta:" })).toHaveText(BETA);
+  await expect(page.getByRole("note").filter({ hasText: "audit" })).toHaveCount(0);
   await expect(page.getByRole("main").getByRole("link", { name: "View token on the explorer" })).toHaveAttribute("href", `${EXPLORER}/address/${TTONE.token}`);
   // Mainnet counts in ETH and dollars, never in test ETH, and never with the testnet's wording.
   await expect(page.getByText("test ETH")).toHaveCount(0);

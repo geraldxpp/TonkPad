@@ -6,7 +6,7 @@ import { useUrlParams } from "@/modules/shell/hooks/useUrlParams";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatEth } from "@/shared/tonk/format";
 import { isInvited, launchInvites } from "@/shared/tonk/invites";
-import { LAUNCHPAD_AUDITED, tonkNetwork } from "@/shared/tonk/networks";
+import { tonkNetwork } from "@/shared/tonk/networks";
 import { isTxHash, type TonkSettingsJson } from "@/shared/tonk/types";
 import { useWalletBalances } from "@/shared/wallet/useWalletBalances";
 import { wallet } from "@/shared/wallet/wallet";
@@ -153,7 +153,6 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
           </button>
         </div>
       </div>
-      {data.mode === "mainnet" && !LAUNCHPAD_AUDITED ? <BetaNotice text={l.beta} className="mb-4" /> : null}
       {launchInvites() !== null && !invited ? <BetaNotice text={l.invite} className="mb-4" /> : null}
       {live.paused ? <BetaNotice text={l.pausedNotice} className="mb-4" /> : null}
       {live.offline ? <p role="alert" className="m-0 mb-4 rounded-lg border border-warn/25 bg-warn/7 px-3.5 py-3 text-[13px] text-warn">{l.offline}</p> : null}

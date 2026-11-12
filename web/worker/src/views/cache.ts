@@ -101,7 +101,7 @@ export function createViews(store: TokenStore, status: LiveStatus, ingesting: re
 
   /** For alerts: neither marks a token opened, so neither spends Helius credits. */
   const prices = (ids: string[]) => pricesView(store, ids);
-  const launches = (ids: string[]) => launchesView(store, ids);
+  const launches = (ids: string[]) => launchesView(store, ids, Date.now());
 
   return { overview, shell, list, token, prices, launches, visibleAddresses, openedAddresses };
 }

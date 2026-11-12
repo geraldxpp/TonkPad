@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BetaNotice } from "@/shared/ui/BetaNotice";
 import type { DocsContract } from "../lib/contracts";
 import { ContractList } from "./ContractList";
 import { Figures } from "./Figures";
@@ -13,7 +12,7 @@ interface SafetyCardProps {
 }
 
 /**
- * 9. Safety: no outside audit (the beta notice), the starting limits, what
+ * 9. Safety: the starting limits, what
  * the Safe account that owns the contracts can and can't do, the pause
  * that never stops selling, and the contracts on Blockscout.
  */
@@ -21,8 +20,6 @@ export function SafetyCard({ d, href, contracts, inviteOnly }: SafetyCardProps) 
   const s = d.safety;
   return (
     <DocsCard id="safety" title={s.title}>
-      {/* The launchpad has had internal reviews only (LAUNCHPAD_AUDITED is false); an outside audit means rewording this. */}
-      <BetaNotice text={s.beta} className="mt-3" />
       <Para>
         <Link href={href("/security")} className="rounded font-medium text-accent-text hover:underline">
           {s.security}

@@ -24,9 +24,9 @@ test("the docs read the launchpad live: its fee, reserves, cap, graduation point
   await expect(page.getByText("Demo figures, not read from a chain.")).toHaveCount(0);
   await expect(page.getByText("This is the testnet site", { exact: false })).toHaveCount(0);
 
-  // The guarded launch: invite-only while the build lists invited wallets, and the beta notice.
+  // The guarded launch: invite-only while the build lists invited wallets; no outside-audit warning (removed 12 Nov 2026).
   await expect(region(page, "Launching a token").getByText("Launch is invite-only for now: only invited creators can launch from this site.")).toBeVisible();
-  await expect(region(page, "Safety").getByRole("note")).toContainText("Beta: there has been no outside audit.");
+  await expect(region(page, "Safety").getByText(/outside audit/)).toHaveCount(0);
   const launchpad = region(page, "Safety").getByRole("link", { name: LAUNCHPAD });
   await expect(launchpad).toHaveAttribute("href", `${EXPLORER}/${LAUNCHPAD}?tab=contract`);
 

@@ -172,13 +172,6 @@ export function tonkNetwork(mode: TonkMode = tonkMode()): TonkNetwork | null {
   return mode === "mainnet" ? mainnetNetwork() : null;
 }
 
-/**
- * Whether the deployed launchpad has had an independent audit. Until it has,
- * mainnet's Launch and launch-token pages carry a beta warning
- * (prompts/07-mainnet.md, decision 9).
- */
-export const LAUNCHPAD_AUDITED = false;
-
 /** True on the testnet site, where `rh` means the testnet everywhere and Solana isn't offered. */
 export function isTestnetSite(): boolean {
   return tonkMode() === "testnet";

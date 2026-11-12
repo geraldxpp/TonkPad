@@ -31,7 +31,8 @@ test("an alert set on a token page fires when the price crosses it: a toast, the
 
   await panel.getByRole("tab", { name: /My alerts/ }).click();
   await expect(panel.getByRole("switch", { name: /GHOST: Price above/ })).toHaveAttribute("aria-checked", "true");
-  await expect(panel.getByRole("switch", { name: "Every new launch" })).toBeVisible();
+  await expect(panel.getByRole("switch", { name: "tonkfun.fun: Every new launch" })).toBeVisible();
+  await expect(panel.getByRole("switch", { name: "Pump.fun: Graduations" })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("alerts-rules-1440.png") });
 });
 

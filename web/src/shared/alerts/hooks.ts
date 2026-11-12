@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import {
+  clearSeen,
   DEFAULT_SETTINGS,
   FEED_KEY,
   MAX_RULES,
@@ -70,8 +71,29 @@ export function markAllRead(): void {
 
 export const clearFeed = () => writeFeed([]);
 
+/**
+ * Changes settings. Switching a launchpad alert on forgets what was seen, so
+ * the next check (run at once) records the launchpads as they stand and
+ * reports only what happens after.
+ */
 export function updateSettings(patch: Partial<AlertSettings>): void {
-  writeSettings({ ...readSettings(), ...patch });
-  if (patch.launches || patch.graduations || patch.locks) window.dispatchEvent(new Event(CHECK_NOW));
+  const before = readSettings();
+  const next = { ...before, ...patch };
+  writeSettings(next);
+  const switchedOn = (["launches", "graduations", "locks"] as const).some((key) => next[key] && !before[key])
+    || Object.entries(next.pads).some(([pad, on]) => {
+      const was = before.pads[pad as keyof AlertSettings["pads"]];
+      return (on.graduations && !was.graduations) || (on.hot && !was.hot);
+    });
+  if (switchedOn) {
+    clearSeen();
+    window.dispatchEvent(new Event(CHECK_NOW));
+  }
+}
+
+/** Switches one launchpad's graduations or hot launches. */
+export function setPadSwitch(pad: keyof AlertSettings["pads"], key: "graduations" | "hot", on: boolean): void {
+  const pads = readSettings().pads;
+  updateSettings({ pads: { ...pads, [pad]: { ...pads[pad], [key]: on } } });
 }
 

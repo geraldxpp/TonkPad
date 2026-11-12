@@ -48,7 +48,7 @@ test("the footer's Security link opens the security page", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Main" }).locator('[aria-current="page"]')).toHaveCount(0);
 });
 
-test("before the owner sets anything: contact coming soon, nothing deployed, no amounts made up, and no outside audit said plainly", async ({ page }) => {
+test("before the owner sets anything: contact coming soon, nothing deployed, no amounts made up, and no audit warning", async ({ page }) => {
   await openSecurity(page);
   await expect(region(page, "Report a vulnerability").getByText("Coming soon", { exact: true })).toBeVisible();
   await expect(region(page, "Report a vulnerability").getByRole("link")).toHaveCount(0);
@@ -59,7 +59,8 @@ test("before the owner sets anything: contact coming soon, nothing deployed, no 
   await expect(scope.getByText("954c1567df49c8fdc18b853944b8bf6f27b279559caa5fcdc4af8d0a43bc0f0f")).toBeVisible();
   await expect(region(page, "Rewards").getByText("Decided case by case")).toHaveCount(4);
   await expect(region(page, "Rewards").getByText(/^Up to /)).toHaveCount(0);
-  await expect(region(page, "What was checked").getByRole("note")).toContainText("There was no outside audit.");
+  // No outside-audit warning (the owner removed it, 12 Nov 2026).
+  await expect(region(page, "What was checked").getByRole("note")).toHaveCount(0);
 });
 
 test("keyboard: the footer link opens the page with Enter, and every Tab stop shows the focus ring", async ({ page }) => {

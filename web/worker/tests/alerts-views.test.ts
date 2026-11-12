@@ -5,7 +5,7 @@ import { TokenStore } from "../src/store";
 import type { TonkState } from "../src/tonk/state";
 import { LATEST_LAUNCHES, launchesView, parseIds, pricesView } from "../src/views/alerts";
 import { createViews } from "../src/views/cache";
-import { address, HOUR, NOW, priced, tracked } from "./fixtures";
+import { address, HOUR, MIN, NOW, priced, tracked } from "./fixtures";
 
 const EVM = "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01";
 
@@ -63,7 +63,7 @@ describe("alert views", () => {
     store.add(sol);
     const views = createViews(store, { solUsd: 100, ethUsd: null, rhGasGwei: null }, ["pump"]);
     pricesView(store, [sol.address]);
-    launchesView(store, [sol.address]);
+    launchesView(store, [sol.address], NOW);
     expect(views.openedAddresses().size).toBe(0);
   });
 
@@ -73,13 +73,31 @@ describe("alert views", () => {
     store.add({ ...old, graduated: true, graduatedAt: NOW - HOUR });
     for (let i = 0; i < LATEST_LAUNCHES + 2; i += 1) store.add(launch(`new${i}`, i * 1_000));
     store.add(tracked());
-    const all = launchesView(store, []).launches;
-    expect(all).toHaveLength(LATEST_LAUNCHES);
+    const all = launchesView(store, [], NOW).launches;
+    // The 20 newest, and the old one too: it graduated within the last two hours.
+    expect(all).toHaveLength(LATEST_LAUNCHES + 1);
     expect(all[0].address).toBe(launch("new0", 0).address);
-    const asked = launchesView(store, [old.address]).launches.find((l) => l.address === old.address);
+    const asked = launchesView(store, [old.address], NOW).launches.find((l) => l.address === old.address);
     expect(asked).toMatchObject({ graduatedAt: NOW - HOUR, lockEnd: LOCK.end * 1_000, lockClaimed: "40" });
     const unlocked = launch("bare", 1_000);
     store.add(unlocked);
-    expect(launchesView(store, [unlocked.address]).launches.find((l) => l.address === unlocked.address)).toMatchObject({ lockEnd: null, lockClaimed: null, graduatedAt: null });
+    expect(launchesView(store, [unlocked.address], NOW).launches.find((l) => l.address === unlocked.address)).toMatchObject({ lockEnd: null, lockClaimed: null, graduatedAt: null, launchpad: "tonk", chain: "rh" });
+  });
+
+  it("lists each followed launchpad's graduations from the last two hours and its hot launches, and any token asked for", () => {
+    const store = new TokenStore();
+    const recent = tracked({ graduated: true, graduatedAt: NOW - HOUR });
+    const stale = tracked({ graduated: true, graduatedAt: NOW - 3 * HOUR });
+    const hot = priced(10_000, { m5: { buys: 30 }, h1: { buys: 30 }, h24: { buys: 30 } }, {}, 10 * MIN);
+    const oldHot = priced(10_000, { m5: { buys: 30 }, h1: { buys: 30 }, h24: { buys: 300 } }, {}, 3 * HOUR);
+    const moon = tracked({ launchpad: "moon", graduated: true, graduatedAt: NOW - HOUR });
+    const quiet = tracked();
+    for (const t of [recent, stale, hot, oldHot, moon, quiet]) store.add(t);
+    const listed = launchesView(store, [quiet.address], NOW).launches;
+    const byAddress = new Map(listed.map((l) => [l.address, l]));
+    expect([...byAddress.keys()].sort()).toEqual([recent.address, hot.address, quiet.address].sort());
+    expect(byAddress.get(hot.address)).toMatchObject({ hot: true, launchpad: "pump", chain: "sol" });
+    expect(byAddress.get(recent.address)).toMatchObject({ graduatedAt: NOW - HOUR, hot: false });
+    expect(byAddress.get(quiet.address)).toMatchObject({ graduatedAt: null, hot: false });
   });
 });

@@ -1,4 +1,5 @@
-import type { AlertRule, AlertSettings, AlertToken, FeedItem, FeedKind, LaunchSeen } from "./types";
+import { ALERT_LAUNCHPADS, type AlertLaunchpad } from "@/shared/types/live";
+import type { AlertRule, AlertSettings, AlertToken, FeedItem, FeedKind, LaunchSeen, PadSwitches } from "./types";
 
 /**
  * Alerts live in this browser only (localStorage), like the watchlist: no
@@ -16,10 +17,15 @@ export const MAX_RULES = 25;
 export const MAX_FEED = 100;
 /** Names and tickers from the chain are cut to this many characters. */
 export const MAX_TEXT = 40;
+/** How many launches the launchpad alerts remember between checks. */
+export const MAX_SEEN = 300;
 
-export const DEFAULT_SETTINGS: AlertSettings = { launches: false, graduations: false, locks: false, notify: false };
+const OFF: PadSwitches = { graduations: false, hot: false };
+const padsOff = () => Object.fromEntries(ALERT_LAUNCHPADS.map((pad) => [pad, OFF])) as Record<AlertLaunchpad, PadSwitches>;
+export const DEFAULT_SETTINGS: AlertSettings = { launches: false, graduations: false, locks: false, notify: false, pads: padsOff() };
+const isPad = (value: unknown): value is AlertLaunchpad => typeof value === "string" && (ALERT_LAUNCHPADS as readonly string[]).includes(value);
 
-const FEED_KINDS: readonly FeedKind[] = ["priceAbove", "priceBelow", "mcapAbove", "mcapBelow", "moveUp", "moveDown", "launch", "graduated", "unlocked", "claimed", "extended"];
+const FEED_KINDS: readonly FeedKind[] = ["priceAbove", "priceBelow", "mcapAbove", "mcapBelow", "moveUp", "moveDown", "launch", "graduated", "hot", "unlocked", "claimed", "extended"];
 
 type Loose = Record<string, unknown>;
 const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -57,6 +63,7 @@ function feedFrom(value: unknown): FeedItem | null {
     token,
     ...(positive(value.value) ? { value: value.value } : {}),
     ...(value.window === "1h" || value.window === "24h" ? { window: value.window } : {}),
+    ...(isPad(value.pad) ? { pad: value.pad } : {}),
     read: value.read === true,
   };
 }
@@ -90,7 +97,13 @@ export const writeFeed = (feed: readonly FeedItem[]) => writeJson(FEED_KEY, feed
 export function readSettings(): AlertSettings {
   const value = readJson(SETTINGS_KEY);
   if (!isObject(value)) return DEFAULT_SETTINGS;
-  return { launches: value.launches === true, graduations: value.graduations === true, locks: value.locks === true, notify: value.notify === true };
+  const stored = isObject(value.pads) ? value.pads : {};
+  const pads = padsOff();
+  for (const pad of ALERT_LAUNCHPADS) {
+    const entry = stored[pad];
+    if (isObject(entry)) pads[pad] = { graduations: entry.graduations === true, hot: entry.hot === true };
+  }
+  return { launches: value.launches === true, graduations: value.graduations === true, locks: value.locks === true, notify: value.notify === true, pads };
 }
 export const writeSettings = (settings: AlertSettings) => writeJson(SETTINGS_KEY, settings);
 
@@ -98,7 +111,7 @@ export function readSeen(): LaunchSeen | null {
   const value = readJson(SEEN_KEY);
   if (!isObject(value) || typeof value.newest !== "number" || typeof value.checkedAt !== "number" || !isObject(value.tokens)) return null;
   const tokens: LaunchSeen["tokens"] = {};
-  for (const [address, entry] of Object.entries(value.tokens).slice(0, 200)) {
+  for (const [address, entry] of Object.entries(value.tokens).slice(0, MAX_SEEN)) {
     if (!isObject(entry)) continue;
     tokens[address] = {
       graduatedAt: typeof entry.graduatedAt === "number" ? entry.graduatedAt : null,
@@ -106,9 +119,22 @@ export function readSeen(): LaunchSeen | null {
       lockClaimed: typeof entry.lockClaimed === "string" && /^\d{1,78}$/.test(entry.lockClaimed) ? entry.lockClaimed : null,
     };
   }
-  return { newest: value.newest, checkedAt: value.checkedAt, tokens };
+  const graduated: LaunchSeen["graduated"] = {};
+  if (isObject(value.graduated)) {
+    for (const pad of ALERT_LAUNCHPADS) if (typeof value.graduated[pad] === "number") graduated[pad] = value.graduated[pad] as number;
+  }
+  const hot = Array.isArray(value.hot) ? value.hot.filter((a): a is string => typeof a === "string" && a.length <= 64).slice(-MAX_SEEN) : [];
+  return { newest: value.newest, checkedAt: value.checkedAt, tokens, graduated, hot };
 }
 export const writeSeen = (seen: LaunchSeen) => writeJson(SEEN_KEY, seen);
+/** Forgets what the launchpad alerts saw, so the next check only records (a switch was just turned on). */
+export function clearSeen(): void {
+  try {
+    localStorage.removeItem(SEEN_KEY);
+  } catch {
+    // Storage blocked: nothing was remembered either.
+  }
+}
 
 export function subscribeAlerts(onChange: () => void): () => void {
   window.addEventListener("storage", onChange);

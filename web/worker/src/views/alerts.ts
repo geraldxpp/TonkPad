@@ -1,10 +1,19 @@
-import { type LiveLaunch, type LiveLaunches, type LivePrices, MAX_ALERT_IDS } from "@/shared/types/live";
+import { ALERT_LAUNCHPADS, type LiveLaunch, type LiveLaunches, type LivePrices, MAX_ALERT_IDS } from "@/shared/types/live";
 import type { TrackedToken } from "../model";
 import type { TokenStore } from "../store";
+import { buysLast15m } from "../tokens";
+import { HOT_BUYS } from "./list";
 import { validTokenAddress } from "./token";
 
-/** How many of the newest tonkfun.fun launches /v1/launches lists, besides those asked for. */
+/** How many of tonkfun.fun's newest launches /v1/launches lists. */
 export const LATEST_LAUNCHES = 20;
+/** And per followed launchpad, how many recent graduations and how many hot launches. */
+export const RECENT_PER_PAD = 20;
+const HOUR = 60 * 60_000;
+/** Graduations from the last two hours count as recent. */
+export const RECENT_GRADUATION_MS = 2 * HOUR;
+/** A hot launch is one launched within the hour. */
+export const HOT_LAUNCH_MS = HOUR;
 
 /** The `ids` query: valid addresses, each once, at most MAX_ALERT_IDS. */
 export function parseIds(raw: string | null): string[] {
@@ -50,26 +59,45 @@ export function pricesView(store: TokenStore, ids: readonly string[]): LivePrice
   return { prices };
 }
 
-function launchOf(t: TrackedToken): LiveLaunch | null {
+const isHot = (t: TrackedToken, now: number) => now - t.createdAt <= HOT_LAUNCH_MS && buysLast15m(t, now) >= HOT_BUYS;
+
+function launchOf(t: TrackedToken, now: number): LiveLaunch {
   const s = t.tonk;
-  if (!s) return null;
-  const locked = s.lock && s.lock.type !== "none" && s.lock.lockedBps > 0 ? s.lock : null;
+  const lock = s?.lock && s.lock.type !== "none" && s.lock.lockedBps > 0 ? s.lock : null;
   return {
     address: t.address,
+    chain: t.chain,
+    launchpad: t.launchpad,
     symbol: t.symbol,
     name: t.name,
     launchedAt: t.createdAt,
-    graduatedAt: t.graduated ? t.graduatedAt ?? s.launchTime : null,
-    lockEnd: locked ? locked.end * 1_000 : null,
-    lockClaimed: locked ? locked.claimed : null,
+    graduatedAt: t.graduated ? t.graduatedAt ?? s?.launchTime ?? t.createdAt : null,
+    lockEnd: lock ? lock.end * 1_000 : null,
+    lockClaimed: lock ? lock.claimed : null,
+    hot: isHot(t, now),
   };
 }
 
-/** tonkfun.fun's launches as they stand: the newest, then those asked for. Empty where the launchpad isn't followed. */
-export function launchesView(store: TokenStore, ids: readonly string[]): LiveLaunches {
-  const launches = store.all().filter((t) => t.tonk);
-  const newest = [...launches].sort((a, b) => b.createdAt - a.createdAt).slice(0, LATEST_LAUNCHES);
-  const picked = new Map(newest.map((t) => [t.address, t]));
-  for (const t of lookup(store, ids)) if (t.tonk) picked.set(t.address, t);
-  return { launches: [...picked.values()].map(launchOf).filter((l): l is LiveLaunch => l !== null) };
+const newest = (a: TrackedToken, b: TrackedToken) => b.createdAt - a.createdAt;
+
+/**
+ * Launches as they stand, for launchpad alerts: tonkfun.fun's newest, each
+ * followed launchpad's graduations from the last two hours and its hot
+ * launches, then the tokens asked for (watched ones, on any launchpad).
+ */
+export function launchesView(store: TokenStore, ids: readonly string[], now: number): LiveLaunches {
+  const picked = new Map<string, TrackedToken>();
+  const all = store.all();
+  for (const t of all.filter((token) => token.tonk).sort(newest).slice(0, LATEST_LAUNCHES)) picked.set(t.address, t);
+  for (const pad of ALERT_LAUNCHPADS) {
+    const own = all.filter((t) => t.launchpad === pad);
+    const graduated = own
+      .filter((t) => t.graduated && (t.graduatedAt ?? 0) >= now - RECENT_GRADUATION_MS)
+      .sort((a, b) => (b.graduatedAt ?? 0) - (a.graduatedAt ?? 0))
+      .slice(0, RECENT_PER_PAD);
+    const hot = own.filter((t) => isHot(t, now)).sort(newest).slice(0, RECENT_PER_PAD);
+    for (const t of [...graduated, ...hot]) picked.set(t.address, t);
+  }
+  for (const t of lookup(store, ids)) picked.set(t.address, t);
+  return { launches: [...picked.values()].map((t) => launchOf(t, now)) };
 }

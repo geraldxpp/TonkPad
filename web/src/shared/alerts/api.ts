@@ -1,3 +1,5 @@
+import { LAUNCHPADS } from "@/shared/config/launchpads";
+import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { LiveLaunch, LivePrice } from "@/shared/types/live";
 import { MAX_TEXT } from "./storage";
 
@@ -41,8 +43,11 @@ export async function fetchLaunches(ids: readonly string[]): Promise<LiveLaunch[
   return rows(await getJson(`/api/live/launches${query(ids)}`), "launches").flatMap((row) => {
     const r = (row ?? {}) as Record<string, unknown>;
     const launchedAt = time(r.launchedAt);
-    if (typeof r.address !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(r.address) || launchedAt === null) return [];
+    const address = typeof r.address === "string" && /^(0x[0-9a-fA-F]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})$/.test(r.address) ? r.address : null;
+    const launchpad = typeof r.launchpad === "string" && r.launchpad in LAUNCHPADS ? (r.launchpad as LaunchpadId) : null;
+    if (!address || !launchpad || launchedAt === null) return [];
     const claimed = typeof r.lockClaimed === "string" && /^\d{1,78}$/.test(r.lockClaimed) ? r.lockClaimed : null;
-    return [{ address: r.address, symbol: text(r.symbol), name: text(r.name), launchedAt, graduatedAt: time(r.graduatedAt), lockEnd: time(r.lockEnd), lockClaimed: claimed }];
+    const chain = r.chain === "rh" ? "rh" : "sol";
+    return [{ address, chain, launchpad, symbol: text(r.symbol), name: text(r.name), launchedAt, graduatedAt: time(r.graduatedAt), lockEnd: time(r.lockEnd), lockClaimed: claimed, hot: r.hot === true }];
   });
 }

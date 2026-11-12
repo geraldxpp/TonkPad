@@ -1,3 +1,4 @@
+import { LAUNCHPADS } from "@/shared/config/launchpads";
 import { fmt } from "@/shared/i18n/config";
 import type { Dictionary } from "@/shared/i18n/dictionaries/en";
 import { formatPrice, formatUsdCompact } from "@/shared/lib/format";
@@ -33,6 +34,10 @@ export function feedText(a: AlertCopy, item: FeedItem): string {
       const template = item.kind === "moveUp" ? (item.window === "24h" ? a.fired.moveUp24h : a.fired.moveUp1h) : item.window === "24h" ? a.fired.moveDown24h : a.fired.moveDown1h;
       return fmt(template, { symbol, percent: percentText(value) });
     }
+    case "graduated":
+      return item.pad ? fmt(a.fired.graduatedOn, { symbol, pad: LAUNCHPADS[item.pad].name }) : fmt(a.fired.graduated, { symbol });
+    case "hot":
+      return fmt(a.fired.hot, { symbol, pad: LAUNCHPADS[item.pad ?? "pump"].name });
     default:
       return fmt(a.fired[item.kind], { symbol });
   }
