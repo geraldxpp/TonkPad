@@ -22,26 +22,42 @@ const LOG_PREFIX = "token-art-log/";
 const YEAR_SECONDS = 365 * 24 * 60 * 60;
 
 /**
- * The owner's Vercel Blob store. Each upload is also noted as a tiny marker
- * under token-art-log/<wallet>/ (its name has a random part, so it can't be
+ * How this deployment reaches the owner's Blob store: a read-write token
+ * where one is set; otherwise the store Vercel connected to the project
+ * (BLOB_STORE_ID), reached with the project's own short-lived OIDC token,
+ * which is how Vercel connects a store now. Null while neither is set.
+ */
+export type BlobAuth = { token: string } | { storeId: string };
+
+export function blobAuth(env: Record<string, string | undefined> = process.env): BlobAuth | null {
+  const token = env.BLOB_READ_WRITE_TOKEN?.trim();
+  if (token) return { token };
+  const storeId = env.BLOB_STORE_ID?.trim();
+  return storeId ? { storeId } : null;
+}
+
+/**
+ * The owner's Vercel Blob store (a public one: its images are shown to
+ * everyone). Each upload is also noted as a tiny marker under
+ * token-art-log/<wallet>/ (its name has a random part, so it can't be
  * guessed, and it holds nothing but "1"); markers older than the hour are
  * deleted as the count is taken.
  */
-export function blobStore(token: string): ImageStore {
+export function blobStore(auth: BlobAuth): ImageStore {
   return {
     async save(hash, webp) {
       // Content-addressed: writing the same name again writes the same bytes.
-      const blob = await put(imagePath(hash), Buffer.from(webp), { access: "public", token, contentType: "image/webp", addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: YEAR_SECONDS });
+      const blob = await put(imagePath(hash), Buffer.from(webp), { access: "public", ...auth, contentType: "image/webp", addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: YEAR_SECONDS });
       return blob.url;
     },
     async uploadsSince(wallet, since) {
-      const { blobs } = await list({ prefix: `${LOG_PREFIX}${wallet}/`, limit: 100, token });
+      const { blobs } = await list({ prefix: `${LOG_PREFIX}${wallet}/`, limit: 100, ...auth });
       const old = blobs.filter((blob) => blob.uploadedAt.getTime() < since);
-      if (old.length > 0) await del(old.map((blob) => blob.url), { token }).catch(() => undefined);
+      if (old.length > 0) await del(old.map((blob) => blob.url), auth).catch(() => undefined);
       return blobs.length - old.length;
     },
     async noteUpload(wallet, at) {
-      await put(`${LOG_PREFIX}${wallet}/${at}.txt`, "1", { access: "public", token, contentType: "text/plain", addRandomSuffix: true, cacheControlMaxAge: 60 });
+      await put(`${LOG_PREFIX}${wallet}/${at}.txt`, "1", { access: "public", ...auth, contentType: "text/plain", addRandomSuffix: true, cacheControlMaxAge: 60 });
     },
   };
 }
@@ -72,12 +88,12 @@ let memory: ImageStore | null = null;
 /**
  * This deployment's store: none where Launch is off; in memory in the e2e
  * builds (the stub wallet's, never production), whatever keys are set;
- * otherwise the Blob store, once the owner has connected one
- * (BLOB_READ_WRITE_TOKEN). Without it uploads answer "closed".
+ * otherwise the Blob store, once the owner has connected one (blobAuth).
+ * Without it uploads answer "closed".
  */
 export function imageStore(host: string): ImageStore | null {
   if (tonkMode() === "off") return null;
   if (process.env.NEXT_PUBLIC_WALLET_STUB === "1") return (memory ??= memoryStore(host));
-  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
-  return token ? blobStore(token) : null;
+  const auth = blobAuth();
+  return auth ? blobStore(auth) : null;
 }

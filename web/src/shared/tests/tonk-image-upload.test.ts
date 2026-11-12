@@ -9,7 +9,7 @@ import { en } from "@/shared/i18n/dictionaries/en";
 import { parseHiddenImages, uploadMessage } from "@/shared/tonk/image";
 import { TonkError } from "@/shared/tonk/server/client";
 import { sha256 } from "@/shared/tonk/server/image-encode";
-import { memoryStore } from "@/shared/tonk/server/image-store";
+import { blobAuth, memoryStore } from "@/shared/tonk/server/image-store";
 import { type UploadContext, uploadImage } from "@/shared/tonk/server/image-upload";
 
 const HOST = "abc123store.public.blob.vercel-storage.com";
@@ -161,13 +161,22 @@ describe("uploading a token image", () => {
   });
 });
 
+describe("blobAuth", () => {
+  it("uses a read-write token where one is set, else the store Vercel connected, else nothing", () => {
+    expect(blobAuth({ BLOB_READ_WRITE_TOKEN: " vercel_blob_rw_x ", BLOB_STORE_ID: "store_y" })).toEqual({ token: "vercel_blob_rw_x" });
+    expect(blobAuth({ BLOB_READ_WRITE_TOKEN: " ", BLOB_STORE_ID: " store_y " })).toEqual({ storeId: "store_y" });
+    expect(blobAuth({ BLOB_READ_WRITE_TOKEN: "", BLOB_STORE_ID: "" })).toBeNull();
+    expect(blobAuth({})).toBeNull();
+  });
+});
+
 describe("POST /api/tonk/image", () => {
   afterEach(() => vi.unstubAllEnvs());
   const post = (body: BodyInit, headers: Record<string, string> = {}) => POST(new Request(`https://${SITE}/api/tonk/image`, { method: "POST", body, headers: { host: SITE, ...headers } }));
 
   it("is closed where Launch is off, without an image host, or without a store", async () => {
     const body = await form({ bytes: await png() });
-    for (const env of [{ NEXT_PUBLIC_TONK_NETWORK: "", NEXT_PUBLIC_TONK_IMAGE_HOST: HOST }, { NEXT_PUBLIC_TONK_NETWORK: "mainnet", NEXT_PUBLIC_TONK_IMAGE_HOST: "*.public.blob.vercel-storage.com" }, { NEXT_PUBLIC_TONK_NETWORK: "mainnet", NEXT_PUBLIC_TONK_IMAGE_HOST: HOST, BLOB_READ_WRITE_TOKEN: "", NEXT_PUBLIC_WALLET_STUB: "" }]) {
+    for (const env of [{ NEXT_PUBLIC_TONK_NETWORK: "", NEXT_PUBLIC_TONK_IMAGE_HOST: HOST }, { NEXT_PUBLIC_TONK_NETWORK: "mainnet", NEXT_PUBLIC_TONK_IMAGE_HOST: "*.public.blob.vercel-storage.com" }, { NEXT_PUBLIC_TONK_NETWORK: "mainnet", NEXT_PUBLIC_TONK_IMAGE_HOST: HOST, BLOB_READ_WRITE_TOKEN: "", BLOB_STORE_ID: " ", NEXT_PUBLIC_WALLET_STUB: "" }]) {
       for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
       const res = await post(body);
       expect([res.status, await res.json()], JSON.stringify(env)).toEqual([404, { error: "closed" }]);
