@@ -21,10 +21,9 @@ import { createSolanaTrades } from "./trades/solana";
 import { createSmartMoney } from "./smart/sweep";
 import { SmartWallets } from "./smart/wallets";
 import { TokenStore } from "./store";
+import { createTonkFeed, dropLaunches } from "./tonk";
 import { createViews } from "./views/cache";
 
-/** Launchpads the worker ingests today, in the order the radar names them. */
-const INGESTING: readonly LaunchpadId[] = ["pons", "pump", "bonk"];
 
 /**
  * Helius lookups (art, names, mint and freeze authority) go out as one batch
@@ -35,9 +34,15 @@ const INGESTING: readonly LaunchpadId[] = ["pons", "pump", "bonk"];
 const ASSET_LOOKUP_EVERY = 60_000;
 /** Pons is read from Robinhood Chain's logs this often (the screen refreshes every 4 s). */
 const PONS_POLL_EVERY = 3_000;
+/** tonkfun.fun's launchpad is read this often. */
+const TONK_POLL_EVERY = 4_000;
 
 const config = loadConfig();
 const store = new TokenStore();
+/** tonkfun.fun's own launches, when the environment names the mainnet deployment (tonk/config.ts). */
+const tonk = createTonkFeed(store, process.env, config.robinhoodLogsRpcUrl, (line) => log("tonk", line));
+/** Launchpads the worker ingests today, in the order the radar names them. */
+const INGESTING: readonly LaunchpadId[] = tonk ? ["tonk", "pons", "pump", "bonk"] : ["pons", "pump", "bonk"];
 const pons = new PonsBook(store, (quote) => quoteUsd(quote));
 const ponsFeed = new PonsFeed(new RobinhoodRpc(config.robinhoodLogsRpcUrl), pons);
 const status: LiveStatus = { solUsd: null, ethUsd: null, rhGasGwei: null };
@@ -108,6 +113,14 @@ async function pollPons(): Promise<void> {
   pons.refresh(Date.now(), quoteUsd);
 }
 
+async function pollTonk(): Promise<void> {
+  try {
+    if (tonk && (await tonk.poll(status.ethUsd)) > 0) lastLaunchAt = Date.now();
+  } catch (error) {
+    fail("tonk", error);
+  }
+}
+
 async function refreshAssets(): Promise<void> {
   if (!config.heliusApiKey) return;
   const ids = store.needingAssets("sol", views.visibleAddresses(), ASSET_BATCH, Date.now());
@@ -155,7 +168,12 @@ const solanaTrades = createSolanaTrades({
 const smartMoney = createSmartMoney({ store, smart: smartWallets, heliusApiKey: config.heliusApiKey, onHeliusCall: countHeliusCall, fail });
 
 const save = () =>
-  saveSnapshot(config.snapshotPath, { tokens: store.toJSON(), ponsBlock: ponsFeed.cursor, smart: smartWallets.toJSON() });
+  saveSnapshot(config.snapshotPath, {
+    tokens: store.toJSON(),
+    ponsBlock: ponsFeed.cursor,
+    smart: smartWallets.toJSON(),
+    tonk: tonk?.saved() ?? null,
+  });
 
 async function restore(): Promise<void> {
   const snapshot = await loadSnapshot(config.snapshotPath);
@@ -164,6 +182,9 @@ async function restore(): Promise<void> {
   pons.reindex();
   ponsFeed.cursor = snapshot.ponsBlock;
   smartWallets.restore(snapshot.smart, Date.now());
+  // Our launches carry on from the saved cursor, for the deployment they were read from only.
+  if (tonk) tonk.restore(snapshot.tonk);
+  else dropLaunches(store);
   log("worker", `restored ${store.size} tokens`);
 }
 
@@ -184,6 +205,7 @@ async function start(): Promise<void> {
   every(400, () => refreshMarkets("sol"));
   every(2_000, () => refreshMarkets("rh"));
   every(PONS_POLL_EVERY, pollPons);
+  every(TONK_POLL_EVERY, pollTonk);
   every(5 * 60_000, () => refreshQuotePrices(true));
   every(ASSET_LOOKUP_EVERY, refreshAssets);
   every(60_000, safety.refreshHolders);
@@ -217,6 +239,7 @@ async function start(): Promise<void> {
       blockscout: { enabled: config.blockscoutApiKey !== null, creditsToday: safety.chainCredits().used },
       trades: solanaTrades.usage(),
       ponsBlock: ponsFeed.cursor,
+      tonk: tonk?.health() ?? { enabled: false },
       charts: charts.stats(),
       alerts: alerts?.health() ?? { enabled: false },
     }),

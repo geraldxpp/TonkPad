@@ -3,6 +3,7 @@ import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { IssuerId } from "./issuers";
 import type { PonsState } from "./pons/curve";
 import type { StreamLock } from "./sources/streamflow";
+import type { TonkState } from "./tonk/state";
 import { clip, visibleText } from "./text";
 
 /** DexScreener's windows; the list toolbar's 5m / 1h / 6h / 24h map onto them. */
@@ -107,6 +108,8 @@ export interface TrackedToken {
   nextRefreshAt: number;
   /** Pons tokens: their bonding curve, priced from its own trades until they graduate. */
   pons?: PonsState;
+  /** tonkfun.fun launches: followed from the launchpad's own events, its pool's swaps and the token's Transfers (tonk/). */
+  tonk?: TonkState;
 }
 
 /** Pons curves aren't on DexScreener; their tokens are only looked up there once they graduate. */

@@ -1,6 +1,7 @@
 import type { ScoreLevel } from "@/shared/types/token";
 import { creatorLock, poolLockedOrBurned } from "./locks";
 import type { TrackedToken } from "./model";
+import { tonkScore } from "./tonk/score";
 
 /**
  * Mission score v2 (0–100), approved by the owner on 7 Nov 2026; it errs
@@ -63,6 +64,8 @@ function launchPoints(token: TrackedToken, now: number): number {
 }
 
 export function missionScore(token: TrackedToken, now: number): { score: number; level: ScoreLevel } {
+  // A tonkfun.fun launch followed by its feed scores exactly as its token page does (tonk/score.ts).
+  if (token.tonk) return tonkScore(token.tonk, token.creator, now);
   let score = 50 + launchPoints(token, now);
   if (poolLockedOrBurned(token)) score += 10;
   if ((token.crewBps ?? 0) >= 100) score += 5;

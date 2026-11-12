@@ -5,6 +5,7 @@ import { isLockedMission } from "./locks";
 import { type MarketWindow, shortAddress, type TrackedToken, type WindowKey } from "./model";
 import { ponsBuysSince } from "./pons/curve";
 import { missionScore } from "./score";
+import { buysSince } from "./tonk/state";
 
 const MINUTE = 60_000;
 
@@ -21,8 +22,9 @@ export function windowFor(token: TrackedToken, tf: LiveTimeframe): MarketWindow 
  * the 5-minute and 1-hour counts.
  */
 export function buysLast15m(token: TrackedToken, now: number): number {
-  // Pons curves are followed trade by trade, so their count is exact.
+  // Pons curves and tonkfun.fun launches are followed trade by trade, so their count is exact.
   if (token.pons && !token.graduated) return ponsBuysSince(token.pons, now - 15 * MINUTE);
+  if (token.tonk) return buysSince(token.tonk, now - 15 * MINUTE);
   const current = token.windows.h24.buys;
   if (now - token.createdAt <= 15 * MINUTE) return current;
   const cutoff = now - 15 * MINUTE;
@@ -86,10 +88,20 @@ export function toToken(token: TrackedToken, now: number, hot = false): Token {
     holders: token.pons && token.graduated && !token.holdersAt ? null : (token.holderCount ?? null),
     smartWallets: token.smartCount ?? 0,
     marketCap: token.marketCap,
-    flags: { hot, og: false, isNew: ageMinutes < 30, locked: isLockedMission(token, now), crew: null, agent: false },
+    flags: {
+      hot,
+      og: false,
+      isNew: ageMinutes < 30,
+      locked: isLockedMission(token, now),
+      // Crew Rewards and the agent brief are tonkfun.fun's own, read from the launchpad.
+      crew: token.tonk && token.tonk.crewBps >= 100 ? `${token.tonk.crewBps / 100}%` : null,
+      agent: token.tonk?.agent ?? false,
+    },
     creator: shortAddress(token.creator),
     ageMinutes,
     art: token.image ?? "",
     ...(token.issuer ? { issuer: ISSUERS[token.issuer].name } : {}),
+    // Every tonkfun.fun launch carries the Block-0 Shield (the launch block's 99% tax on separate buys).
+    ...(token.tonk ? { shield: true } : {}),
   };
 }

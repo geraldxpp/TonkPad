@@ -29,6 +29,12 @@ export const MAINNET_DEPLOYMENT = {
   guard: "0x7a4c000000000000000000000000000000002000",
   block: "151000000",
 } as const;
+/** The live-data worker for the mainnet-mode run: the real tonkfun.fun feed, following a simulated chain (e2e/mainnet/fixture-worker.ts). */
+export const MAINNET_WORKER_PORT = 8792;
+export const MAINNET_WORKER_URL = `http://127.0.0.1:${MAINNET_WORKER_PORT}`;
+export const MAINNET_WORKER_TOKEN = "tonkpad-mainnet-e2e-only";
+/** A Pons token the worker lists: a token the launchpad doesn't know, with its own page. */
+export const MAINNET_PONS_TOKEN = "0x5555555555555555555555555555555555555555";
 export const MAINNET_LAUNCHPAD = {
   chainId: 4663,
   launchFee: "5000000000000000",

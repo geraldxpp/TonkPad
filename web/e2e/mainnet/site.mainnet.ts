@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { poolIdOf } from "../../src/shared/tonk/server/pool";
 import { STUB_EVM_HASH, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
 import { GRAD, TTONE } from "../testnet/fixture-chain";
-import { MAINNET_DEPLOYMENT, STUB_WALLET } from "../testnet/fixtures";
+import { MAINNET_DEPLOYMENT, MAINNET_PONS_TOKEN, STUB_WALLET } from "../testnet/fixtures";
 
 // This build is the site in mainnet mode (NEXT_PUBLIC_TONK_NETWORK=mainnet, a made-up deployment). The chain is
 // the local stand-in serving as Robinhood Chain mainnet: nothing is simulated or sent there, so what the server
@@ -58,7 +58,7 @@ test("while launches are invite-only, a wallet off the list is told so and can't
 test("Explore lists the launchpad's latest launches and opens a launch by its address", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Latest launches" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Tonk Test One/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Latest launches" }).getByRole("link", { name: /Tonk Test One/ })).toBeVisible();
   await page.getByLabel("Token address").fill(TTONE.token);
   await page.getByRole("button", { name: "Open", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/token/${TTONE.token}$`, "i"));
@@ -143,12 +143,25 @@ test("a receipt's swap on some other pool is never shown as this token's trade",
   await expect(tradePanel(page).getByText(/^Bought /)).toHaveCount(0);
 });
 
+test("Explore lists the launchpad's own launches from the live feed: Locked Missions, with their badges", async ({ page }) => {
+  await page.goto("/?tab=locked");
+  const row = page.getByRole("row").filter({ hasText: "Tonk Test One" });
+  await expect(row).toHaveCount(1);
+  for (const badge of ["Locked", "Block-0 Shield", "Crew 2%", "Agent"]) await expect(row.getByText(badge, { exact: true })).toBeVisible();
+  // Graduated on its own pool; the feed counts its holders exactly, system addresses and dust left out.
+  await expect(row.getByText("Graduated", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "e2e/screenshots/mainnet-explore-locked-1440.png" });
+  await row.getByRole("link", { name: "Tonk Test One" }).click();
+  await expect(page).toHaveURL(new RegExp(`/token/${TTONE.token}$`, "i"));
+  await expect(page.getByRole("heading", { level: 1, name: "Tonk Test One" })).toBeVisible();
+});
+
 test("tokens the launchpad doesn't know keep their own pages, and Swap, Bridge and Portfolio stay open", async ({ page }) => {
-  // A Solana mock token is never asked about; an unknown address on Robinhood Chain isn't a mission.
-  await page.goto("/token/SCAT");
-  await expect(page.getByRole("heading", { level: 1, name: "Sol Cat" })).toBeVisible();
+  // A token the live feed lists that isn't a mission shows as itself; an address neither knows isn't found.
+  await page.goto(`/token/${MAINNET_PONS_TOKEN}`);
+  await expect(page.getByRole("heading", { level: 1, name: "Pons Pal" })).toBeVisible();
   await page.goto("/token/0x9999999999999999999999999999999999999999");
-  await expect(page.getByRole("heading", { name: "Page not found", level: 1 })).toBeVisible();
+  await expect(page.getByText("This token is no longer available in the live feed.").first()).toBeVisible();
   for (const path of ["/swap", "/bridge", "/portfolio"]) {
     await page.goto(path);
     await expect(page.getByRole("main")).toBeVisible();

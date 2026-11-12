@@ -53,7 +53,7 @@ export function OpenToken({ address, ticker, small = false }: { address: string;
 function TokenCell({ token }: { token: RankedToken }) {
   const { t, href } = useI18n();
   const { flags } = token;
-  const badges = flags.locked || flags.og || flags.isNew || token.issuer || flags.crew || flags.agent;
+  const badges = flags.locked || flags.og || flags.isNew || token.issuer || token.shield || flags.crew || flags.agent;
   return (
     <div role="cell" className="flex min-w-0 items-center gap-2.5 pr-3">
       <TokenAvatar art={token.art} label={token.ticker} pad={token.launchpad} />
@@ -84,6 +84,11 @@ function TokenCell({ token }: { token: RankedToken }) {
             {flags.isNew ? <Badge kind="new" density="compact" /> : null}
             {flags.locked ? <Badge kind="locked" density="compact" /> : null}
             {token.issuer ? <Badge kind="rwa" value={token.issuer} density="compact" /> : null}
+            {token.shield ? (
+              <span className="max-lg:hidden">
+                <Badge kind="shield" density="compact" />
+              </span>
+            ) : null}
             {/* The narrower tiers keep the badge line short. */}
             {flags.crew ? (
               <span className="max-lg:hidden">

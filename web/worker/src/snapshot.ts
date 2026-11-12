@@ -10,6 +10,8 @@ export interface Snapshot {
   ponsBlock: number | null;
   /** Smart money's graduates and wallet credits (30 days). */
   smart?: SmartWalletsJSON | null;
+  /** The tonkfun.fun feed: the launchpad it followed and the last block it applied. */
+  tonk?: { launchpad: string; cursor: number | null } | null;
 }
 
 /** Reads a snapshot; version 1 was a bare array of tokens. */
@@ -21,6 +23,7 @@ export function parseSnapshot(text: string): Snapshot {
     tokens: Array.isArray(s.tokens) ? s.tokens : [],
     ponsBlock: typeof s.ponsBlock === "number" ? s.ponsBlock : null,
     smart: s.smart ?? null,
+    ...(s.tonk && typeof s.tonk.launchpad === "string" ? { tonk: { launchpad: s.tonk.launchpad, cursor: typeof s.tonk.cursor === "number" ? s.tonk.cursor : null } } : {}),
   };
 }
 

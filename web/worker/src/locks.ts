@@ -1,5 +1,6 @@
 import type { TrackedToken } from "./model";
 import type { StreamLock } from "./sources/streamflow";
+import { tonkLocked, tonkLockedShare } from "./tonk/score";
 
 /**
  * Locks in Mission score v2 (approved by the owner on 7 Nov 2026). Locked
@@ -34,12 +35,15 @@ export function lockedFor(token: TrackedToken, days: number, now: number, sender
 
 /** Share of supply in firm locks with at least 7 days left, 0–1. */
 export function lockedShare(token: TrackedToken, now: number): number {
+  if (token.tonk) return tonkLockedShare(token.tonk, now);
   const supply = token.supply ?? 0;
   return supply > 0 ? Math.min(1, lockedFor(token, BADGE_DAYS, now) / supply) : 0;
 }
 
 /** A Locked Mission: a Tonkpad launch with a firm lock of 1%+ of its supply, 7+ days left. */
 export function isLockedMission(token: TrackedToken, now: number): boolean {
+  // A launch the feed follows: its dev lock as the launchpad stores it, as its token page reads it.
+  if (token.tonk) return tonkLocked(token.tonk, now);
   return token.launchpad === "tonk" && lockedShare(token, now) >= BADGE_MIN_SHARE;
 }
 

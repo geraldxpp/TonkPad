@@ -141,10 +141,11 @@ export class TokenStore {
     return pending.slice(0, limit).map((t) => t.address);
   }
 
-  /** Drops tokens older than a day, unless they graduated within it. */
+  /** Drops tokens older than a day, unless they graduated within it. tonkfun.fun's launches are kept for good: their feed keeps the whole history. */
   prune(now: number): number {
     let removed = 0;
     for (const [address, t] of this.tokens) {
+      if (t.tonk) continue;
       const recentGraduate = t.graduatedAt !== null && now - t.graduatedAt < DAY;
       if (now - t.createdAt > DAY && !recentGraduate) {
         this.tokens.delete(address);
@@ -161,7 +162,7 @@ export class TokenStore {
   restore(tokens: readonly TrackedToken[], now: number): void {
     for (const t of tokens) {
       const image = t.image ? repointArt(t.image, t.launchpad) : t.assetAt > 0 ? launchpadArt(t.address, t.launchpad) : null;
-      const nextRefreshAt = t.pons && !t.graduated ? NOT_ON_DEXSCREENER : now;
+      const nextRefreshAt = t.tonk || (t.pons && !t.graduated) ? NOT_ON_DEXSCREENER : now;
       this.tokens.set(t.address, { ...t, ...cleanSaved(t), image, nextRefreshAt });
     }
     this.prune(now);

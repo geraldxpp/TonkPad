@@ -1,11 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
-import { MAINNET_APP_URL, MAINNET_DEPLOYMENT, MAINNET_RPC_URL } from "./e2e/testnet/fixtures";
+import { MAINNET_APP_URL, MAINNET_DEPLOYMENT, MAINNET_RPC_URL, MAINNET_WORKER_TOKEN, MAINNET_WORKER_URL } from "./e2e/testnet/fixtures";
 
 /**
  * The site in mainnet mode: a production build with NEXT_PUBLIC_TONK_NETWORK=mainnet and a made-up
  * deployment, reading the local stand-in RPC as Robinhood Chain mainnet (FIXTURE_CHAIN=mainnet). Every
  * chain read, balances included, goes to the stand-in: nothing here reaches a real chain or sends
- * anything. Run after the other suites: every configuration builds into .next.
+ * anything. As in production, a live-data worker feeds Explore: the real tonkfun.fun feed, following
+ * a simulated chain in memory (e2e/mainnet/fixture-worker.ts). Run after the other suites: every
+ * configuration builds into .next.
  */
 // No real swap keys and trading closed, whatever a local .env.local holds.
 const NO_SWAP = { JUPITER_API_KEY: "", ZEROX_API_KEY: "", SWAP_TRADING: "", SOLANA_FEE_WALLET: "", EVM_FEE_WALLET: "", BRIDGE_TRADING: "", BRIDGE_PROVIDERS: "off" };
@@ -28,6 +30,12 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
+      command: "npx tsx e2e/mainnet/fixture-worker.ts",
+      url: `${MAINNET_WORKER_URL}/health`,
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
       command: `npm run build && npm run start -- -p ${new URL(MAINNET_APP_URL).port} -H 127.0.0.1`,
       url: MAINNET_APP_URL,
       env: {
@@ -40,8 +48,8 @@ export default defineConfig({
         TONK_RPC_URL: MAINNET_RPC_URL,
         ROBINHOOD_RPC_URL: MAINNET_RPC_URL,
         NEXT_PUBLIC_WALLET_STUB: "1",
-        WORKER_URL: "",
-        WORKER_TOKEN: "",
+        WORKER_URL: MAINNET_WORKER_URL,
+        WORKER_TOKEN: MAINNET_WORKER_TOKEN,
         HELIUS_API_KEY: "",
         // A made-up security contact for the Security page; its bounty amounts stay unset.
         NEXT_PUBLIC_SECURITY_CONTACT: "security@example.com",

@@ -52,7 +52,7 @@ export function snapshotsDue(tokens: readonly TrackedToken[], smart: SmartWallet
   return tokens
     .filter((t) => {
       const age = sinceGraduation(t, now);
-      return !t.pons && age !== null && age < HELD_FOR && !t.graduationWallets && !smart.hasGraduate(t.address);
+      return !t.pons && !t.tonk && age !== null && age < HELD_FOR && !t.graduationWallets && !smart.hasGraduate(t.address);
     })
     .sort((a, b) => (b.graduatedAt ?? 0) - (a.graduatedAt ?? 0));
 }
@@ -61,7 +61,7 @@ export function snapshotsDue(tokens: readonly TrackedToken[], smart: SmartWallet
 export function creditsDue(tokens: readonly TrackedToken[], smart: SmartWallets, now: number): TrackedToken[] {
   return tokens.filter((t) => {
     const age = sinceGraduation(t, now);
-    return age !== null && age >= HELD_FOR && age <= DAY && !smart.hasGraduate(t.address);
+    return !t.tonk && age !== null && age >= HELD_FOR && age <= DAY && !smart.hasGraduate(t.address);
   });
 }
 

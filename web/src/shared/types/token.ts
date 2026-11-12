@@ -63,4 +63,6 @@ export interface Token {
   art: string;
   /** The verified issuer of a tokenized stock or RWA, e.g. "xStocks" (live data). Shows the Verified RWA badge. */
   issuer?: string;
+  /** A tonkfun.fun launch (live data): the Block-0 Shield, a 99% tax on separate buys in its launch block and the next. */
+  shield?: boolean;
 }
