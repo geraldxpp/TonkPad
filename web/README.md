@@ -411,8 +411,36 @@ sends the token side to the dead address. The receipt's own
 **Kept in the browser.** A draft is saved only by "Save draft"
 (`tonkpad-launch-draft:<chainId>`). A referrer's address from `?ref=` is
 remembered per network (`tonkpad-ref:<chainId>`) and named on that wallet's
-curve trades (never the trader's own address). Token images wait for hosting:
-until then a token shows its letter.
+curve trades (never the trader's own address).
+
+**Token images.** A creator picks an image in Launch's Basics step, or later
+in the token page's *Edit details*; it goes on chain in the metadata's
+optional `image` (the format stays `v: 1`). `POST /api/tonk/image`
+(`src/shared/tonk/server/image-upload.ts`):
+- takes PNG, JPEG, WebP or GIF up to 2 MB, sniffed from its first bytes;
+- needs the uploader's EVM wallet signature (EIP-191, free, no transaction)
+  over the site, the wallet, the file's SHA-256 and a time within 5 minutes;
+- while `NEXT_PUBLIC_TONK_LAUNCH_INVITES` is set, only from an invited wallet;
+- allows 10 uploads per wallet per hour, counted (before decoding) as tiny
+  markers in the Blob store under `token-art-log/`, so the count holds across
+  serverless instances; uploads landing at the very same moment can slip past
+  it together. With Launch open to all, wallets are free, so the limit slows
+  abuse rather than stopping it; the hide list is the backstop;
+- re-encodes with `sharp` to a 512 × 512 WebP (centre-cropped, EXIF turned
+  upright, every piece of metadata dropped, an animation's first frame) and
+  stores it as `token-art/<sha256>.webp`, named by its own hash. Nothing is
+  stored unless it decodes.
+
+Only images on `NEXT_PUBLIC_TONK_IMAGE_HOST` are shown: it is the Blob
+store's exact hostname (`<id>.public.blob.vercel-storage.com`; a wildcard, a
+URL or a port is refused and turns images off). The app's metadata decoding,
+the worker's feed and Next's `images.remotePatterns` all drop any other
+address, so a token can never make visitors load an outside image. Hide an
+image by listing its hash (or its link) in `TONK_HIDDEN_IMAGES`, separated by
+spaces or commas, in Vercel and in Railway: the server and the worker drop it,
+and the token shows its letter. To remove the file itself, delete it in the
+Blob store. Without `BLOB_READ_WRITE_TOKEN` the route answers `closed` and the
+picker says images aren't set up yet. The e2e builds keep uploads in memory.
 
 **Settings.** `NEXT_PUBLIC_TONK_NETWORK` (above), and on mainnet the three
 `NEXT_PUBLIC_TONK_*` deployment values. `TONK_RPC_URL` (server only,
@@ -426,7 +454,10 @@ ownership, add these for **Production** (type Config), then rebuild:
 - `NEXT_PUBLIC_TONK_NETWORK=mainnet`;
 - `NEXT_PUBLIC_TONK_LAUNCHPAD`, `NEXT_PUBLIC_TONK_MIGRATOR` and
   `NEXT_PUBLIC_TONK_LAUNCHPAD_BLOCK`;
-- for the guarded launch's first days, `NEXT_PUBLIC_TONK_LAUNCH_INVITES`.
+- for the guarded launch's first days, `NEXT_PUBLIC_TONK_LAUNCH_INVITES`;
+- for token images, a Blob store connected to the project (Storage → Create →
+  Blob, which adds `BLOB_READ_WRITE_TOKEN`) and `NEXT_PUBLIC_TONK_IMAGE_HOST`,
+  also on the Railway worker with `TONK_HIDDEN_IMAGES`.
 
 `npm run test:e2e:mainnet` runs a mainnet-mode build against a local
 stand-in RPC first.

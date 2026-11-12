@@ -19,7 +19,7 @@ import { MAINNET_PONS_TOKEN, MAINNET_WORKER_PORT, MAINNET_WORKER_TOKEN } from ".
  */
 const ETH_USD = 3_000;
 const store = new TokenStore();
-const chain = tonkScenario({ token: TTONE.token as `0x${string}`, name: TTONE.name, symbol: TTONE.symbol, launchTime: Math.floor(Date.now() / 1000) - 55 * 60 });
+const chain = tonkScenario({ token: TTONE.token as `0x${string}`, name: TTONE.name, symbol: TTONE.symbol, launchTime: Math.floor(Date.now() / 1000) - 55 * 60, metadataUri: TTONE.metadata });
 const rpc = new FakeRpc(chain);
 const book = new TonkBook(store, SYSTEM);
 const feed = new TonkFeed(rpc, CONFIG, book);

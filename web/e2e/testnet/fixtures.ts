@@ -43,6 +43,19 @@ export const MAINNET_LAUNCHPAD = {
   gasPrice: "10000000",
 } as const;
 
+/**
+ * Token images in the e2e builds: a made-up host under the reserved .test name, which never resolves,
+ * so nothing is fetched from anywhere real. Uploads go to the server's in-memory store (the stub
+ * wallet's builds); the browser is answered for the images themselves (e2e/helpers.ts).
+ */
+export const E2E_IMAGE_HOST = "images.tonkfun.test";
+export const e2eImage = (hash: string) => `https://${E2E_IMAGE_HOST}/token-art/${hash}.webp`;
+/** TTONE's image, and GRAD's, which the owner's hide list (TONK_HIDDEN_IMAGES) holds. */
+export const TTONE_IMAGE = e2eImage("a1".repeat(32));
+export const HIDDEN_IMAGE_HASH = "dead".repeat(16);
+/** Token images on, with no real store and nothing hidden but GRAD's: every configuration's env. */
+export const E2E_IMAGES = { NEXT_PUBLIC_TONK_IMAGE_HOST: E2E_IMAGE_HOST, BLOB_READ_WRITE_TOKEN: "", TONK_HIDDEN_IMAGES: HIDDEN_IMAGE_HASH };
+
 /** The e2e build's stub wallet holds 0.5 test ETH on the fixture; any other address holds nothing. */
 export const STUB_WALLET = STUB_ACCOUNTS.rh;
 export const STUB_BALANCE = "500000000000000000";

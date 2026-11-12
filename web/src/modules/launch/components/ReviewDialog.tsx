@@ -9,7 +9,8 @@ import { bpsText, formatEth, formatTokens, percentText } from "@/shared/tonk/for
 import type { RunState } from "../hooks/useLaunchRun";
 import { agentLabel, feeLabel, lockLabel } from "../lib/labels";
 import { Sheet } from "@/shared/ui/Sheet";
-import { LETTER_TILE, pairText, type StudioProps, tokenLetter } from "./types";
+import { TokenTile } from "./TokenTile";
+import { pairText, type StudioProps } from "./types";
 
 interface ReviewDialogProps extends Pick<StudioProps, "state" | "view" | "settings" | "unit"> {
   open: boolean;
@@ -63,9 +64,7 @@ export function ReviewDialog({ open, onClose, state, view, settings, unit, chain
   return (
     <Sheet open={open} onClose={close} title={r.title} subtitle={r.sub} busy={working}>
       <div className="flex items-center gap-3 rounded-xl border border-line bg-bg p-4">
-        <span aria-hidden="true" className={`${LETTER_TILE} h-[47px] w-[43px] rounded-[10px] text-[29px]`}>
-          {tokenLetter(form)}
-        </span>
+        <TokenTile form={form} size={47} className="h-[47px] w-[43px] flex-none rounded-[10px]" letterClassName="text-[29px]" />
         <div className="min-w-0">
           <h3 className="m-0 font-display text-[20px] leading-6 font-extrabold [overflow-wrap:anywhere]">{form.name.trim()}</h3>
           <span className="mt-0.5 block font-mono text-[11px] text-text-3">

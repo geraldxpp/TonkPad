@@ -15,7 +15,7 @@ export type FeedEvent =
   | { kind: "bundleTax"; token: Address; sniper: Address; penalty: bigint }
   | { kind: "graduated"; token: Address }
   | { kind: "lockChanged"; token: Address }
-  | { kind: "metadata"; token: Address; agentPrompt: string }
+  | { kind: "metadata"; token: Address; metadataUri: string; agentPrompt: string }
   | { kind: "poolLocked"; token: Address; fee: number; ethSeeded: bigint; tokensSeeded: bigint }
   | { kind: "swap"; pool: Hex; sender: Address; amount0: bigint; amount1: bigint; sqrtPriceX96: bigint }
   | { kind: "transfer"; token: Address; from: Address; to: Address; value: bigint };
@@ -55,8 +55,8 @@ function launchpadEvent(log: RawLog): FeedEvent | null {
     case "DevTokensClaimed":
       return { kind: "lockChanged", token };
     case "MetadataUpdated": {
-      const prompt = String(a.newAgentPrompt);
-      return { kind: "metadata", token, agentPrompt: prompt.length > TEXT_MAX ? "" : prompt };
+      const [metadata, prompt] = [String(a.newMetadataUri), String(a.newAgentPrompt)];
+      return { kind: "metadata", token, metadataUri: metadata.length > TEXT_MAX ? "" : metadata, agentPrompt: prompt.length > TEXT_MAX ? "" : prompt };
     }
     default:
       return null;

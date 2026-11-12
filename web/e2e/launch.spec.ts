@@ -7,7 +7,7 @@ const TOKEN = "0x1111111111111111111111111111111111111111";
 const BOUGHT = "42095276220976781425140112";
 const LOCKED = "33676220976781425140112089";
 const MISSION = {
-  token: TOKEN, creator: "0x7a5e00000000000000000000000000000000c0de", name: "Astro Pup", symbol: "ASTRO", crewBps: 200, creatorBps: 100, lockType: "linear", lockedBps: 8000,
+  token: TOKEN, creator: "0x3daa6db67596ce7633caa7ef42ca074a73db9490", name: "Astro Pup", symbol: "ASTRO", crewBps: 200, creatorBps: 100, lockType: "linear", lockedBps: 8000,
   lockEnd: 1_800_000_000, devBuy: "250000000000000000", bought: BOUGHT, locked: LOCKED, protocolFee: "2500000000000000", creatorFee: "2500000000000000", block: 151_200_000,
 };
 
@@ -270,7 +270,7 @@ test("Refer & earn explains the 25%, and gives a connected wallet its link", asy
   await expect(dialog).toBeHidden();
   await summary(page).getByRole("button", { name: "Connect wallet" }).click();
   await page.getByRole("button", { name: "Refer & earn 25%" }).click();
-  await expect(dialog.getByLabel("Your link")).toHaveValue(/\/\?ref=0x7a5e00000000000000000000000000000000c0de$/);
+  await expect(dialog.getByLabel("Your link")).toHaveValue(/\/\?ref=0x3daa6db67596ce7633caa7ef42ca074a73db9490$/);
 });
 
 test("the Token Agent is off until switched on, then needs its fields", async ({ page }) => {

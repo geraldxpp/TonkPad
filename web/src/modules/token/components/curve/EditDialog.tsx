@@ -2,9 +2,11 @@
 
 import { type ReactNode, useState } from "react";
 import { useI18n } from "@/shared/i18n/I18nProvider";
+import { ImagePicker } from "@/shared/tonk/ImagePicker";
 import { AGENT_VOICES, type AgentSettings, type AgentVoice, decodeAgent, decodeMetadata, LIMITS, normalizeTelegram, normalizeWebsite, normalizeX } from "@/shared/tonk/metadata";
 import type { ActionRequest, MissionJson } from "@/shared/tonk/mission";
 import { Sheet } from "@/shared/ui/Sheet";
+import { TokenArt } from "@/shared/ui/TokenArt";
 
 const INPUT = "w-full min-w-0 rounded-lg border border-line-strong bg-bg px-3 py-2 text-[14px] leading-[1.6] text-text placeholder:text-text-3 aria-[invalid=true]:border-neg";
 
@@ -37,10 +39,10 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
 }
 
 /**
- * Edit a mission's details: the description, the links and the agent's
- * brief, with the Creator Studio's own checks. The contract replaces both
- * stored texts at once, so the form starts from what is on-chain and always
- * sends everything. Name and ticker can't change.
+ * Edit a mission's details: the image, the description, the links and the
+ * agent's brief, with the Creator Studio's own checks. The contract replaces
+ * both stored texts at once, so the form starts from what is on-chain and
+ * always sends everything. Name and ticker can't change.
  */
 export function EditDialog({ open, onClose, mission, owner, busy, note, onAction }: EditDialogProps) {
   const { t } = useI18n();
@@ -71,6 +73,7 @@ export function EditDialog({ open, onClose, mission, owner, busy, note, onAction
       x: details.x.trim(),
       telegram: details.telegram.trim(),
       website: details.website.trim(),
+      image: details.image,
       agent: agentOn ? { name: agent.name.trim(), role: agent.role.trim(), voice: agent.voice, brief: agent.brief.trim() } : null,
     });
   const link = (key: "x" | "telegram" | "website", label: string, placeholder: string) => (
@@ -89,6 +92,14 @@ export function EditDialog({ open, onClose, mission, owner, busy, note, onAction
   );
   return (
     <Sheet open={open} onClose={onClose} title={c.editTitle} subtitle={c.editSub} busy={busy}>
+      <ImagePicker
+        layout="row"
+        label={b.image}
+        value={details.image}
+        onChange={(image) => setDetails((current) => ({ ...current, image }))}
+        disabled={busy}
+        preview={<TokenArt src={details.image} label={mission.symbol} size={48} brand className="size-12 rounded-xl object-cover" />}
+      />
       <Field id="mission-edit-description" label={b.description} error={errors.description}>
         <textarea
           id="mission-edit-description"

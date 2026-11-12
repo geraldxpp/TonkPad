@@ -45,7 +45,7 @@ test("a Robinhood Chain token asks a Solana wallet's owner for one on its chain,
   await expect(connect).toBeVisible();
   await expect(connect).toHaveAccessibleDescription("Connecting shares only your address. Nothing is signed.");
   await connect.click();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Wallet 0x7a5e…c0de on Robinhood Chain" })).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Wallet 0x3daa…9490 on Robinhood Chain" })).toBeVisible();
   await expect(trade.getByText("Balance 0.25 ETH on Robinhood Chain")).toBeVisible();
   await trade.getByRole("button", { name: "Sell", exact: true }).click();
   await expect(trade.getByText("Balance 1.00M LVR")).toBeVisible();

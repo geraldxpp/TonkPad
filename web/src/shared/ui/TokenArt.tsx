@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { type CSSProperties, useState } from "react";
 import { cn } from "@/shared/lib/cn";
+import { tokenImageHash } from "@/shared/tonk/image";
 
 interface TokenArtProps {
   /** A path under /public or a remote URL; "" when the token has no art yet. */
@@ -22,12 +23,15 @@ interface TokenArtProps {
 /**
  * Token art. Remote art (live tokens) is shown as-is, without Next's image
  * optimiser: thousands of new tokens a day would run through its quota, and
- * the worker already points at a resized CDN copy. When there is no art, or
- * it fails to load, a letter tile takes its place.
+ * the worker already points at a resized CDN copy. tonkfun.fun's own token
+ * images are the exception: they come from its one image host, the only one
+ * next.config.ts lets the optimiser fetch, and are served resized. When
+ * there is no art, or it fails to load, a letter tile takes its place.
  */
 export function TokenArt({ src, label, size, alt = "", brand = false, eager = false, className, style }: TokenArtProps) {
-  const [failed, setFailed] = useState(false);
-  if (!src || failed) {
+  // Remembered per address, so a new image gets its own chance to load.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  if (!src || failedSrc === src) {
     return (
       <span
         role={alt ? "img" : undefined}
@@ -46,9 +50,9 @@ export function TokenArt({ src, label, size, alt = "", brand = false, eager = fa
       alt={alt}
       width={size}
       height={size}
-      unoptimized={/^https?:\/\//.test(src)}
+      unoptimized={/^https?:\/\//.test(src) && tokenImageHash(src) === null}
       loading={eager ? "eager" : undefined}
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(src)}
       className={className}
       style={style}
     />

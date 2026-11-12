@@ -44,6 +44,7 @@ interface Eip1193 {
 const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
 const toBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
 const hex = (wei: string) => `0x${BigInt(wei).toString(16)}`;
+const utf8Hex = (text: string) => `0x${Array.from(new TextEncoder().encode(text), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 
 /** The chain an EVM wallet is on, from the wallet itself ("0x1237" from extensions, 4663 over WalletConnect). */
 async function walletChainId(provider: Eip1193): Promise<number | null> {
@@ -64,7 +65,8 @@ const pageTheme = () => (document.documentElement.getAttribute("data-theme") ===
  * them off too, since its settings can override these). The Coinbase and Base
  * SDK connectors are off as well; those wallets still connect as browser
  * extensions or through WalletConnect. It signs only the swaps the app
- * builds, and only once the person approves them in their wallet.
+ * builds, and only once the person approves them in their wallet; besides
+ * those, only a token image upload's message, which sends nothing.
  */
 export async function createAppKitDriver(projectId: string): Promise<WalletDriver> {
   const origin = window.location.origin;
@@ -208,6 +210,15 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       });
       if (typeof hash !== "string") throw new WalletActionError("failed");
       return hash;
+    },
+    async signEvmMessage(message) {
+      const provider = appKit.getProvider<Eip1193>(NAMESPACES.rh);
+      const from = appKit.getAccount(NAMESPACES.rh)?.address;
+      if (!provider || !from) throw new WalletActionError("failed");
+      // personal_sign signs text, on no chain in particular: nothing to switch first.
+      const signature = await provider.request({ method: "personal_sign", params: [utf8Hex(message), from] });
+      if (typeof signature !== "string") throw new WalletActionError("failed");
+      return signature;
     },
   };
 }

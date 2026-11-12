@@ -1,5 +1,6 @@
 import { defaultForm, type LaunchForm } from "./form";
 import type { CurveSettings } from "@/shared/tonk/curve";
+import { allowedImage } from "@/shared/tonk/image";
 
 /** Where a draft is kept on this device, per network (the old `tonkpad-` prefix keeps the app's keys in one family). */
 export const draftKey = (chainId: number) => `tonkpad-launch-draft:${chainId}`;
@@ -18,6 +19,8 @@ export function restoreDraft(saved: string | null, settings: CurveSettings): Lau
       const value = (source as Record<string, unknown>)[key];
       if (typeof initial === "string" ? typeof value === "string" && value.length <= MAX_TEXT : typeof value === typeof initial && (typeof value !== "number" || Number.isFinite(value))) target[key] = value;
     }
+    // A saved image counts only if it is still one of ours.
+    form.image = allowedImage(form.image);
     return form;
   } catch {
     return null;

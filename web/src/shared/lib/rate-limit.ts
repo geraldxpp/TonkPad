@@ -41,6 +41,8 @@ export const ALLOWANCES = {
   tonkPoolTrade: { burst: 12, perSecond: 0.2 },
   tonkAction: { burst: 8, perSecond: 0.1 },
   tonkMissions: { burst: 20, perSecond: 0.5 },
+  // A token image is uploaded once per pick (each wallet may also upload only ten an hour, counted in the image store).
+  tonkImage: { burst: 10, perSecond: 0.05 },
   // Portfolio: each connected wallet refreshes once a minute; activity loads per tab and per "Load more"; the market series are per chart range.
   portfolio: { burst: 20, perSecond: 0.25 },
   portfolioActivity: { burst: 20, perSecond: 0.25 },

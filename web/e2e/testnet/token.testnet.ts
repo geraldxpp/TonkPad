@@ -3,11 +3,13 @@ import { de } from "../../src/shared/i18n/dictionaries/de";
 import { ru } from "../../src/shared/i18n/dictionaries/ru";
 import { STUB_EVM_HASH, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
 import { DAY, GRAD, NEWB, OWNER, TOWN, TTONE } from "./fixture-chain";
-import { STUB_WALLET } from "./fixtures";
+import { uploadPicture } from "../helpers";
+import { E2E_IMAGE_HOST, STUB_WALLET } from "./fixtures";
 
 // The testnet site's token page. The chain is the local stand-in (fixture-chain.ts holds its missions).
 // It refuses to simulate or send, so what the server would build is answered here, in the browser,
-// and the stub wallet "sends" it: no test reaches the real chain or signs anything.
+// and the stub wallet "sends" it: no test reaches the real chain. The stub signs nothing but a token
+// image's message, with its own test key, for the server's upload route to check.
 
 const EXPLORER = "https://explorer.testnet.chain.robinhood.com";
 const PAD = "0xB9bb81242ce7B40775CEADF3b591411f0320Ec82";
@@ -235,8 +237,15 @@ test("the creator claims unlocked tokens, extends the lock and edits the details
   events = [{ kind: "edited", token: TOWN.token }];
   await tools.getByRole("button", { name: "Edit details" }).click();
   const edit = page.getByRole("dialog", { name: "Edit your token's details." });
-  // The form starts from what is on-chain.
+  // The form starts from what is on-chain: no image yet.
+  await expect(edit.getByText("PNG, JPEG, WebP or GIF, up to 2 MB. Cropped to a square; an animated GIF keeps its first frame.")).toBeVisible();
   await expect(edit.getByLabel("Description")).toHaveValue("A town for stubs.");
+  // An image added: signed in the wallet, checked and stored by the server (in memory here), saved with the rest.
+  const chooser = page.waitForEvent("filechooser");
+  await edit.getByRole("button", { name: "Choose image" }).click();
+  await (await chooser).setFiles(await uploadPicture());
+  await expect(edit.getByText("Image uploaded.")).toBeVisible();
+  await expect(edit.getByRole("button", { name: "Change image" })).toBeVisible();
   await expect(edit.getByLabel("X handle")).toHaveValue("stubtown");
   await expect(edit.getByLabel("Agent name")).toHaveValue("Mayor Stub");
   await edit.getByLabel("Website").fill("javascript:alert(1)");
@@ -249,7 +258,17 @@ test("the creator claims unlocked tokens, extends the lock and edits the details
   expect(asked).toEqual([
     { kind: "claim", token: TOWN.token, owner: STUB_WALLET },
     { kind: "extend", token: TOWN.token, owner: STUB_WALLET, days: 7 },
-    { kind: "edit", token: TOWN.token, owner: STUB_WALLET, description: "A bigger town.", x: "stubtown", telegram: "", website: "https://stub.town/", agent: { name: "Mayor Stub", role: "Town crier", voice: "hype", brief: "Keep the town informed." } },
+    {
+      kind: "edit",
+      token: TOWN.token,
+      owner: STUB_WALLET,
+      description: "A bigger town.",
+      x: "stubtown",
+      telegram: "",
+      website: "https://stub.town/",
+      image: expect.stringMatching(new RegExp(`^https://${E2E_IMAGE_HOST.replaceAll(".", "\\.")}/token-art/[0-9a-f]{64}\\.webp$`)),
+      agent: { name: "Mayor Stub", role: "Town crier", voice: "hype", brief: "Keep the town informed." },
+    },
   ]);
 });
 

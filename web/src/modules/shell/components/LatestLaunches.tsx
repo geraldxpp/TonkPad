@@ -37,7 +37,7 @@ export async function LatestLaunches() {
         <li key={mission.token} className="border-t border-line first:border-t-0">
           <Link href={href(`/token/${mission.token}`)} className="-mx-2 flex min-w-0 items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-raised">
             <span className="flex size-9 flex-none overflow-hidden rounded-[10px]">
-              <TokenArt src="" label={mission.symbol} size={36} brand className="size-full" />
+              <TokenArt src={mission.image} label={mission.symbol} size={36} brand className="size-full object-cover" />
             </span>
             <span className="flex min-w-0 flex-auto flex-col gap-0.5">
               <span className="flex min-w-0 items-baseline gap-2">

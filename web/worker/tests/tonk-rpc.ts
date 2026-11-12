@@ -77,7 +77,7 @@ export class FakeRpc implements AlertRpc {
     if (to === LAUNCHPAD && functionName === "missions") {
       const c = state.curve;
       const fields = [token, ZERO_ADDRESS, BigInt(this.chain.launchTime), BigInt(this.chain.launchBlock), this.chain.crewBps, this.chain.creatorBps, state.graduated];
-      return result([...fields, c.virtualEth, c.virtualTokens, c.realEth, c.tokensLeft, state.graduated ? MIGRATOR : ZERO_ADDRESS, "", this.chain.agentPrompt]);
+      return result([...fields, c.virtualEth, c.virtualTokens, c.realEth, c.tokensLeft, state.graduated ? MIGRATOR : ZERO_ADDRESS, this.chain.metadataUri, this.chain.agentPrompt]);
     }
     if (to === LAUNCHPAD && functionName === "devLocks") return result(state.lock);
     if (to === LAUNCHPAD && functionName === "devVestedCheckpoint") return result(BigInt(0));

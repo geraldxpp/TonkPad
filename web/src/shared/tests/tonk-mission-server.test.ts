@@ -290,8 +290,8 @@ describe("reading a mission", () => {
     ]);
     expect(client.getContractEvents).toHaveBeenCalledWith(expect.objectContaining({ eventName: "CurveTrade", args: { token: TOKEN }, fromBlock: big(151_319_782) }));
 
-    client.getContractEvents.mockResolvedValueOnce([{ blockNumber: big(151_319_782), args: { token: TOKEN, creator: CREATOR, name: "Tonk Test One", symbol: "TTONE" } }]);
-    expect(await readLatestMissions(TONK_TESTNET)).toEqual([{ token: TOKEN, name: "Tonk Test One", symbol: "TTONE", creator: CREATOR, block: 151_319_782, time: LAUNCHED }]);
+    client.getContractEvents.mockResolvedValueOnce([{ blockNumber: big(151_319_782), args: { token: TOKEN, creator: CREATOR, name: "Tonk Test One", symbol: "TTONE", metadataUri: "" } }]);
+    expect(await readLatestMissions(TONK_TESTNET)).toEqual([{ token: TOKEN, name: "Tonk Test One", symbol: "TTONE", creator: CREATOR, block: 151_319_782, time: LAUNCHED, image: "" }]);
     expect(client.getContractEvents).toHaveBeenLastCalledWith(expect.objectContaining({ eventName: "MissionLaunched", fromBlock: big(TONK_TESTNET.launchpadBlock) }));
   });
 
@@ -575,10 +575,10 @@ describe("building the creator's and the holder's actions", () => {
     expect(decodeFunctionData({ abi: LAUNCHPAD_ABI, data: extend.build.tx.data as `0x${string}` })).toMatchObject({ functionName: "extendDevLock", args: [TOKEN, big(7 * DAY)] });
 
     const agent = { name: "Commander Astro", role: "Mission commander", voice: "hype" as const, brief: "Keep holders informed." };
-    const edit = await call({ kind: "edit", token: TOKEN, owner: CREATOR, description: "New words.", x: "@tonkfun", telegram: "t.me/tonkfun", website: "tonkfun.fun", agent });
+    const edit = await call({ kind: "edit", token: TOKEN, owner: CREATOR, description: "New words.", x: "@tonkfun", telegram: "t.me/tonkfun", website: "tonkfun.fun", image: "", agent });
     const { functionName, args } = decodeFunctionData({ abi: LAUNCHPAD_ABI, data: edit.build.tx.data as `0x${string}` });
     expect(functionName).toBe("updateMissionMetadata");
-    expect(decodeMetadata(String(args?.[1]))).toEqual({ description: "New words.", x: "tonkfun", telegram: "https://t.me/tonkfun", website: "https://tonkfun.fun/" });
+    expect(decodeMetadata(String(args?.[1]))).toEqual({ description: "New words.", x: "tonkfun", telegram: "https://t.me/tonkfun", website: "https://tonkfun.fun/", image: "" });
     expect(decodeAgent(String(args?.[2]))).toEqual(agent);
   });
 

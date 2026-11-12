@@ -25,7 +25,7 @@ const CREATOR = "0xd0d0620Bcf60F15a0aC75753fCc0EbF2d65b268f";
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const SETTINGS: TonkSettingsJson = { chainId: 46630, launchFee: "100000000000000", virtualEth: "1500000000000000", virtualTokens: "1073000000000000000000000000", paused: false, gasPrice: "10000000", readAt: 1 };
 /** The owner's first test launch (the prompt's section 12). */
-const REQUEST: LaunchRequest = { creator: CREATOR, name: "Tonk Test One", ticker: "TTONE", description: "First test launch.", x: "@tonkfun", telegram: "", website: "tonkfun.fun", devBuy: "200000000000000", lock: "linear", share: 80, days: 180, crewBps: 200, creatorBps: 100, agent: null };
+const REQUEST: LaunchRequest = { creator: CREATOR, name: "Tonk Test One", ticker: "TTONE", description: "First test launch.", x: "@tonkfun", telegram: "", website: "tonkfun.fun", image: "", devBuy: "200000000000000", lock: "linear", share: 80, days: 180, crewBps: 200, creatorBps: 100, agent: null };
 
 const item = (type: "function" | "event", name: string) => LAUNCHPAD_ABI.find((entry) => entry.type === type && entry.name === name)!;
 

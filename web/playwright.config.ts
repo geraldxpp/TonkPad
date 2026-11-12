@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_IMAGES } from "./e2e/testnet/fixtures";
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = `http://127.0.0.1:${PORT}`;
@@ -34,7 +35,7 @@ export default defineConfig({
     url: baseURL,
     // The stub wallet stands in for Reown: no real wallets or wallet network in tests.
     // The Creator Studio runs as the demo: mock settings, and /api/tonk/* answered in the browser.
-    env: { NEXT_PUBLIC_WALLET_STUB: "1", NEXT_PUBLIC_TONK_NETWORK: "mock", ...NO_SWAP, ...NO_SECURITY },
+    env: { NEXT_PUBLIC_WALLET_STUB: "1", NEXT_PUBLIC_TONK_NETWORK: "mock", ...NO_SWAP, ...NO_SECURITY, ...E2E_IMAGES },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },

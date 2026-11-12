@@ -5,6 +5,7 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { formatEth, formatEthShort, percentText } from "@/shared/tonk/format";
 import { Badge } from "@/shared/ui/Badge";
 import { ChainMark } from "@/shared/ui/ChainMark";
+import { TokenArt } from "@/shared/ui/TokenArt";
 import { type StudioProps, tokenLetter } from "./types";
 
 /**
@@ -27,9 +28,13 @@ export function TokenPreview({ state, view, unit }: Pick<StudioProps, "state" | 
           <Badge kind="new" />
         </span>
         <ChainMark chain="rh" size={18} decorative className="absolute top-2.5 right-2.5 z-[2]" />
-        <span aria-hidden="true" className="relative z-[1] font-display text-[84px] leading-none font-extrabold tracking-[-0.05em] text-art-ink [text-shadow:0_5px_25px_rgb(0_49_63/0.4)]">
-          {letter}
-        </span>
+        {form.image ? (
+          <TokenArt src={form.image} label={letter} size={96} brand className="relative z-[1] size-24 rounded-[22px] object-cover shadow-[0_5px_25px_rgb(0_49_63/0.4)]" />
+        ) : (
+          <span aria-hidden="true" className="relative z-[1] font-display text-[84px] leading-none font-extrabold tracking-[-0.05em] text-art-ink [text-shadow:0_5px_25px_rgb(0_49_63/0.4)]">
+            {letter}
+          </span>
+        )}
       </div>
       <div className="px-3 py-3.5">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">

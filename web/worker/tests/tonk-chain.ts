@@ -34,7 +34,8 @@ export class TonkChain {
   readonly history: Array<{ block: number; curve: MissionCurve; lock: LockRow; graduated: boolean }> = [];
   lock: LockRow = [0, 0, BigInt(0), BigInt(0), BigInt(0), BigInt(0)];
   graduated = false;
-  /** The mission's stored agent brief, as missions() returns it. */
+  /** The mission's stored texts, as missions() returns them. */
+  metadataUri = "";
   agentPrompt = "";
   /** The pool's reserves once seeded (a plain x·y=k stand-in: the feed reads what Swap logs say). */
   pool = { eth: BigInt(0), tokens: BigInt(0) };

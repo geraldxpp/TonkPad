@@ -4,7 +4,7 @@ import { openExplore } from "./helpers";
 
 /** These builds use the stub wallet (NEXT_PUBLIC_WALLET_STUB=1): it connects at once with fixed addresses. */
 const SOL_LABEL = "Wallet FLRe…SuCv on Solana";
-const RH_LABEL = "Wallet 0x7a5e…c0de on Robinhood Chain";
+const RH_LABEL = "Wallet 0x3daa…9490 on Robinhood Chain";
 
 const header = (page: Page) => page.getByRole("banner");
 
@@ -135,7 +135,7 @@ test.describe("on a phone", () => {
 
   for (const [lang, theme, chain, label] of [
     ["de", "light", "sol", "Wallet FLRe…SuCv auf Solana"],
-    ["ru", "dark", "rh", "Кошелёк 0x7a5e…c0de в Robinhood Chain"],
+    ["ru", "dark", "rh", "Кошелёк 0x3daa…9490 в Robinhood Chain"],
   ] as const) {
     test(`${lang}, ${theme} theme: a connected wallet and its menu fit 390 px`, async ({ page }, testInfo) => {
       await connectedBefore(page, chain);

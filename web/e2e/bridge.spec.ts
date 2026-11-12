@@ -378,7 +378,7 @@ test("clearing history keeps anything still on its way", async ({ page }) => {
   await connected(page);
   await page.addInitScript(() => {
     if (localStorage.getItem("tonkpad-bridge-recent")) return;
-    const base = { routeName: "Relay", sender: "0x7a5e00000000000000000000000000000000c0de", recipient: "0x7a5e00000000000000000000000000000000c0de", raw: "1", tracking: { provider: "relay", requestId: null, tool: null }, destinationTx: null, etaSeconds: 6, at: Date.now() };
+    const base = { routeName: "Relay", sender: "0x3daa6db67596ce7633caa7ef42ca074a73db9490", recipient: "0x3daa6db67596ce7633caa7ef42ca074a73db9490", raw: "1", tracking: { provider: "relay", requestId: null, tool: null }, destinationTx: null, etaSeconds: 6, at: Date.now() };
     localStorage.setItem("tonkpad-bridge-recent", JSON.stringify([{ ...base, id: "done", from: { network: "base", symbol: "USDC", amount: "1" }, to: { network: "rh", symbol: "USDG", amount: "1" }, sourceTx: `0x${"aa".repeat(32)}`, state: "delivered" }, { ...base, id: "moving", from: { network: "arb", symbol: "ETH", amount: "1" }, to: { network: "rh", symbol: "ETH", amount: "1" }, sourceTx: `0x${"bb".repeat(32)}`, state: "transit" }]));
   });
   await open(page);

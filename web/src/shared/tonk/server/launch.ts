@@ -1,6 +1,7 @@
 import { encodeFunctionData } from "viem";
 import { type CurveSettings, devBuyQuote, maxDevBuy } from "../curve";
 import { isInvited, launchInvites } from "../invites";
+import { hiddenImages, visibleImage } from "../image";
 import { AGENT_VOICES, type AgentSettings, encodeAgent, encodeMetadata, LIMITS, normalizeTelegram, normalizeWebsite, normalizeX } from "../metadata";
 import type { TonkNetwork } from "../networks";
 import { CREATOR_OPTIONS, CREW_OPTIONS, effectiveTier, isLocked, LOCK_TYPE_ID, lockedAmount, type LockSettings, type LockType, MAX_LOCK_DAYS, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "../rules";
@@ -12,11 +13,17 @@ import { readSettings } from "./settings";
 
 const DAY = 86_400;
 
-/** The details a creator sets at launch and can change later: the same checks both times. */
-export function parseDetails(body: Record<string, unknown>): Pick<LaunchRequest, "description" | "x" | "telegram" | "website" | "agent"> {
+/**
+ * The details a creator sets at launch and can change later: the same checks
+ * both times. An image must be one of ours, uploaded through /api/tonk/image,
+ * and not on the owner's hide list.
+ */
+export function parseDetails(body: Record<string, unknown>, hidden: ReadonlySet<string> = hiddenImages()): Pick<LaunchRequest, "description" | "x" | "telegram" | "website" | "image" | "agent"> {
   const description = string(body.description ?? "", LIMITS.description, "description");
   const [x, telegram, website] = [string(body.x ?? "", LIMITS.link, "x"), string(body.telegram ?? "", LIMITS.link, "telegram"), string(body.website ?? "", LIMITS.link, "website")];
   if (normalizeX(x) === null || normalizeTelegram(telegram) === null || normalizeWebsite(website) === null) throw invalid("links");
+  const image = string(body.image ?? "", LIMITS.image, "image");
+  if (image && visibleImage(image, hidden) !== image) throw invalid("image");
   let agent: AgentSettings | null = null;
   if (body.agent !== null && body.agent !== undefined) {
     if (!isRecord(body.agent)) throw invalid("agent");
@@ -25,7 +32,7 @@ export function parseDetails(body: Record<string, unknown>): Pick<LaunchRequest,
     agent = { name: string(body.agent.name, LIMITS.agentName, "agent name").trim(), role: string(body.agent.role, LIMITS.agentRole, "agent role").trim(), voice: voice as AgentSettings["voice"], brief: string(body.agent.brief, LIMITS.agentBrief, "agent brief").trim() };
     if (!agent.name || !agent.role || !agent.brief) throw invalid("agent fields");
   }
-  return { description, x, telegram, website, agent };
+  return { description, x, telegram, website, image, agent };
 }
 
 /** A launch request checked field by field. It only passes what the Creator Studio itself could have sent. */
@@ -35,14 +42,14 @@ export function parseLaunchRequest(body: unknown): LaunchRequest {
   const name = string(body.name, LIMITS.name, "name").trim();
   const ticker = string(body.ticker, LIMITS.ticker, "ticker");
   if (!name || !/^[A-Z0-9]{1,10}$/.test(ticker)) throw invalid("name or ticker");
-  const { description, x, telegram, website, agent } = parseDetails(body);
+  const { description, x, telegram, website, image, agent } = parseDetails(body);
   if (typeof body.devBuy !== "string" || !/^(0|[1-9]\d{0,29})$/.test(body.devBuy)) throw invalid("devBuy");
   const lock = body.lock;
   if (lock !== "none" && lock !== "time" && lock !== "linear") throw invalid("lock");
   const [share, days, crewBps, creatorBps] = [body.share, body.days, body.crewBps, body.creatorBps].map(Number);
   if (![share, days, crewBps, creatorBps].every(Number.isInteger)) throw invalid("numbers");
   if (!(CREW_OPTIONS as readonly number[]).includes(crewBps) || !(CREATOR_OPTIONS as readonly number[]).includes(creatorBps)) throw invalid("fees");
-  return { creator, name, ticker, description, x, telegram, website, devBuy: body.devBuy, lock: lock as LockType, share, days, crewBps, creatorBps, agent };
+  return { creator, name, ticker, description, x, telegram, website, image, devBuy: body.devBuy, lock: lock as LockType, share, days, crewBps, creatorBps, agent };
 }
 
 /** The lock as the contract will judge it, after the launchpad's own launch rules. */

@@ -1,4 +1,4 @@
-import { STUB_WALLET } from "./fixtures";
+import { e2eImage, HIDDEN_IMAGE_HASH, STUB_WALLET, TTONE_IMAGE } from "./fixtures";
 
 /**
  * The missions the fixture's launchpad holds, for the token page's tests.
@@ -90,7 +90,7 @@ export const TTONE: FixtureMission = {
   creatorBps: 100,
   graduated: false,
   ...AFTER_LAUNCH_BUY,
-  metadata: "",
+  metadata: JSON.stringify({ v: 1, image: TTONE_IMAGE }),
   agentPrompt: "",
   lock: [2, 8000, LAUNCHED, LAUNCHED + 180 * DAY, LOCKED, "0"],
   eligibleSupply: BOUGHT,
@@ -137,7 +137,8 @@ export const GRAD: FixtureMission = {
   virtualTokens: "273000000000000000000000000",
   realEth: "0",
   tokensLeft: "0",
-  metadata: "",
+  // An image the owner has hidden: the browser never receives it.
+  metadata: JSON.stringify({ v: 1, image: e2eImage(HIDDEN_IMAGE_HASH) }),
   agentPrompt: "",
   lock: NO_LOCK,
   eligibleSupply: "0",

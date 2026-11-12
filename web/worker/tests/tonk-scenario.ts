@@ -58,7 +58,7 @@ function launch(chain: TonkChain, name: string, symbol: string): void {
   const [block, tx] = [LAUNCH_BLOCK, chain.nextTx()];
   chain.transfer(ZERO_ADDRESS, LAUNCHPAD, TOTAL_SUPPLY, block, tx);
   chain.emit(LAUNCHPAD, FEED_EVENTS, "MissionLaunched", {
-    token: chain.token, creator: CREATOR, name, symbol, metadataUri: "", crewFeeBps: 200, creatorFeeBps: 100,
+    token: chain.token, creator: CREATOR, name, symbol, metadataUri: chain.metadataUri, crewFeeBps: 200, creatorFeeBps: 100,
     lockType: 2, lockedBps: 8_000, lockEnd: BigInt(chain.launchTime + LOCK_DAYS * DAY_SECONDS), devBuyEth: DEV_BUY,
   }, block, tx);
   // The creator's buy inside the launch: no shield, no Crew fee (nobody eligible holds yet), held back for the lock.
@@ -96,11 +96,14 @@ export interface ScenarioOptions {
   symbol?: string;
   /** Unix seconds; the tests' "now" less 55 minutes by default. */
   launchTime?: number;
+  /** What the launch stores as its metadata (its links and image); none by default. */
+  metadataUri?: string;
 }
 
 export function tonkScenario(options: ScenarioOptions = {}): TonkChain {
   const chain = new TonkChain(options.token ?? TOKEN, LAUNCH_BLOCK, options.launchTime ?? LAUNCH_TIME);
   chain.agentPrompt = AGENT;
+  chain.metadataUri = options.metadataUri ?? "";
   launch(chain, options.name ?? RAW_NAME, options.symbol ?? "​TONK");
   chain.buy(SNIPER, ETH / BigInt(10), LAUNCH_BLOCK + 1);
   const bought = chain.buy(ALICE, ETH / BigInt(5), LAUNCH_BLOCK + 12);

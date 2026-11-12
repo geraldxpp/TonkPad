@@ -1,5 +1,7 @@
 import type { PublicClient } from "viem";
 import { tokenPrice } from "@/shared/tonk/curve";
+import { hiddenImages } from "@/shared/tonk/image";
+import { decodeMetadata } from "@/shared/tonk/metadata";
 import { isTestnetSite, type TonkNetwork, tonkNetwork } from "@/shared/tonk/networks";
 import { LAUNCHPAD_ABI } from "@/shared/tonk/server/abi";
 import { tonkClient } from "@/shared/tonk/server/client";
@@ -27,12 +29,15 @@ export async function readCurvePrices(
   if (!network || ethUsd === null || !(ethUsd > 0) || asked.length === 0) return prices;
   const client = await connect(network).catch(() => null);
   if (!client) return prices;
+  const hidden = hiddenImages();
   const missions = await Promise.allSettled(asked.map((address) => client.readContract({ address: network.launchpad, abi: LAUNCHPAD_ABI, functionName: "missions", args: [address as `0x${string}`] })));
   missions.forEach((result, index) => {
     if (result.status !== "fulfilled") return;
-    const [token, , , , , , graduated, virtualEth, virtualTokens] = result.value;
+    const [token, , , , , , graduated, virtualEth, virtualTokens, , , , metadataUri] = result.value;
     if (token.toLowerCase() !== asked[index] || graduated || virtualTokens <= BigInt(0)) return;
-    prices.set(asked[index], { priceUsd: tokenPrice(virtualEth, virtualTokens) * ethUsd, change: NO_CHANGE, art: "" });
+    // Its art is the launch's own image, only if it is ours and not hidden (metadata past 4 KB isn't the app's).
+    const art = metadataUri.length > 4_096 ? "" : decodeMetadata(metadataUri, hidden).image;
+    prices.set(asked[index], { priceUsd: tokenPrice(virtualEth, virtualTokens) * ethUsd, change: NO_CHANGE, art });
   });
   return prices;
 }

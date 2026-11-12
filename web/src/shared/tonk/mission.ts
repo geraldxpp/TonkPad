@@ -109,6 +109,8 @@ export interface MissionSummaryJson {
   creator: string;
   block: number;
   time: number;
+  /** The image it launched with, if it is ours and not hidden; "" shows its letter. */
+  image: string;
 }
 
 export type TradeSide = "buy" | "sell";
@@ -153,7 +155,7 @@ export type TradeBuild =
 export type ActionRequest =
   | { kind: "claim"; token: string; owner: string }
   | { kind: "extend"; token: string; owner: string; days: number }
-  | { kind: "edit"; token: string; owner: string; description: string; x: string; telegram: string; website: string; agent: AgentSettings | null }
+  | { kind: "edit"; token: string; owner: string; description: string; x: string; telegram: string; website: string; image: string; agent: AgentSettings | null }
   | { kind: "rewards"; token: string; owner: string }
   | { kind: "share"; token: string; owner: string }
   | { kind: "withdraw"; owner: string };

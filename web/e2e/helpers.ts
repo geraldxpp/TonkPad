@@ -1,4 +1,36 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import sharp from "sharp";
+import { E2E_IMAGE_HOST } from "./testnet/fixtures";
+
+/**
+ * Answers the image optimiser in the browser for every token image on the e2e image host (which
+ * never resolves), with a small green square. Resolves with the image addresses the page asked for.
+ */
+export async function serveTokenImages(page: Page): Promise<string[]> {
+  const asked: string[] = [];
+  const body = await sharp({ create: { width: 96, height: 96, channels: 3, background: { r: 61, g: 220, b: 132 } } }).png().toBuffer();
+  await page.route("**/_next/image?**", (route) => {
+    const source = new URL(route.request().url()).searchParams.get("url") ?? "";
+    if (!source.startsWith(`https://${E2E_IMAGE_HOST}/token-art/`)) return route.continue();
+    asked.push(source);
+    return route.fulfill({ body, contentType: "image/png" });
+  });
+  return asked;
+}
+
+/** A token image that has loaded: an <img> through the optimiser from the e2e image host, decoded. */
+export async function expectTokenImage(scope: Locator, address: string): Promise<void> {
+  const image = scope.locator(`img[src*="${encodeURIComponent(address)}"]`).first();
+  await expect(image).toBeVisible();
+  await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
+}
+
+/** A picture to upload, made on the spot: a 640 × 480 PNG. */
+export const uploadPicture = async () => ({
+  name: "pup.png",
+  mimeType: "image/png",
+  buffer: await sharp({ create: { width: 640, height: 480, channels: 3, background: { r: 230, g: 120, b: 40 } } }).png().toBuffer(),
+});
 
 /** Opens Explore and waits until the app has hydrated. */
 export async function openExplore(page: Page, search = ""): Promise<void> {

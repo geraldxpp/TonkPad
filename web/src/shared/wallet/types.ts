@@ -70,6 +70,8 @@ export interface WalletDriver {
   sendEvmTransaction(request: EvmTransactionRequest): Promise<string>;
   /** Has the connected EVM wallet send a bridge's transaction on its source network (moving it there first); resolves with the hash. */
   sendBridgeTransaction(request: BridgeTransactionRequest): Promise<string>;
+  /** Has the connected EVM wallet sign a text message (EIP-191 personal_sign: free, no transaction); resolves with the signature. */
+  signEvmMessage(message: string): Promise<string>;
 }
 
 /**

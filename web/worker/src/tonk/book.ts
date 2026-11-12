@@ -4,7 +4,7 @@ import type { Address } from "../alerts/types";
 import { pushSample, SERIES_MAX, type TokenStore } from "../store";
 import type { TonkEvent } from "./events";
 import { applyTransfer, holderFigures, type SystemAddresses } from "./holders";
-import { hasAgent, type LaunchFacts, launchedToken, type TonkToken } from "./launch";
+import { hasAgent, type LaunchFacts, launchedToken, tonkArt, type TonkToken } from "./launch";
 import { curvePrice, ethOf, poolPrice, recordTrade, SUPPLY, type TonkState, tonkWindows, trimTrades } from "./state";
 import { recordFlow } from "./traders";
 
@@ -105,8 +105,10 @@ export class TonkBook {
       }
       case "metadata": {
         const t = this.tracked(e.token);
-        if (t) t.tonk.agent = hasAgent(e.agentPrompt);
-        return t !== null;
+        if (!t) return false;
+        t.tonk.agent = hasAgent(e.agentPrompt);
+        t.image = tonkArt(e.metadataUri);
+        return true;
       }
       default:
         return false;

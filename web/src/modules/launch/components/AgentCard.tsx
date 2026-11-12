@@ -7,7 +7,8 @@ import { cn } from "@/shared/lib/cn";
 import { bpsText } from "@/shared/tonk/format";
 import { AGENT_VOICES, LIMITS } from "@/shared/tonk/metadata";
 import type { FieldKey } from "../lib/validate";
-import { LETTER_TILE, type StudioProps, tokenLetter } from "./types";
+import { TokenTile } from "./TokenTile";
+import type { StudioProps } from "./types";
 import { Field, INPUT, StepCard } from "./ui";
 
 /** Card 4: the Token Agent's name, role, brief and voice, with a sample reply built from the launch's own settings. */
@@ -89,9 +90,7 @@ export function AgentCard({ state, view, hiddenOnPhone }: StudioProps & { hidden
         {form.agent ? (
           <div className="self-start rounded-xl border border-line bg-bg p-3.5">
             <div className="mb-5 flex items-center gap-2">
-              <span aria-hidden="true" className={`${LETTER_TILE} h-8 w-[30px] rounded-lg text-[19px]`}>
-                {tokenLetter(form)}
-              </span>
+              <TokenTile form={form} size={32} className="h-8 w-[30px] flex-none rounded-lg" letterClassName="text-[19px]" />
               <div className="min-w-0 flex-auto">
                 <strong className="block text-[12px] font-medium [overflow-wrap:anywhere]">{name}</strong>
                 <small className="mt-0.5 block text-[10px] text-text-3">

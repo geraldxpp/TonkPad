@@ -30,6 +30,8 @@ export interface LaunchRequest {
   x: string;
   telegram: string;
   website: string;
+  /** The uploaded image's address (one of ours), or "". */
+  image: string;
   /** The initial dev buy in wei ("0" for none). */
   devBuy: string;
   lock: LockType;

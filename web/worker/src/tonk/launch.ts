@@ -1,5 +1,6 @@
 import { CURVE_SUPPLY } from "@/shared/tonk/curve";
-import { decodeAgent } from "@/shared/tonk/metadata";
+import { hiddenImages } from "@/shared/tonk/image";
+import { decodeAgent, decodeMetadata } from "@/shared/tonk/metadata";
 import { cleanName, cleanSymbol, newTrackedToken, NOT_ON_DEXSCREENER, type TrackedToken } from "../model";
 import type { TonkEvent } from "./events";
 import { curvePrice, type TonkState } from "./state";
@@ -8,6 +9,7 @@ import { curvePrice, type TonkState } from "./state";
 export interface LaunchFacts {
   /** Unix seconds. */
   time: number;
+  metadataUri: string;
   agentPrompt: string;
   /** The curve's reserves at that block: its opening ones, unless it traded within the window. */
   virtualEth: bigint;
@@ -16,6 +18,13 @@ export interface LaunchFacts {
 
 /** An agent brief the app wrote: the Agent badge. Anything else stored there is just text, and earns nothing. */
 export const hasAgent = (prompt: string) => decodeAgent(prompt) !== null;
+
+/**
+ * A launch's art: the image in its metadata, only if it is on tonkfun.fun's
+ * own image host and not on the owner's hide list; otherwise none, and
+ * Explore shows the token's letter. Any other address in it is ignored.
+ */
+export const tonkArt = (metadataUri: string): string | null => decodeMetadata(metadataUri, hiddenImages()).image || null;
 
 export type TonkToken = TrackedToken & { tonk: TonkState };
 
@@ -68,7 +77,8 @@ export function launchedToken(e: Extract<TonkEvent, { kind: "launched" }>, facts
     freezeRevoked: true,
     supply: 1e27,
     decimals: 18,
-    // Names come from the launch event, never Helius; art waits for hosting. Never priced by DexScreener either.
+    // Names and art come from the launchpad, never Helius. Never priced by DexScreener either.
+    image: tonkArt(facts.metadataUri),
     assetAt: token.createdAt,
     nextRefreshAt: NOT_ON_DEXSCREENER,
   };

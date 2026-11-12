@@ -91,7 +91,7 @@ describe("what a mission stores", () => {
   it("writes compact JSON without the empty fields, and reads it back the same", () => {
     const stored = encodeMetadata({ description: "  A good boy on a long mission.  ", x: "@astropup", telegram: "t.me/astropup", website: "" });
     expect(stored).toBe('{"v":1,"description":"A good boy on a long mission.","x":"astropup","telegram":"https://t.me/astropup"}');
-    expect(decodeMetadata(stored)).toEqual({ description: "A good boy on a long mission.", x: "astropup", telegram: "https://t.me/astropup", website: "" });
+    expect(decodeMetadata(stored)).toEqual({ description: "A good boy on a long mission.", x: "astropup", telegram: "https://t.me/astropup", website: "", image: "" });
     expect(encodeMetadata({ description: "", x: "", telegram: "", website: "" })).toBe("");
   });
 
@@ -103,7 +103,7 @@ describe("what a mission stores", () => {
     expect(read.description).toHaveLength(280);
     expect(read).toMatchObject({ x: "", telegram: "", website: "" });
     for (const junk of ["", "ipfs://bafy…", "[1,2]", '"text"', "{not json", '{"description":42}']) {
-      expect(decodeMetadata(junk), junk).toEqual({ description: "", x: "", telegram: "", website: "" });
+      expect(decodeMetadata(junk), junk).toEqual({ description: "", x: "", telegram: "", website: "", image: "" });
     }
   });
 

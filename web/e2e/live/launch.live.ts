@@ -8,7 +8,7 @@ test("Bridge opens in production, and its routes check what they are given", asy
     expect((await request.get(path)).status(), path).toBe(400);
   }
   // Nothing is built until the switch is on.
-  const build = await request.post("/api/bridge/build", { data: { from: "base", to: "rh", asset: "USDC", receive: "USDG", amount: "1000000", sender: "0x7a5e00000000000000000000000000000000c0de", recipient: "0x7a5e00000000000000000000000000000000c0de", routeId: "relay", reviewedOut: "1" } });
+  const build = await request.post("/api/bridge/build", { data: { from: "base", to: "rh", asset: "USDC", receive: "USDG", amount: "1000000", sender: "0x3daa6db67596ce7633caa7ef42ca074a73db9490", recipient: "0x3daa6db67596ce7633caa7ef42ca074a73db9490", routeId: "relay", reviewedOut: "1" } });
   expect([build.status(), await build.json()]).toEqual([403, { error: "closed" }]);
 });
 
@@ -16,7 +16,7 @@ test("Portfolio asks for a wallet in production, and its routes check what they 
   await page.goto("/portfolio");
   await expect(page.getByRole("heading", { level: 1, name: "A little more perspective." })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Connect to see your portfolio." })).toBeVisible();
-  for (const path of ["/api/portfolio/sol/nope", "/api/portfolio/eth/0x7a5e00000000000000000000000000000000c0de", "/api/portfolio/market?range=5Y"]) {
+  for (const path of ["/api/portfolio/sol/nope", "/api/portfolio/eth/0x3daa6db67596ce7633caa7ef42ca074a73db9490", "/api/portfolio/market?range=5Y"]) {
     expect((await request.get(path)).status(), path).toBe(400);
   }
 });

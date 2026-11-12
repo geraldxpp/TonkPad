@@ -22,6 +22,8 @@ export interface WalletStore {
   sendEvmTransaction(request: EvmTransactionRequest): Promise<string>;
   /** Sends a bridge's transaction on its source network from the connected EVM wallet. Throws a WalletActionError. */
   sendBridgeTransaction(request: BridgeTransactionRequest): Promise<string>;
+  /** Signs a message with the connected EVM wallet (a token image upload's proof). Throws a WalletActionError. */
+  signEvmMessage(message: string): Promise<string>;
 }
 
 type StorageAccess = () => Pick<Storage, "getItem" | "setItem" | "removeItem"> | null;
@@ -136,5 +138,6 @@ export function createWalletStore(loadDriver: () => Promise<WalletDriver>, stora
     signSolanaTransaction: (transaction) => act((loaded) => loaded.signSolanaTransaction(transaction)),
     sendEvmTransaction: (request) => act((loaded) => loaded.sendEvmTransaction(request)),
     sendBridgeTransaction: (request) => act((loaded) => loaded.sendBridgeTransaction(request)),
+    signEvmMessage: (message) => act((loaded) => loaded.signEvmMessage(message)),
   };
 }

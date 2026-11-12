@@ -1,7 +1,8 @@
 import { BaseError, ContractFunctionRevertedError, ContractFunctionZeroDataError, ExecutionRevertedError, type PublicClient } from "viem";
 import { cached } from "@/shared/swap/server/cache";
 import { shortAddress } from "@/shared/lib/address";
-import { chainText } from "../metadata";
+import { hiddenImages } from "../image";
+import { chainText, decodeMetadata, shownMetadata } from "../metadata";
 import type { MissionJson, MissionPageJson, MissionSummaryJson, MissionTradeJson } from "../mission";
 import type { TonkNetwork } from "../networks";
 import { ARBSYS, ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
@@ -123,7 +124,8 @@ export async function readMissionAt(client: PublicClient, network: TonkNetwork, 
       eligibleSupply: String(eligibleSupply),
       crewFloor: String(crewFloor),
       crewPaid: String(crewPaid),
-      metadata: stored(metadata),
+      // An image that isn't ours, or is hidden, never reaches the browser.
+      metadata: shownMetadata(stored(metadata), hiddenImages()),
       agentPrompt: stored(agentPrompt),
       lock: type === "none" || totalLocked === BigInt(0) ? null : { type, lockedBps, start: Number(lockStart), end: Number(lockEnd), total: String(totalLocked), claimed: String(claimed), checkpoint: String(checkpoint) },
       creatorHeld: String(creatorHeld),
@@ -216,7 +218,16 @@ export function readLatestMissions(network: TonkNetwork): Promise<MissionSummary
       const query = (fromBlock: bigint, toBlock: bigint) => client.getContractEvents({ address: network.launchpad, abi: LAUNCHPAD_ABI, eventName: "MissionLaunched", fromBlock, toBlock, strict: true });
       const logs = (await eventsSince(query, BigInt(network.launchpadBlock), latest, LATEST_MISSIONS)).slice(-LATEST_MISSIONS);
       const timeOf = await blockTimes(client, network.chainId, logs.map((log) => log.blockNumber));
-      return logs.reverse().map((log) => ({ token: log.args.token, name: nameOf(log.args.name, log.args.token), symbol: tickerOf(log.args.symbol, log.args.token), creator: log.args.creator, block: Number(log.blockNumber), time: timeOf(log.blockNumber) }));
+      const hidden = hiddenImages();
+      return logs.reverse().map((log) => ({
+        token: log.args.token,
+        name: nameOf(log.args.name, log.args.token),
+        symbol: tickerOf(log.args.symbol, log.args.token),
+        creator: log.args.creator,
+        block: Number(log.blockNumber),
+        time: timeOf(log.blockNumber),
+        image: decodeMetadata(stored(log.args.metadataUri), hidden).image,
+      }));
     } catch {
       throw unavailable("launches unreadable");
     }

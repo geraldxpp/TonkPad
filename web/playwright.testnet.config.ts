@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { TESTNET_APP_URL, TESTNET_RPC_URL } from "./e2e/testnet/fixtures";
+import { E2E_IMAGES, TESTNET_APP_URL, TESTNET_RPC_URL } from "./e2e/testnet/fixtures";
 
 /**
  * The testnet site: a production build with NEXT_PUBLIC_TONK_NETWORK=testnet,
@@ -30,7 +30,7 @@ export default defineConfig({
       command: `npm run build && npm run start -- -p ${new URL(TESTNET_APP_URL).port} -H 127.0.0.1`,
       url: TESTNET_APP_URL,
       // The stub wallet, and every chain read (settings and balances) from the fixture RPC.
-      env: { NEXT_PUBLIC_TONK_NETWORK: "testnet", TONK_RPC_URL: TESTNET_RPC_URL, NEXT_PUBLIC_WALLET_STUB: "1", WORKER_URL: "", WORKER_TOKEN: "", ...NO_SWAP },
+      env: { NEXT_PUBLIC_TONK_NETWORK: "testnet", TONK_RPC_URL: TESTNET_RPC_URL, NEXT_PUBLIC_WALLET_STUB: "1", WORKER_URL: "", WORKER_TOKEN: "", ...NO_SWAP, ...E2E_IMAGES },
       reuseExistingServer: false,
       timeout: 300_000,
     },

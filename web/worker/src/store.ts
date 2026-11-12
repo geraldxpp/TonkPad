@@ -1,3 +1,4 @@
+import { hiddenImages, visibleImage } from "@/shared/tonk/image";
 import type { ChainId } from "@/shared/types/chain";
 import { artUrl, launchpadArt, repointArt } from "./art";
 import { curveProgressFromPrice } from "./curve";
@@ -160,8 +161,10 @@ export class TokenStore {
   }
 
   restore(tokens: readonly TrackedToken[], now: number): void {
+    const hidden = hiddenImages();
     for (const t of tokens) {
-      const image = t.image ? repointArt(t.image, t.launchpad) : t.assetAt > 0 ? launchpadArt(t.address, t.launchpad) : null;
+      // A launch's own image is checked again: the owner may have hidden it, or moved the image host, since it was saved.
+      const image = t.tonk ? visibleImage(t.image, hidden) || null : t.image ? repointArt(t.image, t.launchpad) : t.assetAt > 0 ? launchpadArt(t.address, t.launchpad) : null;
       const nextRefreshAt = t.tonk || (t.pons && !t.graduated) ? NOT_ON_DEXSCREENER : now;
       this.tokens.set(t.address, { ...t, ...cleanSaved(t), image, nextRefreshAt });
     }

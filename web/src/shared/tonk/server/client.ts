@@ -1,6 +1,8 @@
 import { createPublicClient, http, type PublicClient } from "viem";
 import type { TonkNetwork } from "../networks";
 
+export type ImageRefusal = "size" | "type" | "expired" | "signature" | "limit" | "unreadable" | "hidden";
+
 /** Why a Tonk route refused, as a code the browser turns into words; never the upstream detail. */
 export class TonkError extends Error {
   constructor(
@@ -24,7 +26,9 @@ export class TonkError extends Error {
       | "curve"
       | "pending"
       // The guarded launch: this site launches only for invited creators (the contract itself stays open).
-      | "invite",
+      | "invite"
+      // Token images: the file's size or type; the signature's age or match; the hourly limit; a file that doesn't decode; a hidden image.
+      | ImageRefusal,
     message: string,
     readonly status = 502,
   ) {

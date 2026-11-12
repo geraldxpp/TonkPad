@@ -11,6 +11,8 @@ export interface LaunchForm {
   x: string;
   telegram: string;
   website: string;
+  /** The uploaded image's address (one of ours), or "" for the letter. */
+  image: string;
   /** The initial dev buy in ETH, as typed ("" or "0" is none). */
   devBuy: string;
   lock: LockType;
@@ -49,6 +51,7 @@ export function defaultForm(settings: CurveSettings): LaunchForm {
     x: "",
     telegram: "",
     website: "",
+    image: "",
     devBuy: ethInputText(devBuyPresets(settings)[1]),
     lock: "linear",
     share: 80,

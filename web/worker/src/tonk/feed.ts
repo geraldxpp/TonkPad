@@ -132,7 +132,7 @@ export class TonkFeed {
     const timeOf = (block: number) => (exact.get(block) ?? 0) * 1000;
     const facts = new Map(records.map(([e, record]) => {
       const mission = got(record(), "missions");
-      return [e.token, { time: exact.get(e.block) ?? 0, agentPrompt: mission.agentPrompt, virtualEth: mission.virtualEth, virtualTokens: mission.virtualTokens } satisfies LaunchFacts];
+      return [e.token, { time: exact.get(e.block) ?? 0, metadataUri: mission.metadataUri, agentPrompt: mission.agentPrompt, virtualEth: mission.virtualEth, virtualTokens: mission.virtualTokens } satisfies LaunchFacts];
     }));
     const lockRows = locks.map(([token, row, checkpoint]) => [token, lockJson(got(row(), "devLocks"), got(checkpoint(), "devVestedCheckpoint"))] as const);
 

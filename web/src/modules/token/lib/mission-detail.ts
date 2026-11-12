@@ -172,7 +172,8 @@ export function missionDetail({ mission, trades }: MissionPageJson, network: Ton
       },
       creator: shortAddress(mission.creator),
       ageMinutes: Math.max(0, (now - mission.launchedAt) / 60),
-      art: "",
+      // The server has already taken out an image that isn't ours or is hidden; decoding checks the host again.
+      art: details.image,
     },
     contract: mission.token,
     launchedAt: mission.launchedAt * 1000,

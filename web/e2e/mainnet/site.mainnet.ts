@@ -2,7 +2,8 @@ import { expect, type Page, test } from "@playwright/test";
 import { poolIdOf } from "../../src/shared/tonk/server/pool";
 import { STUB_EVM_HASH, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
 import { GRAD, TTONE } from "../testnet/fixture-chain";
-import { MAINNET_DEPLOYMENT, MAINNET_PONS_TOKEN, STUB_WALLET } from "../testnet/fixtures";
+import { E2E_IMAGE_HOST, HIDDEN_IMAGE_HASH, MAINNET_DEPLOYMENT, MAINNET_PONS_TOKEN, STUB_WALLET, TTONE_IMAGE } from "../testnet/fixtures";
+import { expectTokenImage, serveTokenImages } from "../helpers";
 
 // This build is the site in mainnet mode (NEXT_PUBLIC_TONK_NETWORK=mainnet, a made-up deployment). The chain is
 // the local stand-in serving as Robinhood Chain mainnet: nothing is simulated or sent there, so what the server
@@ -170,6 +171,7 @@ test("a receipt's swap on some other pool is never shown as this token's trade",
 });
 
 test("Explore lists the launchpad's own launches from the live feed: Locked Missions, with their badges", async ({ page }) => {
+  await serveTokenImages(page);
   await page.goto("/?tab=locked");
   const row = page.getByRole("row").filter({ hasText: "Tonk Test One" });
   await expect(row).toHaveCount(1);
@@ -193,4 +195,20 @@ test("tokens the launchpad doesn't know keep their own pages, and Swap, Bridge a
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByText("Not on testnet yet")).toHaveCount(0);
   }
+});
+
+test("a launch's own image shows in Explore and on its page; a hidden one never reaches the browser", async ({ page, request }) => {
+  const served = await serveTokenImages(page);
+  await page.goto("/?tab=locked");
+  await expectTokenImage(page.getByRole("row").filter({ hasText: "Tonk Test One" }), TTONE_IMAGE);
+  await page.goto(`/token/${TTONE.token}`);
+  await expectTokenImage(page.getByRole("main"), TTONE_IMAGE);
+
+  // GRAD's image is on the owner's hide list: its page shows the letter, and its mission never carries the address.
+  await page.goto(`/token/${GRAD.token}`);
+  await expect(page.getByRole("heading", { level: 1, name: "Graduate" })).toBeVisible();
+  await expect(page.getByRole("main").locator(`img[src*="${E2E_IMAGE_HOST}"]`)).toHaveCount(0);
+  const { mission } = (await (await request.get(`/api/tonk/token/${GRAD.token}`)).json()) as { mission: { metadata: string } };
+  expect(mission.metadata).toBe('{"v":1}');
+  expect(served.some((address) => address.includes(HIDDEN_IMAGE_HASH))).toBe(false);
 });

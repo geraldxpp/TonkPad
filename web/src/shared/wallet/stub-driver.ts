@@ -1,10 +1,18 @@
+import { privateKeyToAccount } from "viem/accounts";
 import type { ChainId } from "@/shared/types/chain";
 import { type BridgeTransactionRequest, EMPTY_SNAPSHOT, WalletActionError, type WalletDriver, type WalletSnapshot } from "./types";
 
-/** The stub's fixed wallets (a valid Solana key and EVM address that belong to no one). */
+/**
+ * The key the stub signs messages with, made for these tests alone: it is in
+ * this file for anyone to read, was never funded, and never signs a
+ * transaction. Its signatures are real, so the server's checks run for real.
+ */
+const STUB_EVM_KEY = "0x61964c0b625798aa5b4ea39159b579f8123e3b2f74fcff7475ef61fe9a5dac51";
+
+/** The stub's fixed wallets: a valid Solana key that belongs to no one, and the test key's EVM address. */
 export const STUB_ACCOUNTS: Record<ChainId, string> = {
   sol: "FLRettWhwj1oyn19GMQVF3xdGUtgZft4mRXBHTuWSuCv",
-  rh: "0x7a5e00000000000000000000000000000000c0de",
+  rh: "0x3daa6db67596ce7633caa7ef42ca074a73db9490",
 };
 
 /** Set to "1" and the stub refuses every signature, as if the person rejected it; "network", as if the wallet couldn't switch networks. */
@@ -74,7 +82,8 @@ function save({ active, accounts }: WalletSnapshot) {
  * second chain joins the first instead of replacing it; it connects after a
  * short wait that shows the pending state, and keeps its session across
  * reloads. Its "signatures" change nothing: a Solana transaction comes back
- * as it went in, and every EVM send returns the same fake hash.
+ * as it went in, and every EVM send returns the same fake hash. A message is
+ * signed for real, with the test key.
  */
 export function createStubDriver(): WalletDriver {
   let snapshot = read();
@@ -108,5 +117,6 @@ export function createStubDriver(): WalletDriver {
       noteBridgeSend(request);
       return hash;
     },
+    signEvmMessage: async (message) => approve(await privateKeyToAccount(STUB_EVM_KEY).signMessage({ message })),
   };
 }

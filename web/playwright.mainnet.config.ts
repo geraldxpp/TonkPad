@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { MAINNET_APP_URL, MAINNET_DEPLOYMENT, MAINNET_RPC_URL, MAINNET_WORKER_TOKEN, MAINNET_WORKER_URL } from "./e2e/testnet/fixtures";
+import { E2E_IMAGES, MAINNET_APP_URL, MAINNET_DEPLOYMENT, MAINNET_RPC_URL, MAINNET_WORKER_TOKEN, MAINNET_WORKER_URL } from "./e2e/testnet/fixtures";
 
 /**
  * The site in mainnet mode: a production build with NEXT_PUBLIC_TONK_NETWORK=mainnet and a made-up
@@ -31,6 +31,8 @@ export default defineConfig({
     },
     {
       command: "npx tsx e2e/mainnet/fixture-worker.ts",
+      // The worker drops images off the image host and hidden ones, as in production.
+      env: E2E_IMAGES,
       url: `${MAINNET_WORKER_URL}/health`,
       reuseExistingServer: false,
       timeout: 30_000,
@@ -58,6 +60,7 @@ export default defineConfig({
         NEXT_PUBLIC_BOUNTY_MEDIUM: "",
         NEXT_PUBLIC_BOUNTY_LOW: "",
         ...NO_SWAP,
+        ...E2E_IMAGES,
       },
       reuseExistingServer: false,
       timeout: 300_000,

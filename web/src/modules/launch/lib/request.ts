@@ -12,6 +12,7 @@ export function launchRequest(form: LaunchForm, view: LaunchView, creator: strin
     x: form.x.trim(),
     telegram: form.telegram.trim(),
     website: form.website.trim(),
+    image: form.image,
     devBuy: view.devBuy.toString(),
     lock: view.locks ? form.lock : "none",
     share: form.share,

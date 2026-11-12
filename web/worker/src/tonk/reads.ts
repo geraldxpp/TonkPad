@@ -15,18 +15,19 @@ export const logsWhere = (from: number, to: number, address: Address | readonly 
   },
 });
 
-/** A mission as the launchpad stores it: its curve's virtual reserves, and its agent brief (untrusted text, only ever read as the app's own JSON). */
+/** A mission as the launchpad stores it: its curve's virtual reserves, and its two texts (untrusted, only ever read as the app's own JSON). */
 export interface MissionRecord {
   virtualEth: bigint;
   virtualTokens: bigint;
+  metadataUri: string;
   agentPrompt: string;
 }
 
 export const missionOf = (launchpad: Address, token: Address, block: number): Read<MissionRecord | null> =>
   view(launchpad, FEED_VIEWS, "missions", [token], block, (value) => {
     const row = value as readonly unknown[];
-    const prompt = String(row[13] ?? "");
-    return { virtualEth: row[7] as bigint, virtualTokens: row[8] as bigint, agentPrompt: prompt.length > TEXT_MAX ? "" : prompt };
+    const [metadata, prompt] = [String(row[12] ?? ""), String(row[13] ?? "")];
+    return { virtualEth: row[7] as bigint, virtualTokens: row[8] as bigint, metadataUri: metadata.length > TEXT_MAX ? "" : metadata, agentPrompt: prompt.length > TEXT_MAX ? "" : prompt };
   });
 
 /** devLocks(token): lockType, lockedBpsOfDevBuy, lockStart, lockEnd, totalLocked, claimedAmount. */

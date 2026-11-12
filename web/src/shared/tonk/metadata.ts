@@ -1,4 +1,5 @@
 import { clip, visibleLines, visibleText } from "@/shared/lib/visible-text";
+import { allowedImage, visibleImage } from "./image";
 
 /**
  * What a mission stores beside its fees and lock: the launchpad keeps two
@@ -16,7 +17,14 @@ export interface MissionLinks {
   telegram: string;
   /** A full http(s) link. */
   website: string;
+  /** The token's image: one of ours (token-art/<hash>.webp on the image host), or "" (it shows its letter). */
+  image: string;
 }
+
+/** The details as a creator sets them; a mission without an image may leave it out. */
+export type MissionDetails = Omit<MissionLinks, "image"> & { image?: string };
+
+const NO_HIDDEN: ReadonlySet<string> = new Set();
 
 export const AGENT_VOICES = ["tactical", "hype", "analytical", "meme"] as const;
 export type AgentVoice = (typeof AGENT_VOICES)[number];
@@ -28,7 +36,7 @@ export interface AgentSettings {
   brief: string;
 }
 
-export const LIMITS = { name: 32, ticker: 10, description: 280, link: 300, agentName: 32, agentRole: 50, agentBrief: 400 } as const;
+export const LIMITS = { name: 32, ticker: 10, description: 280, link: 300, image: 400, agentName: 32, agentRole: 50, agentBrief: 400 } as const;
 
 const X_HANDLE = /^[A-Za-z0-9_]{1,15}$/;
 const X_HOSTS = ["x.com", "www.x.com", "twitter.com", "www.twitter.com"];
@@ -106,8 +114,12 @@ function parse(json: string): Record<string, unknown> | null {
   }
 }
 
-/** The mission's `metadataUri`: compact JSON with the empty fields left out, or "" when there is nothing to store. */
-export function encodeMetadata(links: MissionLinks): string {
+/**
+ * The mission's `metadataUri`: compact JSON with the empty fields left out,
+ * or "" when there is nothing to store. An image that isn't one of ours is
+ * left out too. The format stays `v: 1`: `image` is simply optional.
+ */
+export function encodeMetadata(links: MissionDetails): string {
   const fields: Record<string, string> = {};
   const description = chainLines(links.description, LIMITS.description);
   if (description) fields.description = description;
@@ -117,18 +129,38 @@ export function encodeMetadata(links: MissionLinks): string {
   if (telegram) fields.telegram = telegram;
   const website = normalizeWebsite(links.website);
   if (website) fields.website = website;
+  const image = allowedImage(links.image ?? "");
+  if (image) fields.image = image;
   return Object.keys(fields).length ? JSON.stringify({ v: 1, ...fields }) : "";
 }
 
-/** A mission's `metadataUri` read back from the chain; anything malformed or unsafe comes back empty. */
-export function decodeMetadata(metadataUri: string): MissionLinks {
+/**
+ * A mission's `metadataUri` read back from the chain; anything malformed or
+ * unsafe comes back empty, and so does an image from anywhere but our own
+ * storage host, or one on the hide list the server passes in.
+ */
+export function decodeMetadata(metadataUri: string, hidden: ReadonlySet<string> = NO_HIDDEN): MissionLinks {
   const fields = parse(metadataUri) ?? {};
   return {
     description: chainLines(fields.description, LIMITS.description),
     x: normalizeX(text(fields.x, LIMITS.link)) ?? "",
     telegram: normalizeTelegram(text(fields.telegram, LIMITS.link)) ?? "",
     website: normalizeWebsite(text(fields.website, LIMITS.link)) ?? "",
+    image: visibleImage(fields.image, hidden),
   };
+}
+
+/**
+ * A stored `metadataUri` as the server passes it to the browser: an image
+ * that isn't ours, or is on the owner's hide list, is taken out, so the
+ * browser never receives it. Metadata without an image is passed on as is.
+ */
+export function shownMetadata(metadataUri: string, hidden: ReadonlySet<string>): string {
+  const fields = parse(metadataUri);
+  if (!fields || !("image" in fields)) return metadataUri;
+  const { image, ...rest } = fields;
+  const shown = visibleImage(image, hidden);
+  return JSON.stringify(shown ? { ...rest, image: shown } : rest);
 }
 
 const isVoice = (value: unknown): value is AgentVoice => AGENT_VOICES.includes(value as AgentVoice);

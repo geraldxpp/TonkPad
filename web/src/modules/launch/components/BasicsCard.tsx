@@ -1,11 +1,13 @@
 "use client";
 
 import { useI18n } from "@/shared/i18n/I18nProvider";
+import { ImagePicker } from "@/shared/tonk/ImagePicker";
 import { LIMITS } from "@/shared/tonk/metadata";
 import type { FieldKey } from "../lib/validate";
 import { DevBuyBox } from "./DevBuyBox";
 import { ProtocolSummary } from "./ProtocolSummary";
-import { LETTER_TILE, type StudioProps, tokenLetter } from "./types";
+import { TokenTile } from "./TokenTile";
+import type { StudioProps } from "./types";
 import { Field, HELP, INPUT, StepCard } from "./ui";
 
 /** Card 1: the launchpad's facts, the token's name, ticker, description and links, and the initial dev buy. */
@@ -50,13 +52,13 @@ export function BasicsCard(props: StudioProps & { note: string; hiddenOnPhone: b
         </Field>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-[150px_minmax(0,1fr)]">
-        <div className="rounded-xl border border-dashed border-line-strong bg-bg px-3 py-3.5 text-center">
-          <span aria-hidden="true" className={`${LETTER_TILE} mx-auto size-[58px] rounded-[14px] text-[37px]`}>
-            {tokenLetter(form)}
-          </span>
-          <strong className="mt-2.5 block text-[12px] font-medium">{b.image}</strong>
-          <small className="mt-1 block text-[10px] leading-[1.6] text-text-3">{b.imageSoon}</small>
-        </div>
+        <ImagePicker
+          layout="card"
+          label={b.image}
+          value={form.image}
+          onChange={(url) => set("image", url)}
+          preview={<TokenTile form={form} size={58} className="size-[58px] rounded-[14px]" letterClassName="text-[37px]" />}
+        />
         <Field id="launch-description" label={b.description} count={`${form.description.length}/${LIMITS.description}`} error={error("description")}>
           <textarea {...text("description")} rows={5} className={`${INPUT} min-h-[128px] resize-y`} />
         </Field>

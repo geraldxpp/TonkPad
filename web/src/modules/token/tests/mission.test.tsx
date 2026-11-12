@@ -409,7 +409,7 @@ describe("the creator's tools", () => {
     fireEvent.change(field(en.launch.basics.website), { target: { value: "tonkfun.fun" } });
     fireEvent.change(field(en.launch.basics.description), { target: { value: " New words. " } });
     fireEvent.click(within(sheet).getByRole("button", { name: m.creator.save }));
-    expect(onAction).toHaveBeenCalledWith({ kind: "edit", token: TOKEN, owner: CREATOR, description: "New words.", x: "tonkfun", telegram: "", website: "tonkfun.fun", agent: null });
+    expect(onAction).toHaveBeenCalledWith({ kind: "edit", token: TOKEN, owner: CREATOR, description: "New words.", x: "tonkfun", telegram: "", website: "tonkfun.fun", image: "", agent: null });
   });
 
   it("reports each action from its confirmed receipt, and holds the buttons while one is in flight", () => {
