@@ -126,6 +126,20 @@ describe("the figures on screen", () => {
     expect([view.score.now, view.score.later, view.score.lockedBadge]).toEqual([70, 80, true]);
   });
 
+  it("say when a lock reaches a tier by share and length but holds under 10M tokens, and what dev buy opens it", () => {
+    const LIVE: CurveSettings = { ...MAINNET, virtualEth: eth("1") };
+    // Seen on mainnet: 0.0031 ETH with 80% time-locked for 30 days locks 2.61M tokens, so no tier.
+    const small = launchView(filled({ devBuy: "0.0031", lock: "time", days: 30, share: 80, crew: 200, creator: 100 }), LIVE);
+    expect(formatTokens(small.locked)).toBe("2.61M");
+    expect(small).toMatchObject({ tier: "none", creator: 50, floor: { amount: eth("0.015"), pct: 200 } });
+    // 0.015 ETH is enough: the tier opens and the creator's 1% applies.
+    const enough = launchView(filled({ devBuy: "0.015", lock: "time", days: 30, share: 80, crew: 200, creator: 100 }), LIVE);
+    expect(enough).toMatchObject({ tier: "standard", creator: 100, floor: null });
+    // A lock too short or too small by share says the usual thing instead; so does a pool Crew already fills.
+    expect(launchView(filled({ devBuy: "0.0031", lock: "time", days: 20 }), LIVE).floor).toBeNull();
+    expect(launchView(filled({ devBuy: "0.0031", lock: "time", days: 30, crew: 400, creator: 0 }), LIVE).floor).toBeNull();
+  });
+
   it("follow the testnet's own settings, and show an unlocked buy for what it is", () => {
     const test = launchView({ ...filled(), devBuy: "0.0002" }, TESTNET);
     expect(formatEth(test.payNow)).toBe("0.0003");

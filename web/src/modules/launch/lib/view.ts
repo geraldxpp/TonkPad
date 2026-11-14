@@ -1,5 +1,18 @@
-import { type BuyQuote, CURVE_SUPPLY, type CurveSettings, devBuyQuote, graduationTarget, marketCap, percentOf, PROTOCOL_FEE_BPS, TOTAL_SUPPLY } from "@/shared/tonk/curve";
-import { effectiveTier, isLocked, lockedAmount, type LockSettings, type LockTier, type LockType } from "@/shared/tonk/rules";
+import { type BuyQuote, CURVE_SUPPLY, type CurveSettings, devBuyQuote, graduationTarget, marketCap, minDevBuyFor, percentOf, PROTOCOL_FEE_BPS, roundAmount, TOTAL_SUPPLY } from "@/shared/tonk/curve";
+import {
+  CREATOR_OPTIONS,
+  effectiveTier,
+  isLocked,
+  lockedAmount,
+  type LockSettings,
+  type LockTier,
+  lockTier,
+  type LockType,
+  MIN_LOCKED_FOR_TIER,
+  optionAtMost,
+  REWARD_POOL_BPS,
+  TIER_CREATOR_MAX,
+} from "@/shared/tonk/rules";
 import { type LaunchScore, launchScore } from "@/shared/tonk/score";
 import { devBuyWei, effective, type LaunchForm, lockSettings } from "./form";
 
@@ -30,6 +43,12 @@ export interface LaunchView {
   creator: number;
   tier: LockTier;
   creatorMax: number;
+  /**
+   * A lock whose share and length reach a tier but which holds under the 10M
+   * tokens (1% of supply) a tier also needs: the dev buy, rounded up, that
+   * would open it, and the Creator Rewards that would allow. Null otherwise.
+   */
+  floor: { amount: bigint; pct: number } | null;
   totalBps: number;
   score: LaunchScore;
   /** The illustrative day: dollars to the Crew, to the creator and to tonkfun.fun (the protocol fee, before any referrer's quarter). */
@@ -52,6 +71,12 @@ export function launchView(form: LaunchForm, settings: CurveSettings): LaunchVie
   // A lock under 1% of supply unlocks no tier, as the mainnet contract rules.
   const tier = effectiveTier(hasBuy, lock, bought);
   const crewDaily = (form.volume * form.crew) / 10_000;
+  // Long and large enough by share, but too small in tokens: say what dev buy opens the tier, at the most it allows here.
+  const reach = lockTier(hasBuy, lock);
+  const pct = optionAtMost(CREATOR_OPTIONS, Math.min(TIER_CREATOR_MAX[reach], REWARD_POOL_BPS - form.crew));
+  const shareBps = BigInt(lock.sharePct * 100);
+  const needed = reach !== "none" && tier === "none" && pct > TIER_CREATOR_MAX.none && shareBps > BigInt(0) ? minDevBuyFor(settings, (MIN_LOCKED_FOR_TIER * BigInt(10_000) + shareBps - BigInt(1)) / shareBps, pct) : null;
+  const floor = needed === null ? null : { amount: roundAmount(needed, "up"), pct };
   return {
     devBuy,
     hasBuy,
@@ -71,6 +96,7 @@ export function launchView(form: LaunchForm, settings: CurveSettings): LaunchVie
     creator: held.creator,
     tier,
     creatorMax: held.creatorMax,
+    floor,
     totalBps: PROTOCOL_FEE_BPS + form.crew + held.creator,
     score: launchScore({ bought, lock: locks ? lock : { ...lock, type: "none" }, crewBps: form.crew }),
     crewDaily,

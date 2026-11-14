@@ -211,6 +211,24 @@ export function maxDevBuy(settings: CurveSettings): bigint {
   return (settings.virtualEth * BigInt(5)) / BigInt(3);
 }
 
+/**
+ * The smallest dev buy that gets at least `tokens` at a Creator Rewards rate
+ * (the creator's fee comes out of the buy first), searched on the curve's own
+ * maths so it is never a wei short. Null when even the largest dev buy the
+ * screen accepts can't.
+ */
+export function minDevBuyFor(settings: CurveSettings, tokens: bigint, creatorBps: number): bigint | null {
+  let high = maxDevBuy(settings);
+  if (devBuyQuote(settings, high, creatorBps).tokensOut < tokens) return null;
+  let low = ZERO;
+  while (high - low > BigInt(1)) {
+    const mid = (low + high) / BigInt(2);
+    if (devBuyQuote(settings, mid, creatorBps).tokensOut >= tokens) high = mid;
+    else low = mid;
+  }
+  return high;
+}
+
 /** `part` as a percentage of `whole`, e.g. 4.2095 for 4.2095%. Safe for token-sized numbers. */
 export function percentOf(part: bigint, whole: bigint): number {
   if (whole <= ZERO) return 0;

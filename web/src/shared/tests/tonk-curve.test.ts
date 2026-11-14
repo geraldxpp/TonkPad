@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buyQuote, CURVE_SUPPLY, type CurveSettings, devBuyPresets, devBuyQuote, freshCurve, graduationTarget, marketCap, maxDevBuy, percentOf, roundAmount, TOTAL_SUPPLY, WEI } from "@/shared/tonk/curve";
+import { buyQuote, CURVE_SUPPLY, type CurveSettings, devBuyPresets, devBuyQuote, freshCurve, graduationTarget, marketCap, maxDevBuy, minDevBuyFor, percentOf, roundAmount, TOTAL_SUPPLY, WEI } from "@/shared/tonk/curve";
 import { CREATOR_OPTIONS, CREW_OPTIONS, lockedAmount, type LockSettings, lockTier, optionAtMost, stillLocked } from "@/shared/tonk/rules";
 
 const eth = (text: string) => {
@@ -108,6 +108,22 @@ describe("the curve", () => {
     }
     // The largest dev buy stays well inside the curve: about two thirds of supply.
     expect(percentOf(devBuyQuote(MAINNET, maxDevBuy(MAINNET), 0).tokensOut, TOTAL_SUPPLY)).toBeCloseTo(66.81, 1);
+  });
+});
+
+describe("the smallest dev buy for a number of tokens", () => {
+  it("is never a wei short, at any Creator Rewards rate, and says when even the largest buy can't", () => {
+    const live = { ...MAINNET, virtualEth: eth("1") };
+    const target = BigInt(12_500_000) * WEI;
+    for (const creator of [0, 50, 200, 400]) {
+      const least = minDevBuyFor(live, target, creator);
+      expect(least).not.toBeNull();
+      expect(devBuyQuote(live, least ?? BigInt(0), creator).tokensOut).toBeGreaterThanOrEqual(target);
+      expect(devBuyQuote(live, (least ?? BigInt(1)) - BigInt(1), creator).tokensOut).toBeLessThan(target);
+    }
+    // 12.5M at 2%: about 0.01215 ETH on the live 1 ETH reserve, so 80% of it locks 10M.
+    expect(asEth(minDevBuyFor(live, target, 200) ?? BigInt(0))).toBeCloseTo(0.012151, 5);
+    expect(minDevBuyFor(live, BigInt(700_000_000) * WEI, 0)).toBeNull();
   });
 });
 

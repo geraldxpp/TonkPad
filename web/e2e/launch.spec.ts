@@ -180,6 +180,18 @@ test("a custom time-lock and a dev buy can be typed digit by digit without losin
   await expect(page.getByRole("button", { name: /^No lock/ })).toHaveAttribute("aria-pressed", "true");
 });
 
+test("a lock under the 10M-token floor says so, and what dev buy opens its tier", async ({ page }) => {
+  await stubChain(page);
+  await openStudio(page);
+  // 0.05 ETH on the demo's 6 ETH reserve: 80% of it locks under 10M tokens, though 80% for 6 months is Ironclad by share and length.
+  await page.getByLabel("Initial dev buy in ETH").fill("0.05");
+  const floor = page.getByText(/under the 10,000,000 \(1% of supply\) a tier needs\. A dev buy of 0\.08 ETH or more unlocks Creator Rewards up to 2\.0%\./);
+  await expect(floor).toBeVisible();
+  await page.getByRole("group", { name: "Initial dev buy" }).getByRole("button", { name: /^0\.1/ }).click();
+  await expect(floor).toHaveCount(0);
+  await expect(page.getByText("Ironclad commitment: 80%+ for 90+ days. Creator Rewards can reach 4.0% within the shared reward pool.")).toBeVisible();
+});
+
 test("connect, review and launch with the wallet; the receipt comes from the chain", async ({ page }) => {
   const calls = await stubChain(page, { states: ["pending", "confirmed"] });
   await openStudio(page);

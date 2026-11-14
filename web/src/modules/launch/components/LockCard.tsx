@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
-import { bpsText, formatTokens } from "@/shared/tonk/format";
+import { bpsText, formatEth, formatTokens } from "@/shared/tonk/format";
 import type { LockType } from "@/shared/tonk/rules";
 import { TIME_LOCK_PRESETS } from "../lib/form";
 import { CustomDaysInput } from "./CustomDaysInput";
@@ -17,7 +17,7 @@ const RANGE = "h-5 w-full cursor-pointer accent-pos";
 const SCALE = "mt-2 flex justify-between gap-2 font-mono text-[10px] text-text-3";
 
 /** Card 2: how the creator's launch buy is locked, how much of it and for how long, and what that commitment earns. */
-export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenOnPhone: boolean }) {
+export function LockCard({ state, view, unit, hiddenOnPhone }: StudioProps & { hiddenOnPhone: boolean }) {
   const { t } = useI18n();
   const k = t.launch.lock;
   const { form, set } = state;
@@ -33,7 +33,10 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
     { id: "none", icon: <LockOpen size={18} strokeWidth={1.8} />, title: k.none, sub: k.noneSub },
   ];
   const tierName = { none: k.tierNone, standard: k.tierStandard, ironclad: k.tierIronclad }[view.tier];
-  const message = { none: k.messageNone, standard: k.messageStandard, ironclad: k.messageIronclad }[view.tier];
+  // A lock that reaches a tier by share and length but holds under 10M tokens says so, and what dev buy opens it.
+  const message = view.floor
+    ? fmt(k.messageFloor, { locked: formatTokens(view.locked), amount: `${formatEth(view.floor.amount)} ${unit}`, pct: bpsText(view.floor.pct) })
+    : { none: k.messageNone, standard: k.messageStandard, ironclad: k.messageIronclad }[view.tier];
   return (
     <StepCard
       id="step-2"
