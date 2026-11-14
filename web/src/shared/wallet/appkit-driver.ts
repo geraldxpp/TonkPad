@@ -107,6 +107,7 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       open: state.open,
       activeNamespace: appKit.getActiveChainNamespace(),
       accounts: { solana: TESTNET ? undefined : appKit.getAccount(NAMESPACES.sol), eip155: appKit.getAccount(NAMESPACES.rh) },
+      evmWallet: appKit.getWalletInfo(NAMESPACES.rh)?.name,
     };
     return toSnapshot(view);
   };
@@ -121,6 +122,7 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
   };
   if (!TESTNET) appKit.subscribeAccount(refresh, NAMESPACES.sol);
   appKit.subscribeAccount(refresh, NAMESPACES.rh);
+  appKit.subscribeWalletInfo(refresh, NAMESPACES.rh);
   appKit.subscribeState(refresh);
   appKit.subscribeNetwork(refresh);
 

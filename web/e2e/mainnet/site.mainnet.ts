@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { poolIdOf } from "../../src/shared/tonk/server/pool";
-import { STUB_EVM_HASH, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
+import { STUB_EVM_HASH, STUB_NAME_KEY, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
 import { GRAD, TTONE } from "../testnet/fixture-chain";
 import { E2E_IMAGE_HOST, HIDDEN_IMAGE_HASH, MAINNET_DEPLOYMENT, MAINNET_PONS_TOKEN, STUB_WALLET, TTONE_IMAGE } from "../testnet/fixtures";
 import { expectTokenImage, serveTokenImages } from "../helpers";
@@ -102,6 +102,17 @@ test("when the indexer can't be reached, holders, top traders and the top-10 sha
   await expect(page.getByText("Top 10 holders · Data unavailable")).toBeVisible();
   await activity.getByRole("tab", { name: "Top traders" }).click();
   await expect(activity.getByText("Data unavailable")).toBeVisible();
+});
+
+test("a MetaMask user is told to turn Smart Transactions off before a curve buy, which its simulator can't run", async ({ page }) => {
+  await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [STUB_NAME_KEY, "MetaMask"] as const);
+  await connected(page);
+  await page.goto(`/token/${TTONE.token}`);
+  const panel = tradePanel(page);
+  await panel.getByLabel("You pay").fill("0.00005");
+  await panel.getByRole("button", { name: "Review buy" }).click();
+  const review = page.getByRole("dialog", { name: "One last look." });
+  await expect(review.getByRole("note").filter({ hasText: "Smart Transactions" })).toHaveText(/Turn off Smart Transactions first \(Settings → Advanced\)\./);
 });
 
 test("a graduated mission trades on its Uniswap pool: the quote, the review, the wallet, then the swap its receipt shows", async ({ page }) => {

@@ -67,6 +67,8 @@ export const ja: Dictionary = {
     switchTo: "{chain} に切り替え",
     disconnect: "接続を解除",
     unavailable: "現在ウォレットに接続できません。しばらくしてからお試しください。",
+    smartTransactions:
+      "MetaMask をお使いの場合は、先に Smart Transactions をオフにしてください（設定 → 高度な設定）。MetaMask はまだこのローンチパッドをシミュレーションできないため、オンのままだと「おそらく失敗します」と警告し、送信前にトランザクションをキャンセルします。オフにすれば通ります。",
   },
   hero: {
     overview: "概要",

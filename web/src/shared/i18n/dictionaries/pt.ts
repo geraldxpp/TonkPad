@@ -68,6 +68,8 @@ export const pt: Dictionary = {
     switchTo: "Mudar para {chain}",
     disconnect: "Desconectar",
     unavailable: "A conexão de carteiras não está disponível agora. Tente mais tarde.",
+    smartTransactions:
+      "Usa a MetaMask? Desative primeiro a opção Smart Transactions (Configurações → Avançado). A MetaMask ainda não consegue simular este launchpad, então, com a opção ativada, mostra o aviso «provavelmente falhará» e cancela a transação antes do envio. Com a opção desativada, a transação passa.",
   },
   hero: {
     overview: "Visão geral",

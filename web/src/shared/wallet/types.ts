@@ -8,9 +8,11 @@ export interface WalletSnapshot {
   accounts: Partial<Record<ChainId, string>>;
   /** A connection is being made or restored (the wallet picker is open, or a saved session is coming back). */
   pending: boolean;
+  /** The connected Robinhood Chain wallet's name as it announces itself ("MetaMask"), or null. */
+  evmWallet: string | null;
 }
 
-export const EMPTY_SNAPSHOT: WalletSnapshot = { active: null, accounts: {}, pending: false };
+export const EMPTY_SNAPSHOT: WalletSnapshot = { active: null, accounts: {}, pending: false, evmWallet: null };
 
 /** A Robinhood Chain transaction for the wallet to send; amounts are wei, as decimal strings. */
 export interface EvmTransactionRequest {

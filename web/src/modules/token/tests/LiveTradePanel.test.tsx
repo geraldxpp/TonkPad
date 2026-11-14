@@ -37,7 +37,7 @@ const token: TradeToken = {
   crewPct: null,
 };
 
-const idle: WalletView = { phase: "idle", pending: false, chain: null, address: null, accounts: {} };
+const idle: WalletView = { phase: "idle", pending: false, chain: null, address: null, accounts: {}, evmWallet: null };
 const noFunds: WalletBalancesView = { owner: null, balances: null, loading: false, failed: false };
 const funded: WalletBalancesView = {
   owner: OWNER,
@@ -75,7 +75,7 @@ describe("LiveTradePanel", () => {
   });
 
   it("asks for a wallet on this chain too when one is connected on the other chain", () => {
-    mocks.view = { phase: "ready", pending: false, chain: "rh", address: "0x7a5e00000000000000000000000000000000c0de", accounts: { rh: "0x7a5e00000000000000000000000000000000c0de" } };
+    mocks.view = { phase: "ready", pending: false, chain: "rh", address: "0x7a5e00000000000000000000000000000000c0de", accounts: { rh: "0x7a5e00000000000000000000000000000000c0de" }, evmWallet: null };
     render(<LiveTradePanel token={token} />);
     const button = screen.getByRole("button", { name: "Connect a Solana wallet" });
     expect(button).toHaveAccessibleDescription("Connecting shares only your address. Nothing is signed.");
@@ -84,7 +84,7 @@ describe("LiveTradePanel", () => {
   });
 
   it("shows the real balances and keeps the trade button disabled", () => {
-    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER } };
+    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER }, evmWallet: null };
     mocks.funds = funded;
     render(<LiveTradePanel token={token} />);
     expect(screen.getByText("Balance 1.5 SOL on Solana")).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe("LiveTradePanel", () => {
   });
 
   it("enables the trade once trading is open and a quote is in, using the quote's amounts", () => {
-    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER } };
+    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER }, evmWallet: null };
     mocks.funds = funded;
     mocks.live = {
       quote: {
@@ -124,7 +124,7 @@ describe("LiveTradePanel", () => {
   });
 
   it("says why a quote is missing once trading is open", () => {
-    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER } };
+    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER }, evmWallet: null };
     mocks.funds = funded;
     mocks.live = { quote: null, loading: false, error: "no-route", tradingOpen: true };
     render(<LiveTradePanel token={token} />);
@@ -132,7 +132,7 @@ describe("LiveTradePanel", () => {
   });
 
   it("says when the balance is loading or can't be read", () => {
-    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER } };
+    mocks.view = { phase: "ready", pending: false, chain: "sol", address: OWNER, accounts: { sol: OWNER }, evmWallet: null };
     mocks.funds = { owner: OWNER, balances: null, loading: true, failed: false };
     const { rerender } = render(<LiveTradePanel token={token} />);
     expect(screen.getByText("Checking balance…")).toBeInTheDocument();

@@ -50,6 +50,17 @@ const approve = async <T>(result: T): Promise<T> => {
 
 /** Where the stub keeps its session: `{ "active": "sol", "chains": ["sol", "rh"] }`. */
 export const STUB_STORAGE_KEY = "tonkpad-wallet-stub";
+/** The name the stub's Robinhood Chain wallet announces, for tests of wallet-specific notes ("MetaMask"); none when unset. */
+export const STUB_NAME_KEY = "tonkpad-wallet-stub-name";
+
+const stubName = (accounts: Partial<Record<ChainId, string>>): string | null => {
+  if (!accounts.rh) return null;
+  try {
+    return localStorage.getItem(STUB_NAME_KEY) || null;
+  } catch {
+    return null;
+  }
+};
 
 const isChain = (value: unknown): value is ChainId => value === "sol" || value === "rh";
 
@@ -59,7 +70,7 @@ function read(): WalletSnapshot {
     if (typeof saved === "object" && saved !== null && "active" in saved && "chains" in saved && Array.isArray(saved.chains)) {
       const chains = saved.chains.filter(isChain);
       const accounts = Object.fromEntries(chains.map((chain) => [chain, STUB_ACCOUNTS[chain]]));
-      if (isChain(saved.active) && chains.includes(saved.active)) return { active: saved.active, accounts, pending: false };
+      if (isChain(saved.active) && chains.includes(saved.active)) return { active: saved.active, accounts, pending: false, evmWallet: stubName(accounts) };
     }
   } catch {
     // Unreadable or blocked storage: start disconnected.
@@ -96,7 +107,8 @@ export function createStubDriver(): WalletDriver {
   const connect = async (chain: ChainId) => {
     set({ ...snapshot, pending: true });
     await new Promise((resolve) => setTimeout(resolve, 150));
-    set({ active: chain, accounts: { ...snapshot.accounts, [chain]: STUB_ACCOUNTS[chain] }, pending: false });
+    const accounts = { ...snapshot.accounts, [chain]: STUB_ACCOUNTS[chain] };
+    set({ active: chain, accounts, pending: false, evmWallet: stubName(accounts) });
   };
   return {
     snapshot: () => snapshot,

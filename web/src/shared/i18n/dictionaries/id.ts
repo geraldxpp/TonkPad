@@ -68,6 +68,8 @@ export const id: Dictionary = {
     switchTo: "Beralih ke {chain}",
     disconnect: "Putuskan",
     unavailable: "Koneksi dompet sedang tidak tersedia. Coba lagi nanti.",
+    smartTransactions:
+      "Menggunakan MetaMask? Matikan Smart Transactions dulu (Pengaturan → Lanjutan). MetaMask belum bisa menyimulasikan launchpad ini, jadi saat fitur itu aktif, MetaMask memperingatkan “kemungkinan besar akan gagal” dan membatalkan transaksi sebelum dikirim. Jika dimatikan, transaksinya akan berhasil.",
   },
   hero: {
     overview: "Ringkasan",

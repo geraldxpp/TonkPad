@@ -67,6 +67,8 @@ export const tr: Dictionary = {
     switchTo: "{chain} ağına geç",
     disconnect: "Bağlantıyı kes",
     unavailable: "Cüzdan bağlantısı şu anda kullanılamıyor. Daha sonra tekrar deneyin.",
+    smartTransactions:
+      "MetaMask mı kullanıyorsunuz? Önce Smart Transactions özelliğini kapatın (Ayarlar → Gelişmiş). MetaMask bu launchpad’i henüz simüle edemiyor, bu yüzden özellik açıkken “başarısız olması muhtemel” uyarısı verir ve işlemi gönderilmeden önce iptal eder. Özellik kapalıyken işlem gerçekleşir.",
   },
   hero: {
     overview: "Genel bakış",

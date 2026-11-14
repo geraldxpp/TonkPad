@@ -67,6 +67,8 @@ export const de: Dictionary = {
     switchTo: "Zu {chain} wechseln",
     disconnect: "Trennen",
     unavailable: "Die Wallet-Verbindung ist gerade nicht verfügbar. Versuche es später erneut.",
+    smartTransactions:
+      "Nutzt du MetaMask? Schalte zuerst Smart Transactions aus (Einstellungen → Erweitert). MetaMask kann dieses Launchpad noch nicht simulieren. Ist die Funktion an, zeigt MetaMask deshalb die Warnung „wird wahrscheinlich scheitern“ und bricht die Transaktion vor dem Senden ab. Ist sie aus, geht die Transaktion durch.",
   },
   hero: {
     overview: "Überblick",

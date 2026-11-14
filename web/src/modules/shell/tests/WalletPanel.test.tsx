@@ -21,8 +21,8 @@ vi.mock("@/shared/wallet/wallet", () => ({
   wallet: mocks.wallet,
 }));
 
-const disconnected: WalletView = { phase: "idle", pending: false, chain: null, address: null, accounts: {} };
-const onSolana: WalletView = { phase: "ready", pending: false, chain: "sol", address: SOL, accounts: { sol: SOL } };
+const disconnected: WalletView = { phase: "idle", pending: false, chain: null, address: null, accounts: {}, evmWallet: null };
+const onSolana: WalletView = { phase: "ready", pending: false, chain: "sol", address: SOL, accounts: { sol: SOL }, evmWallet: null };
 
 beforeEach(() => {
   mocks.view = disconnected;

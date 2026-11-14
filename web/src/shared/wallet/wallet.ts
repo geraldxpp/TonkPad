@@ -19,12 +19,14 @@ export interface WalletView {
   chain: ChainId | null;
   address: string | null;
   accounts: Partial<Record<ChainId, string>>;
+  /** The connected Robinhood Chain wallet's name ("MetaMask"), or null. */
+  evmWallet: string | null;
 }
 
 /** The wallet in Client Components. The server render (and hydration) always sees it disconnected. */
 export function useWallet(): WalletView {
   const state = useSyncExternalStore(wallet.subscribe, wallet.getState, () => SERVER_STATE);
-  const { active, accounts, pending } = state.snapshot;
+  const { active, accounts, pending, evmWallet } = state.snapshot;
   const address = active ? (accounts[active] ?? null) : null;
   return {
     phase: state.phase,
@@ -32,5 +34,6 @@ export function useWallet(): WalletView {
     chain: address ? active : null,
     address,
     accounts,
+    evmWallet,
   };
 }

@@ -67,6 +67,8 @@ export const ko: Dictionary = {
     switchTo: "{chain}(으)로 전환",
     disconnect: "연결 해제",
     unavailable: "지금은 지갑을 연결할 수 없습니다. 나중에 다시 시도하세요.",
+    smartTransactions:
+      "MetaMask를 사용 중인가요? 먼저 Smart Transactions를 꺼 주세요 (설정 → 고급). MetaMask는 아직 이 런치패드를 시뮬레이션할 수 없어서, 켜져 있으면 ‘실패할 가능성이 높습니다’라고 경고하고 트랜잭션을 보내기 전에 취소합니다. 꺼져 있으면 정상적으로 처리됩니다.",
   },
   hero: {
     overview: "개요",

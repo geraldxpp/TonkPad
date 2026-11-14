@@ -67,6 +67,8 @@ export const vi: Dictionary = {
     switchTo: "Chuyển sang {chain}",
     disconnect: "Ngắt kết nối",
     unavailable: "Hiện không thể kết nối ví. Vui lòng thử lại sau.",
+    smartTransactions:
+      "Bạn đang dùng MetaMask? Hãy tắt Smart Transactions trước (Cài đặt → Nâng cao). MetaMask chưa thể mô phỏng launchpad này, nên khi tính năng này đang bật, ví sẽ cảnh báo “có khả năng thất bại” và hủy giao dịch trước khi gửi đi. Khi đã tắt, giao dịch sẽ thành công.",
   },
   hero: {
     overview: "Tổng quan",

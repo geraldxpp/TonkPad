@@ -19,6 +19,8 @@ export interface AppKitView {
   open: boolean;
   activeNamespace: string | undefined;
   accounts: Record<(typeof NAMESPACES)[ChainId], NamespaceAccount | undefined>;
+  /** The connected EVM wallet's name, from AppKit's wallet info. */
+  evmWallet?: string;
 }
 
 const CHAINS: readonly ChainId[] = ["sol", "rh"];
@@ -39,7 +41,7 @@ export function toSnapshot(view: AppKitView): WalletSnapshot {
   }
   const named = CHAINS.find((chain) => NAMESPACES[chain] === view.activeNamespace);
   const active = named && accounts[named] ? named : (CHAINS.find((chain) => accounts[chain]) ?? null);
-  return { active, accounts, pending: !view.initialized || view.open || busy };
+  return { active, accounts, pending: !view.initialized || view.open || busy, evmWallet: accounts.rh ? view.evmWallet?.trim() || null : null };
 }
 
 /** Snapshots that would render the same. */
@@ -47,6 +49,7 @@ export function sameSnapshot(left: WalletSnapshot, right: WalletSnapshot): boole
   return (
     left.active === right.active &&
     left.pending === right.pending &&
+    left.evmWallet === right.evmWallet &&
     CHAINS.every((chain) => left.accounts[chain] === right.accounts[chain])
   );
 }

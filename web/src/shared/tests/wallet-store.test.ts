@@ -18,7 +18,7 @@ function fakeDriver(initial: WalletSnapshot = EMPTY_SNAPSHOT) {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    connect: vi.fn(async (chain: ChainId) => emit({ active: chain, accounts: { [chain]: STUB_ACCOUNTS[chain] }, pending: false })),
+    connect: vi.fn(async (chain: ChainId) => emit({ active: chain, accounts: { [chain]: STUB_ACCOUNTS[chain] }, pending: false, evmWallet: null })),
     switchChain: vi.fn(async () => undefined),
     disconnect: vi.fn(async () => emit(EMPTY_SNAPSHOT)),
     setTheme: vi.fn(),
@@ -57,7 +57,7 @@ describe("wallet store", () => {
     await expect(connecting).resolves.toBe(true);
     expect(load).toHaveBeenCalledTimes(1);
     expect(driver.connect).toHaveBeenCalledWith("sol");
-    expect(store.getState()).toEqual({ phase: "ready", snapshot: { active: "sol", accounts: { sol: STUB_ACCOUNTS.sol }, pending: false } });
+    expect(store.getState()).toEqual({ phase: "ready", snapshot: { active: "sol", accounts: { sol: STUB_ACCOUNTS.sol }, pending: false, evmWallet: null } });
   });
 
   it("remembers a settled connection, forgets it on disconnect and restores it next time", async () => {
@@ -70,7 +70,7 @@ describe("wallet store", () => {
     // A pending update (a picker open, a session coming back) doesn't change the flag.
     emit({ ...EMPTY_SNAPSHOT, pending: true });
     expect(storage.getItem(REMEMBER_KEY)).toBe("1");
-    emit({ active: "rh", accounts: { rh: STUB_ACCOUNTS.rh }, pending: false });
+    emit({ active: "rh", accounts: { rh: STUB_ACCOUNTS.rh }, pending: false, evmWallet: null });
 
     const next = fakeDriver();
     const load = vi.fn(async () => next.driver);
@@ -133,16 +133,16 @@ describe("stub driver", () => {
   it("adds a second chain, switches between them and keeps its session across reloads", async () => {
     const stub = createStubDriver();
     await stub.connect("sol");
-    expect(stub.snapshot()).toEqual({ active: "sol", accounts: { sol: STUB_ACCOUNTS.sol }, pending: false });
+    expect(stub.snapshot()).toEqual({ active: "sol", accounts: { sol: STUB_ACCOUNTS.sol }, pending: false, evmWallet: null });
     expect(createStubDriver().snapshot().active).toBe("sol");
 
     // A chain without a connection gets one; the first stays connected.
     await stub.switchChain("rh");
     const both = { sol: STUB_ACCOUNTS.sol, rh: STUB_ACCOUNTS.rh };
-    expect(stub.snapshot()).toEqual({ active: "rh", accounts: both, pending: false });
+    expect(stub.snapshot()).toEqual({ active: "rh", accounts: both, pending: false, evmWallet: null });
     await stub.switchChain("sol");
-    expect(stub.snapshot()).toEqual({ active: "sol", accounts: both, pending: false });
-    expect(createStubDriver().snapshot()).toEqual({ active: "sol", accounts: both, pending: false });
+    expect(stub.snapshot()).toEqual({ active: "sol", accounts: both, pending: false, evmWallet: null });
+    expect(createStubDriver().snapshot()).toEqual({ active: "sol", accounts: both, pending: false, evmWallet: null });
 
     await stub.disconnect();
     expect(stub.snapshot()).toEqual(EMPTY_SNAPSHOT);

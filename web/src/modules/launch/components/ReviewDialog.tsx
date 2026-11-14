@@ -9,6 +9,7 @@ import { bpsText, formatEth, formatTokens, percentText } from "@/shared/tonk/for
 import type { RunState } from "../hooks/useLaunchRun";
 import { agentLabel, feeLabel, lockLabel } from "../lib/labels";
 import { Sheet } from "@/shared/ui/Sheet";
+import { SmartTransactionsNotice } from "@/shared/wallet/SmartTransactionsNotice";
 import { TokenTile } from "./TokenTile";
 import { pairText, type StudioProps } from "./types";
 
@@ -16,6 +17,8 @@ interface ReviewDialogProps extends Pick<StudioProps, "state" | "view" | "settin
   open: boolean;
   onClose: () => void;
   chainName: string;
+  /** The launchpad's chain: MetaMask users on mainnet are told to turn Smart Transactions off. */
+  chainId: number;
   run: RunState;
   /** The note under the button: the wallet confirms, or this is a demo. */
   note: string;
@@ -27,7 +30,7 @@ interface ReviewDialogProps extends Pick<StudioProps, "state" | "view" | "settin
  * tick, then Launch. While it runs it says what is happening; if the
  * launchpad's settings moved it shows the new figures and waits again.
  */
-export function ReviewDialog({ open, onClose, state, view, settings, unit, chainName, run, note, onConfirm }: ReviewDialogProps) {
+export function ReviewDialog({ open, onClose, state, view, settings, unit, chainName, chainId, run, note, onConfirm }: ReviewDialogProps) {
   const { t } = useI18n();
   const l = t.launch;
   const r = l.review;
@@ -88,6 +91,7 @@ export function ReviewDialog({ open, onClose, state, view, settings, unit, chain
         </div>
       </div>
       <p className="m-0 rounded-lg bg-raised p-3 text-[11px] leading-[1.8] text-text-2">{r.rules}</p>
+      <SmartTransactionsNotice chainId={chainId} />
       <label className="flex cursor-pointer items-center gap-2 text-[13px] text-text-2">
         <input type="checkbox" checked={checked} disabled={working} onChange={(event) => setChecked(event.target.checked)} className="size-4 flex-none accent-cta" />
         {r.ack}

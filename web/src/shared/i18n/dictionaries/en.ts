@@ -72,6 +72,9 @@ export const en = {
     switchTo: "Switch to {chain}",
     disconnect: "Disconnect",
     unavailable: "Wallet connection is unavailable right now. Try again later.",
+    /** Before a launch or curve buy, to MetaMask users on Robinhood Chain mainnet: its Smart Transactions cancel what its simulator can't run. */
+    smartTransactions:
+      "Using MetaMask? Turn off Smart Transactions first (Settings → Advanced). MetaMask can't simulate this launchpad yet, so with it on it warns “likely to fail” and cancels the transaction before it's sent. With it off, it goes through.",
   },
   hero: {
     overview: "Overview",

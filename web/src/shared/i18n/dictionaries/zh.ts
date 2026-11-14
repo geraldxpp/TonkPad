@@ -68,6 +68,8 @@ export const zh: Dictionary = {
     switchTo: "切换到 {chain}",
     disconnect: "断开连接",
     unavailable: "钱包连接暂时不可用，请稍后再试。",
+    smartTransactions:
+      "正在使用 MetaMask？请先关闭 Smart Transactions（设置 → 高级）。MetaMask 暂时无法模拟这个发射平台，所以开启时它会显示“可能会失败”的警告，并在发送前取消交易。关闭后，交易就能顺利完成。",
   },
   hero: {
     overview: "概览",

@@ -217,6 +217,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
         }}
         {...studio}
         chainName={data.chainName}
+        chainId={data.settings?.chainId ?? 0}
         run={run}
         note={note}
         onConfirm={() => owner && void start(launchRequest(form, view, owner))}
