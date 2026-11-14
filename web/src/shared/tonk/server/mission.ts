@@ -6,7 +6,7 @@ import { chainText, decodeMetadata, shownMetadata } from "../metadata";
 import type { MissionJson, MissionPageJson, MissionSummaryJson, MissionTradeJson } from "../mission";
 import type { TonkNetwork } from "../networks";
 import { ARBSYS, ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "./abi";
-import { TonkError, tonkClient } from "./client";
+import { TonkError, tonkClient, tonkLogsClient } from "./client";
 import { poolIdAt } from "./pool";
 
 const LOCK_TYPES = ["none", "time", "linear"] as const;
@@ -177,7 +177,8 @@ async function eventsSince<T extends { blockNumber: bigint }>(query: (fromBlock:
 /** A mission's curve trades from its CurveTrade events, newest first. */
 export function readTrades(network: TonkNetwork, token: string, launchBlock: number): Promise<MissionTradeJson[]> {
   return cached(`tonk:trades:${network.chainId}:${token.toLowerCase()}`, 3_000, async () => {
-    const client = await tonkClient(network);
+    // Event logs come from an RPC that answers a long range (a provider's plan can cap eth_getLogs to a few blocks).
+    const client = await tonkLogsClient(network);
     try {
       const latest = await client.getBlockNumber();
       const query = (fromBlock: bigint, toBlock: bigint) =>
@@ -212,7 +213,7 @@ export async function readMissionPage(network: TonkNetwork, token: string): Prom
 /** The launchpad's latest launches from its MissionLaunched events, newest first. */
 export function readLatestMissions(network: TonkNetwork): Promise<MissionSummaryJson[]> {
   return cached(`tonk:missions:${network.chainId}`, 15_000, async () => {
-    const client = await tonkClient(network);
+    const client = await tonkLogsClient(network);
     try {
       const latest = await client.getBlockNumber();
       const query = (fromBlock: bigint, toBlock: bigint) => client.getContractEvents({ address: network.launchpad, abi: LAUNCHPAD_ABI, eventName: "MissionLaunched", fromBlock, toBlock, strict: true });

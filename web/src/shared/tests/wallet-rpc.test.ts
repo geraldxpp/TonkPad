@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { balancesPath, isWalletBalances } from "@/shared/wallet/balances";
 import { jsonRpc, readEvmBalances, readSolanaBalances, type RpcCall } from "@/shared/wallet/rpc";
 import { mainnetNetwork, TONK_TESTNET } from "@/shared/tonk/networks";
-import { tonkRpcUrl } from "@/shared/tonk/server/client";
+import { tonkLogsRpcUrl, tonkRpcUrl } from "@/shared/tonk/server/client";
 import { PUBLIC_RPC, walletRpcUrl } from "@/shared/wallet/server";
 
 const SOL_OWNER = "FLRettWhwj1oyn19GMQVF3xdGUtgZft4mRXBHTuWSuCv";
@@ -122,6 +122,15 @@ describe("the launchpad's RPC", () => {
   it("on testnet never takes the mainnet RPC, whatever is set", () => {
     expect(tonkRpcUrl(TONK_TESTNET, { ROBINHOOD_RPC_URL: "https://site.test/rpc" })).toBe(TONK_TESTNET.rpcUrl);
     expect(tonkRpcUrl(TONK_TESTNET, { TONK_RPC_URL: "https://launchpad.test/rpc" })).toBe("https://launchpad.test/rpc");
+  });
+
+  it("reads event logs from an RPC that allows long ranges: never the site's own, whose plan can cap eth_getLogs", () => {
+    if (!mainnet) throw new Error("the deployment should connect");
+    // Seen in production: the site's RPC allowed 10 blocks per eth_getLogs on its free tier, so trades and launches went unread.
+    expect(tonkLogsRpcUrl(mainnet, { ROBINHOOD_RPC_URL: "https://site.test/rpc" })).toBe("https://rpc.mainnet.chain.robinhood.com");
+    expect(tonkLogsRpcUrl(mainnet, { ROBINHOOD_RPC_URL: "https://site.test/rpc", TONK_RPC_URL: "https://launchpad.test/rpc" })).toBe("https://launchpad.test/rpc");
+    expect(tonkLogsRpcUrl(mainnet, { TONK_RPC_URL: "https://launchpad.test/rpc", TONK_LOGS_RPC_URL: " https://logs.test/rpc " })).toBe("https://logs.test/rpc");
+    expect(tonkLogsRpcUrl(TONK_TESTNET, {})).toBe(TONK_TESTNET.rpcUrl);
   });
 });
 

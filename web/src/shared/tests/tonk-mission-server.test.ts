@@ -10,12 +10,12 @@ import { TONK_TESTNET } from "@/shared/tonk/networks";
 import { ARBSYS_ABI, LAUNCHPAD_ABI, TOKEN_ABI } from "@/shared/tonk/server/abi";
 import { readAccount } from "@/shared/tonk/server/account";
 import { buildAction, parseActionRequest } from "@/shared/tonk/server/action";
-import { TonkError, tonkClient } from "@/shared/tonk/server/client";
+import { TonkError, tonkClient, tonkLogsClient } from "@/shared/tonk/server/client";
 import { readLatestMissions, readMission, readMissionPage } from "@/shared/tonk/server/mission";
 import { txEvents } from "@/shared/tonk/server/status";
 import { buildTrade, parseTradeRequest } from "@/shared/tonk/server/trade";
 
-vi.mock("@/shared/tonk/server/client", async (actual) => ({ ...(await actual<typeof import("@/shared/tonk/server/client")>()), tonkClient: vi.fn() }));
+vi.mock("@/shared/tonk/server/client", async (actual) => ({ ...(await actual<typeof import("@/shared/tonk/server/client")>()), tonkClient: vi.fn(), tonkLogsClient: vi.fn() }));
 
 const PAD = TONK_TESTNET.launchpad;
 const TOKEN = "0xEaC30db90c3ac240D0122a07e46be8C161051A8A";
@@ -141,6 +141,7 @@ function fakeClient(state: Chain) {
 function connect(state: Chain) {
   const client = fakeClient(state);
   vi.mocked(tonkClient).mockResolvedValue(client as never);
+  vi.mocked(tonkLogsClient).mockResolvedValue(client as never);
   return client;
 }
 const reverted = (abi: typeof LAUNCHPAD_ABI | typeof TOKEN_ABI, message: string) => new BaseError("reverted", { cause: new ContractFunctionRevertedError({ abi, functionName: "buy", message }) });

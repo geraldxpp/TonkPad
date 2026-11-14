@@ -50,7 +50,19 @@ export function tonkRpcUrl(network: TonkNetwork, env: Readonly<Record<string, st
   return env.TONK_RPC_URL?.trim() || site || network.rpcUrl;
 }
 
-let current: { url: string; client: PublicClient; verified: Promise<void> | null } | null = null;
+/**
+ * The RPC event logs are read from: TONK_LOGS_RPC_URL when set, else
+ * TONK_RPC_URL, else the network's public one. Never the site's own RPC
+ * (ROBINHOOD_RPC_URL): a provider's plan can cap eth_getLogs to a few
+ * blocks (the site's allowed 10 on its free tier, about a second of
+ * Robinhood Chain), while the public RPC answers the launchpad's whole
+ * history in one read.
+ */
+export function tonkLogsRpcUrl(network: TonkNetwork, env: Readonly<Record<string, string | undefined>> = process.env): string {
+  return env.TONK_LOGS_RPC_URL?.trim() || env.TONK_RPC_URL?.trim() || network.rpcUrl;
+}
+
+const clients = new Map<string, { client: PublicClient; verified: Promise<void> | null }>();
 
 /**
  * A viem client for the network, checked once to really be on its chain: an
@@ -59,12 +71,21 @@ let current: { url: string; client: PublicClient; verified: Promise<void> | null
  * (viem otherwise keeps the block number for 4 s): a sale built just after
  * its approval must not read the chain as it was before it.
  */
-export async function tonkClient(network: TonkNetwork): Promise<PublicClient> {
-  const url = tonkRpcUrl(network);
-  if (!current || current.url !== url) {
-    current = { url, client: createPublicClient({ cacheTime: 0, transport: http(url, { timeout: RPC_TIMEOUT_MS, retryCount: 1, batch: { batchSize: 100 } }) }), verified: null };
+export function tonkClient(network: TonkNetwork): Promise<PublicClient> {
+  return verifiedClient(network, tonkRpcUrl(network));
+}
+
+/** The same, on the RPC for event logs (see `tonkLogsRpcUrl`). */
+export function tonkLogsClient(network: TonkNetwork): Promise<PublicClient> {
+  return verifiedClient(network, tonkLogsRpcUrl(network));
+}
+
+async function verifiedClient(network: TonkNetwork, url: string): Promise<PublicClient> {
+  let entry = clients.get(url);
+  if (!entry) {
+    entry = { client: createPublicClient({ cacheTime: 0, transport: http(url, { timeout: RPC_TIMEOUT_MS, retryCount: 1, batch: { batchSize: 100 } }) }), verified: null };
+    clients.set(url, entry);
   }
-  const entry = current;
   entry.verified ??= entry.client.getChainId().then((chainId) => {
     if (chainId !== network.chainId) throw new TonkError("unavailable", `RPC is on chain ${chainId}, not ${network.chainId}`);
   });

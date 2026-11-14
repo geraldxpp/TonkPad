@@ -22,8 +22,9 @@ async function TokenScreen({ params }: { params: Promise<{ address: string }> })
     if (isTestnetSite() || mission.status === "ok") return <TokenMission address={address} network={network} initial={mission} />;
     if (mission.status === "unavailable") {
       // The chain couldn't say: a token the live feed knows shows as itself; anything else waits on the chain.
+      // A tonkfun.fun launch always waits on the chain: it trades on its curve, and the general view's swap has no route for it.
       const live = isLiveMode() ? await getLiveTokenData(address) : null;
-      if (live?.status === "ok") return <TokenLive key={address} address={address} initial={live} />;
+      if (live?.status === "ok" && live.detail.token.launchpad !== "tonk") return <TokenLive key={address} address={address} initial={live} />;
       return <TokenMission address={address} network={network} initial={mission} />;
     }
   }
