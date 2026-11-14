@@ -102,7 +102,8 @@ describe("building a launch", () => {
     const build = await buildLaunch(TONK_TESTNET, REQUEST);
     expect(build.tx.to).toBe(TONK_TESTNET.launchpad);
     expect(build.tx.value).toBe("300000000000000");
-    expect(build.tx.gas).toBe("1950000");
+    // A launch's own wider margin (1.6x the estimate): the first mainnet launch was built from an estimate about 22% short.
+    expect(build.tx.gas).toBe("2400000");
     const { functionName, args } = decodeFunctionData({ abi: LAUNCHPAD_ABI, data: build.tx.data as `0x${string}` });
     expect(functionName).toBe("launchMission");
     expect(args?.[0]).toMatchObject({ name: "Tonk Test One", symbol: "TTONE", lockType: 2, lockShareBps: 8000 });

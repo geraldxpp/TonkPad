@@ -11,6 +11,13 @@ const SLOW_AFTER_MS = 30_000;
 const SLOW_POLL_MS = 5_000;
 /** Unsettled this long, the screen says so; it never decides the outcome itself. */
 export const STALL_MS = 90_000;
+/**
+ * A hash the chain hasn't seen in this long most likely never went out: a
+ * wallet can hand back a hash and then drop the transaction (MetaMask's Smart
+ * Transactions did, on Robinhood Chain). Blocks there come several times a
+ * second, so half a minute is a clear sign. Said on screen; the watch goes on.
+ */
+export const NOT_SENT_MS = 30_000;
 
 /** Only a receipt settles a transaction: its own, or that of the transaction the wallet sent in its place. */
 export const isSettled = (state: LaunchTxState | "checking") => state === "confirmed" || state === "failed" || state === "replaced";
@@ -28,9 +35,11 @@ export interface TxView {
   stalled: boolean;
   /** The transaction the wallet sent in its place, found at the same nonce; the result shown is that one's. */
   replacedBy: string | null;
+  /** The chain has never seen this hash, after a while: the wallet most likely didn't send it. Never a failure; it keeps checking. */
+  notSent: boolean;
 }
 
-const START: TxView = { state: "checking", mission: null, events: [], unreachable: false, stalled: false, replacedBy: null };
+const START: TxView = { state: "checking", mission: null, events: [], unreachable: false, stalled: false, replacedBy: null, notSent: false };
 const pause = (elapsed: number) => (elapsed < SLOW_AFTER_MS ? POLL_MS : SLOW_POLL_MS);
 
 /**
@@ -48,6 +57,8 @@ export function useTxStatus(hash: string | null): TxView {
     let stopped = false;
     let timer = 0;
     let sender: TxSender | null = null;
+    // Once the chain has seen it (a sender, or any state but unknown), it was sent, whatever comes later.
+    let seen = false;
     const started = Date.now();
     const check = async () => {
       const status: LaunchStatus | null = await fetchLaunchStatus(hash, sender).catch(() => null);
@@ -55,8 +66,10 @@ export function useTxStatus(hash: string | null): TxView {
       const elapsed = Date.now() - started;
       if (status) {
         sender = status.sender ?? sender;
+        seen ||= sender !== null || status.state !== "unknown";
         const done = isSettled(status.state);
-        setView({ hash, state: status.state, mission: status.mission, events: status.events, unreachable: false, stalled: !done && elapsed > STALL_MS, replacedBy: status.replacedBy ?? null });
+        const notSent = !seen && elapsed > NOT_SENT_MS;
+        setView({ hash, state: status.state, mission: status.mission, events: status.events, unreachable: false, stalled: !done && elapsed > STALL_MS, replacedBy: status.replacedBy ?? null, notSent });
         if (done) return;
       } else {
         setView((prev) => ({ ...(prev.hash === hash ? prev : { hash, ...START }), unreachable: true, stalled: elapsed > STALL_MS }));

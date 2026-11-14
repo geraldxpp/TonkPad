@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LaunchStatus } from "@/shared/tonk/types";
-import { settled, STALL_MS, useTxStatus } from "@/shared/tonk/useTxStatus";
+import { NOT_SENT_MS, settled, STALL_MS, useTxStatus } from "@/shared/tonk/useTxStatus";
 
 const mocks = vi.hoisted(() => ({ fetchLaunchStatus: vi.fn() }));
 vi.mock("@/shared/tonk/api", () => ({ fetchLaunchStatus: mocks.fetchLaunchStatus }));
@@ -41,6 +41,33 @@ describe("watching a transaction on the page", () => {
     expect(mocks.fetchLaunchStatus).toHaveBeenNthCalledWith(1, HASH, null);
     expect(mocks.fetchLaunchStatus).toHaveBeenLastCalledWith(HASH, SENDER);
     expect(result.current).toMatchObject({ state: "pending", unreachable: false });
+  });
+
+  it("says a hash the chain never sees was most likely not sent, and keeps checking in case it arrives", async () => {
+    // A wallet can hand back a hash and drop the transaction: MetaMask's Smart Transactions did, on Robinhood Chain.
+    mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "unknown" }));
+    const { result } = renderHook(() => useTxStatus(HASH));
+    await advance(NOT_SENT_MS - 5_000);
+    expect(result.current).toMatchObject({ state: "unknown", notSent: false });
+    await advance(10_000);
+    expect(result.current).toMatchObject({ state: "unknown", notSent: true, stalled: false });
+    // It turns up after all: from then on it was sent, and its receipt settles it.
+    mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "pending", sender: SENDER }));
+    await advance(6_000);
+    expect(result.current).toMatchObject({ state: "pending", notSent: false });
+    mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "unknown", sender: SENDER }));
+    await advance(NOT_SENT_MS + 10_000);
+    expect(result.current).toMatchObject({ state: "unknown", notSent: false });
+    mocks.fetchLaunchStatus.mockResolvedValue(answer({ state: "confirmed", block: 3 }));
+    await advance(6_000);
+    expect(result.current).toMatchObject({ state: "confirmed", notSent: false });
+  });
+
+  it("never calls a transaction the chain has seen 'not sent', even if the node later loses it", async () => {
+    mocks.fetchLaunchStatus.mockResolvedValueOnce(answer({ state: "pending", sender: SENDER })).mockResolvedValue(answer({ state: "unknown" }));
+    const { result } = renderHook(() => useTxStatus(HASH));
+    await advance(NOT_SENT_MS + 20_000);
+    expect(result.current).toMatchObject({ state: "unknown", notSent: false });
   });
 
   it("shows the wallet's replacement and its result, not the original's silence", async () => {

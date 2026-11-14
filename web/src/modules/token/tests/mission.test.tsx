@@ -324,7 +324,7 @@ describe("the curve trade panel", () => {
 
   it("shows a sent trade confirming, then what the chain recorded, and holds the next trade until it settles", () => {
     const bought: TxEventJson = { kind: "trade", token: TOKEN, trader: BUYER, side: "buy", eth: "50000000000000", tokens: "26119201142461485199930760", protocolFee: "500000000000", crewFee: "1000000000000", creatorFee: "500000000000" };
-    const sent = (state: SentTrade["tx"]["state"], events: TxEventJson[] = []): SentTrade => ({ hash: HASH, tx: { state, mission: null, events, unreachable: false, stalled: false, replacedBy: null }, waiting: state === "pending" });
+    const sent = (state: SentTrade["tx"]["state"], events: TxEventJson[] = []): SentTrade => ({ hash: HASH, tx: { state, mission: null, events, unreachable: false, stalled: false, replacedBy: null, notSent: false }, waiting: state === "pending" });
     const { rerender } = render(<CurveTradePanel mission={mission()} network={TONK_TESTNET} view={view()} sent={sent("pending")} {...handlers} />);
     expect(screen.getByText("Confirming on Robinhood Chain Testnet…")).toBeVisible();
     type(tr.pay, "0.00005");
@@ -432,7 +432,7 @@ describe("the creator's tools", () => {
 describe("a transaction that takes long, or that the wallet replaced", () => {
   const OTHER = `0x${"99".repeat(32)}`;
   const card = (tx: Partial<SentTrade["tx"]>, onDismiss = vi.fn()) => {
-    const full: SentTrade["tx"] = { state: "unknown", mission: null, events: [], unreachable: false, stalled: false, replacedBy: null, ...tx };
+    const full: SentTrade["tx"] = { state: "unknown", mission: null, events: [], unreachable: false, stalled: false, replacedBy: null, notSent: false, ...tx };
     const waiting = full.state !== "confirmed" && full.state !== "failed" && full.state !== "replaced";
     return render(<CurveStatus sent={{ hash: HASH, tx: full, waiting }} token={TOKEN} ticker="TTONE" network={TONK_TESTNET} onDismiss={onDismiss} />);
   };
@@ -444,6 +444,17 @@ describe("a transaction that takes long, or that the wallet replaced", () => {
     expect(screen.getByText(m.trade.stalled)).toBeVisible();
     expect(screen.queryByText(m.trade.failedTitle)).not.toBeInTheDocument();
     expect(screen.queryByText(m.trade.errors.replaced)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: m.trade.stopWatching }));
+    expect(onDismiss).toHaveBeenCalled();
+  });
+
+  it("says a trade the chain hasn't seen isn't on the chain yet, warns not to send it twice, drops the dead explorer link, and lets you close it", () => {
+    const onDismiss = vi.fn();
+    card({ state: "unknown", notSent: true }, onDismiss);
+    expect(screen.getByText(m.trade.notSentTitle)).toBeVisible();
+    expect(screen.getByText(m.trade.notSent)).toBeVisible();
+    expect(screen.queryByText(m.trade.failedTitle)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: en.swap.viewTx })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: m.trade.stopWatching }));
     expect(onDismiss).toHaveBeenCalled();
   });

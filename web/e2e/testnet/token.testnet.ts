@@ -1,7 +1,7 @@
 import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 import { de } from "../../src/shared/i18n/dictionaries/de";
 import { ru } from "../../src/shared/i18n/dictionaries/ru";
-import { STUB_EVM_HASH, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
+import { STUB_EVM_HASH, STUB_EVM_SENT_KEY, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
 import { DAY, GRAD, NEWB, OWNER, TOWN, TTONE } from "./fixture-chain";
 import { uploadPicture } from "../helpers";
 import { E2E_IMAGE_HOST, STUB_WALLET } from "./fixtures";
@@ -129,6 +129,10 @@ test("a buy runs from the quote to its receipt, and a reload goes on watching it
   await expect(panel.getByText("Bought 26.12M $TTONE")).toBeVisible();
   await expect(panel.getByRole("link", { name: "View transaction" })).toHaveAttribute("href", `${EXPLORER}/tx/${STUB_EVM_HASH}`);
   expect(builds).toEqual([{ token: TTONE.token, trader: STUB_WALLET, side: "buy", amount: "50000000000000", minOut: "25858009131036870347931452", referrer: null }]);
+  // On the testnet the wallet prices it: no fee fields from the site, legacy or otherwise.
+  const sent = JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STUB_EVM_SENT_KEY)) ?? "[]") as Record<string, string>[];
+  expect(sent.at(-1)).toMatchObject({ value: "0x2d79883d2000" });
+  for (const field of ["type", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas"]) expect(sent.at(-1)).not.toHaveProperty(field);
 
   await page.reload();
   await expect(panel.getByText("Bought 26.12M $TTONE")).toBeVisible();

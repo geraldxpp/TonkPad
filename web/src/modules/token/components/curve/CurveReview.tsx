@@ -12,7 +12,7 @@ import { explorerTxUrl, type TonkNetwork } from "@/shared/tonk/networks";
 import { Sheet } from "@/shared/ui/Sheet";
 import type { CurveRunState } from "../../hooks/useCurveRun";
 import { bpsPct, runError } from "../../lib/curve-text";
-import { SmartTransactionsNotice } from "@/shared/wallet/SmartTransactionsNotice";
+import { LikelyToFailNote } from "@/shared/wallet/LikelyToFailNote";
 
 interface CurveReviewProps {
   open: boolean;
@@ -88,8 +88,8 @@ export function CurveReview({ open, onClose, mission, network, quote, crewBps, n
         </p>
       ) : null}
       {quote?.capped ? <p className="m-0 rounded-lg bg-warn/7 px-3.5 py-3 text-[12px] leading-[1.6] text-warn">{m.capped}</p> : null}
-      {/* A curve buy reads the chain's ArbSys, which MetaMask's Smart Transactions can't simulate; a sale doesn't. */}
-      {buy ? <SmartTransactionsNotice chainId={network.chainId} /> : null}
+      {/* A curve buy reads the chain's ArbSys, which MetaMask's preview simulator misreads; a sale doesn't. */}
+      {buy ? <LikelyToFailNote chainId={network.chainId} /> : null}
       {quote && !buy && needsApproval ? (
         <p className="m-0 text-[12px] leading-[1.6] text-text-2">{fmt(m.approveFirst, { amount: formatTokensFull(BigInt(quote.amountIn)), ticker })}</p>
       ) : null}

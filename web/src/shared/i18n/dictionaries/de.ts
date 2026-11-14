@@ -67,8 +67,8 @@ export const de: Dictionary = {
     switchTo: "Zu {chain} wechseln",
     disconnect: "Trennen",
     unavailable: "Die Wallet-Verbindung ist gerade nicht verfügbar. Versuche es später erneut.",
-    smartTransactions:
-      "Nutzt du MetaMask? Schalte zuerst Smart Transactions aus (Einstellungen → Erweitert). MetaMask kann dieses Launchpad noch nicht simulieren. Ist die Funktion an, zeigt MetaMask deshalb die Warnung „wird wahrscheinlich scheitern“ und bricht die Transaktion vor dem Senden ab. Ist sie aus, geht die Transaktion durch.",
+    likelyToFail:
+      "MetaMask meldet hier vielleicht, dass dies wahrscheinlich scheitert. Seine Vorschau kann die Blocknummer von Robinhood Chain nicht lesen, die der Block-0 Shield nutzt. Bevor sich deine Wallet öffnet, prüft diese Seite genau diese Transaktion an der Chain.",
   },
   hero: {
     overview: "Überblick",
@@ -801,6 +801,7 @@ export const de: Dictionary = {
       reverted: "On-chain fehlgeschlagen. Es wurde nichts gestartet; nur die Netzwerkgebühr wurde verbraucht.",
       replaced: "Diese Transaktion wurde in deiner Wallet ersetzt oder abgebrochen. Durch sie wurde nichts gestartet.",
       stalled: "Das dauert länger als üblich. Sieh in der Aktivität deiner Wallet nach, bevor du noch einmal startest; diese Seite prüft weiter.",
+      notSent: "Die Chain hat diesen Start noch nicht gesehen, also hat deine Wallet ihn wahrscheinlich nicht gesendet. Zeigt deine Wallet ihn als gesendet, in der Warteschlange oder ausstehend an, starte nicht noch einmal. Diese Seite prüft weiter.",
       unavailable: "Robinhood Chain ist gerade nicht erreichbar. Versuch es gleich noch einmal.",
       paused: "Starts sind gerade pausiert. Es wurde nichts gesendet.",
       migrator: "Starts sind angehalten, während wir die Einstellungen des Launchpads prüfen. Es wurde nichts gesendet.",
@@ -812,6 +813,7 @@ export const de: Dictionary = {
       sub: "{name} ist live auf {chain}.",
       pendingTitle: "Start wird bestätigt",
       pendingBody: "Lass diese Seite offen oder komm über diesen Link zurück. Nichts wird doppelt gesendet.",
+      notSentTitle: "Start noch nicht auf der Chain",
       token: "Token-Adresse",
       bought: "Gekaufte Token",
       liquid: "Jetzt verfügbar",
@@ -886,6 +888,8 @@ export const de: Dictionary = {
       failedTitle: "Es ist nicht durchgegangen",
       stalledTitle: "Wird noch bestätigt",
       stalled: "Das dauert länger als üblich. Sieh in der Aktivität deiner Wallet nach, bevor du es noch einmal versuchst; hier wird weiter geprüft.",
+      notSentTitle: "Noch nicht auf der Chain",
+      notSent: "Die Chain hat diese Transaktion noch nicht gesehen, also hat deine Wallet sie wahrscheinlich nicht gesendet. Zeigt deine Wallet sie als gesendet, in der Warteschlange oder ausstehend an, sende sie nicht noch einmal. Hier wird weiter geprüft.",
       stopWatching: "Nicht mehr verfolgen",
       poolLine: "Uniswap-v4-Pool · {pct} Gebühr, geteilt zwischen Protokoll, Crew und Creator",
       poolReviewSub: "Am Uniswap-Pool in einem Block geprüft. Deine Wallet signiert.",

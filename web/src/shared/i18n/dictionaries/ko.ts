@@ -67,8 +67,8 @@ export const ko: Dictionary = {
     switchTo: "{chain}(으)로 전환",
     disconnect: "연결 해제",
     unavailable: "지금은 지갑을 연결할 수 없습니다. 나중에 다시 시도하세요.",
-    smartTransactions:
-      "MetaMask를 사용 중인가요? 먼저 Smart Transactions를 꺼 주세요 (설정 → 고급). MetaMask는 아직 이 런치패드를 시뮬레이션할 수 없어서, 켜져 있으면 ‘실패할 가능성이 높습니다’라고 경고하고 트랜잭션을 보내기 전에 취소합니다. 꺼져 있으면 정상적으로 처리됩니다.",
+    likelyToFail:
+      "MetaMask가 이 트랜잭션이 실패할 가능성이 높다고 표시할 수 있습니다. MetaMask의 미리보기가 Block-0 Shield가 사용하는 Robinhood Chain의 블록 번호를 읽지 못하기 때문입니다. 지갑이 열리기 전에 이 사이트가 이 트랜잭션을 그대로 체인에서 확인합니다.",
   },
   hero: {
     overview: "개요",
@@ -801,6 +801,7 @@ export const ko: Dictionary = {
       reverted: "온체인에서 실패했습니다. 런칭된 것은 없으며 네트워크 수수료만 사용되었습니다.",
       replaced: "이 트랜잭션은 지갑에서 교체되거나 취소되었습니다. 이로 인해 런칭된 것은 없습니다.",
       stalled: "평소보다 오래 걸리고 있습니다. 다시 런칭하기 전에 지갑의 활동 내역을 확인하세요. 이 페이지는 계속 확인합니다.",
+      notSent: "체인에서 아직 이 런칭이 보이지 않아, 지갑이 보내지 않았을 가능성이 큽니다. 지갑에 전송됨, 대기열 또는 보류 중으로 표시되면 다시 런칭하지 마세요. 이 페이지는 계속 확인합니다.",
       unavailable: "지금 Robinhood Chain에 연결할 수 없습니다. 잠시 후 다시 시도하세요.",
       paused: "지금은 런칭이 일시 중지되었습니다. 아무것도 전송되지 않았습니다.",
       migrator: "런치패드 설정을 확인하는 동안 런칭이 중지되었습니다. 아무것도 전송되지 않았습니다.",
@@ -812,6 +813,7 @@ export const ko: Dictionary = {
       sub: "{name}이(가) {chain}에 올라왔습니다.",
       pendingTitle: "런칭 확인 중",
       pendingBody: "이 페이지를 열어 두거나 이 링크로 다시 돌아오세요. 두 번 전송되지 않습니다.",
+      notSentTitle: "런칭이 아직 체인에 없음",
       token: "토큰 주소",
       bought: "매수한 토큰",
       liquid: "지금 사용 가능",
@@ -886,6 +888,8 @@ export const ko: Dictionary = {
       failedTitle: "이루어지지 않았습니다",
       stalledTitle: "아직 확인 중입니다",
       stalled: "평소보다 오래 걸리고 있습니다. 다시 시도하기 전에 지갑의 활동 내역을 확인하세요. 여기서는 계속 확인합니다.",
+      notSentTitle: "아직 체인에 없음",
+      notSent: "체인에서 아직 이 트랜잭션이 보이지 않아, 지갑이 보내지 않았을 가능성이 큽니다. 지갑에 전송됨, 대기열 또는 보류 중으로 표시되면 다시 보내지 마세요. 여기서는 계속 확인합니다.",
       stopWatching: "추적 중지",
       poolLine: "Uniswap v4 풀 · 수수료 {pct}, 프로토콜·Crew·Creator가 나눔",
       poolReviewSub: "같은 블록에서 Uniswap 풀과 대조했습니다. 서명은 지갑에서 합니다.",

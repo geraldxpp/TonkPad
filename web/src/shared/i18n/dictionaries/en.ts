@@ -72,9 +72,9 @@ export const en = {
     switchTo: "Switch to {chain}",
     disconnect: "Disconnect",
     unavailable: "Wallet connection is unavailable right now. Try again later.",
-    /** Before a launch or curve buy, to MetaMask users on Robinhood Chain mainnet: its Smart Transactions cancel what its simulator can't run. */
-    smartTransactions:
-      "Using MetaMask? Turn off Smart Transactions first (Settings → Advanced). MetaMask can't simulate this launchpad yet, so with it on it warns “likely to fail” and cancels the transaction before it's sent. With it off, it goes through.",
+    /** Before a launch or curve buy, to MetaMask users on Robinhood Chain mainnet: its preview misreads ArbSys and warns "likely to fail". */
+    likelyToFail:
+      "MetaMask may say this is likely to fail. Its preview can't read Robinhood Chain's block number, which the Block-0 Shield uses. Before your wallet opens, this site checks this exact transaction against the chain.",
   },
   hero: {
     overview: "Overview",
@@ -820,6 +820,7 @@ export const en = {
       reverted: "It failed on-chain. Nothing was launched; only the network fee was spent.",
       replaced: "This transaction was replaced or cancelled in your wallet. Nothing was launched by it.",
       stalled: "This is taking longer than usual. Check your wallet's activity before launching again; this page keeps checking.",
+      notSent: "The chain still hasn't seen this launch, so your wallet most likely didn't send it. If your wallet shows it as sent, queued or pending, don't launch again. This page keeps checking.",
       unavailable: "Robinhood Chain can't be reached right now. Try again in a moment.",
       paused: "Launches are paused right now. Nothing was sent.",
       migrator: "Launches are stopped while we check the launchpad's settings. Nothing was sent.",
@@ -831,6 +832,7 @@ export const en = {
       sub: "{name} is live on {chain}.",
       pendingTitle: "Launch confirming",
       pendingBody: "Keep this page open, or come back to this link. Nothing is sent twice.",
+      notSentTitle: "Launch not seen on the chain yet",
       token: "Token address",
       bought: "Tokens bought",
       liquid: "Available now",
@@ -905,6 +907,8 @@ export const en = {
       failedTitle: "It didn't go through",
       stalledTitle: "Still confirming",
       stalled: "This is taking longer than usual. Check your wallet's activity before trying again; this keeps checking.",
+      notSentTitle: "Not seen on the chain yet",
+      notSent: "The chain still hasn't seen this transaction, so your wallet most likely didn't send it. If your wallet shows it as sent, queued or pending, don't send it again. This keeps checking.",
       stopWatching: "Stop watching",
       poolLine: "Uniswap v4 pool · {pct} fee, shared by the protocol, Crew and Creator",
       poolReviewSub: "Checked against the Uniswap pool at one block. Your wallet signs it.",

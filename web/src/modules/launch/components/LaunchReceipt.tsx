@@ -51,6 +51,13 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
   let icon: ReactNode = <LoaderCircle size={22} strokeWidth={2} className="tk-spin text-accent-text" aria-hidden="true" />;
   let title = c.pendingTitle;
   let body: string = tx.stalled ? l.run.stalled : c.pendingBody;
+  // The chain never saw it: most likely the wallet didn't send it. Still watched, in case it does arrive.
+  const notSent = waiting && tx.notSent;
+  if (notSent) {
+    icon = <TriangleAlert size={22} strokeWidth={2.2} className="text-warn" aria-hidden="true" />;
+    title = c.notSentTitle;
+    body = l.run.notSent;
+  }
   if (mission) {
     icon = <Check size={22} strokeWidth={2.6} className="text-pos" aria-hidden="true" />;
     title = c.title;
@@ -63,7 +70,7 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
   return (
     <section aria-labelledby="launch-receipt-title" className="mx-auto flex w-full max-w-[560px] flex-col gap-5 rounded-2xl border border-line bg-surface p-6 max-md:p-4">
       <div role="status" aria-live="polite" className="flex items-start gap-3.5">
-        <span className={cn("flex size-11 flex-none items-center justify-center rounded-xl border", mission ? "border-pos/25 bg-pos/8" : waiting ? "border-accent/20 bg-accent/6" : "border-neg/25 bg-neg/8")}>{icon}</span>
+        <span className={cn("flex size-11 flex-none items-center justify-center rounded-xl border", mission ? "border-pos/25 bg-pos/8" : notSent ? "border-warn/25 bg-warn/7" : waiting ? "border-accent/20 bg-accent/6" : "border-neg/25 bg-neg/8")}>{icon}</span>
         <div className="min-w-0">
           <h1 id="launch-receipt-title" className="font-display text-[26px] leading-8 font-extrabold tracking-[-0.03em]">
             {title}
@@ -106,7 +113,7 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
         </>
       ) : null}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-4">
-        {link(`/tx/${tx.replacedBy ?? hash}`, t.swap.viewTx)}
+        {notSent ? null : link(`/tx/${tx.replacedBy ?? hash}`, t.swap.viewTx)}
         {mission ? link(`/address/${mission.token}`, c.viewToken) : null}
         <span className="flex-auto" />
         {mission && tokenHref ? (
@@ -114,7 +121,7 @@ export function LaunchReceipt({ hash, tx, chainName, unit, explorerUrl, tokenHre
             {t.mission.find.openPage}
           </Link>
         ) : null}
-        {waiting ? null : (
+        {waiting && !notSent ? null : (
           <button type="button" onClick={() => onBack(mission !== null)} className={BUTTON}>
             {mission ? c.again : c.backToStudio}
           </button>

@@ -4,7 +4,7 @@ import { I18nProvider } from "@/shared/i18n/I18nProvider";
 import { DICTIONARIES } from "@/shared/i18n/dictionaries";
 import { toSnapshot } from "@/shared/wallet/appkit-state";
 import { createStubDriver, STUB_NAME_KEY, STUB_STORAGE_KEY } from "@/shared/wallet/stub-driver";
-import { needsSmartTransactionsOff, SmartTransactionsNotice } from "@/shared/wallet/SmartTransactionsNotice";
+import { LikelyToFailNote, warnsLikelyToFail } from "@/shared/wallet/LikelyToFailNote";
 import type { WalletView } from "@/shared/wallet/wallet";
 
 const mocks = vi.hoisted(() => ({ view: null as WalletView | null }));
@@ -15,25 +15,28 @@ const on = (evmWallet: string | null): WalletView => ({ phase: "ready", pending:
 const show = (chainId: number) =>
   render(
     <I18nProvider lang="en" messages={DICTIONARIES.en}>
-      <SmartTransactionsNotice chainId={chainId} />
+      <LikelyToFailNote chainId={chainId} />
     </I18nProvider>,
   );
 
 afterEach(() => localStorage.clear());
 
-describe("the MetaMask Smart Transactions notice", () => {
-  it("is for MetaMask on Robinhood Chain mainnet only: MetaMask runs no Smart Transactions on the testnet", () => {
-    expect(needsSmartTransactionsOff(4663, "MetaMask")).toBe(true);
-    expect(needsSmartTransactionsOff(4663, "metamask")).toBe(true);
-    expect(needsSmartTransactionsOff(46630, "MetaMask")).toBe(false);
-    expect(needsSmartTransactionsOff(4663, "Rabby Wallet")).toBe(false);
-    expect(needsSmartTransactionsOff(4663, null)).toBe(false);
+describe("the note on MetaMask's \"likely to fail\" preview", () => {
+  it("is for MetaMask on Robinhood Chain mainnet only: its preview doesn't misread the testnet", () => {
+    expect(warnsLikelyToFail(4663, "MetaMask")).toBe(true);
+    expect(warnsLikelyToFail(4663, "metamask")).toBe(true);
+    expect(warnsLikelyToFail(46630, "MetaMask")).toBe(false);
+    expect(warnsLikelyToFail(4663, "Rabby Wallet")).toBe(false);
+    expect(warnsLikelyToFail(4663, null)).toBe(false);
   });
 
-  it("tells a MetaMask user to turn Smart Transactions off, and shows nothing to anyone else", () => {
+  it("explains the warning to a MetaMask user without asking for any wallet setting, and shows nothing to anyone else", () => {
     mocks.view = on("MetaMask");
     const { unmount } = show(4663);
-    expect(screen.getByRole("note")).toHaveTextContent("Turn off Smart Transactions first (Settings → Advanced).");
+    const note = screen.getByRole("note");
+    expect(note).toHaveTextContent("MetaMask may say this is likely to fail.");
+    expect(note).toHaveTextContent("Before your wallet opens, this site checks this exact transaction against the chain.");
+    expect(note.textContent).not.toMatch(/turn off|settings/i);
     unmount();
     mocks.view = on("Coinbase Wallet");
     const other = show(4663);

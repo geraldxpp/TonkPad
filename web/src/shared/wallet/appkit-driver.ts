@@ -6,7 +6,7 @@ import { isTestnetSite } from "@/shared/tonk/networks";
 import type { ChainId } from "@/shared/types/chain";
 import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
 import { BRIDGE_SOURCES } from "./bridge-sources";
-import { chainFeeCap, wantsFeeCap } from "./fees";
+import { evmSendParams } from "./fees";
 import { ensureEvmChain } from "./network";
 import { WalletActionError, type WalletDriver } from "./types";
 
@@ -44,7 +44,6 @@ interface Eip1193 {
 
 const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
 const toBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
-const hex = (wei: string) => `0x${BigInt(wei).toString(16)}`;
 const utf8Hex = (text: string) => `0x${Array.from(new TextEncoder().encode(text), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 
 /** The chain an EVM wallet is on, from the wallet itself ("0x1237" from extensions, 4663 over WalletConnect). */
@@ -184,12 +183,9 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       if (!provider || !from) throw new WalletActionError("failed");
       // The wallet's own answer decides: AppKit's record can be stale, and its switch fails silently by default.
       await ensureEvmChain({ chainId: () => walletChainId(provider), switchTo: () => moveTo("rh") }, NETWORKS.rh.id);
-      // Robinhood Chain's suggested price sits under its base fee at times: send a cap the network accepts.
-      const fees = wantsFeeCap(NETWORKS.rh.id) ? await chainFeeCap((args) => provider.request(args)) : null;
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}), ...(fees ?? {}) }],
-      });
+      // On Robinhood Chain mainnet the legacy format, which MetaMask sends without Smart Transactions (see fees.ts).
+      const params = await evmSendParams({ from, to, data, value, gas }, NETWORKS.rh.id, (args) => provider.request(args));
+      const hash = await provider.request({ method: "eth_sendTransaction", params: [params] });
       if (typeof hash !== "string") throw new WalletActionError("failed");
       return hash;
     },
@@ -209,12 +205,9 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
         },
         chainId,
       );
-      // Out of Robinhood Chain, the same cap as there; other networks' wallets price their own fees.
-      const fees = wantsFeeCap(chainId) ? await chainFeeCap((args) => provider.request(args)) : null;
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}), ...(fees ?? {}) }],
-      });
+      // Out of Robinhood Chain, the same format as there; other networks' wallets price their own fees.
+      const params = await evmSendParams({ from, to, data, value, gas }, chainId, (args) => provider.request(args));
+      const hash = await provider.request({ method: "eth_sendTransaction", params: [params] });
       if (typeof hash !== "string") throw new WalletActionError("failed");
       return hash;
     },

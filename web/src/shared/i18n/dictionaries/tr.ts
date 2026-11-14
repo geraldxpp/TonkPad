@@ -67,8 +67,8 @@ export const tr: Dictionary = {
     switchTo: "{chain} ağına geç",
     disconnect: "Bağlantıyı kes",
     unavailable: "Cüzdan bağlantısı şu anda kullanılamıyor. Daha sonra tekrar deneyin.",
-    smartTransactions:
-      "MetaMask mı kullanıyorsunuz? Önce Smart Transactions özelliğini kapatın (Ayarlar → Gelişmiş). MetaMask bu launchpad’i henüz simüle edemiyor, bu yüzden özellik açıkken “başarısız olması muhtemel” uyarısı verir ve işlemi gönderilmeden önce iptal eder. Özellik kapalıyken işlem gerçekleşir.",
+    likelyToFail:
+      "MetaMask bu işlemin muhtemelen başarısız olacağını söyleyebilir. Önizlemesi, Block-0 Shield’in kullandığı Robinhood Chain blok numarasını okuyamıyor. Cüzdanınız açılmadan önce bu site, bu işlemin aynısını zincirin kendisinde kontrol eder.",
   },
   hero: {
     overview: "Genel bakış",
@@ -801,6 +801,7 @@ export const tr: Dictionary = {
       reverted: "Zincir üzerinde başarısız oldu. Hiçbir şey başlatılmadı; yalnızca ağ ücreti harcandı.",
       replaced: "Bu işlem cüzdanınızda değiştirildi veya iptal edildi. Onunla hiçbir şey başlatılmadı.",
       stalled: "Bu her zamankinden uzun sürüyor. Yeniden başlatmadan önce cüzdanınızdaki etkinliği kontrol edin; bu sayfa kontrol etmeye devam ediyor.",
+      notSent: "Zincir bu başlatmayı hâlâ görmedi, yani cüzdanınız büyük olasılıkla göndermedi. Cüzdanınız onu gönderildi, sırada veya beklemede olarak gösteriyorsa yeniden başlatmayın. Bu sayfa kontrol etmeye devam ediyor.",
       unavailable: "Robinhood Chain’e şu anda ulaşılamıyor. Biraz sonra tekrar deneyin.",
       paused: "Başlatmalar şu anda duraklatıldı. Hiçbir şey gönderilmedi.",
       migrator: "Launchpad ayarlarını kontrol ederken başlatmalar durduruldu. Hiçbir şey gönderilmedi.",
@@ -812,6 +813,7 @@ export const tr: Dictionary = {
       sub: "{name}, {chain} üzerinde yayında.",
       pendingTitle: "Başlatma onaylanıyor",
       pendingBody: "Bu sayfayı açık tutun veya bu bağlantıya geri dönün. Hiçbir şey iki kez gönderilmez.",
+      notSentTitle: "Başlatma henüz zincirde değil",
       token: "Token adresi",
       bought: "Alınan token’lar",
       liquid: "Şu anda serbest",
@@ -886,6 +888,8 @@ export const tr: Dictionary = {
       failedTitle: "Gerçekleşmedi",
       stalledTitle: "Hâlâ onaylanıyor",
       stalled: "Bu her zamankinden uzun sürüyor. Yeniden denemeden önce cüzdanınızdaki etkinliği kontrol edin; burada kontrol devam ediyor.",
+      notSentTitle: "Henüz zincirde değil",
+      notSent: "Zincir bu işlemi hâlâ görmedi, yani cüzdanınız büyük olasılıkla göndermedi. Cüzdanınız onu gönderildi, sırada veya beklemede olarak gösteriyorsa yeniden göndermeyin. Burada kontrol devam ediyor.",
       stopWatching: "Takibi bırak",
       poolLine: "Uniswap v4 havuzu · {pct} ücret; protokol, Crew ve Creator arasında paylaşılır",
       poolReviewSub: "Uniswap havuzunda tek bir blokta kontrol edildi. Cüzdanınız imzalar.",

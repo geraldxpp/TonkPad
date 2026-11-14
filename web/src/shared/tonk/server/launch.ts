@@ -7,7 +7,7 @@ import type { TonkNetwork } from "../networks";
 import { CREATOR_OPTIONS, CREW_OPTIONS, effectiveTier, isLocked, LOCK_TYPE_ID, lockedAmount, type LockSettings, type LockType, MAX_LOCK_DAYS, REWARD_POOL_BPS, TIER_CREATOR_MAX } from "../rules";
 import { curveSettings, type LaunchBuild, type LaunchRequest } from "../types";
 import { LAUNCHPAD_ABI } from "./abi";
-import { address, invalid, isRecord, padGas, refusal, requireDeployedMigrator, requireFunds, text as string, unsigned } from "./build";
+import { address, invalid, isRecord, LAUNCH_GAS_MARGIN, padGas, refusal, requireDeployedMigrator, requireFunds, text as string, unsigned } from "./build";
 import { TonkError, tonkClient } from "./client";
 import { readSettings } from "./settings";
 
@@ -104,7 +104,7 @@ export async function buildLaunch(network: TonkNetwork, request: LaunchRequest, 
   let gas: bigint;
   try {
     await client.simulateContract(call);
-    gas = padGas(await client.estimateContractGas(call));
+    gas = padGas(await client.estimateContractGas(call), LAUNCH_GAS_MARGIN);
   } catch (error) {
     throw refusal(error);
   }

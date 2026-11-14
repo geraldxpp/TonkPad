@@ -68,8 +68,8 @@ export const id: Dictionary = {
     switchTo: "Beralih ke {chain}",
     disconnect: "Putuskan",
     unavailable: "Koneksi dompet sedang tidak tersedia. Coba lagi nanti.",
-    smartTransactions:
-      "Menggunakan MetaMask? Matikan Smart Transactions dulu (Pengaturan → Lanjutan). MetaMask belum bisa menyimulasikan launchpad ini, jadi saat fitur itu aktif, MetaMask memperingatkan “kemungkinan besar akan gagal” dan membatalkan transaksi sebelum dikirim. Jika dimatikan, transaksinya akan berhasil.",
+    likelyToFail:
+      "MetaMask mungkin menyebut transaksi ini kemungkinan besar akan gagal. Pratinjaunya tidak bisa membaca nomor blok Robinhood Chain, yang dipakai Block-0 Shield. Sebelum dompet Anda terbuka, situs ini memeriksa transaksi yang persis sama ini di chain.",
   },
   hero: {
     overview: "Ringkasan",
@@ -802,6 +802,7 @@ export const id: Dictionary = {
       reverted: "Gagal di on-chain. Tidak ada yang diluncurkan; hanya biaya jaringan yang terpakai.",
       replaced: "Transaksi ini diganti atau dibatalkan di dompet Anda. Tidak ada yang diluncurkan olehnya.",
       stalled: "Ini memakan waktu lebih lama dari biasanya. Periksa aktivitas dompet Anda sebelum meluncurkan lagi; halaman ini terus memeriksa.",
+      notSent: "Chain masih belum melihat peluncuran ini, jadi kemungkinan besar dompet Anda tidak mengirimnya. Jika dompet Anda menampilkannya sebagai terkirim, dalam antrean, atau tertunda, jangan meluncurkan lagi. Halaman ini terus memeriksa.",
       unavailable: "Robinhood Chain tidak dapat dijangkau saat ini. Coba lagi sebentar lagi.",
       paused: "Peluncuran sedang dijeda. Tidak ada yang dikirim.",
       migrator: "Peluncuran dihentikan sementara kami memeriksa pengaturan launchpad. Tidak ada yang dikirim.",
@@ -813,6 +814,7 @@ export const id: Dictionary = {
       sub: "{name} sudah aktif di {chain}.",
       pendingTitle: "Peluncuran sedang dikonfirmasi",
       pendingBody: "Biarkan halaman ini terbuka, atau kembali ke tautan ini. Tidak ada yang dikirim dua kali.",
+      notSentTitle: "Peluncuran belum terlihat di chain",
       token: "Alamat token",
       bought: "Token dibeli",
       liquid: "Tersedia sekarang",
@@ -887,6 +889,8 @@ export const id: Dictionary = {
       failedTitle: "Tidak berhasil",
       stalledTitle: "Masih mengonfirmasi",
       stalled: "Ini memakan waktu lebih lama dari biasanya. Periksa aktivitas dompet Anda sebelum mencoba lagi; pengecekan terus berjalan di sini.",
+      notSentTitle: "Belum terlihat di chain",
+      notSent: "Chain masih belum melihat transaksi ini, jadi kemungkinan besar dompet Anda tidak mengirimnya. Jika dompet Anda menampilkannya sebagai terkirim, dalam antrean, atau tertunda, jangan kirim lagi. Pengecekan terus berjalan di sini.",
       stopWatching: "Berhenti memantau",
       poolLine: "Pool Uniswap v4 · biaya {pct}, dibagi untuk protokol, Crew, dan Creator",
       poolReviewSub: "Diperiksa terhadap pool Uniswap di satu blok. Dompet Anda yang menandatangani.",

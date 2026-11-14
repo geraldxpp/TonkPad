@@ -68,8 +68,8 @@ export const pt: Dictionary = {
     switchTo: "Mudar para {chain}",
     disconnect: "Desconectar",
     unavailable: "A conexão de carteiras não está disponível agora. Tente mais tarde.",
-    smartTransactions:
-      "Usa a MetaMask? Desative primeiro a opção Smart Transactions (Configurações → Avançado). A MetaMask ainda não consegue simular este launchpad, então, com a opção ativada, mostra o aviso «provavelmente falhará» e cancela a transação antes do envio. Com a opção desativada, a transação passa.",
+    likelyToFail:
+      "A MetaMask pode dizer que isto provavelmente vai falhar. A prévia dela não consegue ler o número de bloco da Robinhood Chain, que o Block-0 Shield usa. Antes de a sua carteira abrir, este site verifica esta mesma transação na própria rede.",
   },
   hero: {
     overview: "Visão geral",
@@ -802,6 +802,7 @@ export const pt: Dictionary = {
       reverted: "Falhou na blockchain. Nada foi lançado; só a taxa de rede foi gasta.",
       replaced: "Esta transação foi substituída ou cancelada na sua carteira. Nada foi lançado por ela.",
       stalled: "Está demorando mais que o normal. Verifique a atividade da sua carteira antes de lançar de novo; esta página continua verificando.",
+      notSent: "A rede ainda não viu este lançamento, então é provável que sua carteira não o tenha enviado. Se sua carteira o mostrar como enviado, na fila ou pendente, não lance de novo. Esta página continua verificando.",
       unavailable: "Não foi possível conectar à Robinhood Chain agora. Tente de novo em instantes.",
       paused: "Os lançamentos estão pausados agora. Nada foi enviado.",
       migrator: "Os lançamentos estão suspensos enquanto verificamos as configurações do launchpad. Nada foi enviado.",
@@ -813,6 +814,7 @@ export const pt: Dictionary = {
       sub: "{name} já está na {chain}.",
       pendingTitle: "Lançamento em confirmação",
       pendingBody: "Mantenha esta página aberta ou volte a este link. Nada é enviado duas vezes.",
+      notSentTitle: "Lançamento ainda não está na rede",
       token: "Endereço do token",
       bought: "Tokens comprados",
       liquid: "Disponível agora",
@@ -887,6 +889,8 @@ export const pt: Dictionary = {
       failedTitle: "Não foi concluído",
       stalledTitle: "Ainda confirmando",
       stalled: "Está demorando mais que o normal. Verifique a atividade da sua carteira antes de tentar de novo; a verificação continua aqui.",
+      notSentTitle: "Ainda não está na rede",
+      notSent: "A rede ainda não viu esta transação, então é provável que sua carteira não a tenha enviado. Se sua carteira a mostrar como enviada, na fila ou pendente, não a envie de novo. A verificação continua aqui.",
       stopWatching: "Parar de acompanhar",
       poolLine: "Pool da Uniswap v4 · taxa de {pct}, dividida entre o protocolo, Crew e Creator",
       poolReviewSub: "Verificado no pool da Uniswap em um mesmo bloco. Sua carteira assina.",

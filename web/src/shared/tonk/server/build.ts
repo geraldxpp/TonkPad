@@ -7,6 +7,12 @@ import { TonkError } from "./client";
 
 /** Gas is estimated, then padded: Robinhood Chain's price moves with its parent chain's data cost. */
 const GAS_MARGIN = { numerator: BigInt(13), denominator: BigInt(10) };
+/**
+ * A launch's margin. The first mainnet launch was built from an estimate
+ * about 22% under what it used (it had 0.89% to spare) and the cause wasn't
+ * found, so launches get more room. The chain charges only the gas used.
+ */
+export const LAUNCH_GAS_MARGIN = { numerator: BigInt(16), denominator: BigInt(10) };
 
 export type Address = `0x${string}`;
 export const ZERO_ADDRESS: Address = "0x0000000000000000000000000000000000000000";
@@ -101,7 +107,7 @@ export async function approvalReceipt(client: PublicClient, hash: `0x${string}`)
 }
 
 /** An estimate with the margin every built transaction carries. */
-export const padGas = (estimate: bigint) => (estimate * GAS_MARGIN.numerator) / GAS_MARGIN.denominator;
+export const padGas = (estimate: bigint, margin: { numerator: bigint; denominator: bigint } = GAS_MARGIN) => (estimate * margin.numerator) / margin.denominator;
 
 /** The wallet must cover what the call sends plus its gas at the current price. */
 export async function requireFunds(client: PublicClient, account: Address, value: bigint, gas: bigint): Promise<void> {

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { poolIdOf } from "../../src/shared/tonk/server/pool";
-import { STUB_EVM_HASH, STUB_NAME_KEY, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
+import { STUB_BASE_FEE, STUB_EVM_HASH, STUB_EVM_SENT_KEY, STUB_NAME_KEY, STUB_STORAGE_KEY } from "../../src/shared/wallet/stub-driver";
 import { GRAD, TTONE } from "../testnet/fixture-chain";
 import { E2E_IMAGE_HOST, HIDDEN_IMAGE_HASH, MAINNET_DEPLOYMENT, MAINNET_PONS_TOKEN, STUB_WALLET, TTONE_IMAGE } from "../testnet/fixtures";
 import { expectTokenImage, serveTokenImages } from "../helpers";
@@ -104,7 +104,7 @@ test("when the indexer can't be reached, holders, top traders and the top-10 sha
   await expect(activity.getByText("Data unavailable")).toBeVisible();
 });
 
-test("a MetaMask user is told to turn Smart Transactions off before a curve buy, which its simulator can't run", async ({ page }) => {
+test("a MetaMask user is told why MetaMask may warn before a curve buy, and is never asked to change a wallet setting", async ({ page }) => {
   await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [STUB_NAME_KEY, "MetaMask"] as const);
   await connected(page);
   await page.goto(`/token/${TTONE.token}`);
@@ -112,7 +112,9 @@ test("a MetaMask user is told to turn Smart Transactions off before a curve buy,
   await panel.getByLabel("You pay").fill("0.00005");
   await panel.getByRole("button", { name: "Review buy" }).click();
   const review = page.getByRole("dialog", { name: "One last look." });
-  await expect(review.getByRole("note").filter({ hasText: "Smart Transactions" })).toHaveText(/Turn off Smart Transactions first \(Settings → Advanced\)\./);
+  const note = review.getByRole("note").filter({ hasText: "MetaMask may say this is likely to fail." });
+  await expect(note).toHaveText(/Before your wallet opens, this site checks this exact transaction against the chain\./);
+  await expect(note).not.toHaveText(/Smart Transactions|Settings/);
 });
 
 test("a graduated mission trades on its Uniswap pool: the quote, the review, the wallet, then the swap its receipt shows", async ({ page }) => {
@@ -152,6 +154,11 @@ test("a graduated mission trades on its Uniswap pool: the quote, the review, the
   await expect(panel.getByText(/^Bought .+ \$GRAD$/)).toBeVisible();
   // The build asked for exactly the amount typed, at most 1% (the default slippage) under the quote.
   expect(builds).toEqual([{ token: GRAD.token, trader: STUB_WALLET, side: "buy", amount: "10000000000000000", minOut: "3960000000000000000000000" }]);
+  // What the wallet was handed: the legacy format at twice the base fee, which MetaMask sends without Smart Transactions.
+  const sent = JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STUB_EVM_SENT_KEY)) ?? "[]") as Record<string, string>[];
+  expect(sent.at(-1)).toMatchObject({ type: "0x0", gasPrice: `0x${(STUB_BASE_FEE * BigInt(2)).toString(16)}`, value: "0x2386f26fc10000" });
+  expect(sent.at(-1)).not.toHaveProperty("maxFeePerGas");
+  expect(sent.at(-1)).not.toHaveProperty("maxPriorityFeePerGas");
 });
 
 test("anyone shares a graduated pool's fees: the server builds it, the wallet sends it, and the receipt says who got what", async ({ page }) => {

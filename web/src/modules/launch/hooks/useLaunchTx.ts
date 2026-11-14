@@ -13,6 +13,8 @@ export interface LaunchTxView {
   stalled: boolean;
   /** The transaction the wallet sent in its place; it launched only if its receipt shows a launch. */
   replacedBy: string | null;
+  /** The chain has never seen it, after a while: the wallet most likely didn't send it. It keeps checking. */
+  notSent: boolean;
 }
 
 /**
@@ -22,6 +24,6 @@ export interface LaunchTxView {
  * elsewhere) resumes the watch and never sends anything.
  */
 export function useLaunchTx(hash: string | null): LaunchTxView {
-  const { state, mission, unreachable, stalled, replacedBy } = useTxStatus(hash);
-  return { state, mission, unreachable, stalled, replacedBy };
+  const { state, mission, unreachable, stalled, replacedBy, notSent } = useTxStatus(hash);
+  return { state, mission, unreachable, stalled, replacedBy, notSent };
 }

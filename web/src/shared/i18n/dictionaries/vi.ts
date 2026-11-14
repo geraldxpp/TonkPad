@@ -67,8 +67,8 @@ export const vi: Dictionary = {
     switchTo: "Chuyển sang {chain}",
     disconnect: "Ngắt kết nối",
     unavailable: "Hiện không thể kết nối ví. Vui lòng thử lại sau.",
-    smartTransactions:
-      "Bạn đang dùng MetaMask? Hãy tắt Smart Transactions trước (Cài đặt → Nâng cao). MetaMask chưa thể mô phỏng launchpad này, nên khi tính năng này đang bật, ví sẽ cảnh báo “có khả năng thất bại” và hủy giao dịch trước khi gửi đi. Khi đã tắt, giao dịch sẽ thành công.",
+    likelyToFail:
+      "MetaMask có thể báo giao dịch này có khả năng thất bại. Bản xem trước của MetaMask không đọc được số khối của Robinhood Chain mà Block-0 Shield sử dụng. Trước khi ví của bạn mở ra, trang này kiểm tra chính giao dịch này trực tiếp trên chuỗi.",
   },
   hero: {
     overview: "Tổng quan",
@@ -801,6 +801,7 @@ export const vi: Dictionary = {
       reverted: "Thất bại trên chuỗi. Không có gì được phát hành; chỉ tốn phí mạng.",
       replaced: "Giao dịch này đã bị thay thế hoặc hủy trong ví của bạn. Nó không phát hành gì cả.",
       stalled: "Việc này lâu hơn bình thường. Hãy kiểm tra hoạt động trong ví trước khi phát hành lại; trang này vẫn tiếp tục kiểm tra.",
+      notSent: "Chuỗi vẫn chưa thấy lần phát hành này, nên nhiều khả năng ví của bạn đã không gửi nó. Nếu ví hiển thị nó là đã gửi, đang xếp hàng hoặc đang chờ, đừng phát hành lại. Trang này vẫn tiếp tục kiểm tra.",
       unavailable: "Hiện không kết nối được Robinhood Chain. Hãy thử lại sau giây lát.",
       paused: "Việc phát hành đang tạm dừng. Chưa có gì được gửi đi.",
       migrator: "Việc phát hành đang tạm dừng trong lúc chúng tôi kiểm tra cài đặt của launchpad. Chưa có gì được gửi đi.",
@@ -812,6 +813,7 @@ export const vi: Dictionary = {
       sub: "{name} đã hoạt động trên {chain}.",
       pendingTitle: "Đang xác nhận lần phát hành",
       pendingBody: "Giữ trang này mở, hoặc quay lại liên kết này. Không có gì bị gửi hai lần.",
+      notSentTitle: "Lần phát hành chưa thấy trên chuỗi",
       token: "Địa chỉ token",
       bought: "Token đã mua",
       liquid: "Có sẵn ngay",
@@ -886,6 +888,8 @@ export const vi: Dictionary = {
       failedTitle: "Không thành công",
       stalledTitle: "Vẫn đang xác nhận",
       stalled: "Việc này lâu hơn bình thường. Hãy kiểm tra hoạt động trong ví trước khi thử lại; trang vẫn tiếp tục kiểm tra.",
+      notSentTitle: "Chưa thấy trên chuỗi",
+      notSent: "Chuỗi vẫn chưa thấy giao dịch này, nên nhiều khả năng ví của bạn đã không gửi nó. Nếu ví hiển thị giao dịch là đã gửi, đang xếp hàng hoặc đang chờ, đừng gửi lại. Trang vẫn tiếp tục kiểm tra.",
       stopWatching: "Ngừng theo dõi",
       poolLine: "Pool Uniswap v4 · phí {pct}, chia cho giao thức, Crew và Creator",
       poolReviewSub: "Đã kiểm tra với pool Uniswap tại cùng một khối. Ví của bạn ký.",

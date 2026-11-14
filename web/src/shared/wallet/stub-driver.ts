@@ -1,6 +1,8 @@
 import { privateKeyToAccount } from "viem/accounts";
+import { isTestnetSite } from "@/shared/tonk/networks";
 import type { ChainId } from "@/shared/types/chain";
-import { type BridgeTransactionRequest, EMPTY_SNAPSHOT, WalletActionError, type WalletDriver, type WalletSnapshot } from "./types";
+import { evmSendParams } from "./fees";
+import { type BridgeTransactionRequest, EMPTY_SNAPSHOT, type EvmTransactionRequest, WalletActionError, type WalletDriver, type WalletSnapshot } from "./types";
 
 /**
  * The key the stub signs messages with, made for these tests alone: it is in
@@ -21,6 +23,23 @@ export const STUB_REJECT_KEY = "tonkpad-wallet-stub-reject";
 export const STUB_EVM_HASH = `0x${"5a".repeat(32)}`;
 /** Where the stub lists the bridge transactions it was asked to send, for the e2e tests to check. */
 export const STUB_BRIDGE_SENT_KEY = "tonkpad-wallet-stub-bridge-sent";
+/** Where the stub lists the eth_sendTransaction params it would have sent on Robinhood Chain, built as the real driver builds them. */
+export const STUB_EVM_SENT_KEY = "tonkpad-wallet-stub-evm-sent";
+/** The base fee the stub's pretend chain reports: 0.02 gwei, Robinhood Chain's floor. */
+export const STUB_BASE_FEE = BigInt(20_000_000);
+
+/** Records the params the real driver would send for this request, on this site's Robinhood Chain (no wallet, no network). */
+async function noteEvmSend(request: EvmTransactionRequest) {
+  const chainId = isTestnetSite() ? 46630 : 4663;
+  const block = async () => ({ number: "0x1", baseFeePerGas: `0x${STUB_BASE_FEE.toString(16)}` });
+  const params = await evmSendParams({ from: STUB_ACCOUNTS.rh, ...request }, chainId, block);
+  try {
+    const sent: unknown = JSON.parse(localStorage.getItem(STUB_EVM_SENT_KEY) ?? "[]");
+    localStorage.setItem(STUB_EVM_SENT_KEY, JSON.stringify([...(Array.isArray(sent) ? sent : []), params]));
+  } catch {
+    // Nothing to keep.
+  }
+}
 
 function noteBridgeSend(request: BridgeTransactionRequest) {
   try {
@@ -123,7 +142,11 @@ export function createStubDriver(): WalletDriver {
     disconnect: async () => set(EMPTY_SNAPSHOT),
     setTheme: () => undefined,
     signSolanaTransaction: (transaction) => approve(transaction),
-    sendEvmTransaction: () => approve(STUB_EVM_HASH),
+    sendEvmTransaction: async (request) => {
+      const hash = await approve(STUB_EVM_HASH);
+      await noteEvmSend(request);
+      return hash;
+    },
     sendBridgeTransaction: async (request) => {
       const hash = await approve(STUB_EVM_HASH);
       noteBridgeSend(request);

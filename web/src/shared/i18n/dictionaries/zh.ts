@@ -68,8 +68,8 @@ export const zh: Dictionary = {
     switchTo: "切换到 {chain}",
     disconnect: "断开连接",
     unavailable: "钱包连接暂时不可用，请稍后再试。",
-    smartTransactions:
-      "正在使用 MetaMask？请先关闭 Smart Transactions（设置 → 高级）。MetaMask 暂时无法模拟这个发射平台，所以开启时它会显示“可能会失败”的警告，并在发送前取消交易。关闭后，交易就能顺利完成。",
+    likelyToFail:
+      "MetaMask 可能会提示这笔交易“可能会失败”。这是因为它的预览无法读取 Block-0 Shield 所用的 Robinhood Chain 区块号。在你的钱包打开之前，本站会先在链上原样核对这笔交易。",
   },
   hero: {
     overview: "概览",
@@ -802,6 +802,7 @@ export const zh: Dictionary = {
       reverted: "链上执行失败。未发射任何代币，仅消耗了网络费用。",
       replaced: "这笔交易已在你的钱包中被替换或取消，未发射任何代币。",
       stalled: "耗时比平常更久。再次发射前，请先查看钱包中的活动记录；本页面会继续检查。",
+      notSent: "链上仍未看到这次发射，你的钱包很可能没有发送它。如果钱包显示它已发送、排队中或待处理，请不要再次发射。本页面会继续检查。",
       unavailable: "暂时无法连接 Robinhood Chain，请稍后重试。",
       paused: "发射目前已暂停，未发送任何交易。",
       migrator: "我们正在检查发射台的设置，发射已暂停。未发送任何交易。",
@@ -813,6 +814,7 @@ export const zh: Dictionary = {
       sub: "{name} 已在 {chain} 上线。",
       pendingTitle: "发射确认中",
       pendingBody: "请保持此页面打开，或稍后通过此链接返回。不会重复发送。",
+      notSentTitle: "链上暂未看到这次发射",
       token: "代币地址",
       bought: "买入代币",
       liquid: "当前可用",
@@ -887,6 +889,8 @@ export const zh: Dictionary = {
       failedTitle: "未成功",
       stalledTitle: "仍在确认",
       stalled: "耗时比平常更久。再次尝试前，请先查看钱包中的活动记录；这里会继续检查。",
+      notSentTitle: "链上暂未看到",
+      notSent: "链上仍未看到这笔交易，你的钱包很可能没有发送它。如果钱包显示它已发送、排队中或待处理，请不要再次发送。这里会继续检查。",
       stopWatching: "停止跟踪",
       poolLine: "Uniswap v4 资金池 · {pct} 手续费，由协议、Crew 和 Creator 分享",
       poolReviewSub: "已在同一区块对照 Uniswap 资金池核对。由你的钱包签名。",

@@ -42,6 +42,12 @@ export function CurveStatus({ sent, token, ticker, network, pool = null, onDismi
   let title = fmt(t.swap.steps.confirming, { chain: network.name });
   let body: string | null = tx.stalled ? m.stalled : tx.unreachable ? t.mission.stale : null;
   if (waiting && tx.stalled) title = m.stalledTitle;
+  // The chain never saw it: most likely the wallet didn't send it. Still watched, in case it does arrive.
+  const notSent = waiting && tx.notSent;
+  if (notSent) {
+    title = m.notSentTitle;
+    body = m.notSent;
+  }
   if (tx.state === "confirmed") {
     // A trade on the curve or a swap on this token's own pool: either is what this page sent, even from a replacement.
     const done = trade
@@ -63,7 +69,9 @@ export function CurveStatus({ sent, token, ticker, network, pool = null, onDismi
   return (
     <div role="status" aria-live="polite" className="flex flex-col gap-2 rounded-xl border border-line bg-raised p-3.5">
       <div className="flex items-start gap-2.5">
-        {waiting ? (
+        {notSent ? (
+          <TriangleAlert size={17} strokeWidth={2.2} className="mt-0.5 flex-none text-warn" aria-hidden="true" />
+        ) : waiting ? (
           <LoaderCircle size={17} strokeWidth={2} className="tk-spin mt-0.5 flex-none text-accent-text" aria-hidden="true" />
         ) : ok ? (
           <Check size={17} strokeWidth={2.6} className="mt-0.5 flex-none text-pos" aria-hidden="true" />
@@ -76,11 +84,15 @@ export function CurveStatus({ sent, token, ticker, network, pool = null, onDismi
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <a href={explorerTxUrl(network, tx.replacedBy ?? hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
-          {t.swap.viewTx}
-          <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
-        </a>
-        {waiting && !tx.stalled ? null : (
+        {notSent ? (
+          <span />
+        ) : (
+          <a href={explorerTxUrl(network, tx.replacedBy ?? hash)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-[12px] font-semibold text-accent-text">
+            {t.swap.viewTx}
+            <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />
+          </a>
+        )}
+        {waiting && !tx.stalled && !notSent ? null : (
           <button type="button" onClick={onDismiss} className="min-h-8 rounded-lg border border-line-strong bg-surface px-3 text-[12px] font-semibold hover:bg-input">
             {waiting ? m.stopWatching : t.swap.done}
           </button>
