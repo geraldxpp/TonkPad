@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chainFeeCap, type ChainRead } from "@/shared/wallet/fees";
+import { chainFeeCap, type ChainRead, wantsFeeCap } from "@/shared/wallet/fees";
 
 const block = (baseFeePerGas: unknown): ChainRead => async ({ method, params }) => {
   expect(method).toBe("eth_getBlockByNumber");
@@ -29,5 +29,11 @@ describe("the fee cap a Robinhood Chain transaction goes out with", () => {
     const started = Date.now();
     expect(await chainFeeCap(() => new Promise(() => {}), 50)).toBeNull();
     expect(Date.now() - started).toBeLessThan(1_000);
+  });
+
+  it("is sent on Robinhood Chain mainnet only: the testnet sits at its floor, and MetaMask would call the cap a high site fee there", () => {
+    expect(wantsFeeCap(4663)).toBe(true);
+    expect(wantsFeeCap(46630)).toBe(false);
+    expect(wantsFeeCap(1)).toBe(false);
   });
 });

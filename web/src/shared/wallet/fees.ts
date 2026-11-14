@@ -1,3 +1,16 @@
+/** Robinhood Chain mainnet: the only chain the cap is sent on. */
+const ROBINHOOD_MAINNET = 4663;
+
+/**
+ * True on Robinhood Chain mainnet, where the cap guards wallets that price at
+ * eth_gasPrice. On the testnet both the base fee and eth_gasPrice sit at the
+ * floor, so the cap isn't needed there, and MetaMask (which prices the
+ * testnet at eth_gasPrice) would flag it as a "High site fee".
+ */
+export function wantsFeeCap(chainId: number): boolean {
+  return chainId === ROBINHOOD_MAINNET;
+}
+
 /** A read through the wallet's own provider. */
 export type ChainRead = (args: { method: string; params?: unknown[] }) => Promise<unknown>;
 

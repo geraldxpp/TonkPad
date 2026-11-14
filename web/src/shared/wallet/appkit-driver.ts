@@ -6,7 +6,7 @@ import { isTestnetSite } from "@/shared/tonk/networks";
 import type { ChainId } from "@/shared/types/chain";
 import { type AppKitView, NAMESPACES, sameSnapshot, toSnapshot } from "./appkit-state";
 import { BRIDGE_SOURCES } from "./bridge-sources";
-import { chainFeeCap } from "./fees";
+import { chainFeeCap, wantsFeeCap } from "./fees";
 import { ensureEvmChain } from "./network";
 import { WalletActionError, type WalletDriver } from "./types";
 
@@ -185,7 +185,7 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
       // The wallet's own answer decides: AppKit's record can be stale, and its switch fails silently by default.
       await ensureEvmChain({ chainId: () => walletChainId(provider), switchTo: () => moveTo("rh") }, NETWORKS.rh.id);
       // Robinhood Chain's suggested price sits under its base fee at times: send a cap the network accepts.
-      const fees = await chainFeeCap((args) => provider.request(args));
+      const fees = wantsFeeCap(NETWORKS.rh.id) ? await chainFeeCap((args) => provider.request(args)) : null;
       const hash = await provider.request({
         method: "eth_sendTransaction",
         params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}), ...(fees ?? {}) }],
@@ -210,7 +210,7 @@ export async function createAppKitDriver(projectId: string): Promise<WalletDrive
         chainId,
       );
       // Out of Robinhood Chain, the same cap as there; other networks' wallets price their own fees.
-      const fees = chainId === NETWORKS.rh.id ? await chainFeeCap((args) => provider.request(args)) : null;
+      const fees = wantsFeeCap(chainId) ? await chainFeeCap((args) => provider.request(args)) : null;
       const hash = await provider.request({
         method: "eth_sendTransaction",
         params: [{ from, to, data, value: hex(value), ...(gas ? { gas: hex(gas) } : {}), ...(fees ?? {}) }],
