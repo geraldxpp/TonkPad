@@ -1,7 +1,7 @@
 import { type BuyQuote, CURVE_SUPPLY, type CurveSettings, devBuyQuote, graduationTarget, marketCap, percentOf, PROTOCOL_FEE_BPS, TOTAL_SUPPLY } from "@/shared/tonk/curve";
-import { effectiveTier, isLocked, lockedAmount, type LockSettings, type LockTier, TIER_CREATOR_MAX } from "@/shared/tonk/rules";
+import { effectiveTier, isLocked, lockedAmount, type LockSettings, type LockTier, type LockType } from "@/shared/tonk/rules";
 import { type LaunchScore, launchScore } from "@/shared/tonk/score";
-import { devBuyWei, type LaunchForm, lockSettings } from "./form";
+import { devBuyWei, effective, type LaunchForm, lockSettings } from "./form";
 
 /** Every figure the Creator Studio shows, worked out from the form and the launchpad's settings. */
 export interface LaunchView {
@@ -21,9 +21,13 @@ export interface LaunchView {
   afterCap: bigint;
   /** Net ETH the curve needs to graduate. */
   target: bigint;
+  /** The lock type the launch gets: the creator's, or none without a dev buy. */
+  lockType: LockType;
   lock: LockSettings;
   /** The contract accepts this lock (a dev buy, 50%+, 7+ days). */
   locks: boolean;
+  /** The Creator Rewards the launch gets: the creator's choice, held to the lock's tier. */
+  creator: number;
   tier: LockTier;
   creatorMax: number;
   totalBps: number;
@@ -39,8 +43,9 @@ export interface LaunchView {
 export function launchView(form: LaunchForm, settings: CurveSettings): LaunchView {
   const devBuy = devBuyWei(form) ?? BigInt(0);
   const hasBuy = devBuy > BigInt(0);
-  const lock = lockSettings(form);
-  const quote = devBuyQuote(settings, devBuy, form.creator);
+  const held = effective(form, settings);
+  const lock = lockSettings({ ...form, lock: held.lock });
+  const quote = devBuyQuote(settings, devBuy, held.creator);
   const bought = quote.tokensOut;
   const locks = isLocked(hasBuy, lock);
   const locked = locks ? lockedAmount(bought, lock) : BigInt(0);
@@ -60,14 +65,16 @@ export function launchView(form: LaunchForm, settings: CurveSettings): LaunchVie
     startCap: marketCap(settings.virtualEth, settings.virtualTokens),
     afterCap: marketCap(quote.newVirtualEth, quote.newVirtualTokens),
     target: graduationTarget(settings),
+    lockType: held.lock,
     lock,
     locks,
+    creator: held.creator,
     tier,
-    creatorMax: TIER_CREATOR_MAX[tier],
-    totalBps: PROTOCOL_FEE_BPS + form.crew + form.creator,
+    creatorMax: held.creatorMax,
+    totalBps: PROTOCOL_FEE_BPS + form.crew + held.creator,
     score: launchScore({ bought, lock: locks ? lock : { ...lock, type: "none" }, crewBps: form.crew }),
     crewDaily,
-    creatorDaily: (form.volume * form.creator) / 10_000,
+    creatorDaily: (form.volume * held.creator) / 10_000,
     protocolDaily: (form.volume * PROTOCOL_FEE_BPS) / 10_000,
     holderDaily: crewDaily / 100,
   };

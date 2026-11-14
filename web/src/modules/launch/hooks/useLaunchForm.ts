@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import type { CurveSettings } from "@/shared/tonk/curve";
 import { draftKey, restoreDraft } from "../lib/draft";
-import { defaultForm, type LaunchForm, normalize, type Notice } from "../lib/form";
+import { defaultForm, effective, type LaunchForm, normalize, type Notice } from "../lib/form";
 import { type FieldKey, type Issues, issuesIn, validate } from "../lib/validate";
 
 const listeners = new Set<() => void>();
@@ -34,9 +34,9 @@ const writeStored = (key: string, value: string | null) => {
 
 export interface LaunchFormState {
   form: LaunchForm;
-  /** Changes one field, then brings the rest back inside the launchpad's rules. */
-  set: <K extends keyof LaunchForm>(key: K, value: LaunchForm[K]) => void;
-  /** What the last change adjusted on its own. */
+  /** Changes one field (and any `also` that go with it), then brings the rest back inside the launchpad's rules. */
+  set: <K extends keyof LaunchForm>(key: K, value: LaunchForm[K], also?: Partial<LaunchForm>) => void;
+  /** What the rules hold back right now (no lock without a dev buy, Creator Rewards above the lock's tier), then what the last change adjusted. */
   notices: Notice[];
   issues: Issues;
   /** A field's error, once it has been shown (after leaving the field, or a failed check). */
@@ -52,24 +52,26 @@ export interface LaunchFormState {
 /**
  * The Creator Studio's form. It opens on the draft saved on this device, if
  * any (the server render and first paint show the defaults), and nothing is
- * saved until the creator asks.
+ * saved until the creator asks. The lock and Creator Rewards stay as chosen:
+ * the launch gets what `effective` derives from them.
  */
 export function useLaunchForm(settings: CurveSettings, chainId: number): LaunchFormState {
   const key = draftKey(chainId);
   const stored = useSyncExternalStore(subscribe, () => readStored(key), () => null);
   const [edited, setEdited] = useState<LaunchForm | null>(null);
-  const [notices, setNotices] = useState<Notice[]>([]);
+  const [changed, setChanged] = useState<Notice[]>([]);
   const [shown, setShown] = useState<ReadonlySet<FieldKey>>(new Set());
 
-  const base = useMemo(() => restoreDraft(stored, settings) ?? defaultForm(settings), [stored, settings]);
-  const form = edited ?? base;
+  const restored = useMemo(() => restoreDraft(stored, settings), [stored, settings]);
+  const form = edited ?? restored ?? defaultForm(settings);
   const issues = useMemo(() => validate(form, settings), [form, settings]);
+  const notices = useMemo(() => [...effective(form, settings).notices, ...changed], [form, settings, changed]);
 
   const set = useCallback(
-    <K extends keyof LaunchForm>(field: K, value: LaunchForm[K]) => {
-      const result = normalize({ ...form, [field]: value }, settings, field);
+    <K extends keyof LaunchForm>(field: K, value: LaunchForm[K], also: Partial<LaunchForm> = {}) => {
+      const result = normalize({ ...form, ...also, [field]: value }, settings, field);
       setEdited(result.form);
-      setNotices(result.notices);
+      setChanged(result.notices);
     },
     [form, settings],
   );
@@ -91,12 +93,13 @@ export function useLaunchForm(settings: CurveSettings, chainId: number): LaunchF
     showsError: (field) => shown.has(field) && issues[field] === true,
     touch,
     check,
-    draft: stored === serialized ? "saved" : edited ? "unsaved" : "none",
+    // Compared with the draft as it came back (an old draft gains new fields, and a length is settled), not the raw text.
+    draft: restored && JSON.stringify(restored) === serialized ? "saved" : edited ? "unsaved" : "none",
     save: () => writeStored(key, serialized),
     reset: () => {
       writeStored(key, null);
       setEdited(null);
-      setNotices([]);
+      setChanged([]);
       setShown(new Set());
     },
   };

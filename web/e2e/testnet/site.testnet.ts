@@ -21,8 +21,8 @@ test("Launch reads the launchpad's own settings, and the site says it is the tes
   // 0.0001 test ETH to launch; the middle preset is the reserve ÷ 24.
   await expect(summary(page).getByText("Robinhood Chain Testnet")).toBeVisible();
   await expect(summary(page).getByText("0.0001 test ETH", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Initial dev buy in test ETH")).toHaveValue("0.0000625");
-  await expect(summary(page).getByTestId("launch-pay")).toHaveText("0.0001625 test ETH");
+  await expect(page.getByLabel("Initial dev buy in test ETH")).toHaveValue("0.00006");
+  await expect(summary(page).getByTestId("launch-pay")).toHaveText("0.00016 test ETH");
 });
 
 test("screens that aren't on the testnet yet say so, and swaps are closed", async ({ page, request }) => {
@@ -93,7 +93,7 @@ test("a launch runs to its receipt, with the testnet explorer's links", async ({
   // The stub wallet's 0.5 test ETH, read from the fixture, covers the launch.
   await summary(page).getByRole("button", { name: "Review launch" }).click();
   const dialog = page.getByRole("dialog", { name: "One final look." });
-  await expect(dialog.getByText("0.0001625 test ETH")).toBeVisible();
+  await expect(dialog.getByText("0.00016 test ETH")).toBeVisible();
   await dialog.getByLabel("I have checked these settings.").check();
   await dialog.getByRole("button", { name: "Launch $TTONE" }).click();
 

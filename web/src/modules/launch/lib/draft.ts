@@ -1,4 +1,4 @@
-import { defaultForm, type LaunchForm } from "./form";
+import { defaultForm, type LaunchForm, settleDays } from "./form";
 import type { CurveSettings } from "@/shared/tonk/curve";
 import { allowedImage } from "@/shared/tonk/image";
 
@@ -21,6 +21,8 @@ export function restoreDraft(saved: string | null, settings: CurveSettings): Lau
     }
     // A saved image counts only if it is still one of ours.
     form.image = allowedImage(form.image);
+    // A time-lock's length comes back inside 7–365, as the box settles it (a draft saved mid-typing could hold 0).
+    form.days = settleDays(form.days);
     return form;
   } catch {
     return null;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { type CurveSettings, WEI } from "@/shared/tonk/curve";
 import { formatEth, formatTokens, parseEthInput } from "@/shared/tonk/format";
-import { defaultForm, type LaunchForm, lockSettings, normalize, settleDays } from "../lib/form";
+import { defaultForm, effective, type LaunchForm, lockSettings, normalize, settleDays } from "../lib/form";
 import { issuesIn, validate } from "../lib/validate";
 import { launchView } from "../lib/view";
 
@@ -14,49 +14,67 @@ const change = (form: LaunchForm, patch: Partial<LaunchForm>, settings = MAINNET
   const [key] = Object.keys(patch) as (keyof LaunchForm)[];
   return normalize({ ...form, ...patch }, settings, key);
 };
+/** What the launch gets from a form's choices. */
+const held = (form: LaunchForm, settings = MAINNET) => effective(form, settings);
 
 describe("the form a creator starts with", () => {
   it("has empty text and the design's settings, with the dev buy sized to the network", () => {
     const form = defaultForm(MAINNET);
     expect(form).toMatchObject({ name: "", ticker: "", devBuy: "0.25", lock: "linear", share: 80, months: 6, crew: 200, creator: 100, agent: false });
-    expect(defaultForm(TESTNET).devBuy).toBe("0.0000625");
+    expect(defaultForm(TESTNET).devBuy).toBe("0.00006");
     expect(lockSettings(form)).toEqual({ type: "linear", sharePct: 80, days: 180 });
     expect(normalize(form, MAINNET)).toEqual({ form, notices: [] });
   });
 });
 
 describe("keeping the form inside the launchpad's rules", () => {
-  it("shares the 4% reward pool: raising one fee lowers the other to its highest option that fits", () => {
+  it("shares the 4% reward pool: a Creator choice lowers Crew, and raising Crew holds Creator back without losing it", () => {
     const base = filled({ crew: 200, creator: 200 });
-    expect(change(base, { crew: 300 })).toMatchObject({ form: { crew: 300, creator: 100 }, notices: [{ key: "creatorPool", bps: 100 }] });
+    const crewUp = change(base, { crew: 300 });
+    expect(crewUp).toMatchObject({ form: { crew: 300, creator: 200 }, notices: [] });
+    expect(held(crewUp.form)).toMatchObject({ creator: 100, notices: [{ key: "creatorPool", bps: 100 }] });
+    expect(held(change(crewUp.form, { crew: 200 }).form)).toMatchObject({ creator: 200, notices: [] });
     expect(change(base, { creator: 400 })).toMatchObject({ form: { crew: 0, creator: 400 }, notices: [{ key: "crewPool", bps: 0 }] });
     // 2.5% isn't an option, so Crew lands on 2%.
     expect(change(filled({ crew: 300, creator: 100 }), { creator: 150 })).toMatchObject({ form: { crew: 200, creator: 150 } });
-    expect(change(base, { crew: 400 }).form).toMatchObject({ crew: 400, creator: 0 });
+    expect(held(change(base, { crew: 400 }).form)).toMatchObject({ creator: 0, notices: [{ key: "creatorPool", bps: 0 }] });
   });
 
-  it("holds Creator Rewards to the lock's tier as the lock changes", () => {
+  it("judges each Creator option by the tokens its own fee buys, so options the lock can't honour near the 10M floor are closed", () => {
+    // 0.0735 ETH on the 6 ETH reserve: 80% of what a 2% fee buys is over 10M tokens, but not at 3% or 4%.
+    const near = filled({ devBuy: "0.0735", crew: 0, creator: 400 });
+    expect(held(near)).toMatchObject({ creatorMax: 200, creator: 200, notices: [{ key: "creatorTier", bps: 200 }] });
+    expect(launchView(near, MAINNET)).toMatchObject({ creatorMax: 200, creator: 200 });
+  });
+
+  it("holds Creator Rewards to the lock's tier as the lock changes, keeping the creator's choice", () => {
     const ironclad = filled({ crew: 100, creator: 300 });
-    expect(change(ironclad, { share: 75 })).toMatchObject({ form: { creator: 200 }, notices: [{ key: "creatorTier", bps: 200 }] });
-    expect(change(ironclad, { months: 2 }).form.creator).toBe(200);
-    expect(change(ironclad, { lock: "none" }).form.creator).toBe(50);
-    expect(change(filled({ lock: "time", days: 20, creator: 100 }), { days: 29 }).form.creator).toBe(50);
-    expect(change(filled({ lock: "time", days: 20, creator: 50 }), { days: 30 }).notices).toEqual([]);
+    const lower = change(ironclad, { share: 75 }).form;
+    expect(lower.creator).toBe(300);
+    expect(held(lower)).toEqual({ lock: "linear", creator: 200, creatorMax: 200, notices: [{ key: "creatorTier", bps: 200 }] });
+    expect(held(change(ironclad, { months: 2 }).form).creator).toBe(200);
+    expect(held(change(ironclad, { lock: "none" }).form).creator).toBe(50);
+    expect(held(change(filled({ lock: "time", days: 20, creator: 100 }), { days: 29 }).form).creator).toBe(50);
+    expect(held(change(filled({ lock: "time", days: 20, creator: 50 }), { days: 30 }).form).notices).toEqual([]);
+    // Back at Ironclad, the creator's 3% applies again: nothing was lost on the way.
+    expect(held(change(lower, { share: 80 }).form)).toEqual({ lock: "linear", creator: 300, creatorMax: 400, notices: [] });
   });
 
-  it("caps Creator Rewards at 0.5% while the lock holds under 1% of supply, as the mainnet contract rules", () => {
+  it("holds Creator Rewards at 0.5% while the lock holds under 1% of supply, as the mainnet contract rules", () => {
     // 0.001 ETH on mainnet's 6 ETH reserve buys about 178,800 tokens: an Ironclad lock of 80% of them is far under 10M.
-    const dust = change(filled({ crew: 100, creator: 300 }), { devBuy: "0.001" });
-    expect(dust).toMatchObject({ form: { creator: 50 }, notices: [{ key: "creatorTier", bps: 50 }] });
+    const dust = change(filled({ crew: 100, creator: 300 }), { devBuy: "0.001" }).form;
+    expect(held(dust)).toMatchObject({ creator: 50, notices: [{ key: "creatorTier", bps: 50 }] });
     // 0.1 ETH buys about 17.6M tokens: 80% locked is over 10M, so Ironclad's 4% stays open.
-    expect(change(filled({ crew: 0, creator: 400 }), { devBuy: "0.1" }).form.creator).toBe(400);
+    expect(held(change(filled({ crew: 0, creator: 400 }), { devBuy: "0.1" }).form).creator).toBe(400);
   });
 
-  it("drops the lock and caps Creator Rewards at 0.5% without a dev buy", () => {
-    const { form, notices } = change(filled({ creator: 200 }), { devBuy: "0" });
-    expect(form).toMatchObject({ lock: "none", creator: 50 });
-    expect(notices.map((notice) => notice.key)).toEqual(["noBuy", "creatorTier"]);
-    expect(change(filled(), { devBuy: "" }).form.lock).toBe("none");
+  it("gives no lock and holds Creator Rewards at 0.5% without a dev buy, keeping both choices for when one is typed", () => {
+    const empty = change(filled({ creator: 200 }), { devBuy: "0" });
+    expect(empty).toMatchObject({ form: { lock: "linear", creator: 200 }, notices: [] });
+    expect(held(empty.form)).toEqual({ lock: "none", creator: 50, creatorMax: 50, notices: [{ key: "noBuy" }, { key: "creatorTier", bps: 50 }] });
+    expect(held(change(filled(), { devBuy: "" }).form).lock).toBe("none");
+    // "0.05" typed after "0": the lock and 2% were never undone.
+    expect(held(change(empty.form, { devBuy: "0.5" }).form)).toEqual({ lock: "linear", creator: 200, creatorMax: 400, notices: [] });
   });
 
   it("caps the dev buy and tidies sliders and options", () => {
@@ -87,6 +105,8 @@ describe("validation", () => {
     expect(validate(filled({ agent: true, agentName: "Commander Astro", agentRole: "Mission commander", agentBrief: "Keep holders informed." }), MAINNET)).toEqual({});
     expect(validate(filled({ lock: "time", days: 6 }), MAINNET)).toEqual({ days: true });
     expect(validate(filled({ lock: "linear", days: 6 }), MAINNET)).toEqual({});
+    // Without a dev buy there is no lock, so its length doesn't matter.
+    expect(validate(filled({ lock: "time", days: 6, devBuy: "0" }), MAINNET)).toEqual({});
   });
 });
 
@@ -113,7 +133,10 @@ describe("the figures on screen", () => {
     expect(formatEth(test.startCap)).toBe("0.001398");
     expect(formatEth(test.target)).toBe("0.004396");
     const unlocked = launchView(filled({ lock: "none", creator: 50 }), MAINNET);
-    expect(unlocked).toMatchObject({ locks: false, tier: "none", creatorMax: 50 });
+    expect(unlocked).toMatchObject({ locks: false, tier: "none", creatorMax: 50, lockType: "none", creator: 50 });
+    // The figures and the request use what the launch gets: a creator's 2% held at 0.5% counts as 0.5%.
+    const holding = launchView(filled({ devBuy: "0", creator: 200 }), MAINNET);
+    expect(holding).toMatchObject({ lockType: "none", locks: false, creator: 50, totalBps: 350 });
     expect(unlocked.locked).toBe(BigInt(0));
     expect([unlocked.score.now, unlocked.score.later, unlocked.score.lockedBadge]).toEqual([60, 70, false]);
     // A typed amount that isn't valid yet counts as no buy, rather than breaking the preview.

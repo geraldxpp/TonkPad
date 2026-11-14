@@ -5,6 +5,7 @@ import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { devBuyPresets, devBuyQuote, maxDevBuy, percentOf, TOTAL_SUPPLY } from "@/shared/tonk/curve";
 import { ethInputText, formatEth, formatTokens, percentText } from "@/shared/tonk/format";
+import { effective } from "../lib/form";
 import type { StudioProps } from "./types";
 
 /**
@@ -17,7 +18,11 @@ export function DevBuyBox({ state, view, settings, unit }: StudioProps) {
   const id = "launch-devBuy";
   const { form, set } = state;
   const error = state.showsError("devBuy") ? fmt(t.launch.errors.devBuy, { max: `${formatEth(maxDevBuy(settings))} ${unit}` }) : null;
-  const presets = devBuyPresets(settings).map((wei) => ({ text: ethInputText(wei), share: percentOf(devBuyQuote(settings, wei, form.creator).tokensOut, TOTAL_SUPPLY) }));
+  // Each preset says the share it buys at the Creator Rewards the launch would get with that amount (a hold can lift with it).
+  const presets = devBuyPresets(settings).map((wei) => {
+    const text = ethInputText(wei);
+    return { text, share: percentOf(devBuyQuote(settings, wei, effective({ ...form, devBuy: text }, settings).creator).tokensOut, TOTAL_SUPPLY) };
+  });
   const ticker = form.ticker.trim();
   return (
     <div className="mt-6 rounded-xl border border-line bg-raised p-4">
@@ -46,7 +51,8 @@ export function DevBuyBox({ state, view, settings, unit }: StudioProps) {
           <button
             type="button"
             aria-pressed={!view.hasBuy}
-            onClick={() => set("devBuy", "0")}
+            // None is a choice: no dev buy and so no lock, which a later amount doesn't bring back on its own.
+            onClick={() => set("devBuy", "0", { lock: "none" })}
             className="min-h-11 rounded-lg border border-line-strong bg-surface px-1.5 font-mono text-[12px] text-text-3 aria-pressed:border-accent/50 aria-pressed:bg-accent/8 aria-pressed:text-accent-text"
           >
             {b.none}

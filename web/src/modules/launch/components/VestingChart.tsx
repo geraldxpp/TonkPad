@@ -23,8 +23,9 @@ export function VestingChart({ type, label, ticks }: VestingChartProps) {
         <line x1="0" y1={H} x2={W} y2={H} strokeWidth="1" vectorEffect="non-scaling-stroke" className="stroke-line" />
       </svg>
       <figcaption className="mt-1.5 flex justify-between gap-2 font-mono text-[10px] text-text-3">
-        {ticks.map((tick) => (
-          <span key={tick}>{tick}</span>
+        {ticks.map((tick, index) => (
+          // Keyed by place: the three slots are fixed, and two of them can read alike.
+          <span key={index}>{tick}</span>
         ))}
       </figcaption>
     </figure>

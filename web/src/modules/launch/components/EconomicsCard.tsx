@@ -51,7 +51,7 @@ export function EconomicsCard({ state, view, unit, hiddenOnPhone }: StudioProps 
         <div role="img" aria-label={`${e.total}: ${total}`} className="mt-4 flex h-2.5 gap-[3px] overflow-hidden rounded-[3px]">
           <span style={width(PROTOCOL_FEE_BPS)} className="bg-text-3" />
           <span style={width(form.crew)} className="bg-pos transition-[width] duration-200" />
-          <span style={width(form.creator)} className="bg-gold transition-[width] duration-200" />
+          <span style={width(view.creator)} className="bg-gold transition-[width] duration-200" />
           <span className="min-w-0 flex-auto border border-dashed border-line-strong bg-raised" />
         </div>
         <ul className="m-0 mt-3 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-[11px] text-text-3">
@@ -59,7 +59,7 @@ export function EconomicsCard({ state, view, unit, hiddenOnPhone }: StudioProps 
             [
               [e.protocol, PROTOCOL_FEE_BPS, "bg-text-3"],
               [e.crew, form.crew, "bg-pos"],
-              [e.creator, form.creator, "bg-gold"],
+              [e.creator, view.creator, "bg-gold"],
             ] as const
           ).map(([name, bps, dot]) => (
             <li key={name} className="flex items-center gap-1.5">
@@ -104,13 +104,13 @@ export function EconomicsCard({ state, view, unit, hiddenOnPhone }: StudioProps 
             </h3>
             <p className="m-0 mt-0.5 text-[11px] text-text-3">{e.creatorSub}</p>
           </div>
-          <strong className="font-mono text-[16px] font-medium text-gold">{label(form.creator)}</strong>
+          <strong className="font-mono text-[16px] font-medium text-gold">{label(view.creator)}</strong>
         </div>
         <div role="group" aria-labelledby="launch-creator-title" className="grid grid-cols-4 gap-1.5 sm:flex">
           {CREATOR_OPTIONS.map((bps) => {
             const locked = bps > view.creatorMax;
             return (
-              <Option key={bps} tone="creator" pressed={form.creator === bps} disabled={locked} title={locked ? e.needsLock : undefined} onClick={() => set("creator", bps)}>
+              <Option key={bps} tone="creator" pressed={view.creator === bps} disabled={locked} title={locked ? e.needsLock : undefined} onClick={() => set("creator", bps)}>
                 {label(bps)}
               </Option>
             );

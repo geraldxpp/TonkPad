@@ -101,12 +101,12 @@ describe("the curve trade panel", () => {
   it("offers the launchpad's presets, and a Max that keeps back the network fee", async () => {
     panel();
     expect(await screen.findByRole("button", { name: "0.000025" })).toBeVisible();
-    expect([cta("0.0000625"), cta("0.000125")].every((button) => button.getAttribute("aria-pressed") === "false")).toBe(true);
+    expect([cta("0.00006"), cta("0.00015")].every((button) => button.getAttribute("aria-pressed") === "false")).toBe(true);
     fireEvent.click(cta(tr.max));
     // 0.01 test ETH less 700,000 gas at the chain's price.
     expect(screen.getByLabelText(tr.pay)).toHaveValue("0.009993");
-    fireEvent.click(cta("0.000125"));
-    expect(screen.getByLabelText(tr.pay)).toHaveValue("0.000125");
+    fireEvent.click(cta("0.00015"));
+    expect(screen.getByLabelText(tr.pay)).toHaveValue("0.00015");
   });
 
   it.each([

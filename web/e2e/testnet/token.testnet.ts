@@ -111,8 +111,8 @@ test("a buy runs from the quote to its receipt, and a reload goes on watching it
   await page.goto(`/token/${TTONE.token}`);
   const panel = tradePanel(page);
   await expect(panel.getByText("Balance 0.5 test ETH")).toBeVisible();
-  // The launchpad's presets: its virtual reserve ÷ 60, ÷ 24 and ÷ 12.
-  await expect(panel.getByRole("button", { name: "0.0000625" })).toBeVisible();
+  // The launchpad's presets: its virtual reserve ÷ 60, ÷ 24 and ÷ 12, rounded.
+  await expect(panel.getByRole("button", { name: "0.00006" })).toBeVisible();
   await panel.getByLabel("You pay").fill("0.00005");
   await expect(panel.getByText("26.12M", { exact: true })).toBeVisible();
   await expect(panel.getByText("Min. 25.86M TTONE at 1% slippage")).toBeVisible();
@@ -379,7 +379,7 @@ test("a buy works from the keyboard alone, and every stop shows the focus ring",
     stops.push(stop.name);
     if (stop.name === "Review buy") break;
   }
-  expect(stops).toEqual(["0.000025", "0.0000625", "0.000125", "Max", "0.5%", "1%", "3%", "Review buy"]);
+  expect(stops).toEqual(["0.000025", "0.00006", "0.00015", "Max", "0.5%", "1%", "3%", "Review buy"]);
   await page.keyboard.press("Enter");
   const review = page.getByRole("dialog", { name: "One last look." });
   await expect(review).toBeVisible();

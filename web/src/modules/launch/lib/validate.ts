@@ -37,7 +37,8 @@ export function validate(form: LaunchForm, settings: CurveSettings): Issues {
   if (normalizeWebsite(form.website) === null) issues.website = true;
   const buy = devBuyWei(form);
   if (buy === null || buy > maxDevBuy(settings)) issues.devBuy = true;
-  if (form.lock === "time" && !(Number.isInteger(form.days) && form.days >= MIN_LOCK_DAYS && form.days <= MAX_LOCK_DAYS)) issues.days = true;
+  // A length matters only for a lock the launch gets: none applies without a dev buy.
+  if (form.lock === "time" && (buy ?? BigInt(0)) > BigInt(0) && !(Number.isInteger(form.days) && form.days >= MIN_LOCK_DAYS && form.days <= MAX_LOCK_DAYS)) issues.days = true;
   if (form.agent) {
     if (!within(form.agentName, LIMITS.agentName)) issues.agentName = true;
     if (!within(form.agentRole, LIMITS.agentRole)) issues.agentRole = true;

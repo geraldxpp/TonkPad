@@ -14,11 +14,12 @@ export function launchRequest(form: LaunchForm, view: LaunchView, creator: strin
     website: form.website.trim(),
     image: form.image,
     devBuy: view.devBuy.toString(),
-    lock: view.locks ? form.lock : "none",
+    // What the launch really gets: no lock without a dev buy (or a valid one), Creator Rewards held to the lock's tier.
+    lock: view.locks ? view.lockType : "none",
     share: form.share,
     days: view.lock.days,
     crewBps: form.crew,
-    creatorBps: form.creator,
+    creatorBps: view.creator,
     agent: form.agent ? { name: form.agentName.trim(), role: form.agentRole.trim(), voice: form.voice, brief: form.agentBrief.trim() } : null,
   };
 }

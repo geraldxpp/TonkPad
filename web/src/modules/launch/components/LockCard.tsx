@@ -6,8 +6,9 @@ import { fmt } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/I18nProvider";
 import { cn } from "@/shared/lib/cn";
 import { bpsText, formatTokens } from "@/shared/tonk/format";
-import { type LockType, MAX_LOCK_DAYS, MIN_LOCK_DAYS } from "@/shared/tonk/rules";
-import { settleDays, TIME_LOCK_PRESETS } from "../lib/form";
+import type { LockType } from "@/shared/tonk/rules";
+import { TIME_LOCK_PRESETS } from "../lib/form";
+import { CustomDaysInput } from "./CustomDaysInput";
 import type { StudioProps } from "./types";
 import { HELP, Option, StepCard } from "./ui";
 import { VestingChart } from "./VestingChart";
@@ -22,6 +23,10 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
   const { form, set } = state;
   const ticker = form.ticker.trim();
   const days = view.lock.days;
+  // The lock the launch gets (none without a dev buy). Its controls follow the lock type, not whether its
+  // length is valid yet, so a custom number of days can be typed digit by digit without the box disappearing.
+  const lockType = view.lockType;
+  const open = lockType !== "none";
   const modes: { id: LockType; icon: ReactNode; title: string; sub: string }[] = [
     { id: "time", icon: <Hourglass size={18} strokeWidth={1.8} />, title: k.time, sub: k.timeSub },
     { id: "linear", icon: <TrendingDown size={18} strokeWidth={1.8} />, title: k.linear, sub: k.linearSub },
@@ -46,7 +51,7 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
             <button
               key={mode.id}
               type="button"
-              aria-pressed={form.lock === mode.id}
+              aria-pressed={lockType === mode.id}
               disabled={locked}
               title={locked ? t.launch.basics.zeroNote : undefined}
               onClick={() => set("lock", mode.id)}
@@ -63,10 +68,10 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
           );
         })}
       </div>
-      {view.locks ? (
+      {open ? (
         <div className="mt-6 grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
           <div>
-            {form.lock === "linear" ? (
+            {lockType === "linear" ? (
               <div>
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <label htmlFor="launch-months" className="text-[13px] text-text-2">
@@ -97,22 +102,7 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
                     </Option>
                   ))}
                 </div>
-                <label htmlFor="launch-days" className="mt-3 mb-1.5 block text-[12px] text-text-3">
-                  {k.customDays}
-                </label>
-                <input
-                  id="launch-days"
-                  type="number"
-                  inputMode="numeric"
-                  min={MIN_LOCK_DAYS}
-                  max={MAX_LOCK_DAYS}
-                  step={1}
-                  value={form.days}
-                  onChange={(event) => set("days", Number(event.target.value))}
-                  onBlur={() => set("days", settleDays(form.days))}
-                  aria-invalid={state.showsError("days") ? true : undefined}
-                  className="w-28 rounded-lg border border-line-strong bg-bg px-3 py-2 font-mono text-[13px] text-text"
-                />
+                <CustomDaysInput days={form.days} shown={state.showsError("days")} onDays={(value) => set("days", value)} />
               </div>
             )}
             <div className="mt-7">
@@ -149,17 +139,17 @@ export function LockCard({ state, view, hiddenOnPhone }: StudioProps & { hiddenO
             <strong className="mt-3 block font-mono text-[25px] leading-8 font-medium tracking-[-0.04em]">{formatTokens(view.locked)}</strong>
             {ticker ? <span className="block font-mono text-[12px] text-text-3">${ticker}</span> : null}
             <VestingChart
-              type={form.lock === "time" ? "time" : "linear"}
-              label={fmt(form.lock === "time" ? k.chartTime : k.chartLinear, { days })}
+              type={lockType === "time" ? "time" : "linear"}
+              label={fmt(lockType === "time" ? k.chartTime : k.chartLinear, { days })}
               ticks={["0", fmt(k.days, { days: Math.round(days / 2) }), fmt(k.days, { days })]}
             />
-            <p className="m-0 mt-2 text-[11px] leading-[1.7] text-text-3">{fmt(form.lock === "time" ? k.chartTime : k.chartLinear, { days })}</p>
+            <p className="m-0 mt-2 text-[11px] leading-[1.7] text-text-3">{fmt(lockType === "time" ? k.chartTime : k.chartLinear, { days })}</p>
             <p className="m-0 mt-3 border-t border-line pt-2.5 text-[11px] leading-[1.6] text-pos">{fmt(k.creatorUpTo, { pct: bpsText(view.creatorMax) })}</p>
           </div>
         </div>
       ) : null}
       <p className={cn("m-0 mt-5 rounded-lg border px-3.5 py-3 text-[12px] leading-[1.7]", view.tier === "none" ? "border-warn/25 bg-warn/7 text-warn" : "border-pos/25 bg-pos/5 text-pos")}>{message}</p>
-      {view.locks ? (
+      {open ? (
         <ul className="m-0 mt-3 flex list-none flex-col gap-1 p-0 text-[12px] leading-[1.6] text-text-2">
           <li>{view.score.lockCounts ? k.scoreYes : k.scoreNo}</li>
           <li>{view.score.lockedBadge ? k.badgeYes : k.badgeNo}</li>

@@ -1,5 +1,6 @@
 import { fmt } from "@/shared/i18n/config";
 import type { Dictionary } from "@/shared/i18n/dictionaries/en";
+import { reservePresets } from "@/shared/tonk/curve";
 import { ethInputText, formatEth, formatTokens } from "@/shared/tonk/format";
 import { canSell, type MissionAccountJson, type MissionJson, type TradeSide } from "@/shared/tonk/mission";
 import type { TonkSettingsJson } from "@/shared/tonk/types";
@@ -41,7 +42,7 @@ export interface TradeForm {
 
 /**
  * What the curve trade form offers and says for a wallet: the presets (the
- * launchpad's virtual reserve ÷ 60, 24 and 12 and Max for a buy; a quarter,
+ * launchpad's virtual reserve ÷ 60, 24 and 12, rounded, and Max for a buy; a quarter,
  * half, three quarters and Max of the tokens held for a sell), the balance
  * line, and the button, which names the first thing that is missing.
  */
@@ -56,7 +57,7 @@ export function tradeForm({ t, mission, side, unit, owner, account, failed, amou
   const maxBuy = coin !== null && coin > reserved ? coin - reserved : ZERO;
   const reserve = settings ? BigInt(settings.virtualEth) : null;
   const presets = buy
-    ? [...(reserve ? [60, 24, 12].map((part) => ethInputText(reserve / BigInt(part))) : []).map((value) => ({ label: value, value })), { label: tr.max, value: ethInputText(maxBuy) }]
+    ? [...(reserve ? reservePresets(reserve).map((wei) => ethInputText(wei)) : []).map((value) => ({ label: value, value })), { label: tr.max, value: ethInputText(maxBuy) }]
     : [...[25, 50, 75].map((pct) => ({ label: `${pct}%`, value: held ? String((held * BigInt(pct)) / BigInt(100) / WEI) : "0" })), { label: tr.max, value: ethInputText(held ?? ZERO) }];
   const balance = !owner
     ? fmt(tr.balance, { amount: "—" })

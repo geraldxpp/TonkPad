@@ -166,13 +166,44 @@ export function graduationTarget(settings: CurveSettings): bigint {
   return (settings.virtualEth * settings.virtualTokens + tokensAtGraduation - BigInt(1)) / tokensAtGraduation - settings.virtualEth;
 }
 
+/** Round amounts: 1, 1.5, 2, 2.5, 3, 4, 5, 6 and 8 times a power of ten, in tenths of that power. */
+const ROUND_STEPS = [10, 15, 20, 25, 30, 40, 50, 60, 80, 100].map((step) => BigInt(step));
+
 /**
- * The three dev-buy presets: the virtual reserve ÷ 60, ÷ 24 and ÷ 12. They
- * buy the same share of supply on any network, and come out as exactly
- * 0.1, 0.25 and 0.5 ETH at the 6 ETH mainnet reserve.
+ * A round amount near `wei`: 1, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of
+ * ten. "nearest" picks the closer by ratio (never more than about 22% away),
+ * "down" the one at or below, "up" the one at or above. 0.0416… ETH becomes
+ * 0.04 (nearest or down), and 0.25 stays 0.25 in every mode.
  */
+export function roundAmount(wei: bigint, mode: "nearest" | "down" | "up" = "nearest"): bigint {
+  if (wei < BigInt(10)) return wei;
+  let unit = BigInt(1);
+  while (wei >= unit * BigInt(100)) unit *= BigInt(10);
+  for (let index = 1; index < ROUND_STEPS.length; index += 1) {
+    const low = ROUND_STEPS[index - 1] * unit;
+    const high = ROUND_STEPS[index] * unit;
+    if (wei === low) return low;
+    if (wei < high) return mode === "down" ? low : mode === "up" ? high : wei * wei <= low * high ? low : high;
+  }
+  return wei;
+}
+
+/**
+ * The three buy presets for a curve's virtual ETH reserve: the reserve ÷ 60,
+ * ÷ 24 and ÷ 12, each turned into a round amount so it reads cleanly: 0.1,
+ * 0.25 and 0.5 ETH at a 6 ETH reserve, and 0.02, 0.04 and 0.08 ETH at 1 ETH.
+ * The smallest rounds up, so it still buys at least its share and a lock of it
+ * reaches the same 10M-token floors as before; the middle one, the form's
+ * default, rounds down, so it never buys more than about 4.2% of supply and
+ * stays clear of the score's 5% unlocked-buy line.
+ */
+export function reservePresets(virtualEth: bigint): [bigint, bigint, bigint] {
+  return [roundAmount(virtualEth / BigInt(60), "up"), roundAmount(virtualEth / BigInt(24), "down"), roundAmount(virtualEth / BigInt(12))];
+}
+
+/** The three dev-buy presets, from the launchpad's virtual reserve. */
 export function devBuyPresets(settings: CurveSettings): [bigint, bigint, bigint] {
-  return [settings.virtualEth / BigInt(60), settings.virtualEth / BigInt(24), settings.virtualEth / BigInt(12)];
+  return reservePresets(settings.virtualEth);
 }
 
 /** The largest dev buy the screen accepts: 1⅔ times the virtual reserve (10 ETH at 6 ETH), about two thirds of supply. */

@@ -52,7 +52,7 @@ export function ReviewDialog({ open, onClose, state, view, settings, unit, chain
     [r.received, view.hasBuy ? `${formatTokens(view.bought)} · ${percentText(view.supplyPct)}` : "—"],
     [r.commitment, lockLabel(l, form, view.locks)],
     [r.lockedAvailable, view.hasBuy ? `${formatTokens(view.locked)} / ${formatTokens(view.liquid)}` : "—"],
-    [r.fees, `${feeLabel(l, form.crew)} / ${feeLabel(l, form.creator)} / 1.0%`],
+    [r.fees, `${feeLabel(l, form.crew)} / ${feeLabel(l, view.creator)} / 1.0%`],
     [l.economics.total, bpsText(view.totalBps)],
     [l.steps.agent, agentLabel(l, form)],
     [l.summary.fee, eth(settings.launchFee)],

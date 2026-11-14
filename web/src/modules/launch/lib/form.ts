@@ -86,10 +86,39 @@ export function settleDays(days: number): number {
 }
 
 /**
+ * What the launch really gets from the creator's choices, which the form keeps
+ * exactly as chosen: no lock without a dev buy, and Creator Rewards held to
+ * what the lock's tier allows and to what Crew leaves of the shared 4%. It is
+ * worked out afresh from the form every time, so a value passed on the way to
+ * another (a dev buy or a custom length typed digit by digit, a slider
+ * crossing a tier, Crew raised for a moment) never undoes a choice, and the
+ * notices say what is held back, and why, for as long as it is.
+ */
+export function effective(form: LaunchForm, settings: CurveSettings): { lock: LockType; creator: number; creatorMax: number; notices: Notice[] } {
+  const devBuy = devBuyWei(form) ?? BigInt(0);
+  const hasBuy = devBuy > BigInt(0);
+  const lock = hasBuy ? form.lock : "none";
+  const locking = lockSettings({ ...form, lock });
+  // The most Creator Rewards this lock allows. Each option is judged by the tokens its own fee buys, as the contract
+  // checks a tier's 1%-of-supply lock after the buy; a higher fee buys fewer tokens, so the allowed options run up to one cap.
+  let creatorMax = 0;
+  for (const bps of CREATOR_OPTIONS) {
+    if (bps <= TIER_CREATOR_MAX[effectiveTier(hasBuy, locking, devBuyQuote(settings, devBuy, bps).tokensOut)]) creatorMax = bps;
+  }
+  const poolMax = REWARD_POOL_BPS - form.crew;
+  const creator = optionAtMost(CREATOR_OPTIONS, Math.min(form.creator, creatorMax, poolMax));
+  const notices: Notice[] = [];
+  if (lock !== form.lock) notices.push({ key: "noBuy" });
+  if (creator < form.creator) notices.push({ key: creatorMax <= poolMax ? "creatorTier" : "creatorPool", bps: creator });
+  return { lock, creator, creatorMax, notices };
+}
+
+/**
  * Brings the form back inside the launchpad's rules after a change, and says
- * what it had to adjust: the dev buy stays under its cap; no dev buy means no
- * lock; Creator Rewards stay within the lock's tier; and Crew plus Creator
- * stay within the shared 4%, the one just changed keeping its value.
+ * what it had to adjust: the dev buy stays under its cap, and a Creator
+ * Rewards choice that doesn't fit the shared 4% lowers Crew. The lock and
+ * Creator Rewards stay as chosen; `effective` says what the launch gets from
+ * them (raising Crew holds Creator back there, rather than changing it).
  */
 export function normalize(input: LaunchForm, settings: CurveSettings, changed: keyof LaunchForm | null = null): { form: LaunchForm; notices: Notice[] } {
   const form = { ...input };
@@ -111,26 +140,9 @@ export function normalize(input: LaunchForm, settings: CurveSettings, changed: k
   form.voice = AGENT_VOICES.includes(form.voice) ? form.voice : "tactical";
   form.volume = VOLUMES.includes(form.volume as (typeof VOLUMES)[number]) ? form.volume : 100_000;
 
-  const hasBuy = (devBuyWei(form) ?? BigInt(0)) > BigInt(0);
-  if (!hasBuy && form.lock !== "none") {
-    form.lock = "none";
-    notices.push({ key: "noBuy" });
-  }
-  // A tier needs its lock to hold 1% of supply too: the tokens this dev buy gets, at the Creator Rewards asked for.
-  const bought = devBuyQuote(settings, devBuyWei(form) ?? BigInt(0), form.creator).tokensOut;
-  const creatorMax = TIER_CREATOR_MAX[effectiveTier(hasBuy, lockSettings(form), bought)];
-  if (form.creator > creatorMax) {
-    form.creator = optionAtMost(CREATOR_OPTIONS, creatorMax);
-    notices.push({ key: "creatorTier", bps: form.creator });
-  }
-  if (form.crew + form.creator > REWARD_POOL_BPS) {
-    if (changed === "creator") {
-      form.crew = optionAtMost(CREW_OPTIONS, REWARD_POOL_BPS - form.creator);
-      notices.push({ key: "crewPool", bps: form.crew });
-    } else {
-      form.creator = optionAtMost(CREATOR_OPTIONS, Math.min(creatorMax, REWARD_POOL_BPS - form.crew));
-      notices.push({ key: "creatorPool", bps: form.creator });
-    }
+  if (changed === "creator" && form.crew + form.creator > REWARD_POOL_BPS) {
+    form.crew = optionAtMost(CREW_OPTIONS, REWARD_POOL_BPS - form.creator);
+    notices.push({ key: "crewPool", bps: form.crew });
   }
   return { form, notices };
 }

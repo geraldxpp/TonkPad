@@ -123,6 +123,63 @@ test("Crew and Creator share 4%, and Creator Rewards follow the lock", async ({ 
   await expect(summary(page).getByTestId("launch-pay")).toHaveText("0.005 ETH");
 });
 
+test("a custom time-lock and a dev buy can be typed digit by digit without losing the lock", async ({ page }) => {
+  await stubChain(page);
+  await openStudio(page);
+  const creator = page.getByRole("group", { name: "Creator Rewards" });
+  const timeLock = page.getByRole("button", { name: /^Time-lock/ });
+  await timeLock.click();
+  await creator.getByRole("button", { name: "2.0%" }).click();
+  const days = page.getByLabel("Custom days (7–365)");
+  const error = page.getByText("Enter 7 to 365 days.");
+
+  // The box stays while it's empty, and says what it needs.
+  await days.fill("");
+  await expect(days).toBeVisible();
+  await expect(error).toBeVisible();
+  await expect(timeLock).toHaveAttribute("aria-pressed", "true");
+  await days.pressSequentially("365");
+  await expect(days).toHaveValue("365");
+  await expect(error).toBeHidden();
+  await expect(page.getByText("365 days", { exact: true }).first()).toBeVisible();
+  // Typing never drops Creator Rewards below their tier: 36 days is still Standard and 365 Ironclad, so 2% stays.
+  await expect(creator.getByRole("button", { name: "2.0%" })).toHaveAttribute("aria-pressed", "true");
+  await days.blur();
+
+  // Leaving it empty puts back the length it had.
+  await days.fill("");
+  await days.blur();
+  await expect(days).toHaveValue("365");
+
+  // A length typed part-way, then a preset: the preset wins and Creator Rewards stay.
+  await days.fill("12");
+  await expect(creator.getByRole("button", { name: "0.5%" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("Creator Rewards adjusted to 0.5% for the current lock.")).toBeVisible();
+  await page.getByRole("button", { name: "90 days" }).click();
+  await expect(days).toHaveValue("90");
+  await expect(creator.getByRole("button", { name: "2.0%" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("Creator Rewards adjusted to 0.5% for the current lock.")).toBeHidden();
+
+  // A dev buy typed digit by digit keeps the lock and Creator Rewards.
+  const buy = page.getByLabel("Initial dev buy in ETH");
+  await buy.fill("");
+  await buy.pressSequentially("0.5");
+  await expect(timeLock).toHaveAttribute("aria-pressed", "true");
+  await expect(days).toHaveValue("90");
+  await expect(creator.getByRole("button", { name: "2.0%" })).toHaveAttribute("aria-pressed", "true");
+
+  // Cleared, then a preset clicked: still the time-lock and 2%.
+  await buy.fill("");
+  await page.getByRole("group", { name: "Initial dev buy" }).getByRole("button", { name: /^0\.25/ }).click();
+  await expect(timeLock).toHaveAttribute("aria-pressed", "true");
+  await expect(creator.getByRole("button", { name: "2.0%" })).toHaveAttribute("aria-pressed", "true");
+
+  // None is a choice: no lock, and a later amount doesn't bring it back.
+  await page.getByRole("group", { name: "Initial dev buy" }).getByRole("button", { name: "None" }).click();
+  await page.getByRole("group", { name: "Initial dev buy" }).getByRole("button", { name: /^0\.25/ }).click();
+  await expect(page.getByRole("button", { name: /^No lock/ })).toHaveAttribute("aria-pressed", "true");
+});
+
 test("connect, review and launch with the wallet; the receipt comes from the chain", async ({ page }) => {
   const calls = await stubChain(page, { states: ["pending", "confirmed"] });
   await openStudio(page);

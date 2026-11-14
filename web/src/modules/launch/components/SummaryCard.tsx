@@ -45,7 +45,7 @@ export function SummaryCard({ state, view, settings, unit, chainName, action, no
     [s.allocation, view.hasBuy ? `${formatTokens(view.bought)} · ${percentText(view.supplyPct)}` : "—"],
     [l.steps.lock, lockLabel(l, form, view.locks)],
     [l.economics.crewTitle, form.crew ? fmt(s.crewValue, { pct: feeLabel(l, form.crew) }) : l.economics.off],
-    [l.economics.creatorTitle, fmt(s.creatorValue, { pct: feeLabel(l, form.creator) })],
+    [l.economics.creatorTitle, fmt(s.creatorValue, { pct: feeLabel(l, view.creator) })],
     [s.protocol, s.protocolValue],
     [l.steps.agent, agentLabel(l, form)],
     [s.fee, eth(settings.launchFee)],

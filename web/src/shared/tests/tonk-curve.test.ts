@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buyQuote, CURVE_SUPPLY, type CurveSettings, devBuyPresets, devBuyQuote, freshCurve, graduationTarget, marketCap, maxDevBuy, percentOf, TOTAL_SUPPLY, WEI } from "@/shared/tonk/curve";
+import { buyQuote, CURVE_SUPPLY, type CurveSettings, devBuyPresets, devBuyQuote, freshCurve, graduationTarget, marketCap, maxDevBuy, percentOf, roundAmount, TOTAL_SUPPLY, WEI } from "@/shared/tonk/curve";
 import { CREATOR_OPTIONS, CREW_OPTIONS, lockedAmount, type LockSettings, lockTier, optionAtMost, stillLocked } from "@/shared/tonk/rules";
 
 const eth = (text: string) => {
@@ -85,17 +85,60 @@ describe("the curve", () => {
 
   it("scales the dev-buy presets and cap with the reserve", () => {
     expect(devBuyPresets(MAINNET)).toEqual([eth("0.1"), eth("0.25"), eth("0.5")]);
-    expect(devBuyPresets(TESTNET)).toEqual([eth("0.000025"), eth("0.0000625"), eth("0.000125")]);
+    // The live mainnet reserve of 1 ETH: 0.0166…, 0.0416… and 0.0833… turned into amounts that read cleanly.
+    expect(devBuyPresets({ ...MAINNET, virtualEth: eth("1") })).toEqual([eth("0.02"), eth("0.04"), eth("0.08")]);
+    expect(devBuyPresets(TESTNET)).toEqual([eth("0.000025"), eth("0.00006"), eth("0.00015")]);
     expect(maxDevBuy(MAINNET)).toBe(eth("10"));
     expect(maxDevBuy(TESTNET)).toBe(eth("0.0025"));
-    // Each preset buys the same share of supply on either network.
-    for (const [index, preset] of devBuyPresets(MAINNET).entries()) {
-      const main = percentOf(devBuyQuote(MAINNET, preset, 100).tokensOut, TOTAL_SUPPLY);
-      const test = percentOf(devBuyQuote(TESTNET, devBuyPresets(TESTNET)[index], 100).tokensOut, TOTAL_SUPPLY);
-      expect(test).toBeCloseTo(main, 4);
+  });
+
+  it("keeps the presets round, the smallest at or above its share and the default under 5% of supply, on every reserve", () => {
+    // The owner can set the reserve anywhere from 1 to 100 ETH; the testnet runs on 0.0015.
+    const reserves = [eth("0.0015"), ...Array.from({ length: 991 }, (_, step) => eth("1") + (BigInt(step) * eth("1")) / BigInt(10))];
+    for (const virtualEth of reserves) {
+      const settings = { ...MAINNET, virtualEth };
+      const [small, middle, large] = devBuyPresets(settings);
+      for (const preset of [small, middle, large]) expect(roundAmount(preset)).toBe(preset);
+      // The smallest never buys less than the exact ÷ 60, so a lock of it reaches the same 10M floors.
+      expect(small).toBeGreaterThanOrEqual(virtualEth / BigInt(60));
+      // The middle one, the form's default, never buys more than the exact ÷ 24: under 5% of supply even with no fees.
+      expect(middle).toBeLessThanOrEqual(virtualEth / BigInt(24));
+      expect(percentOf(devBuyQuote(settings, middle, 0).tokensOut, TOTAL_SUPPLY)).toBeLessThan(5);
+      expect(small < middle && middle < large).toBe(true);
     }
     // The largest dev buy stays well inside the curve: about two thirds of supply.
     expect(percentOf(devBuyQuote(MAINNET, maxDevBuy(MAINNET), 0).tokensOut, TOTAL_SUPPLY)).toBeCloseTo(66.81, 1);
+  });
+});
+
+describe("round amounts", () => {
+  it("picks the nearest of 1, 1.5, 2, 2.5, 3, 4, 5, 6 and 8 times a power of ten, by ratio", () => {
+    const cases: [string, string][] = [
+      ["0.016666666666666666", "0.015"],
+      ["0.041666666666666666", "0.04"],
+      ["0.083333333333333333", "0.08"],
+      ["0.25", "0.25"],
+      ["0.0000625", "0.00006"],
+      ["0.000125", "0.00015"],
+      ["0.09", "0.1"],
+      ["7", "8"],
+      ["1", "1"],
+    ];
+    for (const [input, output] of cases) expect(roundAmount(eth(input))).toBe(eth(output));
+    // Below 10 wei there is nothing to round.
+    expect([roundAmount(BigInt(0)), roundAmount(BigInt(7))]).toEqual([BigInt(0), BigInt(7)]);
+  });
+
+  it("can round down or up instead, and leaves round amounts alone in every mode", () => {
+    expect(roundAmount(eth("0.016666666666666666"), "up")).toBe(eth("0.02"));
+    expect(roundAmount(eth("0.016666666666666666"), "down")).toBe(eth("0.015"));
+    expect(roundAmount(eth("0.125"), "down")).toBe(eth("0.1"));
+    expect(roundAmount(eth("0.125"), "up")).toBe(eth("0.15"));
+    expect(roundAmount(eth("0.79"), "up")).toBe(eth("0.8"));
+    expect(roundAmount(eth("0.81"), "up")).toBe(eth("1"));
+    for (const mode of ["nearest", "down", "up"] as const) {
+      expect([roundAmount(eth("0.25"), mode), roundAmount(eth("0.000025"), mode), roundAmount(eth("8"), mode)]).toEqual([eth("0.25"), eth("0.000025"), eth("8")]);
+    }
   });
 });
 

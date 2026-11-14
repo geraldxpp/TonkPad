@@ -30,11 +30,11 @@ export function AgentCard({ state, view, hiddenOnPhone }: StudioProps & { hidden
   });
   const lead = { tactical: a.leadTactical, hype: a.leadHype, analytical: a.leadAnalytical, meme: a.leadMeme }[form.voice];
   const lockFact = view.locks ? fmt(form.lock === "time" ? a.factTime : a.factLinear, { share: form.share, days: view.lock.days }) : a.factUnlocked;
-  const feeFact = fmt(a.factFees, { crew: bpsText(form.crew), creator: bpsText(form.creator) });
+  const feeFact = fmt(a.factFees, { crew: bpsText(form.crew), creator: bpsText(view.creator) });
   const pills: [string, string][] = [
     [a.pillLock, view.locks ? `${form.share}%` : a.pillUnlocked],
     [t.launch.economics.crew, bpsText(form.crew)],
-    [t.launch.economics.creator, bpsText(form.creator)],
+    [t.launch.economics.creator, bpsText(view.creator)],
   ];
   const name = form.agentName.trim() || t.launch.steps.agent;
   return (

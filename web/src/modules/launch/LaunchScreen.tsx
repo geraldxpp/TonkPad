@@ -162,7 +162,7 @@ export function LaunchScreen({ data }: { data: LaunchData }) {
         steps={[
           { title: l.steps.basics, sub: `Tonkfun Native · ${pairText(form.ticker)}` },
           { title: l.steps.lock, sub: lockLabel(l, form, view.locks) },
-          { title: l.steps.economics, sub: fmt(l.steps.economicsSub, { crew: feeLabel(l, form.crew), creator: feeLabel(l, form.creator) }) },
+          { title: l.steps.economics, sub: fmt(l.steps.economicsSub, { crew: feeLabel(l, form.crew), creator: feeLabel(l, view.creator) }) },
           { title: l.steps.agent, sub: agentLabel(l, form) },
         ]}
       />
