@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const id: BotDictionary = {
   profile: {
-    short: "Cek token baru sebelum membeli, dan pantau setiap peluncuran di tonkfun.fun.",
+    short: "Cek token baru sebelum membeli, dan pantau peluncuran di tonkfun.fun, Pons, dan Pump.fun.",
     description:
-      "Tempel alamat token untuk melihat skor misi, status penguncian, dan angka-angka utamanya. Pantau peluncuran terbaru, buat tautan referal Anda, dan buka token apa pun di tonkfun.fun.\n\nBot ini tidak pernah meminta kunci privat Anda dan tidak pernah mengirim transaksi.",
+      "Tempel alamat token untuk melihat skor misi, status penguncian, dan angka-angka utamanya. Pantau peluncuran terbaru di tonkfun.fun, Pons, dan Pump.fun, buat tautan referal Anda, dan buka token apa pun di tonkfun.fun.\n\nBot ini tidak pernah meminta kunci privat Anda dan tidak pernah mengirim transaksi.",
   },
   commands: {
     start: "Beranda",
@@ -56,9 +56,8 @@ export const id: BotDictionary = {
     rwa: "RWA terverifikasi",
   },
   launches: {
-    title: "Peluncuran terbaru",
+    on: "Peluncuran terbaru di {pad}",
     trendingTitle: "Sedang trending",
-    tonk: "tonkfun.fun",
     trending: "Trending",
     empty: "Belum ada peluncuran. Token baru akan muncul di sini begitu diluncurkan.",
     trendingEmpty: "Saat ini tidak ada yang sedang trending. Coba cek lagi nanti.",
@@ -81,7 +80,7 @@ export const id: BotDictionary = {
   help: {
     title: "Cara kerja",
     paste: "Tempel alamat token baru untuk melihat skor misi dan angka-angka utamanya.",
-    launches: "/launches menampilkan peluncuran terbaru di tonkfun.fun dan token yang sedang trending.",
+    launches: "/launches menampilkan peluncuran terbaru di tonkfun.fun, Pons, dan Pump.fun, serta token yang sedang trending.",
     referral: "/referral membuat tautan referal Anda.",
     groups: "Di grup, kirim /check diikuti alamat token.",
     inline: "Di chat mana pun, ketik @{bot} lalu alamat token untuk membagikan kartunya.",

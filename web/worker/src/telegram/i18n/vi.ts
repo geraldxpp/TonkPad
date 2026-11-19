@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const vi: BotDictionary = {
   profile: {
-    short: "Kiểm tra token mới trước khi mua và theo dõi mọi token ra mắt trên tonkfun.fun.",
+    short: "Kiểm tra token mới trước khi mua và theo dõi các token ra mắt trên tonkfun.fun, Pons và Pump.fun.",
     description:
-      "Dán địa chỉ token để xem điểm nhiệm vụ, tình trạng khóa và các chỉ số chính. Theo dõi các token vừa ra mắt, tạo liên kết giới thiệu của bạn và mở bất kỳ token nào trên tonkfun.fun.\n\nBot này không bao giờ yêu cầu khóa riêng tư của bạn và không bao giờ gửi giao dịch.",
+      "Dán địa chỉ token để xem điểm nhiệm vụ, tình trạng khóa và các chỉ số chính. Theo dõi các token vừa ra mắt trên tonkfun.fun, Pons và Pump.fun, tạo liên kết giới thiệu của bạn và mở bất kỳ token nào trên tonkfun.fun.\n\nBot này không bao giờ yêu cầu khóa riêng tư của bạn và không bao giờ gửi giao dịch.",
   },
   commands: {
     start: "Trang chủ",
@@ -56,9 +56,8 @@ export const vi: BotDictionary = {
     rwa: "RWA đã xác minh",
   },
   launches: {
-    title: "Token mới ra mắt",
+    on: "Token mới ra mắt trên {pad}",
     trendingTitle: "Xu hướng lúc này",
-    tonk: "tonkfun.fun",
     trending: "Xu hướng",
     empty: "Chưa có token nào ra mắt. Token mới sẽ xuất hiện ở đây ngay khi được phát hành.",
     trendingEmpty: "Hiện chưa có token nào đang là xu hướng. Hãy quay lại sau.",
@@ -81,7 +80,7 @@ export const vi: BotDictionary = {
   help: {
     title: "Hướng dẫn",
     paste: "Dán địa chỉ của một token mới để xem điểm nhiệm vụ và các chỉ số chính.",
-    launches: "/launches hiển thị những token vừa ra mắt trên tonkfun.fun và các token đang là xu hướng.",
+    launches: "/launches hiển thị những token vừa ra mắt trên tonkfun.fun, Pons và Pump.fun, cùng các token đang là xu hướng.",
     referral: "/referral tạo liên kết giới thiệu của bạn.",
     groups: "Trong nhóm, hãy gửi /check kèm theo một địa chỉ.",
     inline: "Trong bất kỳ cuộc trò chuyện nào, hãy gõ @{bot} và một địa chỉ để chia sẻ thẻ token.",

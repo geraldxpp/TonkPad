@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const zh: BotDictionary = {
   profile: {
-    short: "买入新代币前先查一查，并关注 tonkfun.fun 上的每一次发射。",
+    short: "买入新代币前先查一查，并关注 tonkfun.fun、Pons 和 Pump.fun 上的发射。",
     description:
-      "粘贴代币地址，即可查看它的任务评分、锁定情况和关键数据。你还可以关注最新发射、生成推荐链接，或在 tonkfun.fun 上打开任意代币。\n\n本机器人从不索要你的私钥，也从不发送交易。",
+      "粘贴代币地址，即可查看它的任务评分、锁定情况和关键数据。你还可以关注 tonkfun.fun、Pons 和 Pump.fun 上的最新发射，生成推荐链接，或在 tonkfun.fun 上打开任意代币。\n\n本机器人从不索要你的私钥，也从不发送交易。",
   },
   commands: {
     start: "首页",
@@ -56,9 +56,8 @@ export const zh: BotDictionary = {
     rwa: "已验证 RWA",
   },
   launches: {
-    title: "最新发射",
+    on: "{pad} 最新发射",
     trendingTitle: "当前热门",
-    tonk: "tonkfun.fun",
     trending: "热门",
     empty: "暂无发射。新发射一上线就会出现在这里。",
     trendingEmpty: "目前没有热门代币，稍后再来看看。",
@@ -81,7 +80,7 @@ export const zh: BotDictionary = {
   help: {
     title: "使用说明",
     paste: "粘贴新代币的地址，即可查看它的任务评分和关键数据。",
-    launches: "/launches 可查看 tonkfun.fun 的最新发射和当前热门。",
+    launches: "/launches 可查看 tonkfun.fun、Pons 和 Pump.fun 的最新发射，以及当前热门。",
     referral: "/referral 可生成你的推荐链接。",
     groups: "在群组中，请发送 /check 并附上地址。",
     inline: "在任意聊天中输入 @{bot} 和地址，即可分享代币卡片。",

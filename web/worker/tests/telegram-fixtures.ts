@@ -71,7 +71,7 @@ export function recorder(): { out: Out; got: Recorded } {
 
 export function context(data: Partial<BotData> = {}, now = NOW): { ctx: BotContext; got: Recorded } {
   const { out, got } = recorder();
-  const base: BotData = { ready: () => true, token: (a) => (a === WHOA ? token() : null), latest: () => [token()], trending: () => [token({ launchpad: "pump", chain: "sol", address: SOL_MINT, ticker: "PEPE", name: "Pepe" })] };
+  const base: BotData = { ready: () => true, token: (a) => (a === WHOA ? token() : null), latest: (pad) => (pad === "tonk" ? [token()] : [token({ launchpad: pad, address: pad === "pump" ? SOL_MINT : WHOA, ticker: pad.toUpperCase(), name: `New on ${pad}` })]), trending: () => [token({ launchpad: "pump", chain: "sol", address: SOL_MINT, ticker: "PEPE", name: "Pepe" })] };
   return {
     ctx: {
       data: { ...base, ...data }, out, site: SITE, bot: () => "tonkfun_bot", inline: () => true, now: () => now,

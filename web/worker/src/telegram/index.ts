@@ -54,8 +54,8 @@ function storeData(store: TokenStore, now: () => number): BotData {
       const t = findTrackedToken(store.all(), address);
       return t ? toToken(t, now(), buysLast15m(t, now()) >= HOT_BUYS) : null;
     },
-    latest: (limit) =>
-      store.all().filter((t) => t.launchpad === "tonk").sort((a, b) => b.createdAt - a.createdAt).slice(0, limit).map((t) => toToken(t, now())),
+    latest: (pad, limit) =>
+      store.all().filter((t) => t.launchpad === pad).sort((a, b) => b.createdAt - a.createdAt).slice(0, limit).map((t) => toToken(t, now())),
     trending: (limit) => listView(store.all(), { chain: "all", pad: "all", tab: "trending", tf: "24h", q: "", limit }, now()).rows,
   };
 }

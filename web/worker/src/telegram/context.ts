@@ -1,3 +1,4 @@
+import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { Token } from "@/shared/types/token";
 import type { Limiter } from "./limiter";
 import type { InlineKeyboard, TgChat, View } from "./types";
@@ -6,7 +7,8 @@ import type { InlineKeyboard, TgChat, View } from "./types";
 export interface BotData {
   ready(): boolean;
   token(address: string): Token | null;
-  latest(limit: number): Token[];
+  /** One launchpad's newest launches, newest first. */
+  latest(pad: LaunchpadId, limit: number): Token[];
   trending(limit: number): Token[];
 }
 

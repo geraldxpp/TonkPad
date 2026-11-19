@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const ko: BotDictionary = {
   profile: {
-    short: "매수 전에 새 토큰을 확인하고, tonkfun.fun의 모든 런칭을 지켜보세요.",
+    short: "매수 전에 새 토큰을 확인하고, tonkfun.fun, Pons, Pump.fun의 런칭을 지켜보세요.",
     description:
-      "토큰 주소를 붙여넣으면 미션 점수, 잠금 현황, 주요 수치를 확인할 수 있습니다. 최신 런칭을 지켜보고, 추천 링크를 만들고, tonkfun.fun에서 원하는 토큰을 열어 볼 수도 있습니다.\n\n이 봇은 개인 키를 절대 요청하지 않으며, 트랜잭션을 보내는 일도 없습니다.",
+      "토큰 주소를 붙여넣으면 미션 점수, 잠금 현황, 주요 수치를 확인할 수 있습니다. tonkfun.fun, Pons, Pump.fun의 최신 런칭을 지켜보고, 추천 링크를 만들고, tonkfun.fun에서 원하는 토큰을 열어 볼 수도 있습니다.\n\n이 봇은 개인 키를 절대 요청하지 않으며, 트랜잭션을 보내는 일도 없습니다.",
   },
   commands: {
     start: "홈",
@@ -56,9 +56,8 @@ export const ko: BotDictionary = {
     rwa: "인증된 RWA",
   },
   launches: {
-    title: "최신 런칭",
+    on: "{pad}의 최신 런칭",
     trendingTitle: "지금 트렌딩",
-    tonk: "tonkfun.fun",
     trending: "트렌딩",
     empty: "아직 런칭이 없습니다. 새 런칭은 시작되는 즉시 여기에 표시됩니다.",
     trendingEmpty: "지금은 트렌딩 중인 토큰이 없습니다. 잠시 후 다시 확인해 보세요.",
@@ -81,7 +80,7 @@ export const ko: BotDictionary = {
   help: {
     title: "사용 방법",
     paste: "새 토큰의 주소를 붙여넣으면 미션 점수와 주요 수치를 볼 수 있습니다.",
-    launches: "/launches 명령으로 tonkfun.fun의 최신 런칭과 지금 트렌딩 중인 토큰을 볼 수 있습니다.",
+    launches: "/launches 명령으로 tonkfun.fun, Pons, Pump.fun의 최신 런칭과 지금 트렌딩 중인 토큰을 볼 수 있습니다.",
     referral: "/referral 명령으로 추천 링크를 만들 수 있습니다.",
     groups: "그룹에서는 /check 다음에 주소를 붙여 보내세요.",
     inline: "어느 채팅에서든 @{bot} 다음에 주소를 입력하면 토큰 카드를 공유할 수 있습니다.",

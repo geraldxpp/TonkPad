@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const tr: BotDictionary = {
   profile: {
-    short: "Satın almadan önce yeni token’ları kontrol edin ve tonkfun.fun’daki her lansmanı takip edin.",
+    short: "Satın almadan önce yeni token’ları kontrol edin ve tonkfun.fun, Pons ve Pump.fun lansmanlarını takip edin.",
     description:
-      "Bir token adresi yapıştırın; görev puanını, kilitlerini ve temel rakamlarını görün. En yeni lansmanları takip edin, davet bağlantınızı oluşturun ve herhangi bir token’ı tonkfun.fun’da açın.\n\nBu bot anahtarlarınızı asla istemez ve asla işlem göndermez.",
+      "Bir token adresi yapıştırın; görev puanını, kilitlerini ve temel rakamlarını görün. En yeni tonkfun.fun, Pons ve Pump.fun lansmanlarını takip edin, davet bağlantınızı oluşturun ve herhangi bir token’ı tonkfun.fun’da açın.\n\nBu bot anahtarlarınızı asla istemez ve asla işlem göndermez.",
   },
   commands: {
     start: "Ana sayfa",
@@ -56,9 +56,8 @@ export const tr: BotDictionary = {
     rwa: "Doğrulanmış RWA",
   },
   launches: {
-    title: "Son lansmanlar",
+    on: "Son {pad} lansmanları",
     trendingTitle: "Şu an trend olanlar",
-    tonk: "tonkfun.fun",
     trending: "Trend",
     empty: "Henüz lansman yok. Yenileri yayına girer girmez burada görünür.",
     trendingEmpty: "Şu an trend olan bir şey yok. Birazdan yeniden bakın.",
@@ -81,7 +80,7 @@ export const tr: BotDictionary = {
   help: {
     title: "Nasıl çalışır",
     paste: "Yeni bir token’ın görev puanını ve temel rakamlarını görmek için adresini yapıştırın.",
-    launches: "/launches en yeni tonkfun.fun lansmanlarını ve trend olanları gösterir.",
+    launches: "/launches en yeni tonkfun.fun, Pons ve Pump.fun lansmanlarını ve trend olanları gösterir.",
     referral: "/referral davet bağlantınızı oluşturur.",
     groups: "Bir grupta /check ve ardından bir adres gönderin.",
     inline: "Herhangi bir sohbette @{bot} ve bir adres yazarak bir token’ın kartını paylaşın.",

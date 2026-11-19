@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const es: BotDictionary = {
   profile: {
-    short: "Revisa los tokens nuevos antes de comprar y sigue todos los lanzamientos de tonkfun.fun.",
+    short: "Revisa los tokens nuevos antes de comprar y sigue los lanzamientos de tonkfun.fun, Pons y Pump.fun.",
     description:
-      "Pega la dirección de un token para ver su puntuación de misión, sus bloqueos y sus cifras clave. Sigue los lanzamientos más recientes, crea tu enlace de referido y abre cualquier token en tonkfun.fun.\n\nEste bot nunca te pide tus claves ni envía transacciones.",
+      "Pega la dirección de un token para ver su puntuación de misión, sus bloqueos y sus cifras clave. Sigue los lanzamientos más recientes de tonkfun.fun, Pons y Pump.fun, crea tu enlace de referido y abre cualquier token en tonkfun.fun.\n\nEste bot nunca te pide tus claves ni envía transacciones.",
   },
   commands: {
     start: "Inicio",
@@ -56,9 +56,8 @@ export const es: BotDictionary = {
     rwa: "RWA verificado",
   },
   launches: {
-    title: "Últimos lanzamientos",
+    on: "Últimos lanzamientos de {pad}",
     trendingTitle: "Tendencias del momento",
-    tonk: "tonkfun.fun",
     trending: "Tendencia",
     empty: "Aún no hay lanzamientos. Los nuevos aparecerán aquí en cuanto salgan.",
     trendingEmpty: "Ahora mismo no hay nada en tendencia. Vuelve pronto.",
@@ -81,7 +80,7 @@ export const es: BotDictionary = {
   help: {
     title: "Cómo funciona",
     paste: "Pega la dirección de un token nuevo para ver su puntuación de misión y sus cifras clave.",
-    launches: "/launches muestra los lanzamientos más recientes de tonkfun.fun y lo que está en tendencia.",
+    launches: "/launches muestra los lanzamientos más recientes de tonkfun.fun, Pons y Pump.fun, y lo que está en tendencia.",
     referral: "/referral crea tu enlace de referido.",
     groups: "En un grupo, envía /check seguido de una dirección.",
     inline: "En cualquier chat, escribe @{bot} y una dirección para compartir la ficha de un token.",

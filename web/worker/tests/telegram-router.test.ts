@@ -82,7 +82,7 @@ describe("a private chat", () => {
     const { ctx, got } = context();
     await handleUpdate(message("/launches"), ctx);
     await handleUpdate(message("/help"), ctx);
-    expect(got.sent[0].view.text).toContain("<b>Latest launches</b>");
+    expect(got.sent[0].view.text).toContain("<b>Latest on tonkfun.fun</b>");
     expect(got.sent[1].view.text).toContain("<b>How it works</b>");
     expect(got.sent[1].view.text).toContain("@tonkfun_bot");
   });
@@ -158,9 +158,18 @@ describe("buttons", () => {
     for (const data of ["home", "help", "l:tonk", "l:trend", `r:en:${WHOA}`, `c:${WHOA}`, "check", "ref"]) await handleUpdate(press(data), ctx);
     expect(got.answers).toHaveLength(8);
     expect(got.answers[4].text).toBe(en.card.refreshed);
-    expect(got.edits.map((e) => e.view.text.split("\n")[0])).toEqual(["<b>tonkfun.fun</b>", "<b>How it works</b>", "<b>Latest launches</b>", "<b>Trending now</b>", "<b>Whoa the Tarsier</b> · WHOA"]);
+    expect(got.edits.map((e) => e.view.text.split("\n")[0])).toEqual(["<b>tonkfun.fun</b>", "<b>How it works</b>", "<b>Latest on tonkfun.fun</b>", "<b>Trending now</b>", "<b>Whoa the Tarsier</b> · WHOA"]);
     expect(got.sent).toHaveLength(3);
     expect(got.sent[1].view.forceReply && got.sent[2].view.forceReply).toBeTruthy();
+  });
+
+  it("switches between the launchpads' lists in place", async () => {
+    const { ctx, got } = context();
+    await handleUpdate(press("l:pons"), ctx);
+    await handleUpdate(press("l:pump"), ctx);
+    await handleUpdate(press("l:nope"), ctx);
+    expect(got.edits.map((e) => e.view.text.split("\n")[0])).toEqual(["<b>Latest on Pons</b>", "<b>Latest on Pump.fun</b>"]);
+    expect(got.edits[1].view.text).toContain("<b>New on pump</b> · PUMP");
   });
 
   it("refreshes a card in its own language, whoever presses it", async () => {

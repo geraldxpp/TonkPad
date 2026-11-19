@@ -12,7 +12,7 @@ function leaves(node: object, prefix = ""): Array<[string, string]> {
   return Object.entries(node).flatMap(([key, value]) => (typeof value === "string" ? [[`${prefix}${key}`, value] as [string, string]] : leaves(value, `${prefix}${key}.`)));
 }
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-const BUTTONS = ["inline.notFound", "home.check", "home.launches", "home.referral", "home.help", "home.open", "card.open", "card.refresh", "card.share", "launches.tonk", "launches.trending", "launches.explore", "referral.share", "referral.open", "help.docs", "common.back", "check.lookUp", "inline.help"];
+const BUTTONS = ["inline.notFound", "home.check", "home.launches", "home.referral", "home.help", "home.open", "card.open", "card.refresh", "card.share", "launches.trending", "launches.explore", "referral.share", "referral.open", "help.docs", "common.back", "check.lookUp", "inline.help"];
 
 describe("the bot's words", () => {
   const english = new Map(leaves(en));

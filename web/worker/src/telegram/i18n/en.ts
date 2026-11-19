@@ -7,9 +7,9 @@
  */
 export const en = {
   profile: {
-    short: "Check new tokens before you buy, and follow every launch on tonkfun.fun.",
+    short: "Check new tokens before you buy, and follow launches on tonkfun.fun, Pons and Pump.fun.",
     description:
-      "Paste a token address to see its Mission score, locks and key numbers. Follow the newest launches, make your referral link, and open any token on tonkfun.fun.\n\nThis bot never asks for your keys and never sends a transaction.",
+      "Paste a token address to see its Mission score, locks and key numbers. Follow the newest launches on tonkfun.fun, Pons and Pump.fun, make your referral link, and open any token on tonkfun.fun.\n\nThis bot never asks for your keys and never sends a transaction.",
   },
   commands: {
     start: "Home",
@@ -61,9 +61,8 @@ export const en = {
     rwa: "Verified RWA",
   },
   launches: {
-    title: "Latest launches",
+    on: "Latest on {pad}",
     trendingTitle: "Trending now",
-    tonk: "tonkfun.fun",
     trending: "Trending",
     empty: "No launches yet. New ones appear here the moment they go live.",
     trendingEmpty: "Nothing is trending right now. Check back soon.",
@@ -86,7 +85,7 @@ export const en = {
   help: {
     title: "How it works",
     paste: "Paste a new token's address to see its Mission score and key numbers.",
-    launches: "/launches shows the newest tonkfun.fun launches and what's trending.",
+    launches: "/launches shows the newest launches on tonkfun.fun, Pons and Pump.fun, and what's trending.",
     referral: "/referral makes your referral link.",
     groups: "In a group, send /check followed by an address.",
     inline: "In any chat, type @{bot} and an address to share a token's card.",

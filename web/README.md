@@ -1076,7 +1076,8 @@ two in step.
 - **In a private chat:** paste any token address (or a tonkfun.fun token link)
   for its card: Mission score, badges, market cap, 24h, curve, holders and the
   address, with Open on tonkfun.fun, Refresh (in place) and Share.
-  `/launches` lists the newest tonkfun.fun launches and what's trending;
+  `/launches` lists the newest launches on tonkfun.fun, Pons and Pump.fun,
+  and what's trending;
   `/referral` makes a wallet's `?ref=` link; `/help` explains it all.
 - **In a group:** `/check <address>` only (privacy mode stays on).
 - **Inline:** `@<bot> <address>` in any chat, once inline mode is on.

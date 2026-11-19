@@ -3,6 +3,7 @@ import { cardFor, groupCommand, helpFor, listFor, parseCommand, privateCommand, 
 import type { BotContext, Target } from "./context";
 import { botLocale, words } from "./i18n";
 import { onInline } from "./inline";
+import { isLaunchTab } from "./lists";
 import { findAddress, isTokenAddress } from "./text";
 import type { TgCallbackQuery, TgMessage, TgUpdate } from "./types";
 import { checkPrompt, homeView, notAddressView, referralPrompt } from "./views";
@@ -77,7 +78,8 @@ async function onCallback(q: TgCallbackQuery, ctx: BotContext): Promise<void> {
   if (!target) return;
   if (data === "home") return ctx.out.edit(target, homeView(lang, ctx.site), chat);
   if (data === "help") return ctx.out.edit(target, helpFor(lang, ctx, chat?.type !== "private"), chat);
-  if (data === "l:tonk" || data === "l:trend") return ctx.out.edit(target, listFor(data === "l:tonk" ? "tonk" : "trend", lang, ctx), chat);
+  const tab = kind === "l" ? parts[1] ?? "" : "";
+  if (isLaunchTab(tab)) return ctx.out.edit(target, listFor(tab, lang, ctx), chat);
   // A new message only for a press Telegram still accepts: after downtime, old presses aren't acted on.
   if (!chat || !live) return;
   if (data === "check") return ctx.out.send(chat, checkPrompt(lang));

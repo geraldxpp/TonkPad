@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const fr: BotDictionary = {
   profile: {
-    short: "Vérifiez les nouveaux tokens avant d’acheter et suivez tous les lancements de tonkfun.fun.",
+    short: "Vérifiez les nouveaux tokens avant d’acheter et suivez les lancements de tonkfun.fun, Pons et Pump.fun.",
     description:
-      "Collez l’adresse d’un token pour voir son score de mission, ses verrouillages et ses chiffres clés. Suivez les derniers lancements, créez votre lien de parrainage et ouvrez n’importe quel token sur tonkfun.fun.\n\nCe bot ne vous demande jamais vos clés et n’envoie jamais de transaction.",
+      "Collez l’adresse d’un token pour voir son score de mission, ses verrouillages et ses chiffres clés. Suivez les derniers lancements de tonkfun.fun, Pons et Pump.fun, créez votre lien de parrainage et ouvrez n’importe quel token sur tonkfun.fun.\n\nCe bot ne vous demande jamais vos clés et n’envoie jamais de transaction.",
   },
   commands: {
     start: "Accueil",
@@ -56,9 +56,8 @@ export const fr: BotDictionary = {
     rwa: "RWA vérifié",
   },
   launches: {
-    title: "Derniers lancements",
+    on: "Derniers lancements sur {pad}",
     trendingTitle: "Tendances du moment",
-    tonk: "tonkfun.fun",
     trending: "Tendances",
     empty: "Aucun lancement pour l’instant. Les nouveaux apparaîtront ici dès leur mise en ligne.",
     trendingEmpty: "Aucune tendance pour le moment. Revenez bientôt.",
@@ -81,7 +80,7 @@ export const fr: BotDictionary = {
   help: {
     title: "Comment ça marche",
     paste: "Collez l’adresse d’un nouveau token pour voir son score de mission et ses chiffres clés.",
-    launches: "/launches affiche les derniers lancements de tonkfun.fun et les tendances du moment.",
+    launches: "/launches affiche les derniers lancements de tonkfun.fun, Pons et Pump.fun, ainsi que les tendances du moment.",
     referral: "/referral crée votre lien de parrainage.",
     groups: "Dans un groupe, envoyez /check suivi d’une adresse.",
     inline: "Dans n’importe quelle discussion, tapez @{bot} et une adresse pour partager la fiche d’un token.",

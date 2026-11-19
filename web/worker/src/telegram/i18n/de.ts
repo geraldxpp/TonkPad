@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const de: BotDictionary = {
   profile: {
-    short: "Prüfe neue Tokens vor dem Kauf und verfolge alle Launches auf tonkfun.fun.",
+    short: "Prüfe neue Tokens vor dem Kauf und verfolge Launches auf tonkfun.fun, Pons und Pump.fun.",
     description:
-      "Füge eine Token-Adresse ein und sieh dir den Mission-Score, die Sperren und die wichtigsten Zahlen an. Verfolge die neuesten Launches, erstelle deinen Empfehlungslink und öffne jeden beliebigen Token auf tonkfun.fun.\n\nDieser Bot fragt nie nach deinen Schlüsseln und sendet nie eine Transaktion.",
+      "Füge eine Token-Adresse ein und sieh dir den Mission-Score, die Sperren und die wichtigsten Zahlen an. Verfolge die neuesten Launches auf tonkfun.fun, Pons und Pump.fun, erstelle deinen Empfehlungslink und öffne jeden beliebigen Token auf tonkfun.fun.\n\nDieser Bot fragt nie nach deinen Schlüsseln und sendet nie eine Transaktion.",
   },
   commands: {
     start: "Startseite",
@@ -56,9 +56,8 @@ export const de: BotDictionary = {
     rwa: "Verifiziertes RWA",
   },
   launches: {
-    title: "Neueste Launches",
+    on: "Neueste Launches auf {pad}",
     trendingTitle: "Gerade im Trend",
-    tonk: "tonkfun.fun",
     trending: "Trending",
     empty: "Noch keine Launches. Neue erscheinen hier, sobald sie live sind.",
     trendingEmpty: "Gerade ist nichts im Trend. Schau bald wieder vorbei.",
@@ -81,7 +80,7 @@ export const de: BotDictionary = {
   help: {
     title: "So funktioniert’s",
     paste: "Füge die Adresse eines neuen Tokens ein, um seinen Mission-Score und die wichtigsten Zahlen zu sehen.",
-    launches: "/launches zeigt die neuesten tonkfun.fun-Launches und was gerade im Trend ist.",
+    launches: "/launches zeigt die neuesten Launches auf tonkfun.fun, Pons und Pump.fun sowie das, was gerade im Trend ist.",
     referral: "/referral erstellt deinen Empfehlungslink.",
     groups: "In einer Gruppe sende /check, gefolgt von einer Adresse.",
     inline: "Tippe in einem beliebigen Chat @{bot} und eine Adresse, um die Karte eines Tokens zu teilen.",

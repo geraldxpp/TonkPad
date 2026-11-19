@@ -32,7 +32,7 @@ export function cardFor(address: string, lang: Locale, ctx: BotContext, shared =
 
 export function listFor(tab: LaunchTab, lang: Locale, ctx: BotContext): View {
   if (!ctx.data.ready()) return unavailableView(lang);
-  const rows = tab === "tonk" ? ctx.data.latest(LIST_SIZE) : ctx.data.trending(LIST_SIZE);
+  const rows = tab === "trend" ? ctx.data.trending(LIST_SIZE) : ctx.data.latest(tab, LIST_SIZE);
   return launchesView(rows, tab, lang, ctx.site);
 }
 

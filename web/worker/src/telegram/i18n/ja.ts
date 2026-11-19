@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const ja: BotDictionary = {
   profile: {
-    short: "購入前に、新しいトークンをチェックできます。tonkfun.fun のすべてのローンチも追いかけられます。",
+    short: "購入前に、新しいトークンをチェックできます。tonkfun.fun、Pons、Pump.fun のローンチも追いかけられます。",
     description:
-      "トークンのアドレスを貼り付けると、ミッションスコア、ロック状況、主な数値を確認できます。最新のローンチを追いかけたり、紹介リンクを作ったり、tonkfun.fun で好きなトークンを開いたりすることもできます。\n\nこのボットが秘密鍵を求めたり、トランザクションを送信したりすることは決してありません。",
+      "トークンのアドレスを貼り付けると、ミッションスコア、ロック状況、主な数値を確認できます。tonkfun.fun、Pons、Pump.fun の最新のローンチを追いかけたり、紹介リンクを作ったり、tonkfun.fun で好きなトークンを開いたりすることもできます。\n\nこのボットが秘密鍵を求めたり、トランザクションを送信したりすることは決してありません。",
   },
   commands: {
     start: "ホーム",
@@ -56,9 +56,8 @@ export const ja: BotDictionary = {
     rwa: "認証済みRWA",
   },
   launches: {
-    title: "最新のローンチ",
+    on: "{pad} の最新のローンチ",
     trendingTitle: "いまのトレンド",
-    tonk: "tonkfun.fun",
     trending: "トレンド",
     empty: "まだローンチはありません。新しいローンチは公開されるとすぐにここに表示されます。",
     trendingEmpty: "いまトレンド中のトークンはありません。しばらくしてから、またご確認ください。",
@@ -81,7 +80,7 @@ export const ja: BotDictionary = {
   help: {
     title: "使い方",
     paste: "新しいトークンのアドレスを貼り付けると、ミッションスコアと主な数値が表示されます。",
-    launches: "/launches で、tonkfun.fun の最新のローンチといまのトレンドを確認できます。",
+    launches: "/launches で、tonkfun.fun、Pons、Pump.fun の最新のローンチといまのトレンドを確認できます。",
     referral: "/referral で紹介リンクを作成できます。",
     groups: "グループでは /check に続けてアドレスを送ってください。",
     inline: "どのチャットでも @{bot} とアドレスを入力すると、トークンのカードを共有できます。",

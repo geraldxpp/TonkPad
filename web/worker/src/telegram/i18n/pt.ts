@@ -2,9 +2,9 @@ import type { BotDictionary } from "./en";
 
 export const pt: BotDictionary = {
   profile: {
-    short: "Confira os tokens novos antes de comprar e acompanhe todos os lançamentos do tonkfun.fun.",
+    short: "Confira os tokens novos antes de comprar e acompanhe os lançamentos do tonkfun.fun, Pons e Pump.fun.",
     description:
-      "Cole o endereço de um token para ver a pontuação da missão, os bloqueios e os principais números. Acompanhe os lançamentos mais recentes, crie seu link de indicação e abra qualquer token no tonkfun.fun.\n\nEste bot nunca pede suas chaves nem envia transações.",
+      "Cole o endereço de um token para ver a pontuação da missão, os bloqueios e os principais números. Acompanhe os lançamentos mais recentes do tonkfun.fun, Pons e Pump.fun, crie seu link de indicação e abra qualquer token no tonkfun.fun.\n\nEste bot nunca pede suas chaves nem envia transações.",
   },
   commands: {
     start: "Início",
@@ -56,9 +56,8 @@ export const pt: BotDictionary = {
     rwa: "RWA verificado",
   },
   launches: {
-    title: "Últimos lançamentos",
+    on: "Últimos lançamentos do {pad}",
     trendingTitle: "Em alta agora",
-    tonk: "tonkfun.fun",
     trending: "Em alta",
     empty: "Ainda não há lançamentos. Os novos vão aparecer aqui assim que entrarem no ar.",
     trendingEmpty: "Nada em alta agora. Volte daqui a pouco.",
@@ -81,7 +80,7 @@ export const pt: BotDictionary = {
   help: {
     title: "Como funciona",
     paste: "Cole o endereço de um token novo para ver a pontuação da missão e os principais números.",
-    launches: "/launches mostra os lançamentos mais recentes do tonkfun.fun e o que está em alta.",
+    launches: "/launches mostra os lançamentos mais recentes do tonkfun.fun, Pons e Pump.fun, e o que está em alta.",
     referral: "/referral cria seu link de indicação.",
     groups: "Em um grupo, envie /check seguido de um endereço.",
     inline: "Em qualquer conversa, digite @{bot} e um endereço para compartilhar o resumo de um token.",

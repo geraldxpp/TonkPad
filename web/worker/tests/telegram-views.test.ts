@@ -83,11 +83,12 @@ describe("menus", () => {
 
   it("lists the latest launches with a segmented switch and a button per token", () => {
     const view = launchesView([token(), token({ address: SOL_MINT, ticker: "PEPE", name: "Pepe" })], "tonk", "en", SITE);
-    expect(view.text.startsWith("<b>Latest launches</b>")).toBe(true);
+    expect(view.text.startsWith("<b>Latest on tonkfun.fun</b>")).toBe(true);
     expect(view.text).toContain("1. <b>Whoa the Tarsier</b> · WHOA");
     expect(view.text).toContain("Score 78 · Safe · 5d");
-    expect(view.keyboard?.inline_keyboard[0].map((b) => b.text)).toEqual(["✓ tonkfun.fun", "Trending"]);
-    expect(callbacks(view)).toEqual(["l:tonk", "l:trend", `c:${WHOA}`, `c:${SOL_MINT}`, "home"]);
+    expect(view.keyboard?.inline_keyboard.slice(0, 2).map((row) => row.map((b) => b.text))).toEqual([["✓ tonkfun.fun", "Pons"], ["Pump.fun", "Trending"]]);
+    expect(callbacks(view)).toEqual(["l:tonk", "l:pons", "l:pump", "l:trend", `c:${WHOA}`, `c:${SOL_MINT}`, "home"]);
+    expect(urls(launchesView([token({ launchpad: "pons", ageMinutes: 5 })], "pons", "en", SITE))).toEqual([`${SITE}/?pad=pons&tab=new`]);
     expect(urls(view)).toEqual([`${SITE}/`]);
     expect(urls(launchesView([token({ ageMinutes: 30 })], "tonk", "en", SITE))).toEqual([`${SITE}/?pad=tonk&tab=new`]);
     expect(launchesView([token({ ageMinutes: 0.5 })], "tonk", "en", SITE).text).toContain("· 30s");
