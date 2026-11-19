@@ -3,6 +3,7 @@ import type { Snapshot } from "../snapshot";
 import type { TokenStore } from "../store";
 import { TonkBook } from "./book";
 import { type FeedEnv, loadTonkFeedConfig } from "./config";
+import type { TonkEvent } from "./events";
 import { TonkFeed } from "./feed";
 import type { SystemAddresses } from "./holders";
 
@@ -16,6 +17,8 @@ export interface TonkFeedHandle {
   /** Carries on from a snapshot's cursor, only if it followed this same launchpad; otherwise its launches are dropped and read again. */
   restore: (saved: Snapshot["tonk"]) => void;
   health: () => Record<string, unknown>;
+  /** Blocks the feed still has to read after its last poll. */
+  lag: () => number;
 }
 
 /** Drops every tonkfun.fun launch from the store: a snapshot's, when the feed is off. */
@@ -28,13 +31,19 @@ export function dropLaunches(store: TokenStore): void {
  * (see tonk/config.ts), or null and a line saying why it's off. It only
  * reads the chain: it holds no key and sends nothing.
  */
-export function createTonkFeed(store: TokenStore, env: FeedEnv, logsRpcUrl: string, log: (line: string) => void): TonkFeedHandle | null {
+export function createTonkFeed(
+  store: TokenStore,
+  env: FeedEnv,
+  logsRpcUrl: string,
+  log: (line: string) => void,
+  onApplied: ((events: readonly TonkEvent[], timeOf: (block: number) => number) => void) | null = null,
+): TonkFeedHandle | null {
   const { config, note } = loadTonkFeedConfig(env, logsRpcUrl);
   log(note);
   if (!config) return null;
   const system: SystemAddresses = { launchpad: config.launchpad, migrator: config.migrator, poolManager: config.poolManager };
   const book = new TonkBook(store, system);
-  const feed = new TonkFeed(new HttpRpc(config.rpcUrl), config, book, null, Date.now, log);
+  const feed = new TonkFeed(new HttpRpc(config.rpcUrl), config, book, null, Date.now, log, onApplied);
   return {
     system,
     async poll(ethUsd) {
@@ -56,5 +65,6 @@ export function createTonkFeed(store: TokenStore, env: FeedEnv, logsRpcUrl: stri
       feed.cursor = null;
     },
     health: () => ({ block: feed.cursor, lagBlocks: feed.lag, launches: book.size }),
+    lag: () => feed.lag,
   };
 }

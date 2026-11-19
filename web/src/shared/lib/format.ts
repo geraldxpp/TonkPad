@@ -59,7 +59,10 @@ export function formatUsdCompact(value: number, options: { trimZeros?: boolean }
     }
     return `${sign}$${trim(text, options.trimZeros)}${unit.suffix}`;
   }
-  return `${sign}$${trim(abs.toFixed(abs >= 100 ? 0 : 2), options.trimZeros)}`;
+  // Rounding can carry into thousands too (999.96 → $1.0K, never "$1000").
+  const small = abs.toFixed(abs >= 100 ? 0 : 2);
+  if (Number(small) >= 1000) return `${sign}$${trim(scaledText(abs / 1e3, "K"), options.trimZeros)}K`;
+  return `${sign}$${trim(small, options.trimZeros)}`;
 }
 
 function trim(text: string, enabled = false): string {

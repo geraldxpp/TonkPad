@@ -21,7 +21,9 @@ import { createSolanaTrades } from "./trades/solana";
 import { createSmartMoney } from "./smart/sweep";
 import { SmartWallets } from "./smart/wallets";
 import { TokenStore } from "./store";
+import { startTelegram, type TelegramBot } from "./telegram";
 import { createTonkFeed, dropLaunches } from "./tonk";
+import type { TonkEvent } from "./tonk/events";
 import { createViews } from "./views/cache";
 
 
@@ -39,8 +41,12 @@ const TONK_POLL_EVERY = 4_000;
 
 const config = loadConfig();
 const store = new TokenStore();
+/** The Telegram bot (telegram/), when TELEGRAM_BOT_TOKEN is set. */
+let telegram: TelegramBot | null = null;
 /** tonkfun.fun's own launches, when the environment names the mainnet deployment (tonk/config.ts). */
-const tonk = createTonkFeed(store, process.env, config.robinhoodLogsRpcUrl, (line) => log("tonk", line));
+const tonk = createTonkFeed(store, process.env, config.robinhoodLogsRpcUrl, (line) => log("tonk", line), (events: readonly TonkEvent[], timeOf) =>
+  telegram?.onFeedEvents(events, timeOf),
+);
 /** Launchpads the worker ingests today, in the order the radar names them. */
 const INGESTING: readonly LaunchpadId[] = tonk ? ["tonk", "pons", "pump", "bonk"] : ["pons", "pump", "bonk"];
 const pons = new PonsBook(store, (quote) => quoteUsd(quote));
@@ -120,6 +126,11 @@ async function pollTonk(): Promise<void> {
   } catch (error) {
     fail("tonk", error);
   }
+  try {
+    if (tonk) await telegram?.afterTonkPoll(tonk.lag());
+  } catch (error) {
+    fail("telegram", error);
+  }
 }
 
 async function refreshAssets(): Promise<void> {
@@ -196,6 +207,13 @@ async function start(): Promise<void> {
     log("alerts", `not started: ${error instanceof Error ? error.name : "error"}`);
     return null;
   });
+  // The bot answers from the worker's own data; if it can't start, the worker still serves the screens.
+  telegram = await startTelegram({ store, env: process.env, snapshotPath: config.snapshotPath, tonkFeed: tonk !== null, log: (line) => log("telegram", line) }).catch(
+    (error: unknown) => {
+      log("telegram", `not started: ${error instanceof Error ? error.name : "error"}`);
+      return null;
+    },
+  );
   await refreshStatus();
   connectPumpPortal({
     onLaunch: (event) => {
@@ -245,13 +263,15 @@ async function start(): Promise<void> {
       tonk: tonk?.health() ?? { enabled: false },
       charts: charts.stats(),
       alerts: alerts?.health() ?? { enabled: false },
+      telegram: telegram?.health() ?? { enabled: false },
     }),
   });
   log("worker", `listening on :${config.port}`);
 
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
-      void Promise.all([save(), alerts?.save()]).finally(() => process.exit(0));
+      telegram?.stop();
+      void Promise.all([save(), alerts?.save(), telegram?.save()]).finally(() => process.exit(0));
     });
   }
 }

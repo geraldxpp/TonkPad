@@ -1064,6 +1064,59 @@ recorded read-only from Robinhood Chain Testnet and on the ABI of the
 mainnet build with the F-1 and F-2 fixes, all in
 `worker/tests/fixtures/alerts/`, with no network.
 
+## Telegram bot
+
+tonkfun.fun's public bot runs inside the worker (`worker/src/telegram/`;
+`prompts/14-telegram-bot.md`). It answers from the worker's own data and
+never signs, holds a key or sends a transaction: every action opens the site.
+
+- **In a private chat:** paste any token address (or a tonkfun.fun token link)
+  for its card: Mission score, badges, market cap, 24h, curve, holders and the
+  address, with Open on tonkfun.fun, Refresh (in place) and Share.
+  `/launches` lists the newest tonkfun.fun launches and what's trending;
+  `/referral` makes a wallet's `?ref=` link; `/help` explains it all.
+- **In a group:** `/check <address>` only (privacy mode stays on).
+- **Inline:** `@<bot> <address>` in any chat, once inline mode is on.
+- **The official channel** (optional): tonkfun.fun's launches, 50% and 90% of
+  the curve, graduations, extended locks (only a lock that earns the Locked
+  badge, at most once a day per token) and the Block-0 Shield's report. Only
+  news from the last 15 minutes is posted, each item once. A token whose name
+  or ticker uses the brand (a word starting "tonk") is never posted unless its
+  creator is in `TELEGRAM_BRAND_CREATORS`; tokens in `TELEGRAM_CHANNEL_SKIP`
+  are never posted. Posts are queued, so the launchpad feed never waits on
+  Telegram.
+- It replies in the Telegram app's language (the site's 12), sets its own
+  commands, descriptions and menu button in all 12, keeps to Telegram's rate
+  limits, and stores no user data: its state file holds only the channel's
+  posted items and the profile's hash.
+
+| Variable | Use |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | Turns the bot on. Secret: Railway's variables only, never logged |
+| `TELEGRAM_CHANNEL_ID` | Optional: the channel, `@name` or its `-100…` id |
+| `TELEGRAM_CHANNEL_LANG` | Default `en`: the channel's language |
+| `TELEGRAM_SITE_URL` | Default `https://www.tonkfun.fun` |
+| `TELEGRAM_STATE_PATH` | Default: beside `SNAPSHOT_PATH` (`/data/telegram.json` on Railway) |
+| `TELEGRAM_BRAND_CREATORS` | Optional: creator wallets (comma-separated) whose tokens may use the brand in the channel, e.g. the owner's wallet for tonkfun.fun's own coin |
+| `TELEGRAM_CHANNEL_SKIP` | Optional: token addresses (comma-separated) the channel never posts |
+
+**Set it up.** It needs its own bot, never the ops watcher's
+(`ALERT_TELEGRAM_BOT_TOKEN`).
+1. In @BotFather: `/newbot`, name it "tonkfun.fun" and pick a username such
+   as `tonkfun_bot`; copy the token. `/setuserpic` with
+   `marketing/telegram/bot-avatar.png`. `/setinline` with the placeholder
+   "Paste a token address" turns on inline mode.
+2. For the channel: create it, add the bot as an administrator that can post
+   messages, and note its `@name`.
+3. In Railway, add the variables; the worker restarts with them.
+4. `/health` shows `telegram.polling: "ok"` and the bot's username within a
+   minute; then message the bot. "Telegram refused the bot token" in the logs
+   means the token is wrong.
+
+The bot uses long polling, so it needs no public URL; it removes a webhook if
+one is set. Only one process may poll a bot: run a second copy (a local
+worker) with its own test bot.
+
 ## Deploy on Vercel
 
 - Import the repository and set **Root Directory** to `web`. The framework

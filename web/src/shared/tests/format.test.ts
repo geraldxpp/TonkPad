@@ -40,6 +40,9 @@ describe("formatUsdCompact (market cap)", () => {
   it("carries across unit and decimal boundaries", () => {
     expect(formatUsdCompact(99_960)).toBe("$100K");
     expect(formatUsdCompact(999_960)).toBe("$1.00M");
+    expect(formatUsdCompact(999.96)).toBe("$1.0K");
+    expect(formatUsdCompact(999.5)).toBe("$1.0K");
+    expect(formatUsdCompact(999.4)).toBe("$999");
     expect(formatUsdCompact(9_996_000)).toBe("$10.0M");
     expect(formatUsdCompact(2_500_000_000)).toBe("$2.50B");
   });

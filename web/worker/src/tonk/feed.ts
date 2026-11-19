@@ -57,6 +57,8 @@ export class TonkFeed {
     public cursor: number | null = null,
     private readonly now: () => number = Date.now,
     private readonly log: (line: string) => void = () => undefined,
+    /** Hears each window's events, with their blocks' times (ms), once they are applied (the Telegram channel); its failures never stop the feed. */
+    private readonly onApplied: ((events: readonly TonkEvent[], timeOf: (block: number) => number) => void) | null = null,
   ) {}
 
   /** How far behind the head the last poll left the feed, in blocks. */
@@ -150,6 +152,11 @@ export class TonkFeed {
     }
     for (const [token, lock] of lockRows) this.book.setLock(token, lock);
     this.cursor = to;
+    try {
+      this.onApplied?.(events, timeOf);
+    } catch {
+      // A listener's failure is its own; the window is applied.
+    }
     return { launches: launched, trades };
   }
 }
