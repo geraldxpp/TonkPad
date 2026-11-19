@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { en } from "../src/telegram/i18n/en";
+import { Limiter } from "../src/telegram/limiter";
 import { handleUpdate, parseCommand } from "../src/telegram/router";
 import type { TgChat, TgMessage, TgUpdate } from "../src/telegram/types";
 import { NOW } from "./fixtures";
@@ -105,6 +106,18 @@ describe("a private chat", () => {
     const { ctx, got } = context({ ready: () => false });
     await handleUpdate(message(WHOA), ctx);
     expect(got.sent[0].view.text).toBe(en.common.unavailable);
+  });
+});
+
+describe("the rate limits forget people", () => {
+  it("drops a person's key once their window has passed", () => {
+    const limiter = new Limiter(2, 10_000);
+    limiter.allow(7, 0);
+    const hits = (limiter as unknown as { hits: Map<number, number[]> }).hits;
+    limiter.prune(9_999);
+    expect(hits.has(7)).toBe(true);
+    limiter.prune(10_000);
+    expect(hits.has(7)).toBe(false);
   });
 });
 

@@ -73,7 +73,7 @@ describe("Sender", () => {
     const t = fakeTime();
     const api: BotApi = { call: async <T>() => true as T };
     const sender = new Sender(api, () => {}, t.now, t.sleep);
-    const results = await Promise.all([1, 2, 3, 4, 5].map(() => sender.toChat("g", 3_000, "sendMessage", {}, 3)));
+    const results = await Promise.all([1, 2, 3, 4, 5].map(() => sender.toChat("g", 3_000, "sendMessage", {}, { maxQueued: 3 })));
     expect(results).toEqual([true, true, true, null, null]);
     expect(sender.stats.dropped).toBe(2);
   });
@@ -85,6 +85,33 @@ describe("Sender", () => {
     expect(await sender.toChat("1", 0, "sendMessage", {})).toBeNull();
     expect(await sender.toChat("1", 0, "editMessageText", {})).toBe(true);
     expect(api.calls.map(([m]) => m)).toEqual(["sendMessage", "editMessageText", "editMessageText"]);
+  });
+
+  it("forgets a chat once the longest gap has passed since its last reply", async () => {
+    const t = fakeTime();
+    const api: BotApi = { call: async <T>() => true as T };
+    const sender = new Sender(api, () => {}, t.now, t.sleep);
+    await sender.toChat("42", 1_000, "sendMessage", {});
+    const internals = sender as unknown as { lastAt: Map<string, number> };
+    expect(internals.lastAt.has("42")).toBe(true);
+    sender.forget(t.now() + 2_999);
+    expect(internals.lastAt.has("42")).toBe(true);
+    sender.forget(t.now() + 3_000);
+    expect(internals.lastAt.has("42")).toBe(false);
+  });
+
+  it("drops a reply that couldn't go out within its time, queue and Telegram's waits included", async () => {
+    const t = fakeTime();
+    const api = scripted([true, new TelegramError(429, "Too Many Requests", 30)]);
+    const sender = new Sender(api, () => {}, t.now, t.sleep);
+    const limits = { maxWaitMs: 20_000 };
+    expect(await sender.toChat("g", 25_000, "sendMessage", {}, limits)).toBe(true);
+    // The next reply would wait 25 s for the gap: past its 20 s, so it is dropped without being sent.
+    expect(await sender.toChat("g", 25_000, "sendMessage", {}, limits)).toBeNull();
+    // A 429 asking for 30 s more is past the deadline too.
+    expect(await sender.toChat("h", 0, "sendMessage", {}, limits)).toBeNull();
+    expect(sender.stats.dropped).toBe(2);
+    expect(api.calls).toHaveLength(2);
   });
 
   it("keeps a gap between two messages to the same chat", async () => {

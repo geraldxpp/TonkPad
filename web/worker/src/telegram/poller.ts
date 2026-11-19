@@ -91,7 +91,8 @@ export class Poller {
     }
     this.inFlight += 1;
     void this.handle(update)
-      .catch((error: unknown) => this.log(`an update failed: ${error instanceof Error ? error.message.slice(0, 120) : "error"}`))
+      // Only the error's name: a message could one day carry someone's text into the logs.
+      .catch((error: unknown) => this.log(`an update failed: ${error instanceof Error ? error.name : "error"}`))
       .finally(() => {
         this.inFlight -= 1;
       });

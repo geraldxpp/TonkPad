@@ -38,8 +38,13 @@ export interface TelegramDeps {
 
 const EDIT_GAP = 250;
 const isPrivate = (chat?: TgChat) => chat?.type === "private";
-/** Replies one chat may have waiting: a group's drain at 20 a minute, so a busy group drops extras instead of holding the bot up. */
-const queueFor = (chat?: TgChat) => (isPrivate(chat) ? 10 : 3);
+/**
+ * A reply to a person: at most 10 waiting in a private chat, 3 in a group
+ * (a group drains 20 a minute, so a busy one drops extras instead of holding
+ * the bot up), sent within 20 s or dropped, each request 10 s at most. With
+ * the 5 s sweep below, no chat or user ID stays in memory past a minute.
+ */
+const replyLimits = (chat?: TgChat) => ({ maxQueued: isPrivate(chat) ? 10 : 3, maxWaitMs: 20_000, timeoutMs: 10_000 });
 
 /** The worker's tokens as the bot reads them: never marking one opened, so no Helius credits are spent. */
 function storeData(store: TokenStore, now: () => number): BotData {
@@ -82,6 +87,8 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
 
   let username: string | null = null;
   let inlineOn = false;
+  /** Privacy mode (on by default): in groups Telegram shows the bot only its commands and replies to it. */
+  let privacyMode = true;
   let refused = false;
   const out: Out = {
     async send(chat, view, replyTo) {
@@ -92,13 +99,13 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
         link_preview_options: { is_disabled: true },
         reply_markup: view.forceReply ?? view.keyboard,
         ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}),
-      }, queueFor(chat));
+      }, replyLimits(chat));
     },
     async edit(target, view, chat) {
       const where = "inlineId" in target ? { inline_message_id: target.inlineId } : { chat_id: target.chatId, message_id: target.messageId };
       const key = "inlineId" in target ? `inline:${target.inlineId}` : String(target.chatId);
       const gap = chat && !isPrivate(chat) ? GROUP_GAP : EDIT_GAP;
-      await sender.toChat(key, gap, "editMessageText", { ...where, text: view.text, parse_mode: "HTML", link_preview_options: { is_disabled: true }, reply_markup: view.keyboard }, queueFor(chat));
+      await sender.toChat(key, gap, "editMessageText", { ...where, text: view.text, parse_mode: "HTML", link_preview_options: { is_disabled: true }, reply_markup: view.keyboard }, replyLimits(chat));
     },
     async answer(id, text) {
       return (await sender.direct("answerCallbackQuery", { callback_query_id: id, ...(text ? { text } : {}) })) !== null;
@@ -114,6 +121,13 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
     limiter: new Limiter(8, 10_000), inlineLimiter: new Limiter(5, 10_000), inlineAll: new Limiter(10, 1_000), pressAll: new Limiter(5, 1_000),
   };
   const poller = new Poller(api, (update) => handleUpdate(update, ctx), log);
+  // Every 5 s, forget the chat and user IDs the rate limits held: none is kept past a minute (the privacy page says so).
+  const sweep = setInterval(() => {
+    const at = Date.now();
+    for (const limiter of [ctx.limiter, ctx.inlineLimiter]) limiter.prune(at);
+    sender.forget(at);
+  }, 5_000);
+  sweep.unref?.();
 
   const channel = config.channelId && deps.tonkFeed
     ? new ChannelPoster({
@@ -138,6 +152,8 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
         const me = await api.call<TgUser>("getMe", {});
         username = me.username ?? null;
         inlineOn = me.supports_inline_queries === true;
+        privacyMode = me.can_read_all_group_messages !== true;
+        if (!privacyMode) log("privacy mode is off: in groups Telegram shows the bot every message (turn it back on with /setprivacy in @BotFather)");
         botId = me.id;
         log(`signed in as @${username ?? "?"}${inlineOn ? "" : " (inline mode is off: /setinline in @BotFather)"}`);
         break;
@@ -174,11 +190,15 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
       failed: sender.stats.failed,
       dropped: { replies: sender.stats.dropped, updates: poller.health.dropped },
       inline: inlineOn,
+      privacyMode,
       channel: channel
         ? { enabled: true, posted: channel.stats.posted, skipped: channel.stats.skipped, lastPostAt: channel.stats.lastPostAt ? new Date(channel.stats.lastPostAt).toISOString() : null }
         : { enabled: false },
     }),
     save,
-    stop: () => poller.stop(),
+    stop: () => {
+      clearInterval(sweep);
+      poller.stop();
+    },
   };
 }

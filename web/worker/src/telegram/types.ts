@@ -12,6 +12,8 @@ export interface TgUser {
   language_code?: string;
   /** Returned only by getMe: whether inline mode is switched on in @BotFather. */
   supports_inline_queries?: boolean;
+  /** Returned only by getMe: true when privacy mode is off, so groups show the bot every message. */
+  can_read_all_group_messages?: boolean;
 }
 
 export interface TgChat {

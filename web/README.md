@@ -1068,7 +1068,10 @@ mainnet build with the F-1 and F-2 fixes, all in
 
 tonkfun.fun's public bot runs inside the worker (`worker/src/telegram/`;
 `prompts/14-telegram-bot.md`). It answers from the worker's own data and
-never signs, holds a key or sends a transaction: every action opens the site.
+never signs, holds a wallet key or sends a transaction: anything that trades,
+launches or claims happens on the site, which its buttons open. Its privacy
+policy is the site's `/privacy/telegram`, the link set in @BotFather; keep the
+two in step.
 
 - **In a private chat:** paste any token address (or a tonkfun.fun token link)
   for its card: Mission score, badges, market cap, 24h, curve, holders and the
