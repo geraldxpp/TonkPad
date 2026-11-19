@@ -51,21 +51,73 @@ interface Handlers {
   onGraduation: (event: GraduationEvent) => void;
 }
 
-/** Connects, subscribes, and reconnects with backoff whenever the socket drops. */
-export function connectPumpPortal(handlers: Handlers): { close: () => void } {
-  let socket: WebSocket | null = null;
-  let closed = false;
-  let attempt = 0;
+/** The parts of a WebSocket the feed uses, so tests can stand in for it. */
+export type FeedSocket = Pick<WebSocket, "send" | "close" | "onopen" | "onmessage" | "onclose" | "onerror">;
 
-  const open = () => {
-    socket = new WebSocket(URL);
-    socket.onopen = () => {
+const newSocket = (url: string): FeedSocket => new WebSocket(url);
+
+/**
+ * Connects, subscribes, and reconnects with backoff whenever the socket drops.
+ *
+ * Each connection ends exactly once, on its first error or close: its handlers are detached before
+ * it is closed, so nothing it fires afterwards can re-enter this code. (On 18 Nov 2026 the old
+ * `onerror = () => socket.close()` re-entered undici's failure path, which fires `error` again,
+ * until the stack overflowed and the worker crashed.)
+ */
+export function connectPumpPortal(handlers: Handlers, connect: (url: string) => FeedSocket = newSocket): { close: () => void } {
+  let current: FeedSocket | null = null;
+  let stopped = false;
+  let attempt = 0;
+  let retry: ReturnType<typeof setTimeout> | null = null;
+
+  const detach = (ws: FeedSocket) => {
+    ws.onopen = null;
+    ws.onmessage = null;
+    ws.onclose = null;
+    ws.onerror = null;
+    try {
+      ws.close();
+    } catch {
+      // Already closed or never opened.
+    }
+  };
+
+  const scheduleRetry = () => {
+    if (stopped || retry) return;
+    const delay = Math.min(30_000, 1_000 * 2 ** attempt++);
+    log("pumpportal", `disconnected; retrying in ${delay / 1000}s`);
+    retry = setTimeout(() => {
+      retry = null;
+      open();
+    }, delay);
+  };
+
+  function open() {
+    if (stopped) return;
+    let ws: FeedSocket;
+    try {
+      ws = connect(URL);
+    } catch {
+      scheduleRetry();
+      return;
+    }
+    current = ws;
+    let ended = false;
+    const end = () => {
+      if (ended) return;
+      ended = true;
+      if (current === ws) current = null;
+      detach(ws);
+      scheduleRetry();
+    };
+    ws.onopen = () => {
       attempt = 0;
-      socket?.send(JSON.stringify({ method: "subscribeNewToken" }));
-      socket?.send(JSON.stringify({ method: "subscribeMigration" }));
+      ws.send(JSON.stringify({ method: "subscribeNewToken" }));
+      ws.send(JSON.stringify({ method: "subscribeMigration" }));
       log("pumpportal", "connected");
     };
-    socket.onmessage = (event) => {
+    ws.onmessage = (event) => {
+      if (ended) return;
       let data: unknown;
       try {
         data = JSON.parse(String(event.data));
@@ -77,20 +129,19 @@ export function connectPumpPortal(handlers: Handlers): { close: () => void } {
       if (isLaunch(parsed)) handlers.onLaunch(parsed);
       else handlers.onGraduation(parsed);
     };
-    socket.onclose = () => {
-      if (closed) return;
-      const delay = Math.min(30_000, 1_000 * 2 ** attempt++);
-      log("pumpportal", `disconnected; retrying in ${delay / 1000}s`);
-      setTimeout(open, delay);
-    };
-    socket.onerror = () => socket?.close();
-  };
+    ws.onclose = end;
+    ws.onerror = end;
+  }
 
   open();
   return {
     close: () => {
-      closed = true;
-      socket?.close();
+      stopped = true;
+      if (retry) clearTimeout(retry);
+      retry = null;
+      const ws = current;
+      current = null;
+      if (ws) detach(ws);
     },
   };
 }
