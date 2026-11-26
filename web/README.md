@@ -1669,8 +1669,9 @@ matching the site (the privacy text changed, so its hash did); members'
    @BotFather and choose Enabled (every chosen result, not a share such as
    1/10), and `/setinline` with the placeholder "Token address or a
    question" (the log line says why it failed). If it says "off" though AI
-   answers are on, restart the worker: the bot sets it at start and when
-   its community setup changes, not when AI is switched on later. Until it
+   answers are on, wait 5 minutes: the bot sets it at start, when its
+   community setup changes, and looks again every 5 minutes (AI switched
+   on later, or a failed try, is caught then). Until it
    is on, no question reaches the bot, and Ask posts get only "I didn't get
    your question. Send /ask and your question." (in a group once per 10
    minutes).
