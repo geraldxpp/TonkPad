@@ -100,6 +100,14 @@ export const vi: BotDictionary = {
   inline: {
     help: "Cách dùng bot này",
     notFound: "Không tìm thấy · Hướng dẫn",
+    ask: "Hỏi TonkFun",
+    askAs: "Hỏi TonkFun: {question}",
+    askWhere: "Tôi trả lời câu hỏi trong nhóm cộng đồng tonkfun.fun và trong cuộc trò chuyện riêng với tôi.",
+    askWhereGroup: "Tôi trả lời câu hỏi trong nhóm cộng đồng tonkfun.fun.",
+    askWherePrivate: "Tôi trả lời câu hỏi trong cuộc trò chuyện riêng với tôi.",
+    askPosted: "Đã gửi một câu hỏi cho TonkFun.",
+    askNo: "Hãy dùng /ask cho câu này",
+    placeholder: "Địa chỉ token hoặc một câu hỏi",
   },
   channel: {
     launch: "Token mới ra mắt",

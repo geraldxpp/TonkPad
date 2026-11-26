@@ -20,9 +20,11 @@ export const ko: CommunityDictionary = {
     ai: "모든 모델 호출: on 또는 off",
   },
   help: {
-    ask: "tonkfun.fun에 대해 무엇이든 물어보세요. /ask 뒤에 질문을 붙여 보내 주세요.",
+    ask: "tonkfun.fun에 대해 무엇이든 물어보세요. /ask 뒤에 질문을 붙여 보내거나, {bot} 뒤에 질문을 입력하고 ‘{button}’를 누르세요. 이렇게 하면 질문했다는 짧은 문구가 올라가고, 제 답변이 그 문구에 답장으로 달립니다. 커뮤니티 그룹에서는 제 답변에 답장하거나 메시지 맨 앞이 아닌 곳에서 저를 멘션해도 됩니다.",
+    askNoInline: "tonkfun.fun에 대해 무엇이든 물어보세요. /ask 뒤에 질문을 붙여 보내 주세요.",
     ai: "제 답변은 AI(Anthropic의 Claude)가 작성하며, 틀릴 수 있습니다. 투자 조언이 아닙니다.",
-    groupAsk: "커뮤니티 그룹에서는 저를 멘션하거나, 제 답변에 답장하거나, /ask 뒤에 질문을 붙여 보내 주세요.",
+    groupAsk: "커뮤니티 그룹에서는 /ask 뒤에 질문을 붙여 보내거나, 제 답변에 답장하거나, 메시지 맨 앞이 아닌 곳에서 저를 멘션하세요. {bot} 뒤에 질문을 입력하고 ‘{button}’를 눌러도 됩니다. 이 경우 질문했다는 짧은 문구가 올라가고, 제 답변이 그 문구에 답장으로 달립니다.",
+    groupAskNoInline: "커뮤니티 그룹에서는 /ask 뒤에 질문을 붙여 보내거나, 제 답변에 답장하거나, 저를 멘션해 주세요.",
     privacy: "개인정보 보호",
   },
   answer: {
@@ -48,6 +50,7 @@ export const ko: CommunityDictionary = {
     askPrompt: "tonkfun.fun에 대해 무엇이든 물어보세요. 답변은 AI(Anthropic의 Claude)가 작성하며, 틀릴 수 있습니다.",
     askPlaceholder: "tonkfun.fun에 대한 질문",
     askExpired: "그 메시지는 더 이상 보관하고 있지 않아 아무것도 보내지 않았습니다. 질문을 다시 보내 주세요.",
+    askLost: "질문을 받지 못했습니다. /ask 뒤에 질문을 붙여 보내 주세요.",
   },
   crisis: {
     body: "이런 일을 겪고 계셔서 마음이 아픕니다. 혼자 감당하지 않으셔도 됩니다. 누군가와 이야기하는 것이 도움이 될 수 있습니다. 아래 버튼을 누르면 가까운 무료 상담 전화를 찾을 수 있습니다.",

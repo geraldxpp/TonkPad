@@ -4,6 +4,7 @@ import { clip, visibleText } from "../../text";
 import { MAX_REQUEST_CHARS, worstCaseUsd } from "../claude/prices";
 import { type Budget, type ClaudeClient, type ClaudeOutcome, TRIAGE_MODEL } from "../claude/types";
 import { type AllowList, type OfficialAccounts, type RuleCategory, type RuleResult, type Standing, TRIAGE_CATEGORIES, type TriageInput, type TriageVerdict } from "../community/types";
+import { botsOwnOf } from "./rules-scan";
 import { NEEDS_HUMAN, QUESTIONS, TRIAGE_SCHEMA, triageSystem, triageUserContent, VERDICT_FIELDS, VERDICTS } from "./triage-prompt";
 
 /**
@@ -29,19 +30,22 @@ export const TRIAGE_SETTINGS: { readonly maxTokens: 400; readonly effort: "low";
 const SETTLED: ReadonlySet<RuleCategory> = new Set<RuleCategory>(["secret", "secret_probable", "security_report", "scam_report", "contact_info"]);
 
 /**
- * Whether a message goes to Haiku's check. Never an admin's, never one a
- * certain rule settled, and in raid mode never one with a link. A strong
- * self-harm phrase gets the crisis reply from code: such a message goes only
- * for its unknown links, so a phrase pasted under spam can't pass it
- * unchecked (the verdict may delete it, never punish). Otherwise: questions,
- * handles, addresses, unknown links (kept or removed: Haiku decides the
- * offence and the alert), help, DM or report words, weak self-harm signs,
- * and a new member's message of 3 words or more. Trusted members' only for
- * questions, help words, weak self-harm signs and their unknown links.
- * Chit-chat with none of these never leaves the worker.
+ * Whether a message goes to Haiku's check. Never an admin's, nor words a
+ * member posted or passed on but didn't write, their author known by ID
+ * (rules-scan.ts botsOwnOf: the bot's card through inline mode, a forward
+ * of the bot's message, of the official channel's post or of an admin's
+ * message); never one a certain rule settled, and in raid mode never one with
+ * a link. A strong self-harm phrase gets the crisis reply from code: such a
+ * message goes only for its unknown links, so a phrase pasted under spam
+ * can't pass it unchecked (the verdict may delete it, never punish).
+ * Otherwise: questions, handles, addresses, unknown links (kept or removed:
+ * Haiku decides the offence and the alert), help, DM or report words, weak
+ * self-harm signs, and a new member's message of 3 words or more. Trusted
+ * members' only for questions, help words, weak self-harm signs and their
+ * unknown links. Chit-chat with none of these never leaves the worker.
  */
 export function shouldTriage(result: RuleResult, standing: Standing, options: { raid: boolean; removedLink: boolean }): boolean {
-  if (standing === "admin") return false;
+  if (standing === "admin" || botsOwnOf(result.markers)) return false;
   const m = result.markers;
   if (result.hits.some((h) => h.certain || SETTLED.has(h.category))) return false;
   const unknownLink = m.unknownLinks > 0 || options.removedLink;

@@ -100,6 +100,14 @@ export const id: BotDictionary = {
   inline: {
     help: "Cara memakai bot ini",
     notFound: "Tidak ditemukan · Cara kerja",
+    ask: "Tanya TonkFun",
+    askAs: "Tanya TonkFun: {question}",
+    askWhere: "Saya menjawab pertanyaan di grup komunitas tonkfun.fun dan di chat pribadi dengan saya.",
+    askWhereGroup: "Saya menjawab pertanyaan di grup komunitas tonkfun.fun.",
+    askWherePrivate: "Saya menjawab pertanyaan di chat pribadi dengan saya.",
+    askPosted: "Saya mengajukan pertanyaan ke TonkFun.",
+    askNo: "Pakai /ask untuk yang ini",
+    placeholder: "Alamat token atau pertanyaan",
   },
   channel: {
     launch: "Peluncuran baru",

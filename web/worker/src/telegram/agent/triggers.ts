@@ -2,13 +2,20 @@ import { visibleText } from "../../text";
 import { type Command, parseCommand } from "../commands";
 import type { TgMessage } from "../types";
 import { replyContext, type Span, spanOf, wordsOf } from "./triggers-reply";
+import { askPost, forwarded, type Me, viaMe } from "./triggers-via";
+
+export { askLine, askPost, forwarded, forwardedFromMe, isAskLine, isMe, type Me, viaMe } from "./triggers-via";
 
 /**
  * When a message in a community group asks the bot for an answer
  * (prompts/15-community-agent.md, Where it answers): a mention of one of its
- * usernames, /ask, or a reply to one of its answers or cards (read in
- * triggers-reply.ts). Text goes through visibleText; length and question
- * checks are the caller's.
+ * usernames, /ask, a reply to one of its answers or cards (read in
+ * triggers-reply.ts), or inline mode's Ask post once the router paired it
+ * with its question (askTrigger), which counts as /ask with that question.
+ * Nothing the bot's own inline mode posted is a question by itself
+ * (triggers-via.ts). A message's sender or via_bot is the bot by its ID
+ * alone; its usernames only find mentions and commands. Text goes through
+ * visibleText; length and question checks are the caller's.
  */
 export type Trigger = {
   kind: "mention" | "reply" | "ask";
@@ -22,9 +29,6 @@ export type Trigger = {
   /** The message the question came from when it isn't the trigger itself (/ask in reply), or null. */
   targetMessageId: number | null;
 };
-
-/** The bot: its ID and every username it answers to (getMe's active_usernames). */
-export type Me = { id: number; usernames: readonly string[] };
 
 /**
  * A message's forum topic, or undefined outside one. Telegram also sets
@@ -102,25 +106,32 @@ function command(text: string, usernames: readonly string[]): Command | "other" 
   return result;
 }
 
+/** The bot's answer or card a question replies to, if any (triggers-reply.ts), and whose question it is. */
+function baseOf(m: TgMessage, me: Me, labels: ReadonlySet<string>) {
+  const r = repliedTo(m);
+  const fromMe = r !== null && r.from?.id === me.id;
+  const ctx = fromMe ? replyContext(r, labels) : null;
+  return { r, fromMe, ctx, base: { earlierAnswer: ctx?.earlierAnswer ?? null, cardAddress: ctx?.cardAddress ?? null, target: "own" as const, targetMessageId: null } };
+}
+
 /**
  * Whether this message asks the bot for an answer, and what it asks. Never
- * for a bot, the bot itself, a forward, or a command other than /ask. /ask
- * alone, in reply to a person's message, asks that message (target "other"
- * when someone else wrote it); in reply to a bot's message or a channel
- * post's automatic copy, it asks nothing.
+ * for a bot, the bot itself, a forward, anything the bot's own inline mode
+ * posted (its card, Ask's line or any other plain message via it: an Ask
+ * post asks only once paired, askTrigger), or a command other than /ask.
+ * /ask alone, in reply to a person's message, asks that message (target
+ * "other" when someone else wrote it); in reply to a bot's message or a
+ * channel post's automatic copy, it asks nothing.
  */
 export function detectTrigger(m: TgMessage, me: Me, labels: ReadonlySet<string>): Trigger | null {
-  if (authorOf(m) === null || isBot(m) || m.from?.id === me.id || m.is_automatic_forward === true || m.forward_origin) return null;
+  if (authorOf(m) === null || isBot(m) || m.from?.id === me.id || forwarded(m) || viaMe(m, me) !== null) return null;
   const usernames = me.usernames.map((u) => u.replace(/^@/, "")).filter(Boolean);
   const names = new Set(usernames.map((u) => u.toLowerCase()));
   const { text, entities } = wordsOf(m);
   const mentions = botMentions(text, entities, names);
   const cmd = command(cut(text, mentions), usernames);
   if (cmd === "other" || (cmd !== null && cmd.name !== "ask")) return null;
-  const r = repliedTo(m);
-  const fromMe = r !== null && r.from?.id === me.id;
-  const ctx = fromMe ? replyContext(r, labels) : null;
-  const base = { earlierAnswer: ctx?.earlierAnswer ?? null, cardAddress: ctx?.cardAddress ?? null, target: "own" as const, targetMessageId: null };
+  const { r, fromMe, ctx, base } = baseOf(m, me, labels);
   if (cmd !== null) {
     const asked = visibleText(cmd.arg);
     if (asked || r === null || fromMe || isBot(r) || r.is_automatic_forward === true) return { kind: "ask", question: asked, ...base };
@@ -129,4 +140,17 @@ export function detectTrigger(m: TgMessage, me: Me, labels: ReadonlySet<string>)
   }
   if (ctx) return { kind: "reply", question: question(m, names), ...base };
   return mentions.length > 0 ? { kind: "mention", question: question(m, names), ...base } : null;
+}
+
+/**
+ * Inline mode's Ask post, paired by the router with the question it was
+ * chosen for (inline-pending.ts): /ask with that question, which the answer
+ * replies to the post with, and with the bot's answer or card the post
+ * replies to, as any question. Null for anything but a person's own Ask post
+ * (triggers-via.ts askPost), or a question with nothing visible.
+ */
+export function askTrigger(m: TgMessage, me: Me, labels: ReadonlySet<string>, asked: string): Trigger | null {
+  const text = visibleText(typeof asked === "string" ? asked : "");
+  if (text === "" || !askPost(m, me)) return null;
+  return { kind: "ask", question: text, ...baseOf(m, me, labels).base };
 }

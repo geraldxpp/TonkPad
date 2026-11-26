@@ -20,9 +20,11 @@ export const de: CommunityDictionary = {
     ai: "Alle Modellaufrufe: on oder off",
   },
   help: {
-    ask: "Frag mich alles über tonkfun.fun: Sende /ask und deine Frage.",
+    ask: "Frag mich alles über tonkfun.fun: Sende /ask und deine Frage, oder gib {bot} und deine Frage ein und tippe dann auf „{button}“. Dann wird ein kurzer Hinweis gepostet, dass du gefragt hast, und meine Antwort antwortet darauf. In der Community-Gruppe kannst du auch auf eine meiner Antworten antworten oder mich irgendwo in der Nachricht erwähnen, nur nicht am Anfang.",
+    askNoInline: "Frag mich alles über tonkfun.fun: Sende /ask und deine Frage.",
     ai: "Meine Antworten schreibt eine KI (Claude von Anthropic), und sie können falsch sein. Sie sind nie eine Finanzberatung.",
-    groupAsk: "Erwähne mich in der Community-Gruppe, antworte auf eine meiner Antworten oder sende /ask und deine Frage.",
+    groupAsk: "Sende in der Community-Gruppe /ask und deine Frage, antworte auf eine meiner Antworten oder erwähne mich irgendwo in der Nachricht, nur nicht am Anfang. Du kannst auch {bot} und deine Frage eingeben und dann auf „{button}“ tippen: Dann wird ein kurzer Hinweis gepostet, dass du gefragt hast, und meine Antwort antwortet darauf.",
+    groupAskNoInline: "Sende in der Community-Gruppe /ask und deine Frage, antworte auf eine meiner Antworten oder erwähne mich.",
     privacy: "Datenschutz",
   },
   answer: {
@@ -48,6 +50,7 @@ export const de: CommunityDictionary = {
     askPrompt: "Frag mich alles über tonkfun.fun. Die Antworten schreibt eine KI (Claude von Anthropic), und sie können falsch sein.",
     askPlaceholder: "Deine Frage zu tonkfun.fun",
     askExpired: "Diese Nachricht habe ich nicht mehr, also wurde nichts gesendet. Bitte schick deine Frage noch einmal.",
+    askLost: "Deine Frage ist nicht bei mir angekommen. Sende /ask und deine Frage.",
   },
   crisis: {
     body: "Es tut mir leid, dass du das gerade durchmachst. Du musst da nicht allein durch: Mit jemandem zu reden kann helfen, und über den Button unten findest du ein kostenloses Hilfetelefon in deiner Nähe.",

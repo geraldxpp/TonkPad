@@ -100,6 +100,14 @@ export const ko: BotDictionary = {
   inline: {
     help: "이 봇 사용 방법",
     notFound: "토큰을 찾을 수 없음 · 사용 방법",
+    ask: "TonkFun에게 질문하기",
+    askAs: "TonkFun에게 질문하기: {question}",
+    askWhere: "tonkfun.fun 커뮤니티 그룹과 저와의 개인 채팅에서 질문에 답해 드립니다.",
+    askWhereGroup: "tonkfun.fun 커뮤니티 그룹에서 질문에 답해 드립니다.",
+    askWherePrivate: "저와의 개인 채팅에서 질문에 답해 드립니다.",
+    askPosted: "TonkFun에게 질문했어요.",
+    askNo: "이 질문은 /ask로 보내 주세요",
+    placeholder: "토큰 주소 또는 질문",
   },
   channel: {
     launch: "새 런칭",

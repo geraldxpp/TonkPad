@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MUTED } from "../src/telegram/community/permissions";
 import type { NameRiskInput } from "../src/telegram/mod/newcomers";
-import { callsOf, GROUP_ID, OWNER_ID } from "./community-fixtures";
+import { BOT, callsOf, GROUP_ID, OWNER_ID } from "./community-fixtures";
 import { NOW } from "./fixtures";
 import { DAY, flush, MINUTE, person, press, SECOND, setup, unix } from "./mod-newcomers-setup";
 
@@ -17,6 +17,20 @@ describe("the new-member check: who joins", () => {
     expect(callsOf(out.log, "ban")).toEqual([[GROUP_ID, 8_001]]);
     expect(callsOf(out.log, "send")).toEqual([]);
     expect(alerts).toEqual([expect.objectContaining({ kind: "action", category: "bot_added", undo: "ban" })]);
+  });
+
+  it("knows the bot by its ID alone: an account holding its username is checked like anyone", async () => {
+    const { out, records, alerts, join } = setup();
+    // The bot itself, whatever username its join shows, is left alone.
+    await join([{ ...BOT, username: "TonkfunNewBot" }], 83, NOW, person(201));
+    // Accounts holding the bot's username (one it dropped, say): a bot a member added is banned, a person is on the check.
+    await join([{ id: 8_004, is_bot: true, first_name: "TonkFun", username: "TonkfunBot" }], 84, NOW, person(201));
+    await join([person(205, { first_name: "TonkFun", username: "tonkfunbot" })], 85, NOW);
+    await flush();
+    expect(callsOf(out.log, "ban")).toEqual([[GROUP_ID, 8_004]]);
+    expect(alerts).toEqual([expect.objectContaining({ kind: "action", category: "bot_added", undo: "ban" })]);
+    expect(callsOf(out.log, "restrict").map((c) => c[1])).toEqual([205]);
+    expect(records.pendingIn(GROUP_ID).map((p) => p.user)).toEqual([205]);
   });
 
   it("in observe mode only marks newcomers new, and never restricts", async () => {

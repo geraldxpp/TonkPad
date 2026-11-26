@@ -20,9 +20,11 @@ export const vi: CommunityDictionary = {
     ai: "Mọi lệnh gọi mô hình: on hoặc off",
   },
   help: {
-    ask: "Hãy hỏi tôi mọi điều về tonkfun.fun: gửi /ask kèm câu hỏi của bạn.",
+    ask: "Hãy hỏi tôi mọi điều về tonkfun.fun: gửi /ask kèm câu hỏi của bạn, hoặc gõ {bot} rồi câu hỏi của bạn và nhấn “{button}”. Khi đó, một dòng ngắn cho biết bạn đã đặt câu hỏi sẽ được đăng, và câu trả lời của tôi sẽ trả lời dòng đó. Trong nhóm cộng đồng, bạn cũng có thể trả lời một câu trả lời của tôi hoặc nhắc đến tôi ở bất kỳ đâu trong tin nhắn, trừ phần đầu.",
+    askNoInline: "Hãy hỏi tôi mọi điều về tonkfun.fun: gửi /ask kèm câu hỏi của bạn.",
     ai: "Câu trả lời của tôi do AI (Claude, do Anthropic phát triển) viết và có thể sai. Đó không bao giờ là lời khuyên tài chính.",
-    groupAsk: "Trong nhóm cộng đồng, hãy nhắc đến tôi, trả lời một câu trả lời của tôi, hoặc gửi /ask kèm câu hỏi của bạn.",
+    groupAsk: "Trong nhóm cộng đồng, hãy gửi /ask kèm câu hỏi của bạn, trả lời một câu trả lời của tôi hoặc nhắc đến tôi ở bất kỳ đâu trong tin nhắn, trừ phần đầu. Bạn cũng có thể gõ {bot} rồi câu hỏi của bạn và nhấn “{button}”: một dòng ngắn cho biết bạn đã đặt câu hỏi sẽ được đăng, và câu trả lời của tôi sẽ trả lời dòng đó.",
+    groupAskNoInline: "Trong nhóm cộng đồng, hãy gửi /ask kèm câu hỏi của bạn, trả lời một câu trả lời của tôi hoặc nhắc đến tôi.",
     privacy: "Quyền riêng tư",
   },
   answer: {
@@ -48,6 +50,7 @@ export const vi: CommunityDictionary = {
     askPrompt: "Hãy hỏi tôi mọi điều về tonkfun.fun. Câu trả lời do AI (Claude, do Anthropic phát triển) viết và có thể sai.",
     askPlaceholder: "Câu hỏi của bạn về tonkfun.fun",
     askExpired: "Tôi không còn giữ tin nhắn đó nên chưa gửi gì cả. Vui lòng gửi lại câu hỏi của bạn.",
+    askLost: "Tôi chưa nhận được câu hỏi của bạn. Hãy gửi /ask kèm câu hỏi của bạn.",
   },
   crisis: {
     body: "Tôi rất tiếc khi bạn đang phải trải qua điều này. Bạn không phải đối mặt với nó một mình: trò chuyện với ai đó có thể giúp ích, và nút bên dưới sẽ giúp bạn tìm một đường dây hỗ trợ miễn phí gần bạn.",

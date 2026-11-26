@@ -9,7 +9,7 @@ import { leftSince } from "./actions-left";
 import { DAY_S } from "./ladder";
 import { durationText, postNotice } from "./notices";
 
-export { decide, decideBot, type DecideContext, type ModDecision } from "./actions-decide";
+export { decide, decideBot, type DecideContext, type ModDecision, ownProtective } from "./actions-decide";
 
 /** Who and what a decision acts on. */
 export interface ModTarget {

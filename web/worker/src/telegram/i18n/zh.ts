@@ -100,6 +100,14 @@ export const zh: BotDictionary = {
   inline: {
     help: "如何使用本机器人",
     notFound: "未找到代币 · 使用说明",
+    ask: "向 TonkFun 提问",
+    askAs: "向 TonkFun 提问：{question}",
+    askWhere: "我会在 tonkfun.fun 社区群和与我的私聊中回答问题。",
+    askWhereGroup: "我会在 tonkfun.fun 社区群中回答问题。",
+    askWherePrivate: "我会在与我的私聊中回答问题。",
+    askPosted: "向 TonkFun 提了一个问题。",
+    askNo: "这个问题请用 /ask 提问",
+    placeholder: "代币地址或问题",
   },
   channel: {
     launch: "新发射",

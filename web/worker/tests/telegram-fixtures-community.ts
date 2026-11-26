@@ -76,8 +76,8 @@ export async function settle(): Promise<void> {
 
 let nextUpdate = 10_000;
 
-/** One update of each kind a group can send, all from MEMBER in `chat`, sent at NOW. */
-export function groupUpdates(chat: TgChat): Record<"plain" | "mention" | "ask" | "edit" | "join" | "press" | "askPress", TgUpdate> {
+/** One update of each kind a group can send, all from MEMBER in `chat`, sent at NOW; viaAsk is a plain message sent via the bot (inline mode never posts what anyone typed: Ask posts only its fixed line). */
+export function groupUpdates(chat: TgChat): Record<"plain" | "mention" | "ask" | "viaAsk" | "edit" | "join" | "press" | "askPress", TgUpdate> {
   const id = () => (nextUpdate += 1);
   const date = Math.floor(NOW / 1000);
   const message = (text: string, extra: Partial<TgMessage> = {}): TgMessage => ({ message_id: id(), date, chat, from: MEMBER, text, ...extra });
@@ -88,6 +88,7 @@ export function groupUpdates(chat: TgChat): Record<"plain" | "mention" | "ask" |
     plain: { update_id: id(), message: message("gm everyone, how is the protocol fee shared on tonkfun.fun?") },
     mention: { update_id: id(), message: mention },
     ask: { update_id: id(), message: message("/ask@TonkfunBot what is the launch fee?") },
+    viaAsk: { update_id: id(), message: message("what is the launch fee on tonkfun·fun?", { via_bot: { id: ME.id, is_bot: true, first_name: "TonkFun", username: "TonkfunBot" } }) },
     edit: { update_id: id(), edited_message: { ...mention, text: "@TonkfunBot is the fee 0%?", edit_date: date + 30 } },
     join: { update_id: id(), chat_member: { chat, from: MEMBER, date, old_chat_member: { status: "left", user: MEMBER }, new_chat_member: member } },
     press: { update_id: id(), callback_query: { id: `q${id()}`, from: MEMBER, data: `h:${MEMBER.id}:1`, message: buttoned(`h:${MEMBER.id}:1`) } },

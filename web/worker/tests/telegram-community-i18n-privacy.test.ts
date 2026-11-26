@@ -53,10 +53,60 @@ const MEMBERS_MESSAGES: Record<Locale, string> = {
   id: "baik pesannya sendiri maupun pesan anggota yang dihapusnya",
 };
 
+/** The username, in each language's own word for it: Telegram sends it, and the bot uses it only as it uses the name (reads.profile names it twice). */
+const USERNAME: Record<Locale, string> = {
+  en: "username",
+  es: "nombre de usuario",
+  pt: "nome de usuário",
+  fr: "nom d’utilisateur",
+  de: "Benutzernamen",
+  ru: "юзернейм",
+  tr: "kullanıcı adınız",
+  zh: "用户名",
+  ja: "ユーザー名",
+  ko: "사용자 이름",
+  vi: "tên người dùng",
+  id: "nama pengguna",
+};
+
+/** Link-free messages Claude's check reads once the rules removed them: a new member's forward, reply to another chat or another bot's link buttons, and a forward named like the team (community/pipeline-mod.ts removedLink). */
+const REMOVED: Record<Locale, string> = {
+  en: "forwards, replies to other chats and messages with another bot's link buttons, if it removed them",
+  es: "reenvíos, respuestas a mensajes de otros chats y mensajes con los botones de enlace de otro bot, si los eliminó",
+  pt: "encaminhamentos, respostas a mensagens de outras conversas e mensagens com os botões de link de outro bot, se ele os removeu",
+  fr: "les transferts, les réponses à des messages d’autres discussions et les messages portant les boutons de lien d’un autre bot, s’il les a supprimés",
+  de: "Weiterleitungen, Antworten auf Nachrichten aus anderen Chats und Nachrichten mit Link-Buttons eines anderen Bots, wenn er sie entfernt hat",
+  ru: "пересланные сообщения, ответы на сообщения из других чатов и сообщения с кнопками-ссылками другого бота, если он их удалил",
+  tr: "iletilmiş mesajlar, başka sohbetlerdeki mesajlara verilen yanıtlar ve başka bir botun bağlantı düğmelerini içeren mesajlar (bunları kaldırdıysa)",
+  zh: "转发的消息、对其他聊天中消息的回复，以及带有其他机器人链接按钮的消息（仅限它已删除的）",
+  ja: "転送メッセージ・ほかのチャットのメッセージへの返信・ほかのボットのリンクボタンが付いたメッセージのうちボットが削除したもの",
+  ko: "전달 메시지·다른 채팅의 메시지에 대한 답장·다른 봇의 링크 버튼이 달린 메시지 중 봇이 삭제한 것",
+  vi: "tin nhắn chuyển tiếp, tin nhắn trả lời tin nhắn ở cuộc trò chuyện khác và tin nhắn có nút liên kết của bot khác, nếu bot đã gỡ chúng",
+  id: "pesan terusan, balasan ke pesan dari obrolan lain, dan pesan dengan tombol tautan dari bot lain, jika bot menghapusnya",
+};
+
+/** Only what it recognises as a recovery phrase or key is removed and never sent (mod/secrets.ts findSecret: words split on spaces): a phrase written without spaces isn't. */
+const RECOGNISES: Record<Locale, string> = {
+  en: "The bot removes anything it recognises as one",
+  es: "El bot elimina todo lo que reconoce como tal",
+  pt: "O bot remove tudo o que reconhece como uma delas",
+  fr: "Le bot supprime tout ce qu’il reconnaît comme tel",
+  de: "Der Bot entfernt alles, was er als solches erkennt",
+  ru: "Бот удаляет всё, в чём распознаёт сид-фразу или ключ",
+  tr: "kurtarma ifadesi ya da özel anahtar olarak tanıdığı her şeyi kaldırır",
+  zh: "机器人会删除它识别为助记词或私钥的任何内容",
+  ja: "シードフレーズや秘密鍵と認識したものを削除し",
+  ko: "시드 문구나 개인 키로 인식한 것을 삭제하며",
+  vi: "Bot sẽ gỡ mọi thứ mà bot nhận ra là như vậy",
+  id: "Bot menghapus apa pun yang dikenalinya sebagai salah satunya",
+};
+
 /**
  * The bot's privacy page (the site's privacy.* keys) beside the bot's own
  * words, in every language: what the page promises must match what the bot
- * does and says. The English wording is held by PrivacyView.test.tsx.
+ * does and says. Ask TonkFun and the admin chat have their own file
+ * (telegram-community-i18n-privacy-ask.test.ts); the English wording is held
+ * by PrivacyView.test.tsx.
  */
 describe("the privacy page, in every language", () => {
   it.each(CODES)("%s names everyone who receives the data: Anthropic, Telegram and the bot's host, Railway", (code) => {
@@ -70,11 +120,13 @@ describe("the privacy page, in every language", () => {
     expect(choose).toContain("tonkfun.fun");
   });
 
-  it.each(CODES)("%s lists the admin chat's refusal alerts (two within 10 minutes) beside reports and reviews", (code) => {
-    const { admins } = SITE[code].privacy.keeps;
-    expect(admins).toContain("10");
-    expect(admins).toContain("/report");
-    expect(admins).toContain("Claude");
+  it.each(CODES)("%s says Telegram sends the username too, and that it is used only as the name is (the group's rules read both)", (code) => {
+    const { profile } = SITE[code].privacy.reads;
+    expect(profile.split(USERNAME[code]).length - 1, code).toBe(2);
+  });
+
+  it.each(CODES)("%s lists the forwards, replies to other chats and other bots' link buttons it removed among what Claude's check reads (mod/triage.ts removedLink)", (code) => {
+    expect(SITE[code].privacy.ai.sent).toContain(REMOVED[code]);
   });
 
   it.each(CODES)("%s says which messages go to Anthropic with the commands members use", (code) => {
@@ -86,6 +138,10 @@ describe("the privacy page, in every language", () => {
 
   it.each(CODES)("%s hides phone numbers and e-mail addresses only in the formats it recognises, not all of them", (code) => {
     expect(SITE[code].privacy.ai.sent).toContain(FORMATS[code]);
+  });
+
+  it.each(CODES)("%s promises to remove, and never send, only what it recognises as a seed phrase or a private key", (code) => {
+    expect(SITE[code].privacy.ai.secrets).toContain(RECOGNISES[code]);
   });
 
   it.each(CODES)("%s offers a review to someone muted, banned or warned, the cases a review accepts", (code) => {

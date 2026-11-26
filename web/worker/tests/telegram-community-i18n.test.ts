@@ -19,6 +19,8 @@ const words = (code: Locale): CommunityDictionary => COMMUNITY_DICTIONARIES[code
 
 /** The placeholders community/words.ts names for each string (sorted); every other string has none. */
 const NAMED: Record<string, string[]> = {
+  "help.ask": ["bot", "button"],
+  "help.groupAsk": ["bot", "button"],
   "answer.scoreLine": ["level", "score"],
   "check.prompt": ["duration", "mentions"],
   "check.choose": ["target"],
@@ -73,8 +75,9 @@ function containsPhrase(text: string, phrase: string): boolean {
 
 /** Every string the bot may send: the community words and module 14's, in every language. */
 const ALL = CODES.flatMap((code) => [...leaves(words(code)).map(([path, value]) => ({ code, path, value })), ...leaves(BOT_DICTIONARIES[code]).map(([path, value]) => ({ code, path: `bot.${path}`, value }))]);
-/** The strings this package wrote: the community words, and module 14's Ask button and the profile it shows while AI is on. */
-const OURS = ALL.filter((s) => !s.path.startsWith("bot.") || ["bot.home.ask", "bot.profile.shortAi", "bot.profile.descriptionAi"].includes(s.path));
+/** The strings this package wrote: the community words, and module 14's Ask button, inline mode's Ask result (and its /ask button) and the profile it shows while AI is on. */
+const INLINE_ASK = ["ask", "askAs", "askWhere", "askWhereGroup", "askWherePrivate", "askPosted", "askNo"].map((key) => `bot.inline.${key}`);
+const OURS = ALL.filter((s) => !s.path.startsWith("bot.") || ["bot.home.ask", ...INLINE_ASK, "bot.profile.shortAi", "bot.profile.descriptionAi"].includes(s.path));
 
 describe("the community's words", () => {
   const english = new Map(leaves(en));

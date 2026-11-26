@@ -20,9 +20,11 @@ export const es: CommunityDictionary = {
     ai: "Todas las llamadas al modelo: on u off",
   },
   help: {
-    ask: "Pregúntame lo que quieras sobre tonkfun.fun: envía /ask y tu pregunta.",
+    ask: "Pregúntame lo que quieras sobre tonkfun.fun: envía /ask y tu pregunta, o escribe {bot} y tu pregunta, y luego toca «{button}». Así se publica una breve nota de que preguntaste, y mi respuesta contesta a esa nota. En el grupo de la comunidad también puedes responder a una de mis respuestas o mencionarme en cualquier parte del mensaje menos al principio.",
+    askNoInline: "Pregúntame lo que quieras sobre tonkfun.fun: envía /ask y tu pregunta.",
     ai: "Mis respuestas las escribe una IA (Claude, creada por Anthropic) y pueden equivocarse. Nunca son asesoramiento financiero.",
-    groupAsk: "En el grupo de la comunidad, mencióname, responde a una de mis respuestas o envía /ask y tu pregunta.",
+    groupAsk: "En el grupo de la comunidad, envía /ask y tu pregunta, responde a una de mis respuestas o mencióname en cualquier parte del mensaje menos al principio. También puedes escribir {bot} y tu pregunta, y luego tocar «{button}»: así se publica una breve nota de que preguntaste, y mi respuesta contesta a esa nota.",
+    groupAskNoInline: "En el grupo de la comunidad, envía /ask y tu pregunta, responde a una de mis respuestas o mencióname.",
     privacy: "Privacidad",
   },
   answer: {
@@ -48,6 +50,7 @@ export const es: CommunityDictionary = {
     askPrompt: "Pregúntame lo que quieras sobre tonkfun.fun. Las respuestas las escribe una IA (Claude, creada por Anthropic) y pueden equivocarse.",
     askPlaceholder: "Tu pregunta sobre tonkfun.fun",
     askExpired: "Ya no tengo ese mensaje, así que no se envió nada. Envía tu pregunta de nuevo.",
+    askLost: "No recibí tu pregunta. Envía /ask y tu pregunta.",
   },
   crisis: {
     body: "Siento mucho que estés pasando por esto. No tienes que afrontarlo en soledad: hablar con alguien puede ayudar, y el botón de abajo te ayuda a encontrar una línea de ayuda gratuita cerca de ti.",

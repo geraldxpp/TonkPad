@@ -5,47 +5,13 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TokenStore } from "../src/store";
 import { startTelegram, type TelegramBot } from "../src/telegram";
-import { communityWords } from "../src/telegram/i18n/community";
 import { en } from "../src/telegram/i18n/en";
 import type { BotCommand, TgUpdate } from "../src/telegram/types";
+import { askLine } from "../src/telegram/views";
 import { fakeClaude } from "./community-fixtures";
+import { fakeTelegram, KEY, profileCallsOf, TOKEN, update } from "./telegram-bot-fixtures";
 import { launch, WHOA } from "./telegram-fixtures";
 
-const TOKEN = `123456789:${"S".repeat(35)}`;
-const KEY = `sk-ant-api03-${"k".repeat(40)}`;
-
-/**
- * A stand-in for Telegram's Bot API: a scripted queue of updates, every call
- * recorded; `fail` answers a method with a 400 and that description; `slow`
- * holds a method's answer until its promise settles; `answers` gives a
- * method's result from the call's body.
- */
-function fakeTelegram(batches: TgUpdate[][], fail: Record<string, string> = {}, slow: Record<string, Promise<unknown>> = {}, answers: Record<string, (body: Record<string, unknown>) => unknown> = {}) {
-  const calls: Array<{ method: string; body: Record<string, unknown> }> = [];
-  const ok = (result: unknown) => new Response(JSON.stringify({ ok: true, result }), { status: 200 });
-  const fetchFn = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const method = String(input).split("/").pop() ?? "";
-    const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
-    calls.push({ method, body });
-    await slow[method];
-    if (fail[method]) return new Response(JSON.stringify({ ok: false, description: fail[method] }), { status: 400 });
-    const answer = answers[method];
-    if (answer) return ok(answer(body));
-    if (method === "getMe") return ok({ id: 1, is_bot: true, username: "tonkfun_bot", supports_inline_queries: true });
-    if (method === "getUpdates") {
-      const batch = batches.shift();
-      if (!batch) await new Promise((resolve) => setTimeout(resolve, 20));
-      return ok(batch ?? []);
-    }
-    return ok(method === "sendMessage" ? { message_id: calls.length } : true);
-  };
-  return { calls, fetchFn };
-}
-
-const update = (id: number, chat: number, text: string): TgUpdate => ({
-  update_id: id,
-  message: { message_id: id, date: Math.floor(Date.now() / 1000), chat: { id: chat, type: "private" }, from: { id: chat, language_code: "en" }, text },
-});
 const COMMUNITY_GROUP = -1_001_234_567_890;
 const groupUpdate = (id: number, text: string): TgUpdate => ({
   update_id: id,
@@ -72,7 +38,7 @@ describe("the bot inside the worker", () => {
     expect(bot).not.toBeNull();
 
     await vi.waitFor(() => expect(telegram.calls.filter((c) => c.method === "sendMessage")).toHaveLength(2), { timeout: 3_000 });
-    await vi.waitFor(() => expect(telegram.calls.filter((c) => c.method.startsWith("setMy") || c.method === "setChatMenuButton")).toHaveLength(49), { timeout: 3_000 });
+    await vi.waitFor(() => expect(profileCallsOf(telegram.calls)).toHaveLength(49), { timeout: 3_000 });
     expect(telegram.calls[0].method).toBe("getMe");
 
     const [home, card] = telegram.calls.filter((c) => c.method === "sendMessage").map((c) => c.body);
@@ -105,7 +71,7 @@ describe("the bot inside the worker", () => {
     const env = { TELEGRAM_BOT_TOKEN: TOKEN, ANTHROPIC_API_KEY: ` ${KEY} ` };
     bot = await startTelegram({ store: new TokenStore(), env, snapshotPath: join(dir, "snapshot.json"), tonkFeed: false, log: (l) => lines.push(l), fetchFn: telegram.fetchFn, ethUsd: () => 3_000, claude });
 
-    await vi.waitFor(() => expect(telegram.calls.filter((c) => c.method.startsWith("setMy") || c.method === "setChatMenuButton")).toHaveLength(49), { timeout: 3_000 });
+    await vi.waitFor(() => expect(profileCallsOf(telegram.calls)).toHaveLength(49), { timeout: 3_000 });
     // Polling runs while the agent starts (module 14 answers at once); once it is in place, /start offers Ask.
     batches.push([update(1, 11, "/start")]);
     await vi.waitFor(() => expect(telegram.calls.filter((c) => c.method === "sendMessage")).toHaveLength(1), { timeout: 3_000 });
@@ -154,6 +120,6 @@ describe("the bot inside the worker", () => {
     await vi.waitFor(() => expect(sent(COMMUNITY_GROUP)).toHaveLength(1), { timeout: 3_000 });
     expect(bot?.health()).toMatchObject({ community: { enabled: true } });
     // The agent's own group: /help there says how to ask the AI.
-    expect(String(sent(COMMUNITY_GROUP)[0].body.text)).toContain(communityWords("en").help.groupAsk);
+    expect(String(sent(COMMUNITY_GROUP)[0].body.text)).toContain(askLine("en", true, "tonkfun_bot"));
   });
 });

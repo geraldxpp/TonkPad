@@ -100,6 +100,14 @@ export const fr: BotDictionary = {
   inline: {
     help: "Comment utiliser ce bot",
     notFound: "Token introuvable · Aide",
+    ask: "Demander à TonkFun",
+    askAs: "Demander à TonkFun : {question}",
+    askWhere: "Je réponds aux questions dans le groupe de la communauté de tonkfun.fun et en discussion privée avec moi.",
+    askWhereGroup: "Je réponds aux questions dans le groupe de la communauté de tonkfun.fun.",
+    askWherePrivate: "Je réponds aux questions en discussion privée avec moi.",
+    askPosted: "J’ai posé une question à TonkFun.",
+    askNo: "Utilisez /ask pour celle-ci",
+    placeholder: "Adresse d’un token ou une question",
   },
   channel: {
     launch: "Nouveau lancement",

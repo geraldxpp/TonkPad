@@ -25,6 +25,14 @@ export interface DecideContext {
    * secret); no offence, warning, mute, ban or removal follows.
    */
   spare?: boolean;
+  /**
+   * Words the member didn't write, their author known by ID (rules-scan.ts
+   * botsOwnOf): the bot's own (its card posted through inline mode, a
+   * forward of its message or of the official channel's post) and an
+   * admin's, forwarded. What they say is never punished, as with `spare`;
+   * the member's own name and a flood still are (PERSONAL).
+   */
+  own?: boolean;
 }
 
 /** A decision, with Haiku's one-line reason when its verdict shaped it (shown to admins, labelled "AI's guess"). */
@@ -45,6 +53,8 @@ const NEEDS_PERSON: ReadonlySet<string> = new Set<string>(ESCALATIONS);
 const SANCTIONS: ReadonlySet<NoticeKind> = new Set<NoticeKind>(["warned", "muted", "banned"]);
 /** What another bot's message is checked for: the certain rules (and risky files); a hit deletes it and bans the bot. */
 const BOT_RULES: ReadonlySet<RuleCategory> = new Set<RuleCategory>(["secret", "secret_probable", "lookalike", "phishing", "invite_link", "risky_file"]);
+/** What a member answers for whatever a message says, the bot's own words included: their own name (a link in it, posing as the team) and a flood. */
+const PERSONAL: ReadonlySet<RuleCategory> = new Set<RuleCategory>(["name_link", "impersonation", "flood"]);
 
 /**
  * What Haiku's verdict adds once the rules' decision on the same hits has
@@ -97,13 +107,14 @@ function asSenderChat(d: ModDecision): ModDecision {
 
 /**
  * Never punished: the deletes stand, and nothing else that bites; a
- * sanction's notice becomes the removal's, and an action alert with nothing
- * left to report goes (the crisis alert already names the person).
+ * sanction's notice becomes the removal's. For someone at risk (`atRisk`),
+ * an action alert with nothing left to report goes (the crisis alert
+ * already names the person); the bot's own words keep theirs.
  */
-function spared(d: ModDecision): ModDecision {
+function spared(d: ModDecision, atRisk: boolean): ModDecision {
   const actions = d.actions.filter((a) => a.kind === "delete");
   const notice = d.notice !== null && SANCTIONS.has(d.notice) ? (actions.length > 0 ? "removed" : null) : d.notice;
-  const alert = actions.length === 0 && d.alert === "action" ? null : d.alert;
+  const alert = atRisk && actions.length === 0 && d.alert === "action" ? null : d.alert;
   return { ...d, actions, offence: "none", notice, alert };
 }
 
@@ -118,11 +129,15 @@ function stale(hits: readonly RuleHit[], ctx: DecideContext): ModDecision | null
  * at once; with Haiku's verdict it is only what the verdict adds to the
  * rules' decision on the same hits (already applied), or null. Admins are
  * never moderated; stale messages get deletes for certain hits only, and no
- * AI.
+ * AI. Words the member didn't write (`own`) are judged by the member's
+ * personal hits alone when they have any (each deletes the message, though
+ * not in observe mode: ownProtective), else spared.
  */
-export function decide(hits: readonly RuleHit[], verdict: TriageVerdict | null, ctx: DecideContext): ModDecision | null {
+export function decide(all: readonly RuleHit[], verdict: TriageVerdict | null, ctx: DecideContext): ModDecision | null {
   if (ctx.standing === "admin") return null;
-  if (ctx.stale) return verdict ? null : stale(hits, ctx);
+  if (ctx.stale) return verdict ? null : stale(all, ctx);
+  const personal = ctx.own === true ? all.filter((h) => PERSONAL.has(h.category)) : [];
+  const hits = personal.length > 0 ? personal : all;
   let d: ModDecision | null = null;
   if (verdict) {
     const v = byVerdict(hits, verdict, ctx);
@@ -134,11 +149,27 @@ export function decide(hits: readonly RuleHit[], verdict: TriageVerdict | null, 
   }
   if (!d) return null;
   if (ctx.senderChat) d = asSenderChat(d);
-  if (ctx.spare === true) d = spared(d);
+  if (ctx.spare === true || (ctx.own === true && personal.length === 0)) d = spared(d, ctx.spare === true);
   if (ctx.strictness === "observe") d = observeOnly(d);
   if (ctx.raid && d.notice !== null && SUMMED.has(d.notice)) d = { ...d, notice: null };
   const idle = d.actions.length === 0 && d.offence === "none" && d.notice === null && d.alert === null;
   return idle ? null : d;
+}
+
+/**
+ * Observe mode, for words the member didn't write (`own`) that decide()
+ * judged by the member's personal hits (a flood, their own name), which
+ * delete nothing there: the protective delete the rest of the hits still ask
+ * for (a drainer's or a look-alike's site, a secret), with no sanction, for
+ * the caller to apply to that message alone, never to a flood's burst. Null
+ * when there is none, or anywhere else, where a personal hit deletes.
+ */
+export function ownProtective(all: readonly RuleHit[], ctx: DecideContext): ModDecision | null {
+  if (ctx.own !== true || ctx.strictness !== "observe" || ctx.stale) return null;
+  const rest = all.filter((h) => !PERSONAL.has(h.category));
+  if (rest.length === all.length) return null;
+  const d = decide(rest, null, ctx);
+  return d !== null && d.actions.some((a) => a.kind === "delete") ? d : null;
 }
 
 /**

@@ -46,6 +46,12 @@ export interface NewcomersDeps extends ModDeps {
   admins: Admins;
   /** Bot usernames non-admins may add: lower case, no @. */
   allowedBots: readonly string[];
+  /**
+   * The bot's own user ID once getMe has answered: the bot is known by it
+   * alone, never by a username, which can pass to another account (members.ts
+   * drops the bot's joins by it first). Without it, nobody is taken for the bot.
+   */
+  botId?: () => UserId | null;
   /** Raid mode; when it is the RaidWatch, each join counts toward starting it. */
   raid: RaidControl & { noteJoin?: (chat: ChatId, now: number) => void };
   settings: (chat: ChatId) => ChatSettings;
@@ -95,7 +101,11 @@ export function createNewcomers(deps: NewcomersDeps): NewcomerChecks {
   }
   const presses = createPresses(deps, board, steps, queueFail);
 
-  const isSelf = (u: TgUser) => !!u.username && u.username.toLowerCase() === deps.bot()?.toLowerCase();
+  /** The bot itself, by its ID alone: an account holding one of its usernames (one it dropped, say) is checked like anyone. */
+  const isSelf = (u: TgUser) => {
+    const id = deps.botId?.() ?? null;
+    return id !== null && u.id === id;
+  };
 
   /** A bot added by someone who isn't an admin, unless it is allowed or an admin itself, is banned, however late the join is seen (observe: reported). */
   function botJoined(chat: ChatId, bot: TgUser, adder: TgUser | null): void {

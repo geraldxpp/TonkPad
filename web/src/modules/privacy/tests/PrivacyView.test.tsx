@@ -44,8 +44,16 @@ describe("PrivacyView", () => {
     const reads = region("What it reads");
     expect(items(within(reads).getByRole("list"))).toEqual([p.reads.private, p.reads.community, p.reads.groups, fmt(p.reads.inline, { handle: "@TonkfunBot" }), p.reads.buttons]);
     expect(within(reads).getByText(/^In tonkfun\.fun's official community group, where it is an admin, Telegram shows it every message, edit and new member\./)).toBeInTheDocument();
-    // Names are also read for links and handles (removed at join) and for the brand beside a role word.
-    expect(within(reads).getByText(/your name only to spot spam and accounts posing as the team, and in its notes to the team;/)).toBeInTheDocument();
+    // Even in privacy mode Telegram sends a bot the messages sent via it in any group it is in: elsewhere its cards and Ask TonkFun's fixed line are ignored (router.ts).
+    expect(within(reads).getByText(/ Telegram also shows it notices such as who joined, and messages sent there through its inline mode \(its token cards, and the fixed line Ask TonkFun posts\); it ignores all of these\. /)).toBeInTheDocument();
+    // Telegram's chosen_inline_result: which result, and the query typed for it. The bot asks for it (setMySettings' inline feedback) only while Ask TonkFun
+    // can be offered (worker profile-settings.ts), and inline.ts onChosen reads only Ask TonkFun's.
+    expect(within(reads).getByText(/^When you type @TonkfunBot in any chat, the text you type after it, as you type it\. While Ask TonkFun can be used, it also asks Telegram to tell it which of its results you choose, with the text you typed for it\.$/)).toBeInTheDocument();
+    // Names and usernames are read in the group, for links and handles (removed at join) and the brand beside a role word (worker mod/names.ts); inline mode reads neither.
+    expect(within(reads).getByText(/^With each of these, Telegram includes your Telegram ID, name, username and app language\./)).toBeInTheDocument();
+    // The ID keys the question chosen with Ask TonkFun until its post takes it (worker inline-pending.ts).
+    expect(within(reads).getByText(/The bot uses your ID to pace its replies, to match a question you send with Ask TonkFun to the line it posts and, in the official group, for the records below;/)).toBeInTheDocument();
+    expect(within(reads).getByText(/your name and username only to spot spam and accounts posing as the team, and in its notes to the team;/)).toBeInTheDocument();
   });
 
   it("says what goes to Anthropic, how long Anthropic keeps it, and how to ask for a review", () => {
@@ -53,10 +61,14 @@ describe("PrivacyView", () => {
     const ai = within(region("AI answers and checks"));
     expect(ai.getByText(/^Its answers, and its checks of messages its own rules can't settle, are written by Claude, an AI model made by Anthropic/)).toBeInTheDocument();
     expect(ai.getByText(/^It sends Anthropic text, never photos or files:/)).toBeInTheDocument();
+    // Ask TonkFun posts only a fixed line; the question it was chosen for reaches the bot alone and is answered as /ask (worker inline-pending.ts, agent/triggers.ts askTrigger).
+    expect(p.ai.sent).toContain(
+      "a question you ask it (with /ask, by mentioning it, by replying to it, by tapping Ask TonkFun after typing its handle and your question, or with the Ask button in a private chat);",
+    );
     expect(ai.getByText(/a code made from your Telegram ID, which changes every month/)).toBeInTheDocument();
     expect(ai.getByText(/^Anthropic deletes this text within 30 days\. If its safety systems flag a message, it may keep it for up to 2 years/)).toBeInTheDocument();
-    // A secret is removed in the group and from a question; elsewhere in a private chat it stays there, sent nowhere.
-    expect(ai.getByText("Never send a seed phrase or a private key. The bot removes anything that looks like one, in the group and in what you ask it, and never sends one anywhere.")).toBeInTheDocument();
+    // Only what the bot recognises (worker mod/secrets.ts findSecret: words split on spaces) is removed and never sent: a phrase written without spaces isn't.
+    expect(ai.getByText("Never send a seed phrase or a private key. The bot removes anything it recognises as one, in the group and in what you ask it, and never sends it anywhere.")).toBeInTheDocument();
     // True while every action alerts the team: raid copies and normal mode's unknown-link deletes included.
     expect(ai.getByText(/Every action is reported to the team, who can undo it,/)).toBeInTheDocument();
     // A review takes a mute, a ban or a warning on record: a removal with no offence, or a new member's text-only days, has nothing to review (appeal.ts).
@@ -69,6 +81,8 @@ describe("PrivacyView", () => {
     const parts = [
       "In the official group it also sends messages its rules can't settle on their own: questions;",
       "messages with handles, wallet or token addresses, or links that aren't on its allow-list (whether it removed them or not);",
+      // A new member's forward, reply to another chat or another bot's link buttons, and a forward named like the team, once the rules removed it (community/pipeline-mod.ts removedLink).
+      "forwards, replies to other chats and messages with another bot's link buttons, if it removed them;",
       "messages that ask for help or mention a problem, such as lost funds or a failed buy;",
       "messages that warn about, ask about or report a scam, or mention DMs;",
       "messages that may show someone is in distress;",
@@ -90,6 +104,10 @@ describe("PrivacyView", () => {
     // No "chat IDs": a private chat's ID is the person's user ID, and the official groups' IDs are the operator's settings.
     expect(within(memory).getByText(/forgets them: user IDs, names, usernames and the text of a message for at most 10 minutes \(.*check a message, see whether someone else answers a question first, gather its notes to the team/)).toBeInTheDocument();
     expect(within(memory).queryByText(/chat IDs/)).not.toBeInTheDocument();
+    // A question chosen with Ask TonkFun waits 60 seconds at most for its post (worker inline-pending.ts), after up to 5 minutes in the poller's buffer while the
+    // bot is busy, then goes through the check's and the answer's queues: about 9½ minutes at the very worst. Only the user ID waits with it.
+    expect(within(memory).getByText(/; a question you send with Ask TonkFun, with your user ID, until it's answered or dropped \(at most 10 minutes\), to match it to the line Ask TonkFun posts and answer it;/)).toBeInTheDocument();
+    expect(p.keeps.memory).not.toMatch(/app language|about a minute/);
     expect(within(keeps).getByText("In the official group only, it keeps these records on its server, then deletes them:")).toBeInTheDocument();
     expect(items(records)).toEqual([p.keeps.warnings, p.keeps.newcomers, p.keeps.checks, p.keeps.trusted, p.keeps.reviews, p.keeps.cleanup]);
     expect(within(records).getByText("Reviews: when you last asked for one, for a day.")).toBeInTheDocument();
@@ -107,10 +125,17 @@ describe("PrivacyView", () => {
     const admins = within(region("What it keeps")).getByText(/^When it removes a message or restricts someone/);
     expect(admins).toHaveTextContent(/^When it removes a message or restricts someone \(or, while the group is in observe mode, would have\), when a case needs a person,/);
     expect(admins).toHaveTextContent(/when you report a message or ask for a review, or when it proposes an answer in observe mode, it posts in the team's private admin chat on Telegram:/);
-    expect(admins).toHaveTextContent(/your name, username and ID, a short excerpt, a link to the message and, where Claude checked the message, the AI's guess; if you're a new member, also how long ago you joined or passed the check\./);
+    // An alert about an Ask TonkFun post quotes the question, which the group never saw (worker community/qa-posted.ts).
+    expect(admins).toHaveTextContent(/your name, username and ID, a short excerpt \(of your question, if you asked with Ask TonkFun\), a link to the message and, where Claude checked the message, the AI's guess; if you're a new member, also how long ago you joined or passed the check\./);
     expect(admins).toHaveTextContent(/A report also shows who sent it \(their name, username and ID\) and their reason, and a review your current restriction\./);
     // The refusals alert (qa-answer.ts), the /trust and /untrust confirmations (controls.ts) and /trusted's list (controls-members.ts).
     expect(admins).toHaveTextContent(/It also posts there your name, username and ID with an excerpt of your question when Claude refuses two of your questions in the group within 10 minutes;/);
+    // Relaxed mode keeps these up and tells the team, with no action (worker mod/actions-rules.ts unknownLink, on the lead hit alone: a brand forward
+    // with no unknown link, which would lead instead and go to the check, or words the member didn't write with an unknown link: the bot's own card or
+    // message, or an admin's message forwarded by the admin's ID, mod/rules-scan.ts botsOwnOf).
+    expect(admins).toHaveTextContent(
+      /your name, username and ID when, in relaxed mode, it leaves up a message you forwarded from someone named like the team \(if it holds no link outside its allow-list\), or a card or message of its own, or an admin's message, that you shared or forwarded and that holds such a link;/,
+    );
     expect(admins).toHaveTextContent(/your name and username when an admin marks you trusted or stops trusting you; and each trusted member's name, username and ID when an admin asks for the list\./);
     expect(admins).toHaveTextContent(/It deletes its routine notes there after 2 days, and the chat deletes everything after 7; the bot keeps no copy\./);
     expect(admins).toHaveTextContent(/From a private chat it posts your name, username and message only if you tap Share with the team or use \/report\.$/);
@@ -126,10 +151,10 @@ describe("PrivacyView", () => {
         "Only Anthropic (for AI answers and checks, in the United States, under its data processing terms with the EU's standard contractual clauses), Telegram (which carries every message) and Railway (which hosts the bot's server and stores its records and logs) receive it.",
       ),
     ).toBeInTheDocument();
-    // Unprompted answers (on by default) reply to a question nobody asked the bot.
+    // Ask TonkFun in the bot's own chat sends its question at once (router-private.ts); unprompted answers (on by default) reply to a question nobody asked the bot.
     expect(
       rights.getByText(
-        "In a private chat, nothing goes to the AI unless you use /ask or tap Ask. In the group, moderation applies to everyone, and while unprompted answers are on, the bot may also answer a question about tonkfun.fun that you post without asking it.",
+        "In a private chat, nothing goes to the AI unless you use /ask, tap Ask, or type its handle and a question, then tap Ask TonkFun. In the group, moderation applies to everyone, and while unprompted answers are on, the bot may also answer a question about tonkfun.fun that you post without asking it.",
       ),
     ).toBeInTheDocument();
     expect(rights.getByText(/you can complain to your data protection authority\.$/)).toBeInTheDocument();

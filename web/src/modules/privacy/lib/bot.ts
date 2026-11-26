@@ -18,7 +18,7 @@ export function operatorName(team: string, operator: string = BOT.operator): str
   return operator === TEAM_OPERATOR ? team : operator;
 }
 
-/** When the bot's privacy policy last changed (UTC): AI answers lost their footer (module 15). The owner moves it to the go-live date if they differ. */
+/** When the bot's privacy policy last changed (UTC): AI answers lost their footer, and inline mode gained Ask TonkFun (module 15). The owner moves it to the go-live date if they differ. */
 export const UPDATED = Date.UTC(2026, 10, 26);
 
 /** Anthropic's own page on how long it keeps data, linked from the policy's AI section. */

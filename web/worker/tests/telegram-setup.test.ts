@@ -18,7 +18,7 @@ function leaves(node: object, prefix = ""): Array<[string, string]> {
   return Object.entries(node).flatMap(([key, value]) => (typeof value === "string" ? [[`${prefix}${key}`, value] as [string, string]] : leaves(value, `${prefix}${key}.`)));
 }
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-const BUTTONS = ["inline.notFound", "home.ask", "home.check", "home.launches", "home.referral", "home.help", "home.open", "card.open", "card.refresh", "card.share", "launches.trending", "launches.explore", "referral.share", "referral.open", "help.docs", "common.back", "check.lookUp", "inline.help"];
+const BUTTONS = ["inline.notFound", "home.ask", "home.check", "home.launches", "home.referral", "home.help", "home.open", "card.open", "card.refresh", "card.share", "launches.trending", "launches.explore", "referral.share", "referral.open", "help.docs", "common.back", "check.lookUp", "inline.help", "inline.askNo"];
 
 describe("the bot's words", () => {
   const english = new Map(leaves(en));
@@ -40,7 +40,8 @@ describe("the bot's words", () => {
     const words = new Map(leaves(d));
     for (const path of BUTTONS) expect([...(words.get(path) ?? "")].length, `${code} ${path}`).toBeLessThanOrEqual(30);
     for (const [path, value] of words) {
-      const rest = value.replace(/\/(check|launches|referral)\b/g, "").replace("@{bot}", "");
+      // The bot's own commands may be named (/ask on inline.askNo, a button label, which Telegram never parses for entities).
+      const rest = value.replace(/\/(check|launches|referral|ask)\b/g, "").replace("@{bot}", "");
       expect(rest, `${code} ${path}`).not.toMatch(/[@#$\\]|\/(?!\s)/);
     }
   });

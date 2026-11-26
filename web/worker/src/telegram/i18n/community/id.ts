@@ -20,9 +20,11 @@ export const id: CommunityDictionary = {
     ai: "Semua panggilan model: on atau off",
   },
   help: {
-    ask: "Tanyakan apa saja tentang tonkfun.fun kepada saya: kirim /ask lalu pertanyaan Anda.",
+    ask: "Tanyakan apa saja tentang tonkfun.fun kepada saya: kirim /ask lalu pertanyaan Anda, atau ketik {bot} lalu pertanyaan Anda dan ketuk “{button}”. Cara ini memposting catatan singkat bahwa Anda bertanya, dan jawaban saya membalas catatan itu. Di grup komunitas, Anda juga bisa membalas salah satu jawaban saya atau menyebut saya di bagian mana pun dari pesan, kecuali di awal.",
+    askNoInline: "Tanyakan apa saja tentang tonkfun.fun kepada saya: kirim /ask lalu pertanyaan Anda.",
     ai: "Jawaban saya ditulis oleh AI (Claude, buatan Anthropic) dan bisa salah. Jawaban itu bukan nasihat keuangan.",
-    groupAsk: "Di grup komunitas, sebut saya, balas salah satu jawaban saya, atau kirim /ask lalu pertanyaan Anda.",
+    groupAsk: "Di grup komunitas, kirim /ask lalu pertanyaan Anda, balas salah satu jawaban saya, atau sebut saya di bagian mana pun dari pesan, kecuali di awal. Anda juga bisa mengetik {bot} lalu pertanyaan Anda dan mengetuk “{button}”: cara ini memposting catatan singkat bahwa Anda bertanya, dan jawaban saya membalas catatan itu.",
+    groupAskNoInline: "Di grup komunitas, kirim /ask lalu pertanyaan Anda, balas salah satu jawaban saya, atau sebut saya.",
     privacy: "Privasi",
   },
   answer: {
@@ -48,6 +50,7 @@ export const id: CommunityDictionary = {
     askPrompt: "Tanyakan apa saja tentang tonkfun.fun kepada saya. Jawaban ditulis oleh AI (Claude, buatan Anthropic) dan bisa salah.",
     askPlaceholder: "Pertanyaan Anda tentang tonkfun.fun",
     askExpired: "Saya tidak lagi menyimpan pesan itu, jadi tidak ada yang dikirim. Silakan kirim ulang pertanyaan Anda.",
+    askLost: "Pertanyaan Anda tidak sampai ke saya. Kirim /ask lalu pertanyaan Anda.",
   },
   crisis: {
     body: "Saya turut prihatin Anda sedang mengalami hal ini. Anda tidak harus menghadapinya sendirian: berbicara dengan seseorang bisa membantu, dan tombol di bawah ini bisa menunjukkan layanan bantuan gratis di dekat Anda.",

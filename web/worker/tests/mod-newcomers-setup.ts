@@ -3,7 +3,7 @@ import type { CommunityOut } from "../src/telegram/community/out";
 import type { AdminAlert, Admins, Strictness, UserId } from "../src/telegram/community/types";
 import { createNewcomers, type NameRiskInput } from "../src/telegram/mod/newcomers";
 import type { InlineKeyboard, TgCallbackQuery, TgUser } from "../src/telegram/types";
-import { adminInfo, BOT, fakeAdmins, GROUP, GROUP_ID, memoryRecords, OWNER_ID, recordOut, testWords } from "./community-fixtures";
+import { adminInfo, BOT, BOT_ID, fakeAdmins, GROUP, GROUP_ID, memoryRecords, OWNER_ID, recordOut, testWords } from "./community-fixtures";
 import { NOW } from "./fixtures";
 
 /** The new-member check's test bench: a fake clock, the recorder, in-memory records and placeholder words. */
@@ -42,7 +42,7 @@ export function setup(options: Options = {}, records = memoryRecords({ strictnes
   const joins: number[] = [];
   const limits = createAiLimits();
   const newcomers = createNewcomers({
-    out, records, words: () => testWords, alerts: { alert: (a) => void alerts.push(a) }, recentIds: () => [], bot: () => "TonkfunBot", now: () => now, site: SITE,
+    out, records, words: () => testWords, alerts: { alert: (a) => void alerts.push(a) }, recentIds: () => [], bot: () => "TonkfunBot", botId: () => BOT_ID, now: () => now, site: SITE,
     admins: options.admins ?? fakeAdmins({ [GROUP_ID]: [adminInfo(OWNER_ID)] }), allowedBots: ["goodhelperbot"], groupLang: "en", nameRisk: "nameRisk" in options ? options.nameRisk : () => null,
     raid: { active: () => options.raid === true, start: () => undefined, end: () => undefined, noteJoin: (_chat, at) => void joins.push(at) },
     settings: (chat) => records.settings(chat),

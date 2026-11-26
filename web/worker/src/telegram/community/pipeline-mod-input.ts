@@ -1,7 +1,7 @@
 import type { PackSource } from "../agent/types";
-import type { Me } from "../agent/triggers";
+import { forwardedFromMe, type Me } from "../agent/triggers";
 import type { ModDeps } from "../mod/actions";
-import { buttonLinks, externalFromOtherChat, forwardName, forwardUsername, riskyFile, viaButtons } from "../mod/media";
+import { buttonLinks, externalFromOtherChat, forwardName, forwardUsername, fromChannel, type OfficialChannel, ownCard, riskyFile, viaButtons } from "../mod/media";
 import type { RaidWatch } from "../mod/raid";
 import { checkMessage, type RuleInput } from "../mod/rules";
 import type { TgMessage, TgMessageEntity } from "../types";
@@ -23,6 +23,8 @@ export interface RuleInputDeps {
   me: () => Me | null;
   /** For getChat (whether members may edit their own tag) and the clock. */
   mod: Pick<ModDeps, "out" | "now">;
+  /** The official channel, whose forwarded posts are the bot's own words (media.ts fromChannel); without it, none is known. */
+  channel?: OfficialChannel | null;
 }
 
 /** An edit's flags: a new message has neither. */
@@ -44,6 +46,26 @@ export function textOf(m: TgMessage): { text: string; entities: readonly TgMessa
 
 /** How old a message is, by its own date (an edit carries the original's). */
 export const ageOf = (m: TgMessage, now: number): number => (Number.isFinite(m.date) ? Math.max(0, Math.floor(now / 1000) - m.date) : 0);
+
+/**
+ * A user forward (forward_origin.type "user") whose author is one of the
+ * group's real admins, by the ID Telegram gives, whatever their username
+ * (they may have none): the creator, or an admin who can delete messages or
+ * ban users. Never a bot (an admin bot's message may carry anyone's words),
+ * a title-only admin (moderated as trusted, since such accounts get hacked),
+ * a hidden user's, a chat's or a channel's forward. The admin's own words:
+ * never punished for what they say, nor checked by Haiku (mod/rules-scan.ts
+ * botsOwnOf).
+ */
+function forwardedFromAdmin(m: TgMessage, admins: Admins): boolean {
+  const origin: unknown = m.forward_origin;
+  if (typeof origin !== "object" || origin === null) return false;
+  const { type, sender_user: user } = origin as { type?: unknown; sender_user?: unknown };
+  if (type !== "user" || typeof user !== "object" || user === null) return false;
+  const { id, is_bot: bot } = user as { id?: unknown; is_bot?: unknown };
+  if (typeof id !== "number" || !Number.isSafeInteger(id) || id <= 0 || bot === true) return false;
+  return admins.list(m.chat.id).some((a) => a.id === id && (a.creator || a.canDelete || a.canRestrict));
+}
 
 export function createRuleInput(deps: RuleInputDeps): { check(m: TgMessage, who: Who, now: number, edit?: EditFlags): RuleResult } {
   const { records } = deps;
@@ -74,6 +96,10 @@ export function createRuleInput(deps: RuleInputDeps): { check(m: TgMessage, who:
       text, entities, standing: who.standing, strictness: records.settings(chat).strictness, raid: deps.raid.active(chat, now),
       edited: edit.edited, addedLinks: edit.addedLinks, ageSeconds: ageOf(m, now),
       forwarded: m.forward_origin !== undefined && m.forward_origin !== null, forwardName: forwardName(m), forwardUsername: forwardUsername(m),
+      // The bot's own message, or an admin's, known by the user forward's ID, and the official channel's post (by its chat ID; by username only without one): vouched for, though named like the team.
+      forwardSelf: forwardedFromMe(m, me), forwardAdmin: forwardedFromAdmin(m, deps.admins), forwardChannel: fromChannel(m, deps.channel),
+      // The bot's own card, by its ID and Refresh button: with those forwards, words the member didn't write (mod/rules-scan.ts botsOwnOf).
+      ownCard: ownCard(m, me),
       // Link buttons are read like links in the text; the bot's own inline cards and forwards of its messages are never another bot's.
       externalOtherChat: externalFromOtherChat(m), viaButtons: viaButtons(m, me), buttons: buttonLinks(m, me), riskyFile: riskyFile(m),
       sender: { name: who.name, username: who.username, tag: who.tag },

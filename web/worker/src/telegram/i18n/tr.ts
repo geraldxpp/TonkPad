@@ -100,6 +100,14 @@ export const tr: BotDictionary = {
   inline: {
     help: "Bu bot nasıl kullanılır",
     notFound: "Token bulunamadı · Yardım",
+    ask: "TonkFun’a sor",
+    askAs: "TonkFun’a sor: {question}",
+    askWhere: "Soruları tonkfun.fun topluluk grubunda ve benimle özel sohbette yanıtlıyorum.",
+    askWhereGroup: "Soruları tonkfun.fun topluluk grubunda yanıtlıyorum.",
+    askWherePrivate: "Soruları benimle özel sohbette yanıtlıyorum.",
+    askPosted: "TonkFun’a bir soru sordum.",
+    askNo: "Bunun için /ask kullanın",
+    placeholder: "Token adresi veya bir soru",
   },
   channel: {
     launch: "Yeni lansman",

@@ -11,6 +11,7 @@ import { createOnce } from "./hold";
 import { answer } from "./qa-answer";
 import { crisisOf, crisisOfMessage, crisisReply } from "./qa-crisis";
 import { createGap } from "./qa-gap";
+import { lostNote } from "./qa-lost";
 import { onQaPress } from "./qa-press";
 import { askPrivate, offerPrivate, secret } from "./qa-private";
 import { type Ask, type Checked, flawView, isCrisis, isFlaw, laneOf, MAX_QUESTION, note, type QaCtx, type QaDeps, reply, standIn, warnAlone } from "./qa-reply";
@@ -35,6 +36,8 @@ export interface Qa {
   onTrigger(m: TgMessage, t: Trigger, checked?: Checked | null, gone?: boolean): Promise<void>;
   /** The busy note in place of an answer: no check could run, and the message carries a link, a handle or an address. */
   onBusy(m: TgMessage, t: Trigger): Promise<void>;
+  /** Inline mode's Ask post whose question never came: the note that says to use /ask (qa-lost.ts). */
+  onLost(m: TgMessage): Promise<void>;
   onProactive(c: Candidate): Promise<void>;
   askPrivate(m: TgMessage, question: string): Promise<boolean>;
   offerPrivate(m: TgMessage, text: string): Promise<boolean>;
@@ -172,17 +175,12 @@ export function createQa(deps: QaDeps): Qa {
       }
     },
 
+    onLost: (m) => lostNote(m, ctx).catch(() => ctx.log("a lost question's note wasn't sent")),
     askPrivate: (m, question) => askPrivate(m, question, ctx, asked),
     offerPrivate: (m, text) => offerPrivate(m, text, ctx),
     onPress: (q) => onQaPress(q, ctx, asked),
 
-    async crisis(m) {
-      try {
-        await crisisOfMessage(m, ctx);
-      } catch {
-        ctx.log("a crisis reply wasn't sent");
-      }
-    },
+    crisis: (m) => crisisOfMessage(m, ctx).catch(() => ctx.log("a crisis reply wasn't sent")),
 
     allowProactive(c, now) {
       const s = ctx.records.settings(c.chat);

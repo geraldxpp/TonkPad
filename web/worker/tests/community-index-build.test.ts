@@ -58,6 +58,19 @@ describe("buildCommunity: TELEGRAM_ALLOWED_BOTS", () => {
   });
 });
 
+describe("buildCommunity: the new-member check knows the bot by its ID", () => {
+  it("leaves the bot's own join alone whatever username it shows, and bans a bot holding its username that a member added", async () => {
+    const { out, alerts, community } = bench();
+    const at = Math.floor(NOW / 1000);
+    // members.ts drops the bot's own joins first; the check has its own guard, by the ID getMe gave.
+    await community.newcomers.onJoin(GROUP_ID, [{ id: ME.id, is_bot: true, first_name: "TonkFun", username: "TonkfunNewBot" }], person(201), 83, at, NOW);
+    await community.newcomers.onJoin(GROUP_ID, [{ id: 8_004, is_bot: true, first_name: "TonkFun", username: "TonkfunBot" }], person(201), 84, at, NOW);
+    await settle();
+    expect(callsOf(out.log, "ban")).toEqual([[GROUP_ID, 8_004]]);
+    expect(alerts.map((a) => [a.category, a.undo])).toEqual([["bot_added", "ban"]]);
+  });
+});
+
 describe("buildCommunity: someone at risk past the group's public pace", () => {
   const GERMAN: CommunityDictionary = { ...testWords, crisis: { body: "Es tut mir leid. Der Knopf findet eine Hotline.", button: "Hotline finden" } };
 

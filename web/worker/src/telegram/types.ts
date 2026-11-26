@@ -123,6 +123,24 @@ export interface TgInlineQuery {
   id: string;
   from: TgUser;
   query: string;
+  /** Where it is typed: "sender" (the bot's own chat), "private", "group", "supergroup" or "channel"; absent from a secret chat. */
+  chat_type?: string;
+}
+
+/**
+ * Someone chose one of the bot's inline results (sent only while inline
+ * feedback is on: profile-settings.ts): which one, by its ID (Ask's names
+ * the kind of chat it was offered in, as nothing else here does), and the
+ * query it was offered for. inline_message_id comes only with a result that
+ * has buttons (Ask has none), and location only when the bot asks for one
+ * (it never does): neither is read.
+ */
+export interface TgChosenInlineResult {
+  result_id: string;
+  from: TgUser;
+  query: string;
+  inline_message_id?: string;
+  location?: unknown;
 }
 
 export interface TgUpdate {
@@ -131,6 +149,8 @@ export interface TgUpdate {
   edited_message?: TgMessage;
   callback_query?: TgCallbackQuery;
   inline_query?: TgInlineQuery;
+  /** Inline mode's result someone chose: read only for the Ask result (inline-pending.ts). */
+  chosen_inline_result?: TgChosenInlineResult;
   /** Someone's membership changed (sent only when asked for, and only to admins). */
   chat_member?: TgChatMemberUpdated;
   /** The bot's own membership changed: added, promoted, restricted or removed. */

@@ -9,8 +9,8 @@ import type { TgMessage, TgUser } from "../types";
  * checked before it is read.
  */
 
-/** The bot itself (agent/triggers.ts Me): its own inline cards and buttons are never another bot's. */
-export type Self = { id: number; usernames: readonly string[] };
+/** The bot itself (agent/triggers.ts Me), known by its ID alone: its own inline cards and buttons are never another bot's. */
+export type Self = { id: number };
 
 /** At most this many button targets, each at most this long (rules-scan.ts keeps the same bounds). */
 const BUTTONS_MAX = 50;
@@ -39,15 +39,15 @@ export function riskyFile(m: TgMessage): boolean {
   return RISKY_EXTENSIONS.has(extension) || RISKY_TYPES.has(type);
 }
 
-const lower = (name: unknown) => str(name).toLowerCase().replace(/^@/, "");
-
-/** Whether a user is the bot, by its ID or any of its usernames; never when the bot doesn't know itself yet. */
+/**
+ * Whether a user (via_bot, a forward's sender) is the bot: by its ID alone,
+ * which Telegram always sends, never a username, which can pass to another
+ * account. Never when the bot doesn't know itself yet.
+ */
 function isSelf(user: unknown, me: Self | null | undefined): boolean {
   if (!me || typeof user !== "object" || user === null) return false;
-  const { id, username } = user as { id?: unknown; username?: unknown };
-  if (typeof id === "number" && id === me.id) return true;
-  const name = lower(username);
-  return name !== "" && me.usernames.some((u) => lower(u) === name);
+  const { id } = user as { id?: unknown };
+  return typeof id === "number" && id === me.id;
 }
 
 /** The buttons of a message's inline keyboard; malformed rows and buttons are skipped. */
@@ -59,6 +59,23 @@ function buttonsOf(m: TgMessage): object[] {
 }
 
 const linkButton = (button: object) => "url" in button || "login_url" in button || "web_app" in button;
+/** A token card's Refresh button (views.ts cardView): its data is r:<lang>:<address>, or the older r:<address>. */
+const refreshButton = (button: object) => {
+  const data: unknown = (button as { callback_data?: unknown }).callback_data;
+  return typeof data === "string" && data.startsWith("r:");
+};
+
+/**
+ * The bot's own token card as a member posts it through its inline mode
+ * (or forwards a message that is one): via the bot, known by its ID alone,
+ * with the card's Refresh button. Only the bot writes an inline result's
+ * words and buttons, and nobody can edit a message sent via a bot, so
+ * nothing in it is the member's own (a token's name is its creator's, as
+ * the bot cleaned it). Anything else the bot's inline mode posts is not one.
+ */
+export function ownCard(m: TgMessage, me?: Self | null): boolean {
+  return isSelf(m.via_bot, me) && buttonsOf(m).some(refreshButton);
+}
 
 /** Sent through another bot's inline mode with link buttons: a way to post links past the link rules. Never the bot's own inline cards (`me`). */
 export function viaButtons(m: TgMessage, me?: Self | null): boolean {
@@ -133,6 +150,28 @@ export function forwardName(m: TgMessage): string | null {
   if (origin.type === "chat") return shown(str(origin.sender_chat?.title));
   if (origin.type === "channel") return shown(str(origin.chat?.title));
   return null;
+}
+
+/** The official channel as the worker read TELEGRAM_CHANNEL_ID (community/index-setup.ts readChannel): its chat ID when given one, and its username (lower case, no @). */
+export type OfficialChannel = { id: number | null; username: string | null };
+
+/**
+ * A forward from the official channel, whose posts are the bot's own (the
+ * channel's launch news): a channel post, or a message the channel sent in a
+ * group as itself, matched by the chat ID TELEGRAM_CHANNEL_ID gives, and by
+ * its username only when it gives none, since a username can pass to another
+ * chat. Never without the channel.
+ */
+export function fromChannel(m: TgMessage, channel: OfficialChannel | null | undefined): boolean {
+  const origin: unknown = m.forward_origin;
+  if (!channel || typeof origin !== "object" || origin === null) return false;
+  const { type, chat, sender_chat: sender } = origin as { type?: unknown; chat?: unknown; sender_chat?: unknown };
+  const from: unknown = type === "channel" ? chat : type === "chat" ? sender : undefined;
+  if (typeof from !== "object" || from === null) return false;
+  const { id, username } = from as { id?: unknown; username?: unknown };
+  if (channel.id !== null) return Number.isSafeInteger(channel.id) && channel.id !== 0 && id === channel.id;
+  const name = str(channel.username).toLowerCase().replace(/^@/, "");
+  return name !== "" && str(username).toLowerCase() === name;
 }
 
 /** A forward's username (lower case, no @), when its user, chat or channel has one: how the rules tell the official channel from a look-alike. */

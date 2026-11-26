@@ -14,16 +14,25 @@ import { CJK, CRISIS_STRONG, CRISIS_WEAK, DM_WORDS, HELP_WORDS, matchesAny, QUES
  * severe kind (severeKeys: a look-alike, a drainer, a hidden-dot host, an
  * invite). linkKeys keeps handles and addresses, for the edit memory. And
  * what the rules found beyond Markers: `reports`, a report that stands
- * (rules-report.ts: never a raider), and `dmRequest`, a member asking to be
- * messaged for help (rules-solicit.ts: answered with the DM-safety warning).
- * community/types.ts Markers carries raidKeys as optional; the scan always
- * sets these, rules.ts fills them in, and the readers below read them back
- * from a rules result.
+ * (rules-report.ts: never a raider), `dmRequest`, a member asking to be
+ * messaged for help (rules-solicit.ts: answered with the DM-safety warning),
+ * and `botsOwn`, words the member didn't write, their author known by ID:
+ * the bot's own (its card posted through inline mode, a forward of its
+ * message or of the official channel's post) and an admin's, forwarded
+ * (RuleInput ownCard, forwardSelf, forwardChannel, forwardAdmin). They never
+ * go to Haiku's check, never feed a link raid (no raid keys), and are never
+ * punished for what they say (mod/actions-decide.ts). community/types.ts
+ * Markers carries raidKeys as optional; the scan always sets these, rules.ts
+ * fills them in, and the readers below read them back from a rules result.
  */
-export type ScanMarkers = Markers & { raidKeys: string[]; severeKeys: string[]; reports: boolean; dmRequest: boolean };
+export type ScanMarkers = Markers & { raidKeys: string[]; severeKeys: string[]; reports: boolean; dmRequest: boolean; botsOwn: boolean };
+
+/** The RuleInput flags that make a message words the member didn't write (ScanMarkers.botsOwn): any one of them. */
+const OWN_FIELDS = ["ownCard", "forwardSelf", "forwardChannel", "forwardAdmin"] as const;
+type OwnFields = (typeof OWN_FIELDS)[number];
 
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((k): k is string => typeof k === "string") : []);
-const field = (markers: Markers, name: "raidKeys" | "severeKeys" | "reports" | "dmRequest"): unknown => (name in markers ? (markers as Partial<ScanMarkers>)[name] : undefined);
+const field = (markers: Markers, name: "raidKeys" | "severeKeys" | "reports" | "dmRequest" | "botsOwn"): unknown => (name in markers ? (markers as Partial<ScanMarkers>)[name] : undefined);
 
 /** A rules result's raid keys (ScanMarkers.raidKeys), for FloodWatch.note's keys; none when the markers carry none. */
 export const raidKeysOf = (markers: Markers): string[] => strings(field(markers, "raidKeys"));
@@ -33,6 +42,13 @@ export const severeKeysOf = (markers: Markers): string[] => strings(field(marker
 export const reportOf = (markers: Markers): boolean => field(markers, "reports") === true;
 /** Whether a member asks to be messaged for help (ScanMarkers.dmRequest): kept, and answered with the DM-safety warning. */
 export const dmRequestOf = (markers: Markers): boolean => field(markers, "dmRequest") === true;
+/**
+ * Whether the message is words the member didn't write (ScanMarkers.botsOwn):
+ * the bot's own (its card posted through inline mode, a forward of its
+ * message or of the official channel's post) or an admin's, forwarded by the
+ * admin's ID. A forward vouched for by username alone is not.
+ */
+export const botsOwnOf = (markers: Markers): boolean => field(markers, "botsOwn") === true;
 
 /** One read of a message: what the rules and the markers both need. */
 export interface Scan {
@@ -122,6 +138,9 @@ function countWords(plain: string): number {
   return n;
 }
 
+/** A text's words as the rules count them (Markers.words): what inline mode's Ask (inline.ts) reads as a question at 3 or more. */
+export const wordCount = (text: string): number => countWords(plainText(text));
+
 const keyOf = (address: string) => (address.startsWith("0x") ? address.toLowerCase() : address);
 
 /** The targets of a message's link buttons, as given (untrusted): strings only, within bounds. */
@@ -140,8 +159,9 @@ function buttonTargets(raw: unknown): string[] {
  * targets, `buttons`, among them), usernames, addresses and words, and the
  * markers for Haiku's check, the triggers, the edit memory and link raids.
  */
-export function scanMessage(input: Pick<RuleInput, "text" | "entities" | "allow" | "bot" | "admins" | "packAddresses"> & { buttons?: unknown }): Scan {
+export function scanMessage(input: Pick<RuleInput, "text" | "entities" | "allow" | "bot" | "admins" | "packAddresses" | OwnFields> & { buttons?: unknown }): Scan {
   const { text, allow } = input;
+  const botsOwn = OWN_FIELDS.some((name) => input[name] === true);
   const entities = cleanEntities(input.entities);
   const plain = plainText(text);
   const links = findLinks(text, entities, allow, buttonTargets(input.buttons));
@@ -157,10 +177,11 @@ export function scanMessage(input: Pick<RuleInput, "text" | "entities" | "allow"
     question: isQuestion(text, entities),
     domains: [...new Set(links.flatMap((l) => (l.domain ? [l.domain] : [])))],
     linkKeys: [...new Set([...risky.map((l) => l.key), ...strangers.map((h) => `@${h}`), ...bare])],
-    raidKeys: opensWithCommand(text) ? [] : [...new Set(risky.map((l) => l.raid))],
+    raidKeys: botsOwn || opensWithCommand(text) ? [] : [...new Set(risky.map((l) => l.raid))],
     severeKeys: [],
     reports: false,
     dmRequest: false,
+    botsOwn,
     unknownLinks: risky.length,
     handles: others.length,
     addresses: allAddresses(text),

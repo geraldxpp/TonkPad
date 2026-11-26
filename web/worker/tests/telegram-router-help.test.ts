@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { en as communityEn } from "../src/telegram/i18n/community/en";
 import { handleUpdate } from "../src/telegram/router";
+import { askLine } from "../src/telegram/views";
 import { GROUP } from "./community-fixtures";
 import { NOW } from "./fixtures";
 import { context, stubHooks } from "./telegram-fixtures";
@@ -18,15 +19,26 @@ describe("the router and a group's /help", () => {
   it("shows the AI lines when AI answers run in the community groups, though private AI is off", async () => {
     const { ctx, got } = help({ ai: false, groupAi: true });
     await handleUpdate(message("/help", GROUP), ctx);
-    expect(got.sent[0].view.text).toContain(communityEn.help.groupAsk);
+    // Inline mode is on here: the line names its Ask result too.
+    expect(got.sent[0].view.text).toContain(askLine("en", true, "tonkfun_bot"));
+    expect(got.sent[0].view.text).toContain("@tonkfun_bot");
     expect(got.sent[0].view.text).toContain(communityEn.help.ai);
+  });
+
+  it("says how to ask without the Ask result while inline mode is off", async () => {
+    const hooks = stubHooks({ groups: [GROUP.id], adminChat: ADMIN_CHAT.id, routed: "pass" });
+    const { ctx, got } = context({}, NOW, { community: hooks, inline: () => false });
+    await handleUpdate(message("/help", GROUP), ctx);
+    expect(got.sent[0].view.text).toContain(communityEn.help.groupAskNoInline);
+    expect(got.sent[0].view.text).not.toContain("@tonkfun_bot");
   });
 
   it("leaves them out when AI can't answer in the groups, though private AI is on", async () => {
     const { ctx, got } = help({ ai: true, groupAi: false });
     await handleUpdate(message("/help", GROUP), ctx);
     expect(got.sent[0].view.text).not.toContain(communityEn.help.ai);
-    expect(got.sent[0].view.text).not.toContain(communityEn.help.groupAsk);
+    expect(got.sent[0].view.text).not.toContain(askLine("en", true, "tonkfun_bot"));
+    expect(got.sent[0].view.text).not.toContain(communityEn.help.groupAskNoInline);
   });
 
   it("follows aiOn when the agent doesn't say", async () => {

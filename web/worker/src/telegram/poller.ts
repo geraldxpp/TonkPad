@@ -6,8 +6,9 @@ import type { TgUpdate } from "./types";
 
 export type PollState = "starting" | "ok" | "conflict" | "unauthorized" | "error" | "stopped";
 
-/** The update kinds the bot reads (Telegram sends no others). Edits and membership changes are the community agent's (the router passes on no others); chat_member comes only to an admin. */
-export const ALLOWED_UPDATES = ["message", "edited_message", "callback_query", "inline_query", "chat_member", "my_chat_member"];
+/** The update kinds the bot reads (Telegram sends no others). Edits and membership changes are the community agent's (the router passes on no others); chat_member comes
+ * only to an admin; chosen_inline_result only while inline feedback is on (the bot turns it on while Ask can be offered: profile-settings.ts), and only Ask's is read (inline-pending.ts). */
+export const ALLOWED_UPDATES = ["message", "edited_message", "callback_query", "inline_query", "chosen_inline_result", "chat_member", "my_chat_member"];
 /** Updates being answered at once; past this a burst is confirmed without answers rather than queued without end. */
 const MAX_IN_FLIGHT = 100;
 /** Priority updates waiting for a free slot, by default. */

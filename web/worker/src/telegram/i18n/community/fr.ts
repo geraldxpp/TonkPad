@@ -20,9 +20,11 @@ export const fr: CommunityDictionary = {
     ai: "Tous les appels au modèle : on ou off",
   },
   help: {
-    ask: "Posez-moi toutes vos questions sur tonkfun.fun : envoyez /ask suivi de votre question.",
+    ask: "Posez-moi toutes vos questions sur tonkfun.fun : envoyez /ask suivi de votre question, ou tapez {bot} puis votre question et appuyez sur « {button} ». Une courte note indiquant que vous avez posé une question est alors publiée, et ma réponse répond à cette note. Dans le groupe de la communauté, vous pouvez aussi répondre à l’une de mes réponses ou me mentionner n’importe où dans le message, sauf au début.",
+    askNoInline: "Posez-moi toutes vos questions sur tonkfun.fun : envoyez /ask suivi de votre question.",
     ai: "Mes réponses sont rédigées par une IA (Claude, conçue par Anthropic) et peuvent être fausses. Ce ne sont jamais des conseils financiers.",
-    groupAsk: "Dans le groupe de la communauté, mentionnez-moi, répondez à l’une de mes réponses ou envoyez /ask suivi de votre question.",
+    groupAsk: "Dans le groupe de la communauté, envoyez /ask suivi de votre question, répondez à l’une de mes réponses ou mentionnez-moi n’importe où dans le message, sauf au début. Vous pouvez aussi taper {bot} puis votre question et appuyer sur « {button} » : une courte note indiquant que vous avez posé une question est alors publiée, et ma réponse répond à cette note.",
+    groupAskNoInline: "Dans le groupe de la communauté, envoyez /ask suivi de votre question, répondez à l’une de mes réponses ou mentionnez-moi.",
     privacy: "Confidentialité",
   },
   answer: {
@@ -48,6 +50,7 @@ export const fr: CommunityDictionary = {
     askPrompt: "Posez-moi toutes vos questions sur tonkfun.fun. Les réponses sont rédigées par une IA (Claude, conçue par Anthropic) et peuvent être fausses.",
     askPlaceholder: "Votre question sur tonkfun.fun",
     askExpired: "Je n’ai plus ce message, donc rien n’a été envoyé. Renvoyez votre question, s’il vous plaît.",
+    askLost: "Je n’ai pas reçu votre question. Envoyez /ask suivi de votre question.",
   },
   crisis: {
     body: "Je suis vraiment désolé que vous traversiez cela. Vous n’avez pas à l’affronter sans soutien : parler à quelqu’un peut aider, et le bouton ci-dessous trouve une ligne d’écoute gratuite près de chez vous.",

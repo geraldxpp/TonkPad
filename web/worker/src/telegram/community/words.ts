@@ -48,15 +48,23 @@ export type AdminButton =
 export interface CommunityDictionary {
   /** Command menu descriptions (at most 256 characters): /ask, /rules and /report for members; the admin commands for each group's admins; /ai in the admin chat. */
   commands: Strings<"ask" | "rules" | "report" | "status" | "pause" | "resume" | "proactive" | "strict" | "raid" | "trust" | "untrust" | "trusted" | "forget" | "mod" | "ai">;
-  /** /help additions: how to ask in a private chat (ask) and a group (groupAsk), that answers come from AI (ai), and the Privacy button (privacy). */
-  help: Strings<"ask" | "ai" | "groupAsk" | "privacy">;
+  /**
+   * /help additions: how to ask in a private chat (ask) and a group
+   * (groupAsk), that answers come from AI (ai), and the Privacy button
+   * (privacy). While inline mode is on, ask and groupAsk name its Ask
+   * result too: {bot} is the bot's @username and {button} the result's title
+   * (module 14's inline.ask); askNoInline and groupAskNoInline say the same
+   * without it.
+   */
+  help: Strings<"ask" | "askNoInline" | "ai" | "groupAsk" | "groupAskNoInline" | "privacy">;
   /**
    * An answer's label (its first line) and the fixed replies around it.
    * footer is no longer shown (the owner's call, 26 Nov 2026): it stays only
    * so a reply to an answer sent before then still drops that last line.
    * scoreLine: {score} and {level}. askButton and shareButton are
    * buttons; askPrompt is a private chat's reply prompt; askPlaceholder is at
-   * most 64 characters.
+   * most 64 characters. askLost answers inline mode's Ask post whose
+   * question never came (inline-pending.ts).
    */
   answer: Strings<
     | "label"
@@ -81,6 +89,7 @@ export interface CommunityDictionary {
     | "askPrompt"
     | "askPlaceholder"
     | "askExpired"
+    | "askLost"
   >;
   /** The human-written reply to someone at risk, and its helpline button. */
   crisis: Strings<"body" | "button">;

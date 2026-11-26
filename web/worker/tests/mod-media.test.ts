@@ -10,6 +10,8 @@ import { SITE, token } from "./telegram-fixtures";
 
 const ME = { id: BOT_ID, usernames: ["TonkfunBot"] };
 const PROMO: TgUser = { id: 5, is_bot: true, first_name: "Promo", username: "promo_bot" };
+/** Another account holding the bot's username (say, one the bot dropped): another bot, since the bot is known by its ID alone. */
+const LOOKALIKE: TgUser = { ...BOT, id: 4_242 };
 const CLAIM = "https://tonkfun-claim.xyz";
 const markup = (...buttons: unknown[]) => ({ inline_keyboard: [buttons] }) as unknown as TgMessage["reply_markup"];
 /** The bot's own token card, shared in the group through its inline mode (@TonkfunBot <address>), as Telegram delivers it: text without the HTML. */
@@ -19,9 +21,16 @@ const ownCard = (): TgMessage => {
 };
 
 describe("another bot's link buttons (telegram#5)", () => {
-  it("the bot's own inline card is not another bot's, by its ID or any of its usernames", () => {
+  it("the bot's own inline card is not another bot's, the bot known by its ID alone", () => {
     expect(viaButtons(ownCard(), ME)).toBe(false);
-    expect(viaButtons(ownCard(), { id: 1, usernames: ["Other", "TONKFUNBOT"] })).toBe(false);
+    expect(viaButtons(ownCard(), { id: 1 })).toBe(true);
+    expect(viaButtons({ ...ownCard(), via_bot: LOOKALIKE }, ME)).toBe(true);
+  });
+
+  it("a new member sharing a look-alike's card (the bot's username, another ID) gets the newcomer hit", () => {
+    const m = { ...ownCard(), via_bot: LOOKALIKE };
+    const rule: RuleInput = { ...input(m.text ?? "", { standing: "new" }), viaButtons: viaButtons(m, ME), buttons: buttonLinks(m, ME) } as RuleInput;
+    expect(checkMessage(rule).hits.map((h) => h.category)).toContain("newcomer_link");
   });
 
   it("another bot's link buttons still count, and so does any bot when the bot doesn't know itself", () => {
@@ -65,6 +74,12 @@ describe("button targets (abuse#7)", () => {
     const forwarded = groupMessage("card", { forward_origin: { type: "user", date: 1, sender_user: BOT }, reply_markup: markup({ text: "Share", url: "https://t.me/share/url?url=x" }) });
     expect(buttonLinks(forwarded, ME)).toEqual([]);
     expect(buttonLinks(ownCard())).not.toEqual([]);
+  });
+
+  it("reads a look-alike's, through inline mode or forwarded: the bot is known by its ID alone", () => {
+    expect(buttonLinks({ ...ownCard(), via_bot: LOOKALIKE }, ME)).toEqual(buttonLinks(ownCard()));
+    const forwarded = groupMessage("card", { forward_origin: { type: "user", date: 1, sender_user: LOOKALIKE }, reply_markup: markup({ text: "Share", url: "https://t.me/share/url?url=x" }) });
+    expect(buttonLinks(forwarded, ME)).toEqual(["https://t.me/share/url?url=x"]);
   });
 
   it("an inline bot's drainer button, or a forwarded post's Claim button, is a look-alike scam for a member", () => {

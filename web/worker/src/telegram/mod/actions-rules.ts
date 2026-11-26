@@ -58,12 +58,16 @@ function scam(hit: RuleHit, ctx: DecideContext): Draft {
  * A member's unknown link (or a forward from a brand-named chat), by
  * strictness; observe reports what normal does. Every removal reaches the
  * team as a routine action alert (the privacy page says each action does).
+ * Relaxed mode keeps both up outside a raid: a link for Haiku's check (held
+ * when the check can't read it), and with the team told, a brand forward
+ * (which carries no unknown link when it leads, so may never reach the
+ * check) and the bot's own words (which never do: ctx.own).
  */
 function unknownLink(hit: RuleHit, ctx: DecideContext): Draft | null {
   const note: Draft = { actions: [DEL], offence: "none", notice: "removed", alert: "action" };
   if (ctx.strictness === "strict") return firstNote(hit, ctx, "removed");
-  // Relaxed leaves it to Haiku, which skips link messages in a raid: then it is held.
-  if (ctx.strictness === "relaxed") return ctx.raid ? note : null;
+  // Haiku's check skips link messages in a raid: then relaxed mode removes them too.
+  if (ctx.strictness === "relaxed" && !ctx.raid) return hit.category === "brand_forward" || ctx.own === true ? { actions: [], offence: "none", notice: null, alert: "action" } : null;
   // Normal: removed with a note; Haiku's verdict decides the offence.
   return note;
 }

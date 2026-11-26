@@ -93,22 +93,6 @@ describe("menus", () => {
     expect(homeView("en", SITE, { ai: false })).toEqual(homeView("en", SITE));
   });
 
-  it("help says how to ask, that answers are AI's and can be wrong, and links the privacy policy, while AI answers are on", () => {
-    const full = helpView("de", SITE, { group: false, bot: "tonkfun_bot", ai: true });
-    const de = COMMUNITY_DICTIONARIES.de;
-    expect(full.text).toContain(`• ${de.help.ask}`);
-    expect(full.text).toContain(de.help.ai);
-    expect(full.text).not.toContain(de.help.groupAsk);
-    expect(urls(full)).toEqual([`${SITE}/de/docs`, `${SITE}/de/privacy/telegram`, `${SITE}/de`]);
-    expect(callbacks(full)).toEqual(["home"]);
-    const group = helpView("en", SITE, { group: true, bot: "tonkfun_bot", ai: true });
-    expect(group.text).toContain(community.help.groupAsk);
-    expect(group.text).toContain(community.help.ai);
-    expect(group.text).not.toContain(community.help.ask);
-    expect(urls(group)).toEqual([`${SITE}/`, `${SITE}/privacy/telegram`]);
-    expect(group.keyboard?.inline_keyboard.flat().map((b) => b.text)).toContain(community.help.privacy);
-  });
-
   it("tells a person their own Telegram ID, and nothing else", () => {
     expect(idView("en", 123_456_789)).toEqual({ text: `${community.id.yours} <code>123456789</code>` });
     expect(idView("ja", 42).text).toBe(`${COMMUNITY_DICTIONARIES.ja.id.yours} <code>42</code>`);

@@ -2,6 +2,7 @@ import type { AnsweredMap } from "../agent/answered";
 import type { Proactive } from "../agent/proactive";
 import { detectTrigger, type Me, type Trigger } from "../agent/triggers";
 import type { EditMemory } from "../mod/edits";
+import { botsOwnOf } from "../mod/rules-scan";
 import type { TgMessage } from "../types";
 import type { Members } from "./members";
 import type { Routed } from "./pipeline-commands";
@@ -11,6 +12,7 @@ import type { AnswerHook, TriageJob } from "./pipeline-triage";
 import type { Who } from "./pipeline-who";
 import type { CommunityOut } from "./out";
 import type { Qa } from "./qa";
+import { createAskPosts } from "./qa-posted";
 import type { AlertSink, ChatId, RuleCategory, RuleHit } from "./types";
 import type { CommunityDictionary } from "./words";
 
@@ -27,10 +29,10 @@ import type { CommunityDictionary } from "./words";
  * check where the rules can't settle it. A question for the bot is answered
  * once the check lets it stand, with what the check found; one removed only
  * as a scam report, so its link doesn't spread ("@TonkfunBot is <look-alike>
- * real?"), is answered at once, replying to nothing. Someone at risk
- * gets the crisis reply, and is never punished. Secrets and flaw reports
- * never reach the model. Nothing here waits on the model, and nothing
- * throws into the update loop.
+ * real?"), is answered at once, replying to nothing. Someone at risk gets
+ * the crisis reply, never a punishment; the bot's own words never get it.
+ * Secrets, flaw reports and inline mode's Ask line (qa-posted.ts) never reach
+ * the model. Nothing here waits on the model, nor throws into the update loop.
  */
 
 export interface PipelineDeps {
@@ -71,6 +73,7 @@ export function createPipeline(deps: PipelineDeps): {
 } {
   const stale = createStaleSummary(deps.alerts, deps.adminWords);
   const noteStale = stale.note;
+  const posts = createAskPosts(deps);
   const isOwn = (m: TgMessage) => {
     const me = deps.me();
     return me !== null && m.from?.id === me.id;
@@ -87,8 +90,13 @@ export function createPipeline(deps: PipelineDeps): {
     const result = deps.moderation.check(m, who, now);
     deps.edits.remember(m.chat.id, m.message_id, result.markers.linkKeys, now);
     const moderated = who.standing === "admin" ? null : deps.moderation.fresh(m, who, result, now);
-    // A person at risk: the crisis reply and an urgent alert, never a punishment; their links still go to the check.
-    const atRisk = result.markers.crisis === "strong";
+    // Inline mode's Ask line, moderated above: its own text goes to no check; its question comes through the router's pairing.
+    if (posts.is(m)) {
+      posts.after(m, who, moderated);
+      return "handled";
+    }
+    // A person at risk: the crisis reply and an urgent alert, never a punishment; their links still go to the check. Never for the bot's own words.
+    const atRisk = result.markers.crisis === "strong" && !botsOwnOf(result.markers);
     if (atRisk) deps.triage.crisis(m, who);
     // A scam report removed so its link doesn't spread still has its command routed and its question answered (rules#1).
     const report = removedAsReport(moderated, result.hits);
@@ -168,8 +176,8 @@ export function createPipeline(deps: PipelineDeps): {
           return;
         }
         const { result, moderated } = deps.moderation.edited(m, who, now);
-        if (result.markers.crisis === "strong") deps.triage.crisis(m, who);
-        deps.triage.check({ ...moderated, m, who, result, answer: null });
+        if (result.markers.crisis === "strong" && !botsOwnOf(result.markers)) deps.triage.crisis(m, who);
+        if (!posts.is(m)) deps.triage.check({ ...moderated, m, who, result, answer: null });
       } catch {
         deps.log("a community edit wasn't handled");
       }

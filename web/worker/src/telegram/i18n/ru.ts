@@ -100,6 +100,14 @@ export const ru: BotDictionary = {
   inline: {
     help: "Как пользоваться ботом",
     notFound: "Токен не найден · Справка",
+    ask: "Спросить TonkFun",
+    askAs: "Спросить TonkFun: {question}",
+    askWhere: "Я отвечаю на вопросы в группе сообщества tonkfun.fun и в личном чате со мной.",
+    askWhereGroup: "Я отвечаю на вопросы в группе сообщества tonkfun.fun.",
+    askWherePrivate: "Я отвечаю на вопросы в личном чате со мной.",
+    askPosted: "Вопрос для TonkFun отправлен.",
+    askNo: "Спросите об этом через /ask",
+    placeholder: "Адрес токена или вопрос",
   },
   channel: {
     launch: "Новый запуск",

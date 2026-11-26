@@ -12,10 +12,12 @@ import { loadTelegramConfig } from "./config";
 import { botHealth } from "./index-health";
 import { senderOut, storeData } from "./index-out";
 import { createProfileSync } from "./index-profile";
+import { inlineLimits } from "./inline";
+import { PendingAsks } from "./inline-pending";
 import { Limiter } from "./limiter";
 import { Poller } from "./poller";
 import type { BotSelf } from "./context";
-import { type BotContext, handleUpdate } from "./router";
+import { type BotContext, handleUpdate, waitsForSlot } from "./router";
 import { Sender } from "./sender";
 import { loadBotState, saveBotState } from "./state";
 import type { TgUser } from "./types";
@@ -82,24 +84,27 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
   let inlineOn = false;
   /** Privacy mode (on by default): in groups Telegram shows the bot only its commands and replies to it. */
   let privacyMode = true;
-  let refused = false;
-  let stopped = false;
+  let [refused, stopped] = [false, false];
+  /** The profile and inline feedback, set once the community agent is wired (index-profile.ts): a change it hears of before then is covered by the first sync. */
+  let profile: ReturnType<typeof createProfileSync> | null = null;
   const ctx: BotContext = {
     data: storeData(deps.store, now), out: senderOut(sender), site: config.site, now, log,
     bot: () => username, me: () => self, inline: () => inlineOn,
-    // Inline: 5 per person in 10 s (pasting an address takes 2 or 3), so a few accounts can't use up the shared 10 a second.
-    limiter: new Limiter(8, 10_000), inlineLimiter: new Limiter(5, 10_000), inlineAll: new Limiter(10, 1_000), pressAll: new Limiter(5, 1_000),
+    // Inline (inline-wait.ts inlineLimits): a person's lookups and their typing each in 10 s, everyone's lookups and texts each a second,
+    // and each person's newest text, answered once they pause; the questions chosen with Ask, waiting for their posts (inline-pending.ts).
+    limiter: new Limiter(8, 10_000), ...inlineLimits(), pendingAsks: new PendingAsks(), pressAll: new Limiter(5, 1_000),
     groupPosts: createOnce(GROUP_POST_MS),
   };
-  // When busy, the community groups' updates wait for a slot instead of being dropped: moderation must see them.
-  // While the community agent starts, theirs (and the admin chat's) wait for it, 2 minutes at most; everything else is answered at once.
+  // When busy, the community's updates and chosen inline results wait for a slot instead of being dropped (router.ts waitsForSlot); while
+  // the community agent starts, its groups' and the admin chat's wait for it, 2 minutes at most; everything else is answered at once.
   const hold = startingChats(deps.env, deps.snapshotPath);
-  const poller = new Poller(api, (update) => handleUpdate(update, ctx), log, undefined, undefined, { priority: (u) => ctx.community?.priority(u) === true, ...(hold ? { hold } : {}) });
-  // Every 5 s, forget the chat and user IDs module 14's rate limits held: none past a minute. The privacy page's
-  // keeps.memory line covers the community agent's own: user IDs, names, usernames and message text for 10 minutes at most.
+  const poller = new Poller(api, (update) => handleUpdate(update, ctx), log, undefined, undefined, { priority: (u) => waitsForSlot(u, ctx), ...(hold ? { hold } : {}) });
+  // Every 5 s, forget the chat and user IDs module 14's rate limits held (none past a minute), and Ask's questions past their minute. The privacy
+  // page's keeps.memory line covers the community agent's own: user IDs, names, usernames and message text for 10 minutes at most.
   const sweep = setInterval(() => {
     const at = Date.now();
-    for (const limiter of [ctx.limiter, ctx.inlineLimiter]) limiter.prune(at);
+    for (const limiter of [ctx.limiter, ctx.inlineLimiter, ctx.inlineText, ctx.inlineAll, ctx.inlineTextAll]) limiter.prune(at);
+    ctx.pendingAsks?.prune(at);
     ctx.groupPosts.prune(at);
     sender.forget(at);
   }, 5_000);
@@ -148,8 +153,6 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
     const botId = self.id;
     // Module 14 answers at once, however long the community's setup reads take when Telegram is slow.
     const polling = poller.run();
-    // Set once the agent is in place: a change it hears of before then is covered by the first sync.
-    let profile: ReturnType<typeof createProfileSync> | null = null;
     const community = await wireCommunity({
       env: deps.env, snapshotPath: deps.snapshotPath, sender, site: config.site, store: deps.store, ethUsd: deps.ethUsd ?? (() => null),
       me: ctx.me, channel: config.channelId, brandCreators: config.brandCreators, log, now, fetchFn: deps.fetchFn, client: deps.claude, failures,
@@ -163,9 +166,10 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
       return;
     }
     if (community) ctx.community = community;
-    // What waited for it goes on now: to the agent, or to module 14 for a group it doesn't run (or with community mode off).
+    // What waited for it goes on now: to the agent, or to module 14 for a group it doesn't run (or with community mode off). The profile
+    // looks again every 5 minutes, since /ai, billing or a refused key change what it offers without an event (index-profile.ts).
     poller.release();
-    profile = createProfileSync({ sender, state, persist, log, botId, options: () => profileOptions(ctx.community ?? null, deps.env, deps.snapshotPath) });
+    profile = createProfileSync({ sender, api, state, persist, log, botId, everyMs: 300_000, options: () => profileOptions(ctx.community ?? null, deps.env, deps.snapshotPath) });
     profile.run();
     await polling;
   })().catch((error: unknown) => {
@@ -178,7 +182,8 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
     afterTonkPoll: async (lag) => {
       await channel?.afterPoll(lag);
     },
-    health: () => botHealth({ poller, sender, channel, community: ctx.community, username, inline: inlineOn, privacyMode }),
+    // inlineFeedback: "on", "off" or "failed" (profile-settings.ts); null until the first sync has tried to set it.
+    health: () => ({ ...botHealth({ poller, sender, channel, community: ctx.community, username, inline: inlineOn, privacyMode }), inlineFeedback: profile?.feedback() ?? null }),
     save: async () => {
       await Promise.all([save(), ctx.community?.save().catch(() => log("community state not saved"))]);
     },
@@ -186,6 +191,9 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
       stopped = true;
       clearInterval(sweep);
       poller.stop();
+      ctx.inlineTyping?.stop();
+      ctx.pendingAsks?.stop();
+      profile?.stop();
       ctx.community?.stop();
     },
   };

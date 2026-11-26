@@ -82,7 +82,7 @@ export function context(data: Partial<BotData> = {}, now = NOW, extra: Partial<B
   return {
     ctx: {
       data: { ...base, ...data }, out, site: SITE, bot: () => "tonkfun_bot", me: () => BOT_SELF, inline: () => true, now: () => now,
-      limiter: new Limiter(8, 10_000), inlineLimiter: new Limiter(20, 10_000), inlineAll: new Limiter(10, 1_000), pressAll: new Limiter(5, 1_000),
+      limiter: new Limiter(8, 10_000), inlineLimiter: new Limiter(20, 10_000), inlineText: new Limiter(30, 10_000), inlineAll: new Limiter(10, 1_000), inlineTextAll: new Limiter(10, 1_000), pressAll: new Limiter(5, 1_000),
       groupPosts: createOnce(10 * 60_000),
       ...extra,
     },

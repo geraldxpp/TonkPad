@@ -3,10 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { createCrisisGate } from "../src/telegram/community/pipeline-crisis";
 import type { Who } from "../src/telegram/community/pipeline-who";
 import type { AdminAlert } from "../src/telegram/community/types";
+import { inlineArticle } from "../src/telegram/inline";
 import type { TgMessage } from "../src/telegram/types";
-import { callsOf, GROUP_ID, groupMessage, MEMBER, memoryRecords, testWords } from "./community-fixtures";
+import { BOT, callsOf, GROUP_ID, groupMessage, MEMBER, memoryRecords, testWords } from "./community-fixtures";
 import { NOW } from "./fixtures";
-import { harness, person, scripted, settle, verdict } from "./community-pipeline-fixtures";
+import { harness, person, scripted, settle, SITE, verdict } from "./community-pipeline-fixtures";
+import { token } from "./telegram-fixtures";
 
 const S = 1_000;
 const MINUTE = 60 * S;
@@ -148,5 +150,31 @@ describe("the community pipeline: someone at risk", () => {
     expect(h.removed()).toEqual([m.message_id]);
     expect(h.records.offences(GROUP_ID, MEMBER.id, NOW).n).toBe(0);
     expect(h.sends().filter((s) => s[1] === testWords.crisis.body)).toHaveLength(1);
+  });
+});
+
+/** The bot's own words a member posts or passes on (mod/rules-scan.ts botsOwnOf): they didn't write them, so they never set off the crisis flow. */
+describe("the community pipeline: the bot's own words with a self-harm phrase", () => {
+  /** The bot's card for a token named "I want to die" (its creator chose the name), posted through inline mode, or forwarded from the bot. */
+  function ownWords(how: "inline" | "forward"): TgMessage {
+    const article = inlineArticle(token({ name: "I want to die" }), "en", SITE);
+    const text = article.input_message_content.message_text.replace(/<[^>]+>/g, "");
+    const where: Partial<TgMessage> = how === "inline" ? { via_bot: BOT, reply_markup: article.reply_markup } : { forward_origin: { type: "user", date: 1, sender_user: BOT } };
+    return groupMessage(text, where);
+  }
+
+  it("gets no crisis reply and no urgent alert, posted, forwarded or edited, and nobody is checked or punished; the member's own words still get it", async () => {
+    const h = harness({ client: scripted({ triage: verdict() }) });
+    const posted = [ownWords("inline"), ownWords("forward")];
+    for (const m of posted) await h.send(m);
+    for (const m of posted) await h.community.pipeline.onEdited({ ...m, edit_date: Math.floor(NOW / 1000) });
+    await settle();
+    expect([h.sends(), h.alerts, h.kinds(), h.removed()]).toEqual([[], [], [], []]);
+    expect(callsOf(h.out.log, "restrict")).toEqual([]);
+    expect(h.records.counts(GROUP_ID, NOW).crisis ?? 0).toBe(0);
+    await h.send(groupMessage("i want to die"));
+    await settle();
+    expect(h.sends().filter((s) => s[1] === testWords.crisis.body)).toHaveLength(1);
+    expect(h.alerts.map((a) => [a.kind, a.urgent])).toEqual([["crisis", true]]);
   });
 });

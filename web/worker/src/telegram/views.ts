@@ -106,16 +106,28 @@ export function notAddressView(lang: Locale): View {
 }
 
 /**
+ * How to ask the AI (module 15), as HTML: in a group or in a private chat.
+ * While inline mode is on (`bot`, the bot's username) it names inline mode's
+ * Ask result too, since a message that starts with @bot can't be sent.
+ */
+export function askLine(lang: Locale, group: boolean, bot: string | null): string {
+  const c = communityWords(lang).help;
+  if (bot === null) return esc(group ? c.groupAskNoInline : c.askNoInline);
+  return fill(group ? c.groupAsk : c.ask, { bot: esc(`@${bot}`), button: esc(words(lang).inline.ask) });
+}
+
+/**
  * How the bot works. With AI answers on (module 15) it says how to ask (in
- * a group: mention it, reply to it or /ask in the community group), that
- * the answers are written by AI and can be wrong, and links the privacy policy.
+ * a group: /ask, a reply, a mention or inline mode's Ask in the community
+ * group), that the answers are written by AI and can be wrong, and links the
+ * privacy policy.
  */
 export function helpView(lang: Locale, site: string, options: { group: boolean; bot: string | null; ai: boolean }): View {
   const d = words(lang).help;
   const c = communityWords(lang).help;
-  const ask = options.ai ? [options.group ? c.groupAsk : c.ask] : [];
-  const bullets = options.group ? [...ask, d.groups] : [...ask, d.paste, d.launches, d.referral, d.groups];
-  const lines = bullets.map((line) => `• ${esc(line)}`);
+  const ask = options.ai ? [askLine(lang, options.group, options.bot)] : [];
+  const bullets = options.group ? [d.groups] : [d.paste, d.launches, d.referral, d.groups];
+  const lines = [...ask, ...bullets.map(esc)].map((line) => `• ${line}`);
   if (!options.group && options.bot) lines.push(`• ${fill(d.inline, { bot: esc(options.bot) })}`);
   const ai = options.ai ? [esc(c.ai), ""] : [];
   const text = [`<b>${esc(d.title)}</b>`, "", ...lines, "", ...ai, esc(d.score), "", esc(d.safety)].join("\n");

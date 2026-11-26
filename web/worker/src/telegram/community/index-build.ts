@@ -144,7 +144,7 @@ export function buildCommunity(input: BuildInput): Community {
   const mod: ModDeps = { out, records: acting, words, alerts: sink, recentIds: (chat, user, at) => flood.recent(chat, user, at), bot, now, adminLang: config.adminLang, site, log };
   const raid = createRaidWatch({ ...mod, groupLang: config.groupLang, settings: acting.settings, update: records.updateSettings, chats });
   const newcomers = createNewcomers({
-    ...mod, admins, allowedBots: config.allowedBots, raid, settings: acting.settings, groupLang: config.groupLang, owns, press: (user: UserId, at: number) => limits.press(user, at),
+    ...mod, admins, allowedBots: config.allowedBots, botId: () => me()?.id ?? null, raid, settings: acting.settings, groupLang: config.groupLang, owns, press: (user: UserId, at: number) => limits.press(user, at),
   });
   const members = createMembers({ owns, records, newcomers, out, admins, alerts: sink, botId: () => me()?.id ?? null, owners: config.owners, words: adminWords, log, now });
   const proactive = createProactive();

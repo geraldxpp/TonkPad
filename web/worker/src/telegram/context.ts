@@ -2,6 +2,8 @@ import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { Token } from "@/shared/types/token";
 import type { Once } from "./community/hold";
 import type { CommunityHooks } from "./community/types";
+import type { PendingAsks } from "./inline-pending";
+import type { InlineTyping } from "./inline-wait";
 import type { Limiter } from "./limiter";
 import type { InlineKeyboard, TgChat, View } from "./types";
 
@@ -16,12 +18,13 @@ export interface BotData {
 
 export type Target = { chatId: number; messageId: number } | { inlineId: string };
 
+/** An inline result: a token's card (HTML, with its buttons), or the Ask result (its fixed line, plain text, no buttons: inline.ts). */
 export interface InlineArticle {
   type: "article";
   id: string;
   title: string;
   description: string;
-  input_message_content: { message_text: string; parse_mode: "HTML"; link_preview_options: { is_disabled: true } };
+  input_message_content: { message_text: string; parse_mode?: "HTML"; link_preview_options: { is_disabled: true } };
   reply_markup?: InlineKeyboard;
 }
 
@@ -52,11 +55,31 @@ export interface BotContext {
   /** Inline mode is switched on in @BotFather (getMe's supports_inline_queries). */
   inline: () => boolean;
   now: () => number;
-  /** Each person's actions, and their inline queries. */
+  /** Each person's actions (limiter), and their inline address lookups and their inline text where Ask isn't offered (inlineLimiter). */
   limiter: Limiter;
   inlineLimiter: Limiter;
-  /** Shared by everyone (key 0): inline answers, and "slow down" toasts for presses past a person's limit. */
+  /** Each person's inline text where Ask is offered: typing a question sends one at each pause, so it has its own, larger allowance (inline-wait.ts inlineLimits). */
+  inlineText: Limiter;
+  /**
+   * Shared by everyone (key 0): inline lookups' answers (inlineAll), inline
+   * text's (inlineTextAll, apart, so people typing can't hold up a lookup),
+   * and "slow down" toasts for presses past a person's limit (pressAll).
+   */
   inlineAll: Limiter;
+  inlineTextAll: Limiter;
+  /**
+   * Each person's newest inline text, answered once they pause (inline-wait.ts
+   * InlineTyping), so a typing burst costs one answer; without it (the
+   * router's tests) text is answered at once.
+   */
+  inlineTyping?: InlineTyping;
+  /**
+   * The questions people chose inline mode's Ask for, waiting for their
+   * posts in the kind of chat each was offered in (inline-pending.ts): 60
+   * seconds and 1,000 questions at most. Without it (the router's tests) no
+   * question is kept, and an Ask post gets the note that says to use /ask.
+   */
+  pendingAsks?: PendingAsks;
   pressAll: Limiter;
   /**
    * Presses in a group that post a new message there (a token's card, or the

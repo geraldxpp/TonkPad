@@ -14,8 +14,11 @@ function leaves(node: object, prefix = ""): Array<[string, string]> {
 }
 const at = (d: CommunityDictionary, path: string): string => new Map(leaves(d)).get(path) ?? "";
 
-/** The words added in English first (report.usagePrivate and the admin chat's new lines), and the welcome and group /report line rewritten with them. */
+/** The words added in English first (report.usagePrivate, the admin chat's new lines, the help lines naming inline mode's Ask and its note when a question never came), and the welcome and group /report line rewritten with them. */
 const NEW_WORDS = [
+  "help.ask",
+  "help.groupAsk",
+  "answer.askLost",
   "check.welcome",
   "report.usage",
   "report.usagePrivate",

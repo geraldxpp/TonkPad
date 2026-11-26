@@ -105,6 +105,32 @@ export const en = {
   inline: {
     help: "How to use this bot",
     notFound: "Token not found · How it works",
+    /**
+     * The inline result that asks the bot (inline.ts askArticle): its name
+     * (/help says to tap it), its title, which starts with that name and
+     * shows the question (with the language's own colon; only the asker sees
+     * the results), and where the bot answers, by what is on: both
+     * (askWhere), only the community groups (askWhereGroup) or only private
+     * chats (askWherePrivate). askPosted is all it ever posts, as the asker's
+     * own plain message, whatever they typed: the question reaches the bot
+     * alone (inline-pending.ts), which knows this line in any of the 12
+     * languages (agent/triggers-via.ts askLine).
+     */
+    ask: "Ask TonkFun",
+    askAs: "Ask TonkFun: {question}",
+    askWhere: "I answer questions in tonkfun.fun's community group and in a private chat with me.",
+    askWhereGroup: "I answer questions in tonkfun.fun's community group.",
+    askWherePrivate: "I answer questions in a private chat with me.",
+    askPosted: "Asked TonkFun a question.",
+    /** The results' button when Ask isn't offered for a question (inline-ask.ts: a query Telegram cut at 256 characters, or one holding a recovery phrase or private key): short, and naming /ask. */
+    askNo: "Use /ask for this one",
+    /**
+     * Inline mode's placeholder, shown in the message field after the bot's
+     * username while Ask TonkFun can be offered (profile-settings.ts).
+     * Telegram keeps one for every language (setMySettings takes no
+     * language code), so only the English one is set.
+     */
+    placeholder: "Token address or a question",
   },
   channel: {
     launch: "New launch",

@@ -2,11 +2,13 @@ import type { Locale } from "@/shared/i18n/config";
 import { clip, visibleText } from "../../text";
 import type { PackSource } from "../agent/types";
 import { type Me, topicOf } from "../agent/triggers";
-import { applyDecision, type DecideContext, decide, decideBot, type ModDecision, type ModDeps, type ModTarget } from "../mod/actions";
+import { applyDecision, type DecideContext, decide, decideBot, type ModDecision, type ModDeps, type ModTarget, ownProtective } from "../mod/actions";
 import { noteLeft } from "../mod/actions-left";
 import type { EditMemory } from "../mod/edits";
 import type { FloodWatch } from "../mod/flood";
+import type { OfficialChannel } from "../mod/media";
 import type { RaidWatch } from "../mod/raid";
+import { botsOwnOf } from "../mod/rules-scan";
 import { maskForModel } from "../mod/secrets";
 import type { TgMessage } from "../types";
 import { messageLink } from "./alerts";
@@ -26,8 +28,13 @@ export { ageOf, textOf } from "./pipeline-mod-input";
  * when one comes, adds to that decision on the same hits
  * (pipeline-triage.ts). Someone who wrote a strong self-harm phrase is never
  * punished, but still moderated: their message counts toward floods and
- * raids (pipeline-mod-watch.ts), and its deletes stand. A member asking to
- * be messaged for help is kept and warned (pipeline-mod-dm.ts).
+ * raids (pipeline-mod-watch.ts), and its deletes stand. So are words a
+ * member posts or passes on but didn't write, for what they say: the bot's
+ * own card or message, the official channel's post, an admin's message
+ * (mod/rules-scan.ts botsOwnOf). Only their own name or a flood can punish
+ * them for it, and in observe mode a drainer's or look-alike's site in them
+ * is still removed. A member asking to be messaged for help is kept and
+ * warned (pipeline-mod-dm.ts).
  */
 
 export interface ModerationDeps {
@@ -46,6 +53,8 @@ export interface ModerationDeps {
   groupLang: Locale;
   /** The group's DM-safety warning pace, shared with the answers' and Haiku's warning (index-build.ts dmWarning); without it, the rules keep their own. */
   dmWarning?: DmPace;
+  /** The official channel (TELEGRAM_CHANNEL_ID, as community/index-setup.ts readChannel read it): a forward of its post is the bot's own words. Without it, none is. */
+  channel?: OfficialChannel | null;
 }
 
 /** What phase 1 did, for Haiku's check to add to. */
@@ -65,18 +74,20 @@ const NO_EXCERPT: ReadonlySet<RuleCategory> = new Set<RuleCategory>(["secret", "
 const LINK_REMOVALS: ReadonlySet<RuleCategory> = new Set<RuleCategory>(["unknown_link", "newcomer_link", "brand_forward"]);
 /** The rest of a flooding burst: deleted with it, quietly (no notice, offence or alert of its own). */
 const REST: ModDecision = { actions: [{ kind: "delete" }], category: "flood", source: "rule", offence: "none", notice: null, alert: null, observeOnly: false, aiGuess: null };
+/** The message itself, never the rest of the target (a flood's burst, a raider's copies): the first ID is always its own. */
+const alone = (t: ModTarget): ModTarget => ({ ...t, messageIds: t.messageIds.slice(0, 1) });
 
 export function createModeration(deps: ModerationDeps) {
   const { records, raid, flood, mod } = deps;
-  const rules = createRuleInput({ records, admins: deps.admins, raid, allow: deps.allow, pack: deps.pack, me: deps.me, mod });
+  const rules = createRuleInput({ records, admins: deps.admins, raid, allow: deps.allow, pack: deps.pack, me: deps.me, mod, channel: deps.channel });
   const check = rules.check;
   const watch = createWatch({ records, raid, flood, copies: { records, standing: deps.standing, mod, groupLang: deps.groupLang } });
   const dmWarning = createDmWarning(mod, deps.dmWarning);
 
-  /** `spare`: a message the decision acts on carries a strong self-harm phrase, so its author is never punished. */
-  function contextOf(chat: ChatId, who: Who, now: number, stale: boolean, spare: boolean): DecideContext {
+  /** `spare`: a message the decision acts on carries a strong self-harm phrase, so its author is never punished. `own`: words the member didn't write (mod/rules-scan.ts botsOwnOf), never punished for what they say. */
+  function contextOf(chat: ChatId, who: Who, now: number, stale: boolean, spare: boolean, own = false): DecideContext {
     const offences = who.user !== null ? records.offences(chat, who.user, now) : NONE;
-    return { standing: who.standing, strictness: records.settings(chat).strictness, offences, raid: raid.active(chat, now), senderChat: who.senderChat !== null, stale, spare };
+    return { standing: who.standing, strictness: records.settings(chat).strictness, offences, raid: raid.active(chat, now), senderChat: who.senderChat !== null, stale, spare, own };
   }
 
   function targetOf(m: TgMessage, who: Who, hits: readonly RuleHit[], messageIds: number[], now: number): ModTarget {
@@ -95,7 +106,9 @@ export function createModeration(deps: ModerationDeps) {
   /**
    * The rules' decision, applied without waiting; true when it deleted the
    * message. The rest of a flooding burst (`rest`) is deleted all the same,
-   * quietly, except in observe mode.
+   * quietly, except in observe mode. There, words the member didn't write
+   * that a flood (or their own name) decided still lose a drainer's or
+   * look-alike's site: that message alone, never the burst (ownProtective).
    */
   function apply(hits: RuleHit[], ctx: DecideContext, target: ModTarget, now: number, rest = false): { moderated: Moderated; decision: ModDecision | null } {
     const d = decide(hits, null, ctx);
@@ -104,8 +117,14 @@ export function createModeration(deps: ModerationDeps) {
       if (d.actions.length > 0) raid.noteAction(target.chat, now);
     }
     let removed = d?.actions.some((a) => a.kind === "delete") ?? false;
+    const guard = removed ? null : ownProtective(hits, ctx);
+    if (guard) {
+      void applyDecision(guard, alone(target), mod);
+      raid.noteAction(target.chat, now);
+      removed = true;
+    }
     if (rest && !removed && ctx.strictness !== "observe") {
-      void applyDecision(REST, { ...target, messageIds: target.messageIds.slice(0, 1) }, mod);
+      void applyDecision(REST, alone(target), mod);
       removed = true;
     }
     return { moderated: { hits, ctx, target, removed, removedLink: removed && d !== null && LINK_REMOVALS.has(d.category) }, decision: d };
@@ -117,7 +136,7 @@ export function createModeration(deps: ModerationDeps) {
     /** A new message: the flood and raid watch, then the rules' decision (admins are never moderated), and a help request's DM-safety warning. */
     fresh(m: TgMessage, who: Who, result: RuleResult, now: number): Moderated {
       const { hits, ids, spare, rest } = watch(m, who, result, now);
-      const ctx = contextOf(m.chat.id, who, now, false, spare);
+      const ctx = contextOf(m.chat.id, who, now, false, spare, botsOwnOf(result.markers));
       const { moderated, decision } = apply(hits, ctx, targetOf(m, who, hits, ids, now), now, rest);
       if (!moderated.removed) dmWarning(result.markers, decision, moderated.target, ctx.strictness, now);
       return moderated;
@@ -134,7 +153,7 @@ export function createModeration(deps: ModerationDeps) {
       let result = check(m, who, now, { edited: true, addedLinks: null });
       if (deps.edits.added(m.chat.id, m.message_id, result.markers.linkKeys, now) === true) result = check(m, who, now, { edited: true, addedLinks: true });
       const { hits, ids, spare } = watch(m, who, result, now, true);
-      return { result, moderated: apply(hits, contextOf(m.chat.id, who, now, false, spare), targetOf(m, who, hits, ids, now), now).moderated };
+      return { result, moderated: apply(hits, contextOf(m.chat.id, who, now, false, spare, botsOwnOf(result.markers)), targetOf(m, who, hits, ids, now), now).moderated };
     },
 
     /**

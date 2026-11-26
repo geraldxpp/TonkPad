@@ -20,9 +20,11 @@ export const tr: CommunityDictionary = {
     ai: "Tüm model çağrıları: on veya off",
   },
   help: {
-    ask: "tonkfun.fun hakkında bana her şeyi sorabilirsiniz: /ask ve sorunuzu gönderin.",
+    ask: "tonkfun.fun hakkında bana her şeyi sorabilirsiniz: /ask ve sorunuzu gönderin ya da {bot} ve ardından sorunuzu yazıp “{button}” seçeneğine dokunun. Bu, soru sorduğunuzu belirten kısa bir not paylaşır ve yanıtım bu nota cevap olarak gelir. Topluluk grubunda yanıtlarımdan birine cevap da verebilir veya beni mesajın başı dışında herhangi bir yerde etiketleyebilirsiniz.",
+    askNoInline: "tonkfun.fun hakkında bana her şeyi sorabilirsiniz: /ask ve sorunuzu gönderin.",
     ai: "Yanıtlarımı bir yapay zekâ (Anthropic’in geliştirdiği Claude) yazar ve yanlış olabilirler. Asla yatırım tavsiyesi değildirler.",
-    groupAsk: "Topluluk grubunda beni etiketleyin, yanıtlarımdan birine cevap verin ya da /ask ve sorunuzu gönderin.",
+    groupAsk: "Topluluk grubunda /ask ve sorunuzu gönderin, yanıtlarımdan birine cevap verin ya da beni mesajın başı dışında herhangi bir yerde etiketleyin. Ayrıca {bot} ve ardından sorunuzu yazıp “{button}” seçeneğine dokunabilirsiniz: bu, soru sorduğunuzu belirten kısa bir not paylaşır ve yanıtım bu nota cevap olarak gelir.",
+    groupAskNoInline: "Topluluk grubunda /ask ve sorunuzu gönderin, yanıtlarımdan birine cevap verin ya da beni etiketleyin.",
     privacy: "Gizlilik",
   },
   answer: {
@@ -48,6 +50,7 @@ export const tr: CommunityDictionary = {
     askPrompt: "tonkfun.fun hakkında bana her şeyi sorun. Yanıtları bir yapay zekâ (Anthropic’in geliştirdiği Claude) yazar ve yanlış olabilirler.",
     askPlaceholder: "tonkfun.fun hakkındaki sorunuz",
     askExpired: "O mesaj artık bende değil, bu yüzden hiçbir şey gönderilmedi. Lütfen sorunuzu yeniden gönderin.",
+    askLost: "Sorunuz bana ulaşmadı. /ask ve sorunuzu gönderin.",
   },
   crisis: {
     body: "Bunları yaşadığınız için çok üzgünüm. Bununla tek başınıza yüzleşmek zorunda değilsiniz: biriyle konuşmak iyi gelebilir ve aşağıdaki düğme yakınınızdaki ücretsiz bir destek hattını bulmanıza yardım eder.",

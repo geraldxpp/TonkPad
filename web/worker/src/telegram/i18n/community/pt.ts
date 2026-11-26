@@ -20,9 +20,11 @@ export const pt: CommunityDictionary = {
     ai: "Todas as chamadas ao modelo: on ou off",
   },
   help: {
-    ask: "Pergunte o que quiser sobre o tonkfun.fun: envie /ask e a sua pergunta.",
+    ask: "Pergunte o que quiser sobre o tonkfun.fun: envie /ask e a sua pergunta, ou digite {bot} e a sua pergunta e depois toque em «{button}». Assim é publicada uma breve nota de que você perguntou, e a minha resposta responde a essa nota. No grupo da comunidade, você também pode responder a uma das minhas respostas ou me mencionar em qualquer parte da mensagem, menos no início.",
+    askNoInline: "Pergunte o que quiser sobre o tonkfun.fun: envie /ask e a sua pergunta.",
     ai: "Minhas respostas são escritas por IA (Claude, criada pela Anthropic) e podem estar erradas. Elas nunca são aconselhamento financeiro.",
-    groupAsk: "No grupo da comunidade, me mencione, responda a uma das minhas respostas ou envie /ask e a sua pergunta.",
+    groupAsk: "No grupo da comunidade, envie /ask e a sua pergunta, responda a uma das minhas respostas ou me mencione em qualquer parte da mensagem, menos no início. Você também pode digitar {bot} e a sua pergunta e depois tocar em «{button}»: assim é publicada uma breve nota de que você perguntou, e a minha resposta responde a essa nota.",
+    groupAskNoInline: "No grupo da comunidade, envie /ask e a sua pergunta, responda a uma das minhas respostas ou me mencione.",
     privacy: "Privacidade",
   },
   answer: {
@@ -48,6 +50,7 @@ export const pt: CommunityDictionary = {
     askPrompt: "Pergunte o que quiser sobre o tonkfun.fun. As respostas são escritas por IA (Claude, criada pela Anthropic) e podem estar erradas.",
     askPlaceholder: "Sua pergunta sobre o tonkfun.fun",
     askExpired: "Não tenho mais essa mensagem, então nada foi enviado. Envie sua pergunta de novo.",
+    askLost: "Não recebi a sua pergunta. Envie /ask e a sua pergunta.",
   },
   crisis: {
     body: "Sinto muito que você esteja passando por isso. Você não precisa enfrentar isso sem ninguém ao seu lado: conversar com alguém pode ajudar, e o botão abaixo encontra uma linha de apoio gratuita perto de você.",

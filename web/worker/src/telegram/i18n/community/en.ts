@@ -29,9 +29,11 @@ export const en: CommunityDictionary = {
     ai: "Every model call: on or off",
   },
   help: {
-    ask: "Ask me anything about tonkfun.fun: send /ask and your question.",
+    ask: "Ask me anything about tonkfun.fun: send /ask and your question, or type {bot} and your question, then tap “{button}”. That posts a short note that you asked, and my answer replies to it. In the community group you can also reply to one of my answers or mention me anywhere but at the start.",
+    askNoInline: "Ask me anything about tonkfun.fun: send /ask and your question.",
     ai: "My answers are written by AI (Claude, made by Anthropic) and can be wrong. They are never financial advice.",
-    groupAsk: "In the community group, mention me, reply to one of my answers or send /ask and your question.",
+    groupAsk: "In the community group, send /ask and your question, reply to one of my answers or mention me anywhere but at the start. You can also type {bot} and your question, then tap “{button}”: that posts a short note that you asked, and my answer replies to it.",
+    groupAskNoInline: "In the community group, send /ask and your question, reply to one of my answers or mention me.",
     privacy: "Privacy",
   },
   answer: {
@@ -58,6 +60,7 @@ export const en: CommunityDictionary = {
     askPrompt: "Ask me anything about tonkfun.fun. Answers are written by AI (Claude, made by Anthropic) and can be wrong.",
     askPlaceholder: "Your question about tonkfun.fun",
     askExpired: "I no longer have that message, so nothing was sent. Please send your question again.",
+    askLost: "I didn't get your question. Send /ask and your question.",
   },
   crisis: {
     body: "I'm sorry you're going through this. You don't have to face it alone: talking to someone can help, and the button below finds a free helpline near you.",

@@ -36,9 +36,11 @@ export const testWords: CommunityDictionary = {
     ai: "Every model call on or off",
   },
   help: {
-    ask: "Ask me anything about tonkfun.fun with /ask.",
+    ask: "Ask me anything about tonkfun.fun with /ask, or type {bot} and tap “{button}”.",
+    askNoInline: "Ask me anything about tonkfun.fun with /ask.",
     ai: "My answers are written by AI and can be wrong.",
-    groupAsk: "Mention me, reply to my answer, or use /ask.",
+    groupAsk: "Mention me, reply to my answer, use /ask, or type {bot} and tap “{button}”.",
+    groupAskNoInline: "Mention me, reply to my answer, or use /ask.",
     privacy: "Privacy",
   },
   answer: {
@@ -64,6 +66,7 @@ export const testWords: CommunityDictionary = {
     askPrompt: "Ask me anything about tonkfun.fun.",
     askPlaceholder: "Your question",
     askExpired: "That question expired. Please send it again.",
+    askLost: "I didn't get your question. Send /ask and your question.",
   },
   crisis: { body: "I'm sorry you're going through this. The button below finds a helpline.", button: "Find a helpline" },
   links: {

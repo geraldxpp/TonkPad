@@ -1,9 +1,9 @@
-import { claimsBrand } from "../channel";
 import type { AllowList, RuleResult, Severity, Standing, Strictness } from "../community/types";
 import type { TgMessageEntity } from "../types";
-import { brandLookalike, hasRoleWord, nameRisk, teamAddress } from "./names";
+import { brandLookalike, nameRisk, teamAddress } from "./names";
 import { baitBesideLink } from "./rules-bait";
 import { emailOfferOf, readEmails } from "./rules-emails";
+import { brandForward, newcomerForward } from "./rules-forwards";
 import { Hits, scamHits, severeKeys, toScamReport } from "./rules-hits";
 import { readReport } from "./rules-report";
 import { type Scan, scanMessage } from "./rules-scan";
@@ -30,8 +30,14 @@ export interface RuleInput {
   ageSeconds: number;
   forwarded: boolean;
   forwardName: string | null;
-  /** The forward's username (media.ts forwardUsername): forwards from official accounts, the bot and admins are never brand forwards. */
+  /** The forward's username (media.ts forwardUsername): see rules-forwards.ts. */
   forwardUsername?: string | null;
+  /** A forward whose author is known by ID (rules-forwards.ts): a user forward from the bot (agent/triggers.ts forwardedFromMe) or an admin, or one from the official channel (media.ts fromChannel). */
+  forwardSelf?: boolean;
+  forwardAdmin?: boolean;
+  forwardChannel?: boolean;
+  /** The bot's own token card, posted through its inline mode or passed on (media.ts ownCard). With the three above, words the member didn't write (rules-scan.ts botsOwnOf). */
+  ownCard?: boolean;
   externalOtherChat: boolean;
   viaButtons: boolean;
   /** The targets of the message's link buttons (media.ts buttonLinks), read like links in the text. */
@@ -47,7 +53,7 @@ export interface RuleInput {
    */
   tagsByAdmins?: boolean;
   admins: ReadonlyArray<{ name: string; username: string | null }>;
-  /** The bot's usernames. */
+  /** The bot's usernames: the name rules read them; they never vouch for a forward (rules-forwards.ts). */
   bot: readonly string[];
   allow: AllowList;
   /** The knowledge pack's own addresses: never raid material. */
@@ -103,26 +109,18 @@ function flawReport(scan: Scan, input: RuleInput): boolean {
   return [...input.text].length >= 200 || code || scan.markers.addresses.length > 0;
 }
 
-/** A forward from a chat or user whose name uses the brand or a role word, unless it is an official account, the bot or an admin. */
-function brandForward(input: RuleInput): boolean {
-  if (!input.forwarded || !input.forwardName) return false;
-  const known = [...input.allow.telegram, ...input.bot, ...input.admins.flatMap((a) => (a.username ? [a.username] : []))].map((n) => n.toLowerCase().replace(/^@/, ""));
-  const from = input.forwardUsername?.toLowerCase() ?? null;
-  if (from !== null && known.includes(from)) return false;
-  return claimsBrand(input.forwardName, "") || hasRoleWord(input.forwardName);
-}
-
 /**
  * Links by standing. A new member: any link that isn't allowed or official
- * (look-alikes and invites have their own rules), a forward, another bot's
- * link buttons or a reply to another chat. A member: such a link, or a
- * forward named like the team, by strictness (relaxed leaves it to Haiku's
- * check unless raid mode is on, when there is none). Trusted members skip both.
+ * (look-alikes and invites have their own rules), a forward nobody vouches
+ * for (rules-forwards.ts), another bot's link buttons or a reply to another
+ * chat. A member: such a link, or a forward named like the team, by
+ * strictness (relaxed keeps them for Haiku's check unless raid mode is on,
+ * when there is none). Trusted members skip both.
  */
 function linkHits(scan: Scan, input: RuleInput, hits: Hits): void {
   const plain = scan.risky.filter((l) => l.kind !== "telegram_invite" && l.kind !== "lookalike" && !(l.kind === "obfuscated" && l.domain !== null && brandLookalike(l.domain)));
   if (input.standing === "new") {
-    if (plain.length > 0 || input.forwarded || input.viaButtons || input.externalOtherChat) hits.add("newcomer_link", "notice", false, "a new member's link, forward or link buttons");
+    if (plain.length > 0 || newcomerForward(input) || input.viaButtons || input.externalOtherChat) hits.add("newcomer_link", "notice", false, "a new member's link, forward or link buttons");
     return;
   }
   if (input.standing !== "member") return;

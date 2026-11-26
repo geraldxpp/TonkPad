@@ -289,20 +289,40 @@ export const en = {
       intro: "Only what it needs to answer you and to keep tonkfun.fun's official group safe:",
       private: "In a private chat, the messages you send it: a question, a token address, a wallet address for a referral link or a command.",
       community: "In tonkfun.fun's official community group, where it is an admin, Telegram shows it every message, edit and new member. It reads them to answer questions, remove spam and scams, check that new members are human and tell the team when someone needs a person.",
-      groups: "In any other group, only its commands, such as /check (with the message a /check replies to), and replies to it. Telegram also shows it notices such as who joined, which it ignores. If such a group makes it an admin, Telegram shows it every message there; it still acts only on its commands and keeps nothing.",
-      inline: "When you type {handle} in any chat, the text you type after it, as you type it.",
+      groups: "In any other group, only its commands, such as /check (with the message a /check replies to), and replies to it. Telegram also shows it notices such as who joined, and messages sent there through its inline mode (its token cards, and the fixed line Ask TonkFun posts); it ignores all of these. If such a group makes it an admin, Telegram shows it every message there; it still acts only on its commands and keeps nothing.",
+      /**
+       * A chosen result is Telegram's chosen_inline_result, which Telegram sends only while inline feedback is on. The bot turns it on itself (setMySettings,
+       * every chosen result: worker profile-settings.ts) while Ask TonkFun can be offered (AI answers on in the community groups or in private chats, as its
+       * last profile sync found: at start and when the community setup changes), and off otherwise; it reads only Ask TonkFun's (worker inline.ts onChosen).
+       * One that still comes while Ask can't be used (AI switched off since that sync, or a failed set leaving @BotFather's setting on) is ignored, and nothing is kept.
+       */
+      inline: "When you type {handle} in any chat, the text you type after it, as you type it. While Ask TonkFun can be used, it also asks Telegram to tell it which of its results you choose, with the text you typed for it.",
       buttons: "The buttons you tap on its messages.",
-      profile: "With each of these, Telegram includes your Telegram ID, name and app language. The bot uses your ID to pace its replies and, in the official group, for the records below; your name only to spot spam and accounts posing as the team, and in its notes to the team; your language to answer in yours.",
+      /** The name and username are read for the group's name checks (worker mod/names.ts); inline mode reads neither. The ID also pairs an Ask TonkFun question with its post, with the kind of chat its result was offered in (worker inline-pending.ts). */
+      profile: "With each of these, Telegram includes your Telegram ID, name, username and app language. The bot uses your ID to pace its replies, to match a question you send with Ask TonkFun to the line it posts and, in the official group, for the records below; your name and username only to spot spam and accounts posing as the team, and in its notes to the team; your language to answer in yours.",
     },
     /** What goes to Claude (Anthropic) and what Anthropic keeps. link opens Anthropic's retention article (privacy.claude.com) in a new tab. */
     ai: {
       title: "AI answers and checks",
       who: "Its answers, and its checks of messages its own rules can't settle, are written by Claude, an AI model made by Anthropic, which processes them for tonkfun.fun as a service provider.",
-      sent: "It sends Anthropic text, never photos or files: a question you ask it (with /ask, by mentioning it, by replying to it, or with the Ask button in a private chat); its own earlier answer when you reply to one; and your message when someone uses /ask in reply to it. In the official group it also sends messages its rules can't settle on their own: questions; messages with handles, wallet or token addresses, or links that aren't on its allow-list (whether it removed them or not); messages that ask for help or mention a problem, such as lost funds or a failed buy; messages that warn about, ask about or report a scam, or mention DMs; messages that may show someone is in distress; and new members' messages of 3 words or more. With them it sends a few facts its code works out, such as your app's language and, for its checks, whether you're a new or trusted member, whether the message was edited or forwarded, and its links' domains. It adds no Telegram ID, name or username and hides e-mail addresses and phone numbers in the formats it recognises, but otherwise sends the message as it was written, so keep personal details out of it.",
+      /**
+       * Ask TonkFun is inline mode's Ask result, quoted as the bot titles it in each language (its dictionary's inline.ask), here and in reads.groups, reads.inline,
+       * reads.profile, keeps.memory, keeps.admins and rights.choose. It posts only a fixed line; the question it was chosen for reaches the bot alone, through
+       * Telegram's chosen_inline_result, waits for its post 60 s at most (worker inline-pending.ts) and is answered as /ask (keeps.memory: until it's answered or dropped).
+       * A forward, a reply to another chat or another bot's link buttons that the rules removed (a new member's forward nobody vouches for, or a forward named like the team) goes to the check as an unknown link does (worker mod/triage.ts shouldTriage, removedLink).
+       * Words the member didn't write never go to the check (worker mod/rules-scan.ts botsOwnOf): the bot's card posted through inline mode, a forward of its message,
+       * and an admin's message forwarded by the admin's ID. A forward of the official channel's post joins them only once the worker passes the channel to moderation
+       * (mod/media.ts fromChannel; community/index-build.ts doesn't yet). The page lists only what may go, so it names none of these.
+       */
+      sent: "It sends Anthropic text, never photos or files: a question you ask it (with /ask, by mentioning it, by replying to it, by tapping Ask TonkFun after typing its handle and your question, or with the Ask button in a private chat); its own earlier answer when you reply to one; and your message when someone uses /ask in reply to it. In the official group it also sends messages its rules can't settle on their own: questions; messages with handles, wallet or token addresses, or links that aren't on its allow-list (whether it removed them or not); forwards, replies to other chats and messages with another bot's link buttons, if it removed them; messages that ask for help or mention a problem, such as lost funds or a failed buy; messages that warn about, ask about or report a scam, or mention DMs; messages that may show someone is in distress; and new members' messages of 3 words or more. With them it sends a few facts its code works out, such as your app's language and, for its checks, whether you're a new or trusted member, whether the message was edited or forwarded, and its links' domains. It adds no Telegram ID, name or username and hides e-mail addresses and phone numbers in the formats it recognises, but otherwise sends the message as it was written, so keep personal details out of it.",
       code: "With each request it also sends a code made from your Telegram ID, which changes every month and which Anthropic can't turn back into your ID, so Anthropic can spot misuse.",
       retention: "Anthropic deletes this text within 30 days. If its safety systems flag a message, it may keep it for up to 2 years, and its safety scores for up to 7 years; data it has made anonymous may be kept longer. By default Anthropic doesn't use it to train its models, and tonkfun.fun hasn't opted in.",
       link: "How long Anthropic keeps data",
-      secrets: "Never send a seed phrase or a private key. The bot removes anything that looks like one, in the group and in what you ask it, and never sends one anywhere.",
+      /**
+       * Only what the bot recognises (worker mod/secrets.ts findSecret): 12 to 24 BIP-39 words split on spaces (numbering allowed), a 64-hex key beside key words,
+       * a base58 key or a 64-number array. A phrase written without spaces (its words joined by commas or hyphens alone) isn't recognised, nor removed or masked.
+       */
+      secrets: "Never send a seed phrase or a private key. The bot removes anything it recognises as one, in the group and in what you ask it, and never sends it anywhere.",
       wrong: "AI answers can be wrong and are never financial advice.",
       /** Quotes the review button on the bot's notices (its community dictionary's mod.why). */
       decisions: "Some moderation is automatic: its rules, and in some cases Claude's check, can remove a message, mute someone or remove them from the group. Every action is reported to the team, who can undo it, and a person decides every ban the rules aren't certain of. If it mutes or bans you, or records a warning, tap ‘Why? Ask for a review’ on its notice.",
@@ -310,7 +330,14 @@ export const en = {
     keeps: {
       title: "What it keeps",
       nothing: "No chat history, and nothing from private chats once it has answered.",
-      memory: "While it works, it holds some things in memory only, then forgets them: user IDs, names, usernames and the text of a message for at most 10 minutes (to pace replies, stop floods and raids, check a message, see whether someone else answers a question first, gather its notes to the team, or wait for you to tap Ask or Share); the group's list of admins, read from Telegram every 10 minutes; and, without user IDs, which of its answers replies to which message, for 2 days.",
+      /**
+       * An Ask TonkFun question (worker inline-pending.ts) waits for its post 60 s at most, swept every 5 s. While the bot is busy, its chosen result may first wait
+       * up to 5 minutes for a slot (worker router.ts waitsForSlot, poller-wait.ts BUFFER_MS); once paired, Haiku's check starts within 60 s and runs 12 s at most, and
+       * the answer starts within 60 s and runs 60 s at most (community/pipeline-triage.ts, community/qa.ts, agent/answer-request.ts): about 9½ minutes in all at the
+       * very worst. Only the user ID waits with it for its post; the update in the poller's buffer (name and username too), and an alert or a Share hold that
+       * quotes it afterwards, count under the 10 minutes before it.
+       */
+      memory: "While it works, it holds some things in memory only, then forgets them: user IDs, names, usernames and the text of a message for at most 10 minutes (to pace replies, stop floods and raids, check a message, see whether someone else answers a question first, gather its notes to the team, or wait for you to tap Ask or Share); a question you send with Ask TonkFun, with your user ID, until it's answered or dropped (at most 10 minutes), to match it to the line Ask TonkFun posts and answer it; the group's list of admins, read from Telegram every 10 minutes; and, without user IDs, which of its answers replies to which message, for 2 days.",
       wallet: "A wallet address you send for a referral link is used to make the link, then dropped.",
       /** The records in the worker's community state file, each with how long it is kept. */
       communityIntro: "In the official group only, it keeps these records on its server, then deletes them:",
@@ -321,7 +348,13 @@ export const en = {
       reviews: "Reviews: when you last asked for one, for a day.",
       cleanup: "Messages still to delete, its own and members' messages it removed: their IDs, for at most 2 days.",
       left: "When you leave the group, it deletes your records there. A removal stays with Telegram.",
-      admins: "When it removes a message or restricts someone (or, while the group is in observe mode, would have), when a case needs a person, when you report a message or ask for a review, or when it proposes an answer in observe mode, it posts in the team's private admin chat on Telegram: your name, username and ID, a short excerpt, a link to the message and, where Claude checked the message, the AI's guess; if you're a new member, also how long ago you joined or passed the check. A report also shows who sent it (their name, username and ID) and their reason, and a review your current restriction. It also posts there your name, username and ID with an excerpt of your question when Claude refuses two of your questions in the group within 10 minutes; your name and username when an admin marks you trusted or stops trusting you; and each trusted member's name, username and ID when an admin asks for the list. It deletes its routine notes there after 2 days, and the chat deletes everything after 7; the bot keeps no copy. From a private chat it posts your name, username and message only if you tap Share with the team or use /report.",
+      /**
+       * An alert about an Ask TonkFun post quotes its question (worker community/qa-posted.ts). In relaxed mode the team is also told, with no action, of a
+       * forward named like the team that holds no unknown link (one that holds one goes to the check instead: the rules act on the lead hit alone) and of
+       * words the member didn't write holding an unknown link: the bot's own card or a forward of its message, or an admin's message forwarded by the admin's ID
+       * (worker mod/actions-rules.ts unknownLink, mod/rules-scan.ts botsOwnOf; the official channel's post only once the worker passes the channel to moderation).
+       */
+      admins: "When it removes a message or restricts someone (or, while the group is in observe mode, would have), when a case needs a person, when you report a message or ask for a review, or when it proposes an answer in observe mode, it posts in the team's private admin chat on Telegram: your name, username and ID, a short excerpt (of your question, if you asked with Ask TonkFun), a link to the message and, where Claude checked the message, the AI's guess; if you're a new member, also how long ago you joined or passed the check. A report also shows who sent it (their name, username and ID) and their reason, and a review your current restriction. It also posts there your name, username and ID with an excerpt of your question when Claude refuses two of your questions in the group within 10 minutes; your name, username and ID when, in relaxed mode, it leaves up a message you forwarded from someone named like the team (if it holds no link outside its allow-list), or a card or message of its own, or an admin's message, that you shared or forwarded and that holds such a link; your name and username when an admin marks you trusted or stops trusting you; and each trusted member's name, username and ID when an admin asks for the list. It deletes its routine notes there after 2 days, and the chat deletes everything after 7; the bot keeps no copy. From a private chat it posts your name, username and message only if you tap Share with the team or use /report.",
       counts: "It also counts each day's answers, reports, checks and moderation actions, and its AI spending, with no IDs.",
     },
     never: {
@@ -339,7 +372,7 @@ export const en = {
       team: "the tonkfun.fun team",
       why: "It uses what it reads only to answer questions and keep the group free of spam and scams.",
       recipients: "Only Anthropic (for AI answers and checks, in the United States, under its data processing terms with the EU's standard contractual clauses), Telegram (which carries every message) and Railway (which hosts the bot's server and stores its records and logs) receive it.",
-      choose: "In a private chat, nothing goes to the AI unless you use /ask or tap Ask. In the group, moderation applies to everyone, and while unprompted answers are on, the bot may also answer a question about tonkfun.fun that you post without asking it.",
+      choose: "In a private chat, nothing goes to the AI unless you use /ask, tap Ask, or type its handle and a question, then tap Ask TonkFun. In the group, moderation applies to everyone, and while unprompted answers are on, the bot may also answer a question about tonkfun.fun that you post without asking it.",
       ask: "You can ask for a copy of your records, or for them to be deleted sooner, through the contact on the Security page, and you can complain to your data protection authority.",
     },
     channel: {

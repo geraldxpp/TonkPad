@@ -1082,7 +1082,11 @@ two in step.
   `/referral` makes a wallet's `?ref=` link; `/help` explains it all.
 - **In any other group:** `/check <address>` only (privacy mode stays on).
   The official community group is below.
-- **Inline:** `@<bot> <address>` in any chat, once inline mode is on.
+- **Inline:** `@<bot> <address>` in any chat, once inline mode is on. While
+  the community agent's AI answers are on, inline mode also offers "Ask
+  TonkFun" in supergroups and the bot's own chat: it posts a fixed line, and
+  the question reaches the bot alone, through Telegram's chosen result
+  (below).
 - **The official channel** (optional): tonkfun.fun's launches, 50% and 90% of
   the curve, graduations, extended locks (only a lock that earns the Locked
   badge, at most once a day per token) and the Block-0 Shield's report. Only
@@ -1112,7 +1116,9 @@ two in step.
 1. In @BotFather: `/newbot`, name it "tonkfun.fun" and pick a username such
    as `tonkfun_bot`; copy the token. `/setuserpic` with
    `marketing/telegram/bot-avatar.png`. `/setinline` with the placeholder
-   "Paste a token address" turns on inline mode.
+   "Paste a token address" turns on inline mode (while the community agent
+   can offer Ask TonkFun, the bot sets the placeholder to "Token address or a
+   question" itself).
 2. For the channel: create it, add the bot as an administrator that can post
    messages, and note its `@name`.
 3. In Railway, add the variables; the worker restarts with them.
@@ -1144,10 +1150,134 @@ variables are set (below) it is off, and the bot is module 14 alone.
 
 | Where | It answers when |
 |---|---|
-| A community group (`TELEGRAM_COMMUNITY_CHATS`) | someone mentions it, replies to one of its answers or cards, or sends `/ask <question>`; or, unprompted, a message is clearly an unanswered question about tonkfun.fun |
-| A private chat | `/ask <question>`, a reply to its Ask prompt, or a tap on Ask under other text. A bare address still gets its card, and nothing goes to Anthropic until the person asks |
+| A community group (`TELEGRAM_COMMUNITY_CHATS`) | someone sends `/ask <question>`, replies to one of its answers or to a card it posted itself (for `/check`; a reply to a card a member shared through inline mode asks nothing), mentions it (anywhere but at the very start: a message that starts with `@<bot>` becomes an inline query), or asks with Ask TonkFun (below); or, unprompted, a message is clearly an unanswered question about tonkfun.fun |
+| A private chat | `/ask <question>`, a reply to its Ask prompt, an Ask TonkFun post (answered as `/ask` with the question chosen for it), or a tap on Ask under other text. A forwarded `/ask` or `/report` is read as text, never as the person's own command; other forwarded commands run as before. A bare address still gets its card; the bot's own card, shared or forwarded, and a forwarded Ask post get no reply; and nothing goes to Anthropic until the person asks |
 | The admin chat (`TELEGRAM_ADMIN_CHAT_ID`) | never: admin commands and alerts only, and nothing there goes to Anthropic |
-| Any other group, inline mode, the channel | never: they work as before (`/help` there is module 14's, with no AI lines or Privacy button) and send nothing to Anthropic |
+| Any other group, the channel | never: they work as before (`/help` there is module 14's, with no AI lines or Privacy button) and send nothing to Anthropic. In another group the bot is in, Telegram also shows it the cards and Ask TonkFun's fixed line posted there through its inline mode, which it ignores; a question chosen there goes unused, unless the same person posts Ask TonkFun's line in a community group within seconds (below) |
+| Inline mode | never itself: it offers a token's card and, in supergroups and the bot's own chat while AI answers run there, Ask TonkFun (below); it calls no model and sends nothing to Anthropic |
+
+**Inline Ask.** A message that starts with `@<bot>` is an inline query, which
+Telegram can't send, so inline mode (`inline.ts`) offers "Ask TonkFun", but
+only in supergroups and the bot's own chat, while AI answers run there: in a
+supergroup while they are on in the community groups (`groupAiOn`), and in
+the bot's own chat while they are on in private chats (`aiOn`), as `/help`
+decides; never in a basic group, a channel, a chat with someone else or a
+secret chat. Telegram doesn't say which supergroup a query comes from, so Ask
+is offered in every supergroup, even one where nothing answers it. Its title
+shows the question to the asker alone (results are personal, cached 10
+seconds), its ID the kind of chat it was offered in (`ask:g` in a supergroup,
+`ask:p` in the bot's own chat), since the chosen result names no chat, and
+its description says where the bot answers, by what is on. Ask
+never posts anything a member typed: the owner's decision on 26 Nov 2026,
+after three rounds of filters on posted free text kept failing review.
+
+- **When it is offered** (`inline-ask.ts`): for a query that reads as a
+  question (a question mark, particle or question word in the 12 languages)
+  or has 3 words or more, and holds a letter or a digit; never for a token
+  address, whose card answers it ("Token not found" when there is none).
+  Anything else gets no result and the usual help button. A query of 256
+  characters or more (Telegram cuts an inline query there, so it may not be
+  the whole question), or one holding a recovery phrase or a private key,
+  gets no result and a button that says "Use /ask for this one" (in the
+  asker's language; it opens the bot's chat).
+- **What it posts:** only a fixed line in the asker's language
+  (`inline.askPosted`, "Asked TonkFun a question."), as the member's own
+  plain message via the bot, with no link preview or buttons.
+- **How the question arrives:** Telegram's `chosen_inline_result`, which
+  Telegram sends only while inline feedback is on, names the result the
+  member chose and carries the query they typed for it (`inline.ts`
+  `onChosen`). The bot turns inline feedback on itself
+  (`profile-settings.ts`: `setMySettings`, every chosen result, with the
+  placeholder "Token address or a question") while Ask can be offered, and
+  off otherwise, first in each profile sync: at start, and when the
+  community setup changes. A failure logs one line and changes nothing
+  else; `/health` shows `telegram.inlineFeedback` ("on", "off" or
+  "failed"). AI switched on or off later brings no sync, so feedback
+  follows at the next one or a restart (step 7 below). Only the Ask
+  result's counts, from a person, while AI answers run somewhere; its query
+  is checked again as above, only the person's ID is read, and nothing is
+  logged. The question waits in memory (`inline-pending.ts`): each person's
+  newest of each kind of chat, by their user ID, for 60 seconds at most
+  (swept every 5), 1,000 questions at most, the oldest dropped first. The
+  member's own Ask post (via the bot, known by its ID alone, without
+  buttons, its whole text the fixed line in any of the 12 languages, not
+  forwarded, from a person writing as themselves: `agent/triggers-via.ts`
+  `askPost`) takes their question of the post's own kind (a supergroup's
+  post one offered in a supergroup, a post in the bot's own chat one
+  offered there) that came at most 10 seconds before the post was sent, or
+  waits up to 5 seconds for it. So a question offered in the bot's own chat
+  never answers a group post, nor the reverse, and one chosen earlier never
+  does; but Telegram names no chat, so a question the same person chose in
+  another supergroup within about 10 seconds before, or 5 seconds after,
+  their post in a community group can still pair with it (the brief's
+  Decisions). While the agent runs, a chosen result is a priority update,
+  like the community groups' own: under load it waits up to 5 minutes for
+  its turn instead of being dropped. From when it reaches the bot until it
+  is answered or dropped, a question stays in memory 10 minutes at most (up
+  to 5 in that buffer, 60 seconds for its post, then the check's and the
+  answer's queues: about 9½ at the very worst).
+- **In a community group** the post is moderated like any message, but its
+  fixed line never goes to Haiku's check (fresh, edited, forwarded or
+  unpaired) and is never a question by itself. Once paired, the post is
+  `/ask` with that question (`community/qa-posted.ts`). The rules read the
+  question only for the markers that decide Haiku's check, never to act on
+  it, since nobody else saw it. Where the pipeline checks a question to the
+  bot, the check reads the question, and its verdict acts on the post as on
+  an `/ask` message (a scam verdict deletes the post and mutes the member);
+  its alerts quote the question's masked excerpt. Someone at risk gets the
+  paced crisis reply, never an answer or a punishment (it replies to the
+  post, in public while the group's pace allows, though nobody else saw the
+  question: a known trade-off in the brief's Decisions); an admin's question
+  is answered at once; the answer replies to the post. Because the rules never
+  act on the question, it differs from `/ask`: a new member's question with
+  an unknown link is checked, and answered unless the verdict removes the
+  post (their `/ask` message would be removed); a question reporting a scam
+  link is answered at once and nothing is removed; in raid mode a question
+  with a link is answered without a check; contact details in it are
+  answered masked instead of removed. When the check can't run, a new
+  member's question with a link, a handle or an address holds the post
+  (deleted, no offence), as for `/ask`, and a member's gets the busy note. A
+  post whose question doesn't come within 5 seconds gets "I didn't get your
+  question. Send /ask and your question." in reply, in the asker's language,
+  once per chat per 10 minutes. A post that moderation removed (a flood, a
+  name posing as the team) asks nothing.
+- **In the bot's own chat** (`router-private.ts`), with private AI on, the
+  person's own post is paired the same way (with a question offered there
+  only) and answered at once, like `/ask`; without a question it gets that
+  note (within the private chat's 8 replies in 10 seconds); with private AI
+  off, or without the agent, module 14's reply. A forwarded Ask post gets
+  no reply anywhere. In any other group an Ask post gets nothing, and its
+  question expires unused, unless it pairs with the same person's post in a
+  community group (above).
+- **New members:** in observe mode new members use Ask TonkFun like anyone.
+  Outside it, a new member kept to text after the check can't use inline
+  bots in the group until those days end (Telegram ties inline bots to
+  Stickers & GIFs), and asks with `/ask`, a reply or a mention meanwhile; the
+  group's `/help` names Ask TonkFun to everyone and says nothing of new
+  members.
+- **Typing** (`inline-wait.ts`): Telegram sends a query at each pause while
+  someone types, so a person's text is answered only once 350 ms pass with
+  no newer query from them; a newer query, or an address lookup, cancels it
+  (Telegram shows only the newest query's results). An address gets its
+  card at once. While a text waits, the worker holds the person's ID and
+  query in memory, 5 seconds at most.
+- **Limits** (`inlineLimits`): per person, 5 address lookups in 10 seconds
+  (text where Ask isn't offered counts with them) and 30 texts in 10 seconds
+  where Ask is offered; for everyone, 10 lookups and 12 texts a second, each
+  its own budget, so people typing can't hold up a lookup. A text counts
+  once against its person's limit, when its pause ends, and against
+  everyone's only when it is answered: past that budget it tries again every
+  100 ms while it is under 5 seconds old. A query past a limit gets no
+  answer. Inline mode never calls the model itself.
+- **Stopping it:** nothing turns off Ask TonkFun alone. `/ai off` (or
+  `TELEGRAM_AI_BUDGET_USD=0`, or no `ANTHROPIC_API_KEY`) stops it with every
+  model call; `TELEGRAM_AI_PRIVATE=off` takes it out of the bot's own chat;
+  `/pause` in a group pauses that group's answers, so its Ask posts get the
+  paused note. The bot turns inline feedback off itself once a sync finds
+  Ask can't be offered; while feedback stays off with Ask still offered (a
+  failed set, or AI switched on since the last sync), every post gets the
+  "didn't get your question" note (in a group once per 10 minutes). Turning
+  inline mode off takes the token cards too.
 
 Each answer starts with the label "AI answer" and comes in the asker's
 language; it has no footer (the owner removed it on 26 Nov 2026). The model knows
@@ -1174,8 +1304,10 @@ per asker (with the warning when it needs one).
 **Moderation.** Rules act first, in code, and punish with certainty only an
 unambiguous scam: anything borderline gets at most a protective delete of
 the risky link, and goes to Haiku's check and the admins. The rules cover
-seed phrases and private keys (deleted at once and sent nowhere), look-alike
-and drainer links (bait in the name of a suspicious host or handle, or an
+seed phrases and private keys (deleted at once and sent nowhere; a phrase
+counts when its 12 to 24 words are split by spaces, so one written without
+them, joined by commas or hyphens alone, isn't caught), look-alike and
+drainer links (bait in the name of a suspicious host or handle, or an
 order or a "your" beside the link, such as "claim your…", "connect your
 wallet" or "enter your phrase"; never a question or the writer's own
 trouble, such as "how do I connect my wallet?", and a bare "airdrop", or
@@ -1192,21 +1324,47 @@ launchpad's name, TON's ("TON Pad") or an ordinary word one letter off the
 brand ("Tank Fun"); a given name that is also a role word, such as Dev or
 the Korean 지원, reads as a name before the brand or inside a Korean name
 such as 김지원, and as a role only right after it, as in "Tonkfun Dev"),
-new members' links and forwards, unknown links, phone numbers and e-mail
-addresses, programs and archives, floods, link raids, flaw reports (pointed
-to the Security page's contact), slurs and threats, and bots. A flood counts
-messages, an album or one member's burst of forwards as one for every 5 and
-an edit never as a new one; more than twice the limit within 10 seconds, or
-four times within a minute, is a flood however they are grouped, the rest of
-a flooding burst is deleted as it arrives, and more than 10 edits by one
-member in 10 seconds is a flood too. A bot added by a member is banned;
-another bot's messages, unless the group made it an admin or
-`TELEGRAM_ALLOWED_BOTS` names it (those are never moderated), get the
+new members' links and forwards, unknown links, forwards from accounts named
+like the team, phone numbers and e-mail addresses, programs and archives,
+floods, link raids, flaw reports (pointed to the Security page's contact),
+slurs and threats, and bots. A forward counts for neither forward rule when
+its author vouches for it (`mod/rules-forwards.ts`): the bot or an admin,
+known by the user ID Telegram gives the forward, or the official channel, a
+community group or an admin by username, though never by one of the bot's
+usernames, since a username can pass to another account; a new member's
+vouched forward still has its links, link buttons and handles read like any
+message's. Words the member didn't write, their author known by ID (the
+bot's token card posted through inline mode, via the bot with the card's
+Refresh button, or a member's forward of the bot's message or of an
+admin's), are never punished for what they say, never go to Haiku's check
+and never get the crisis reply: a rule's delete stands, so a card whose
+token is named like a drainer or look-alike link, or an admin's warning
+that names a look-alike site, is still removed (in observe mode too, even
+the copy that sets off a flood), but no offence, warning, mute or ban
+follows, and they feed no link raid; the member's own name (a link in it,
+posing as the team) and a flood still count. The official channel's post
+will count the same, by the channel's chat ID, once the worker passes the
+channel to moderation (`mod/media.ts` `fromChannel`; not wired yet, so
+today the channel vouches by username alone). A forward vouched for by
+username alone is still checked like the member's own message, and one
+whose author hides their account can't be vouched for at all. A flood
+counts messages, an album or one member's burst of forwards as one for
+every 5 and an edit never as a new one; more than twice the limit within 10
+seconds, or four times within a minute, is a flood however they are
+grouped, the rest of a flooding burst is deleted as it arrives, and more
+than 10 edits by one member in 10 seconds is a flood too. A bot added by a
+member is banned; another bot's messages, unless the group made it an admin
+or `TELEGRAM_ALLOWED_BOTS` names it (those are never moderated), get the
 certain rules alone, and a hit bans it. Haiku checks only what the rules
 can't settle (questions; messages with handles, wallet or token addresses,
-or links not on the allow-list, kept or removed; help, scam or report words
-and mentions of DMs; weaker signs of distress; new members' messages of 3
-words or more), with a few flags (new or trusted, app language, edited or
+or links not on the allow-list, kept or removed; a new member's forwards
+nobody vouches for, replies to other chats and other bots' link buttons, and
+forwards named like the team, once the rules removed them; help, scam or
+report words and mentions of DMs; weaker signs of distress; new members'
+messages of 3 words or more; never words the member didn't write, nor Ask
+TonkFun's fixed line, whose question goes instead, as a question to the
+bot), with a
+few flags (new or trusted, app language, edited or
 forwarded, link domains), and e-mail addresses and phone numbers masked in
 the formats it recognises: what Telegram marks as a phone number or an
 e-mail address is hidden by its marks; without a mark, e-mail addresses,
@@ -1255,7 +1413,7 @@ in the message are still removed.
 | Acts | protective deletes only (secrets, look-alike and drainer links); the rest is reported | yes | yes | yes |
 | New-member days | 3 (marked at join, reported) | 1 | 3 | 7 |
 | The check | not enforced | 1 button, 10 minutes | 1 button, 5 minutes | 4 buttons, 3 minutes |
-| Unknown links from members | reported | stay unless Haiku says spam or scam; held when it can't check (and in a raid) | deleted with a note, the team told; Haiku decides only the offence | deleted; an offence from the second |
+| Unknown links from members | reported | stay unless Haiku says spam or scam; held when it can't check (and in a raid); a forward named like the team with no unknown link, and an unknown link in words the member didn't write (the bot's own, or an admin's forwarded by ID, which the check never reads), stay and the team is told | deleted with a note, the team told; Haiku decides only the offence | deleted; an offence from the second |
 | Unprompted answers | previews in the admin chat | on | on | on |
 
 - **New members**, outside observe mode, are restricted the moment they
@@ -1263,7 +1421,8 @@ in the message are still removed.
   check's button in time (joins within 20 seconds share one check, and each
   newcomer's time starts when the check is posted; it never links anywhere
   and never asks for a wallet). Passing lets them send text only for their
-  first days, which Telegram lifts by itself; not passing in time removes
+  first days (no media, stickers, GIFs or inline bots, so no Ask TonkFun
+  either), which Telegram lifts by itself; not passing in time removes
   them, and they can rejoin. Someone who rejoins under a longer restriction
   (the bot's, an admin's or another bot's) gets it back as it was: no
   check, only marked new. If the check can't be posted, they stay muted
@@ -1297,10 +1456,12 @@ listing and partnership questions; an upset member, or a member at risk
 button); answers it couldn't give and checks it was unsure of (a case
 Haiku's check flags is alerted once even when the answer to it ends in a
 note or a fallback); every moderation action, every removal included (in
-observe mode, what it would have done), and review request; and raid mode,
-the budget, AI stopping, a lost admin right, a change in the admin chat's
-members or its auto-delete, a stale knowledge pack and every control change,
-with who made it. An alert shows the case and the group, the member's name,
+observe mode, what it would have done; in relaxed mode, also a forward named
+like the team with no unknown link, or an unknown link in words the member
+didn't write, the bot's own or an admin's forwarded by ID, that it kept up),
+and review request; and raid mode, the budget, AI stopping, a lost admin
+right, a change in the admin chat's members or its auto-delete, a stale
+knowledge pack and every control change, with who made it. An alert shows the case and the group, the member's name,
 username and ID, a short cleaned excerpt (never a secret or a flaw's
 details), what the bot did (in its own words only: a reporter's reason has a
 line of its own) and, labelled, the AI's guess, and ends "Reply in the
@@ -1315,8 +1476,9 @@ alert about one answers that the account is an admin, whose rights must
 change in Telegram first. More than 6 alerts a minute become one summary a
 minute, except alerts with Undo, Unmute or Unban and the raid alert, which
 keep their buttons and go out at their own pace; routine removals with
-nothing to undo (an unknown link, a raided link's copy) and newcomer notes
-come in a digest within 9 minutes 30 seconds of its oldest item, counted
+nothing to undo (an unknown link, a raided link's copy), what relaxed mode
+kept up, and newcomer notes come in a digest within 9 minutes 30 seconds of
+its oldest item, counted
 from when each alert was made (one that waited for the admin chat's checks
 and would pass 10 minutes goes out at once in a digest, or is dropped). The
 same member and case alert once per 10 minutes, but reports, unsure checks
@@ -1331,7 +1493,10 @@ group or the admin chat: each member once per 10 minutes; in a group the
 public reply at most once every 5 minutes, and past that the reply goes to
 the poster alone (an ephemeral message, best effort) with its own urgent
 alert; more than 3 urgent crisis alerts a minute in a group are summed up in
-one.
+one. Words the member didn't write (Moderation, above) never get it. For an
+Ask TonkFun question, which nobody else saw, the public reply under the post
+still tells the group what only the member saw: a known trade-off, recorded
+in the brief's Decisions.
 
 **Admin controls.** In a community group a control command is deleted at
 once and confirmed in the admin chat with who sent it; without the right
@@ -1427,12 +1592,27 @@ every 30 seconds. Module 14 starts polling at once: the community groups'
 updates wait, up to 2 minutes, until the agent is ready (one that waits
 longer is dropped), and a message over 5 minutes old is then handled as
 stale. When the bot is busy, a community group's update waits up to 5
-minutes for its turn, and a stop drops whatever waits. Afterwards the admin
+minutes for its turn, and so does a chosen inline result (an Ask post's
+question); a stop drops whatever waits. Afterwards the admin
 chat's members are read every 10 minutes and its auto-delete every hour, and
 a change is alerted. Records of a group no longer in
 `TELEGRAM_COMMUNITY_CHATS` are dropped at start, and a start without
 community mode keeps no member's records (only each group's settings, the AI
 switch and today's spend).
+
+**This release** (Ask TonkFun and the moderation fixes of 26 Nov 2026):
+module 15 is already live, so steps 1 to 6 below are done. With the owner's
+go-ahead: counsel reviews the changed privacy lines, and `UPDATED` moves to
+the go-live date if that is later than 26 Nov 2026; the defaults recorded in
+the brief's Decisions are confirmed (a verdict on an Ask question acts on
+its post, a new member's Ask question with a link is held when the check
+can't run, the pairing window, the public crisis reply to an Ask question,
+and which forwards count as words the member didn't write). Once Vercel and
+Railway have both deployed: `/health` shows `telegram.inlineFeedback: "on"`
+(step 7 says what to do otherwise) and `/status` shows the knowledge pack
+matching the site (the privacy text changed, so its hash did); members'
+"Stickers & GIFs" permission stays on (step 3); edit the pinned announcement
+(step 8); and test with a second account (step 9).
 
 **Set it up.**
 1. **Anthropic Console** (platform.claude.com), billed apart from the Claude
@@ -1456,7 +1636,10 @@ switch and today's spend).
    link, and set its auto-delete to one week. In the community group, if
    Telegram offers them, hide the member list, turn on aggressive anti-spam
    and turn off members editing their own tag; if the official channel has a
-   linked discussion group, require joining before commenting. Send `/id` to
+   linked discussion group, require joining before commenting. Keep members'
+   "Stickers & GIFs" permission on (the Bot API's `can_send_other_messages`):
+   Telegram ties inline bots to it, so with it off nobody but the admins can
+   use Ask TonkFun there. Send `/id` to
    the bot in a private chat for your Telegram ID. Add the bot to both
    groups: Railway's log shows `added to group <id> (supergroup)` (or
    `(group)`) for each; copy both IDs.
@@ -1465,10 +1648,13 @@ switch and today's spend).
    Ban users too); leave every other right off, above all adding new admins.
    Make it an admin of the admin chat with no rights, so it sees commands
    there.
-5. **@BotFather:** keep Group Privacy on, Allow Groups on and inline mode as
-   it is; leave bot-to-bot communication and guest mode off. The privacy
-   policy link stays `/privacy/telegram`; the bot sets its own commands and
-   descriptions.
+5. **@BotFather:** keep Group Privacy on, Allow Groups on and inline mode
+   on. Leave bot-to-bot communication and guest mode off. The privacy
+   policy link stays `/privacy/telegram`. The bot sets its own commands and
+   descriptions, and, while Ask TonkFun can be offered, its inline feedback
+   (every chosen result, which Ask TonkFun needs) and inline placeholder
+   ("Token address or a question"), through `setMySettings`: step 7 checks
+   it.
 6. **Railway:** set `ANTHROPIC_API_KEY`, `TELEGRAM_COMMUNITY_CHATS`,
    `TELEGRAM_ADMIN_CHAT_ID` and `TELEGRAM_OWNER_IDS`, and if you like
    `TELEGRAM_OFFICIAL_X`, `TELEGRAM_AI_BUDGET_USD` and
@@ -1478,18 +1664,40 @@ switch and today's spend).
    worker. The worker redeploys.
 7. **Check** `/status` in the admin chat: AI on, answers on the model you
    chose, the knowledge matching the site, the contact set, both rights,
-   mode observe.
+   mode observe. Then the worker's `/health`: `telegram.inlineFeedback`
+   must say "on". If it says "failed", send `/setinlinefeedback` to
+   @BotFather and choose Enabled (every chosen result, not a share such as
+   1/10), and `/setinline` with the placeholder "Token address or a
+   question" (the log line says why it failed). If it says "off" though AI
+   answers are on, restart the worker: the bot sets it at start and when
+   its community setup changes, not when AI is switched on later. Until it
+   is on, no question reaches the bot, and Ask posts get only "I didn't get
+   your question. Send /ask and your question." (in a group once per 10
+   minutes).
 8. **Tell members** (Telegram's terms ask bots to announce a change of
    scope): post and pin this, in the group's languages, and put the policy
    link in the group's description too:
    > Our bot @TonkfunBot now helps here. It answers questions with AI
-   > (Claude, made by Anthropic): mention it, reply to it or use /ask. It
-   > also removes spam and scams and checks that new members are human; to
-   > do this it reads messages here and sends some of them to Anthropic.
-   > What it keeps, and for how long: www.tonkfun.fun/privacy/telegram. The
-   > team never DMs first.
-9. **Test** with a second account: ask a question, mention the bot, try
-   `/report` and a review.
+   > (Claude, made by Anthropic): use /ask, mention it, reply to it, or type
+   > @TonkfunBot and your question, then tap Ask TonkFun (that posts a short
+   > note, and the bot's answer replies to it). It also removes spam and
+   > scams and checks that new members are human; to do this it reads
+   > messages here and sends some of them to Anthropic. What it keeps, and
+   > for how long: www.tonkfun.fun/privacy/telegram. The team never DMs
+   > first.
+
+   If the announcement is already pinned, edit the pinned message instead of
+   posting a new one, adding "or type @TonkfunBot and your question, then
+   tap Ask TonkFun (that posts a short note, and the bot's answer replies to
+   it)". In each language, name the button as the bot titles it there
+   (`inline.ask` in its dictionary: "Preguntar a TonkFun", "TonkFun fragen",
+   "向 TonkFun 提问" and so on).
+9. **Test** with a second account that isn't an admin: ask a question,
+   mention the bot, try `/report` and a review. Then type @TonkfunBot and a
+   question and tap Ask TonkFun, in the group and in the bot's own chat:
+   the chat shows only "Asked TonkFun a question.", and the answer replies
+   to it within seconds. "I didn't get your question" instead means inline
+   feedback is off (step 7).
 10. After a day or two in observe mode, send `/strict normal` in the group.
 11. Optional: register look-alike bot usernames such as TonkfunSupportBot,
     and report impersonators to @NoToScam.
@@ -1507,9 +1715,12 @@ budget by lane against each cap, whether AI is on and why not (a pause
 with when it ends, a ramp limit's wait included), and the models answers and
 checks run on; the mode, raid mode and
 unprompted answers; the knowledge pack's hash in the worker and on the site,
-and the Security contact; the bot's two rights; and the queues. The public
-`/health` shows only `telegram.community.enabled`, so nobody outside can
-watch for a weak moment.
+and the Security contact; the bot's two rights; and the queues. Of the
+agent, the public `/health` shows only `telegram.community.enabled`, so
+nobody outside can watch for a weak moment, and `telegram.inlineFeedback`
+("on", "off" or "failed"; null before the first try): what the last profile
+sync did to Telegram's inline feedback for Ask TonkFun. "off" does say that
+AI couldn't answer anywhere at that sync (the brief's Decisions).
 
 **What it costs.** Anthropic's prices per million tokens (read 25 Nov 2026;
 `worker/src/telegram/claude/prices.ts`):
@@ -1626,7 +1837,17 @@ when posting the check was delayed: its joiners stay muted while it waits,
 leave), reviews (a day) and the IDs of messages still to delete, its own and
 members' messages it removed (until Telegram confirms the delete, 2 days at
 most); user IDs, names, usernames and message text stay in memory for at
-most 10 minutes. What goes to Anthropic has e-mail addresses and phone
+most 10 minutes, and a question chosen with Ask TonkFun, with its asker's
+user ID alone, until it is answered or dropped, 10 minutes at most (60
+seconds waiting for its post, after up to 5 minutes in the poller's buffer
+while the bot is busy, then the check's and the answer's queues). The page
+also says that, while Ask TonkFun can be used, the bot asks Telegram which
+inline result someone chose and the text they typed for it; that an alert
+about an Ask TonkFun post quotes its question; that relaxed mode tells the
+team of what it keeps up, a real admin's message forwarded by the admin's ID
+included; and that it removes, and never sends, only what it recognises as
+a seed phrase or a private key (a phrase written without spaces isn't
+caught). What goes to Anthropic has e-mail addresses and phone
 numbers hidden in the formats the bot recognises (Moderation, above), which
 is all the page promises: a bare run of digits with no phone word and no
 Telegram mark is sent as written. Records of a group taken off

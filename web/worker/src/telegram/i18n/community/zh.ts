@@ -20,9 +20,11 @@ export const zh: CommunityDictionary = {
     ai: "所有模型调用：on 或 off",
   },
   help: {
-    ask: "关于 tonkfun.fun 的任何问题都可以问我：发送 /ask 加上你的问题。",
+    ask: "关于 tonkfun.fun 的任何问题都可以问我：发送 /ask 加上你的问题，或输入 {bot} 和你的问题，再点击「{button}」。这样会发出一条表示你提了问的简短说明，我的回答会回复这条说明。在社区群里，你也可以回复我的某条回答，或在消息开头以外的任何位置提及我。",
+    askNoInline: "关于 tonkfun.fun 的任何问题都可以问我：发送 /ask 加上你的问题。",
     ai: "我的回答由 AI（Anthropic 开发的 Claude）撰写，可能出错，也绝不构成投资建议。",
-    groupAsk: "在社区群里，提及我、回复我的某条回答，或发送 /ask 加上你的问题。",
+    groupAsk: "在社区群里，发送 /ask 加上你的问题、回复我的某条回答，或在消息开头以外的任何位置提及我。你也可以输入 {bot} 和你的问题，再点击「{button}」：这样会发出一条表示你提了问的简短说明，我的回答会回复这条说明。",
+    groupAskNoInline: "在社区群里，发送 /ask 加上你的问题、回复我的某条回答，或提及我。",
     privacy: "隐私政策",
   },
   answer: {
@@ -48,6 +50,7 @@ export const zh: CommunityDictionary = {
     askPrompt: "关于 tonkfun.fun 的任何问题都可以问我。回答由 AI（Anthropic 开发的 Claude）撰写，可能出错。",
     askPlaceholder: "你关于 tonkfun.fun 的问题",
     askExpired: "我已不再保留那条消息，所以没有发送任何内容。请重新发送你的问题。",
+    askLost: "我没有收到你的问题。请发送 /ask 加上你的问题。",
   },
   crisis: {
     body: "很抱歉你正在经历这些。你不必独自面对：和别人聊聊可能会有帮助，下面的按钮可以帮你找到附近的免费求助热线。",

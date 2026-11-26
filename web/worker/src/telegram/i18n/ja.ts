@@ -100,6 +100,14 @@ export const ja: BotDictionary = {
   inline: {
     help: "このボットの使い方",
     notFound: "トークンが見つかりません · 使い方",
+    ask: "TonkFun に質問する",
+    askAs: "TonkFun に質問する：{question}",
+    askWhere: "tonkfun.fun のコミュニティグループと、私との個人チャットで質問にお答えします。",
+    askWhereGroup: "tonkfun.fun のコミュニティグループで質問にお答えします。",
+    askWherePrivate: "私との個人チャットで質問にお答えします。",
+    askPosted: "TonkFun に質問しました。",
+    askNo: "この質問は /ask で送ってください",
+    placeholder: "トークンのアドレスまたは質問",
   },
   channel: {
     launch: "新規ローンチ",
