@@ -48,7 +48,7 @@ export interface PipelineDeps {
   proactive: Proactive;
   answered: AnsweredMap;
   edits: EditMemory;
-  /** Every language's answer label and footer: a reply to one of the bot's answers is known by them. */
+  /** Every language's answer label, and the footer answers carried until 26 Nov 2026: a reply to one of the bot's answers is known by its label. */
   labels: ReadonlySet<string>;
   /** The admins' words, for the summary of what was removed while the worker was down. */
   adminWords: CommunityDictionary;

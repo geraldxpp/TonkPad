@@ -58,7 +58,7 @@ describe("the answer gate: links and entities", () => {
     const html = answerView(gate("Every trade pays a 1% fee, <b>always</b> & <i>fixed</i>."), testWords, SITE, null, GROUP).text;
     expect(html).toContain("&lt;b&gt;always");
     expect(html).toContain("&amp; &lt;i&gt;fixed");
-    expect(html.match(/<\/?[a-z]+>/g)).toEqual(["<i>", "</i>", "<i>", "</i>"]);
+    expect(html.match(/<\/?[a-z]+>/g)).toEqual(["<i>", "</i>"]);
     const claim = gate('<b>Guaranteed</b> profits: <a href="https://evil.com">claim here</a>.');
     expect(claim.blocked).toBe("claim");
     const view = answerView(claim, testWords, SITE, null, GROUP);

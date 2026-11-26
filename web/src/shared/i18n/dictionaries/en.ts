@@ -303,7 +303,7 @@ export const en = {
       retention: "Anthropic deletes this text within 30 days. If its safety systems flag a message, it may keep it for up to 2 years, and its safety scores for up to 7 years; data it has made anonymous may be kept longer. By default Anthropic doesn't use it to train its models, and tonkfun.fun hasn't opted in.",
       link: "How long Anthropic keeps data",
       secrets: "Never send a seed phrase or a private key. The bot removes anything that looks like one, in the group and in what you ask it, and never sends one anywhere.",
-      wrong: "AI answers can be wrong and are never financial advice. Each one says so.",
+      wrong: "AI answers can be wrong and are never financial advice.",
       /** Quotes the review button on the bot's notices (its community dictionary's mod.why). */
       decisions: "Some moderation is automatic: its rules, and in some cases Claude's check, can remove a message, mute someone or remove them from the group. Every action is reported to the team, who can undo it, and a person decides every ban the rules aren't certain of. If it mutes or bans you, or records a warning, tap ‘Why? Ask for a review’ on its notice.",
     },

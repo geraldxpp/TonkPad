@@ -60,7 +60,7 @@ function italic(text: string, entities: readonly unknown[], start: number, end: 
 
 /**
  * One of the bot's answers without its frame (agent/render.ts writes an
- * italic label first and an italic footer last): null when the first line
+ * italic label first; until 26 Nov 2026 also an italic footer last): null when the first line
  * isn't a label, "" when nothing is left. A last line that is neither italic
  * nor a frame line (labels may hold the footers too) is kept.
  */

@@ -289,7 +289,7 @@ export const vi: Dictionary = {
       retention: "Anthropic xóa văn bản này trong vòng 30 ngày. Nếu hệ thống an toàn của Anthropic gắn cờ một tin nhắn, Anthropic có thể giữ tin nhắn đó tối đa 2 năm, và điểm an toàn của nó tối đa 7 năm; dữ liệu đã được Anthropic ẩn danh hóa có thể được giữ lâu hơn. Theo mặc định, Anthropic không dùng chúng để huấn luyện mô hình của mình, và tonkfun.fun chưa đồng ý cho việc đó.",
       link: "Anthropic lưu giữ dữ liệu trong bao lâu",
       secrets: "Đừng bao giờ gửi cụm từ khôi phục (seed phrase) hay khóa riêng tư. Bot sẽ gỡ mọi thứ trông giống như vậy, trong nhóm và trong những gì bạn hỏi bot, và không bao giờ gửi chúng đi đâu cả.",
-      wrong: "Câu trả lời của AI có thể sai và không bao giờ là lời khuyên tài chính. Mỗi câu trả lời đều ghi rõ điều đó.",
+      wrong: "Câu trả lời của AI có thể sai và không bao giờ là lời khuyên tài chính.",
       decisions: "Một phần việc kiểm duyệt là tự động: các quy tắc của bot, và trong một số trường hợp là lần kiểm tra của Claude, có thể gỡ một tin nhắn, cấm chat một người hoặc xóa họ khỏi nhóm. Mọi hành động đều được báo cho đội ngũ, những người có thể hoàn tác, và mọi lệnh cấm mà quy tắc không chắc chắn đều do một người quyết định. Nếu bot cấm chat bạn, cấm bạn khỏi nhóm hoặc ghi nhận một lần cảnh cáo đối với bạn, hãy nhấn “Vì sao? Yêu cầu xem xét lại” trên thông báo của bot.",
     },
     keeps: {

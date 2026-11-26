@@ -1149,8 +1149,8 @@ variables are set (below) it is off, and the bot is module 14 alone.
 | The admin chat (`TELEGRAM_ADMIN_CHAT_ID`) | never: admin commands and alerts only, and nothing there goes to Anthropic |
 | Any other group, inline mode, the channel | never: they work as before (`/help` there is module 14's, with no AI lines or Privacy button) and send nothing to Anthropic |
 
-Each answer starts with the label "AI answer", ends with "AI · can be wrong ·
-not financial advice", and comes in the asker's language. The model knows
+Each answer starts with the label "AI answer" and comes in the asker's
+language; it has no footer (the owner removed it on 26 Nov 2026). The model knows
 tonkfun.fun only from the knowledge pack (`src/shared/bot/knowledge.ts`: the
 English of the Docs, Security and privacy pages, reviewed feature lines, the
 contracts and the code's facts, with a glossary per language), which the

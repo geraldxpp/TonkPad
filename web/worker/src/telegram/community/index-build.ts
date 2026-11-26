@@ -105,7 +105,7 @@ export interface Community {
   dm: Once;
 }
 
-/** Every language's answer label and footer: a reply to one of the bot's answers is known by its frame. */
+/** Every language's answer label, and the footer older answers end with: a reply to one of the bot's answers is known by its label, and an older one's footer is dropped. */
 function frameLabels(words: (lang: Locale) => CommunityDictionary): ReadonlySet<string> {
   const all = LOCALES.map((l) => words(l.code));
   return new Set([...answerLabels(all), ...all.map((d) => d.answer.footer.trim()).filter(Boolean)]);

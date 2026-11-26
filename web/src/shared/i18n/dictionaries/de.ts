@@ -289,7 +289,7 @@ export const de: Dictionary = {
       retention: "Anthropic löscht diesen Text innerhalb von 30 Tagen. Markieren seine Sicherheitssysteme eine Nachricht, kann Anthropic sie bis zu 2 Jahre aufbewahren und die zugehörigen Sicherheitsbewertungen bis zu 7 Jahre; Daten, die Anthropic anonymisiert hat, können länger aufbewahrt werden. Standardmäßig nutzt Anthropic sie nicht zum Training seiner Modelle, und tonkfun.fun hat dem nicht zugestimmt.",
       link: "Wie lange Anthropic Daten aufbewahrt",
       secrets: "Schick niemals eine Seed-Phrase oder einen privaten Schlüssel. Der Bot entfernt alles, was danach aussieht, in der Gruppe und in dem, was du ihn fragst, und schickt so etwas nie irgendwohin.",
-      wrong: "KI-Antworten können falsch sein und sind nie eine Finanzberatung. Darauf weist jede Antwort hin.",
+      wrong: "KI-Antworten können falsch sein und sind nie eine Finanzberatung.",
       decisions: "Ein Teil der Moderation ist automatisch: Seine Regeln und in manchen Fällen Claudes Prüfung können eine Nachricht entfernen, jemanden stummschalten oder aus der Gruppe entfernen. Jede Maßnahme wird dem Team gemeldet, das sie rückgängig machen kann, und über jede Sperre, bei der sich die Regeln nicht sicher sind, entscheidet ein Mensch. Schaltet er dich stumm, sperrt er dich oder speichert er eine Verwarnung gegen dich, tippe in seinem Hinweis auf „Warum? Überprüfung anfragen“.",
     },
     keeps: {

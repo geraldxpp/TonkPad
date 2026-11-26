@@ -200,7 +200,7 @@ It sends Anthropic text, never photos or files: a question you ask it (with /ask
 With each request it also sends a code made from your Telegram ID, which changes every month and which Anthropic can't turn back into your ID, so Anthropic can spot misuse.
 Anthropic deletes this text within 30 days. If its safety systems flag a message, it may keep it for up to 2 years, and its safety scores for up to 7 years; data it has made anonymous may be kept longer. By default Anthropic doesn't use it to train its models, and tonkfun.fun hasn't opted in.
 Never send a seed phrase or a private key. The bot removes anything that looks like one, in the group and in what you ask it, and never sends one anywhere.
-AI answers can be wrong and are never financial advice. Each one says so.
+AI answers can be wrong and are never financial advice.
 Some moderation is automatic: its rules, and in some cases Claude's check, can remove a message, mute someone or remove them from the group. Every action is reported to the team, who can undo it, and a person decides every ban the rules aren't certain of. If it mutes or bans you, or records a warning, tap ‘Why? Ask for a review’ on its notice.
 What it keeps:
 No chat history, and nothing from private chats once it has answered.

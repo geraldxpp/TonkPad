@@ -290,7 +290,7 @@ export const pt: Dictionary = {
       retention: "A Anthropic exclui esse texto em até 30 dias. Se os sistemas de segurança dela sinalizarem uma mensagem, ela pode guardá-la por até 2 anos, e as pontuações de segurança por até 7 anos; dados que ela tornou anônimos podem ser guardados por mais tempo. Por padrão, a Anthropic não os usa para treinar os modelos dela, e o tonkfun.fun não autorizou esse uso.",
       link: "Por quanto tempo a Anthropic guarda dados",
       secrets: "Nunca envie uma frase de recuperação nem uma chave privada. O bot remove tudo o que pareça uma, no grupo e no que você pergunta a ele, e nunca a envia para lugar nenhum.",
-      wrong: "As respostas da IA podem estar erradas e nunca são aconselhamento financeiro. Cada uma diz isso.",
+      wrong: "As respostas da IA podem estar erradas e nunca são aconselhamento financeiro.",
       decisions: "Parte da moderação é automática: as regras dele e, em alguns casos, a análise do Claude podem remover uma mensagem, silenciar alguém ou removê-lo do grupo. Toda ação é informada à equipe, que pode desfazê-la, e uma pessoa decide todo banimento sobre o qual as regras não têm certeza. Se ele silenciar ou banir você, ou registrar uma advertência contra você, toque em «Por quê? Pedir uma revisão» no aviso dele.",
     },
     keeps: {

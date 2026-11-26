@@ -289,7 +289,7 @@ export const es: Dictionary = {
       retention: "Anthropic elimina este texto en un plazo de 30 días. Si sus sistemas de seguridad marcan un mensaje, puede conservarlo hasta 2 años, y sus puntuaciones de seguridad hasta 7 años; los datos que haya anonimizado pueden conservarse más tiempo. De forma predeterminada, Anthropic no los usa para entrenar sus modelos, y tonkfun.fun no ha aceptado que lo haga.",
       link: "Cuánto tiempo conserva Anthropic los datos",
       secrets: "Nunca envíes una frase de recuperación ni una clave privada. El bot elimina todo lo que lo parezca, en el grupo y en lo que le preguntas, y nunca lo envía a ninguna parte.",
-      wrong: "Las respuestas de la IA pueden equivocarse y nunca son asesoramiento financiero. Cada una lo indica.",
+      wrong: "Las respuestas de la IA pueden equivocarse y nunca son asesoramiento financiero.",
       decisions: "Parte de la moderación es automática: sus reglas y, en algunos casos, la comprobación de Claude pueden eliminar un mensaje, silenciar a alguien o sacarlo del grupo. Cada acción se notifica al equipo, que puede deshacerla, y una persona decide cada expulsión definitiva de la que las reglas no estén seguras. Si te silencia o te expulsa definitivamente, o registra una advertencia contra ti, toca «¿Por qué? Pedir una revisión» en su aviso.",
     },
     keeps: {

@@ -36,6 +36,7 @@ export const en: CommunityDictionary = {
   },
   answer: {
     label: "AI answer",
+    /** Not shown since 26 Nov 2026: kept so a reply to an older answer still drops this line (words.ts). */
     footer: "AI · can be wrong · not financial advice",
     busy: "I'm busy right now. Please try again in a minute.",
     paused: "AI answers are paused for now. The Docs page has most answers.",

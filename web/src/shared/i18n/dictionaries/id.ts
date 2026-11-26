@@ -290,7 +290,7 @@ export const id: Dictionary = {
       retention: "Anthropic menghapus teks ini dalam 30 hari. Jika sistem keamanannya menandai sebuah pesan, Anthropic dapat menyimpannya hingga 2 tahun, dan skor keamanannya hingga 7 tahun; data yang sudah dianonimkan oleh Anthropic dapat disimpan lebih lama. Secara bawaan, Anthropic tidak memakainya untuk melatih modelnya, dan tonkfun.fun tidak memberikan persetujuan untuk itu.",
       link: "Berapa lama Anthropic menyimpan data",
       secrets: "Jangan pernah mengirim frasa pemulihan (seed phrase) atau kunci privat. Bot menghapus apa pun yang tampak seperti itu, di grup dan dalam pertanyaan Anda kepadanya, dan tidak pernah mengirimkannya ke mana pun.",
-      wrong: "Jawaban AI bisa salah dan bukan nasihat keuangan. Setiap jawaban menyebutkannya.",
+      wrong: "Jawaban AI bisa salah dan bukan nasihat keuangan.",
       decisions: "Sebagian moderasi berjalan otomatis: aturannya, dan dalam beberapa kasus pemeriksaan Claude, dapat menghapus pesan, membisukan seseorang, atau mengeluarkannya dari grup. Setiap tindakan dilaporkan ke tim, yang dapat membatalkannya, dan setiap blokir permanen yang tidak dipastikan oleh aturan diputuskan oleh manusia. Jika bot membisukan Anda, memblokir Anda secara permanen, atau mencatat peringatan untuk Anda, ketuk “Mengapa? Minta peninjauan” pada pemberitahuannya.",
     },
     keeps: {

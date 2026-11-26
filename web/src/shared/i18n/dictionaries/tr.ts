@@ -289,7 +289,7 @@ export const tr: Dictionary = {
       retention: "Anthropic bu metni 30 gün içinde siler. Güvenlik sistemleri bir mesajı işaretlerse onu 2 yıla kadar, güvenlik puanlarını ise 7 yıla kadar saklayabilir; anonim hâle getirdiği veriler daha uzun süre saklanabilir. Anthropic varsayılan olarak bunları modellerini eğitmek için kullanmaz ve tonkfun.fun buna onay vermemiştir.",
       link: "Anthropic verileri ne kadar süre saklar",
       secrets: "Asla bir kurtarma ifadesi veya özel anahtar göndermeyin. Bot, grupta ve ona sorduklarınızda öyle görünen her şeyi kaldırır ve bunu asla hiçbir yere göndermez.",
-      wrong: "Yapay zekâ yanıtları yanlış olabilir ve asla yatırım tavsiyesi değildir. Her yanıt bunu belirtir.",
+      wrong: "Yapay zekâ yanıtları yanlış olabilir ve asla yatırım tavsiyesi değildir.",
       decisions: "Moderasyonun bir kısmı otomatiktir: kuralları ve bazı durumlarda Claude’un denetimi bir mesajı kaldırabilir, birini susturabilir ya da gruptan çıkarabilir. Her işlem, onu geri alabilecek olan ekibe bildirilir ve kuralların emin olmadığı her yasaklamaya bir insan karar verir. Bot sizi susturursa, yasaklarsa ya da hakkınızda bir uyarı kaydederse bildirimindeki “Neden? İnceleme iste” düğmesine dokunun.",
     },
     keeps: {

@@ -31,7 +31,7 @@ describe("the DM warning on replies that stand in for an answer", () => {
       await h.send(mention(RISK, { from: person(901) }));
       await settle();
       const [text] = texts(h);
-      expect(text).toBe(`<i>${testWords.answer.label}</i>\n${line}\n\n${WARNING}\n\n<i>${testWords.answer.footer}</i>`);
+      expect(text).toBe(`<i>${testWords.answer.label}</i>\n${line}\n\n${WARNING}`);
       expect(text).not.toMatch(/guaranteed|10x/i);
     }
   });

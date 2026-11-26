@@ -51,8 +51,10 @@ export interface CommunityDictionary {
   /** /help additions: how to ask in a private chat (ask) and a group (groupAsk), that answers come from AI (ai), and the Privacy button (privacy). */
   help: Strings<"ask" | "ai" | "groupAsk" | "privacy">;
   /**
-   * An answer's frame (label first, footer last) and the fixed replies around
-   * it. scoreLine: {score} and {level}. askButton and shareButton are
+   * An answer's label (its first line) and the fixed replies around it.
+   * footer is no longer shown (the owner's call, 26 Nov 2026): it stays only
+   * so a reply to an answer sent before then still drops that last line.
+   * scoreLine: {score} and {level}. askButton and shareButton are
    * buttons; askPrompt is a private chat's reply prompt; askPlaceholder is at
    * most 64 characters.
    */

@@ -134,7 +134,7 @@ describe("the Q&A flow", () => {
       await h.send(mention("is WHOA a good buy?"));
       await settle();
       const [, text, options] = h.sends()[0];
-      expect(text).toBe(`<i>${testWords.answer.label}</i>\n${expected[i]}\n\n<i>${testWords.answer.footer}</i>`);
+      expect(text).toBe(`<i>${testWords.answer.label}</i>\n${expected[i]}`);
       expect(buttons(options.keyboard).map((b) => b.url)).toEqual(["https://www.tonkfun.fun/docs"]);
     }
   });

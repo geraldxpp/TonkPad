@@ -9,9 +9,10 @@ import type { LinkKey, ToolToken } from "./types";
 
 /**
  * An answer as Telegram shows it (prompts/15-community-agent.md, How it
- * talks): the italic "AI answer" label first, the gated text, the lines code
- * writes (the score line, the DM warning, a note on what happens next), and
- * the italic footer last. A fixed reply in place of an answer carries the DM
+ * talks): the italic "AI answer" label first, the gated text, then the lines
+ * code writes (the score line, the DM warning, a note on what happens next).
+ * Answers carry no footer since 26 Nov 2026 (the owner's call); the label
+ * still marks each one. A fixed reply in place of an answer carries the DM
  * warning too when the question called for it. Every word of the model's is escaped. Links are
  * buttons only: the site's pages (in the asker's language in a private chat,
  * unprefixed where many read them, as cardView does), the bot's own
@@ -92,7 +93,7 @@ function escapedWithin(text: string, room: number): string {
 /** The answer's frame around `body` (plain text) and `notes` (safe HTML), within Telegram's 4,096 characters. */
 function framed(words: CommunityDictionary, body: string, notes: readonly string[]): string {
   const head = `<i>${esc(words.answer.label)}</i>\n`;
-  const tail = `${notes.length > 0 ? `\n\n${notes.join("\n")}` : ""}\n\n<i>${esc(words.answer.footer)}</i>`;
+  const tail = notes.length > 0 ? `\n\n${notes.join("\n")}` : "";
   const text = `${head}${escapedWithin(body, TELEGRAM_MAX - head.length - tail.length)}${tail}`;
   // Only words far past any real dictionary's could still overflow: then the plain "not sure" line.
   return text.length <= TELEGRAM_MAX ? text : escapedWithin(words.answer.unsure, TELEGRAM_MAX);

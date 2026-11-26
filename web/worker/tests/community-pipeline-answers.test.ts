@@ -9,7 +9,7 @@ const QUESTION = "how much is the protocol fee on a curve trade?";
 
 /** Asked questions in the group: the answer's shape and place, its limits, and what an edit does. */
 describe("the community pipeline: answers", () => {
-  it("shows typing, then replies in the question's topic with the label first and the footer last", async () => {
+  it("shows typing, then replies in the question's topic with the label first and no footer", async () => {
     const h = harness({ client: scripted({ answer: answer() }) });
     const m = mention(QUESTION, { chat: FORUM, is_topic_message: true, message_thread_id: 7 });
     expect(await h.send(m)).toBe("handled");
@@ -20,7 +20,7 @@ describe("the community pipeline: answers", () => {
     const [chat, text, options] = h.sends()[0];
     expect(chat).toBe(GROUP_ID);
     expect(text.split("\n")[0]).toBe(`<i>${testWords.answer.label}</i>`);
-    expect(text.trimEnd().split("\n").pop()).toBe(`<i>${testWords.answer.footer}</i>`);
+    expect(text).not.toContain(testWords.answer.footer);
     expect(text).toContain("1% protocol fee");
     expect(options).toMatchObject({ kind: "answer", replyTo: m.message_id, thread: 7 });
     // A question to the bot is checked like any other first (injection#1); the answer waits for it.
@@ -92,7 +92,7 @@ describe("the community pipeline: answers", () => {
     expect(h.calls).toHaveLength(0);
   });
 
-  it("sends the earlier answer along when a member replies to it", async () => {
+  it("sends the earlier answer along when a member replies to one sent before 26 Nov 2026, without its footer", async () => {
     const h = harness({ client: scripted({ answer: answer() }) });
     const label = testWords.answer.label;
     const footer = testWords.answer.footer;
@@ -108,6 +108,19 @@ describe("the community pipeline: answers", () => {
     const messages = h.calls.find((c) => c.kind === "answer")?.params.messages ?? [];
     expect(messages).toContainEqual({ role: "assistant", content: body });
     expect(h.sends()[0][2].replyTo).toBe(m.message_id);
+  });
+
+  it("sends the earlier answer along when a member replies to one without a footer, its last line kept", async () => {
+    const h = harness({ client: scripted({ answer: answer() }) });
+    const label = testWords.answer.label;
+    const body = "On fees: every curve trade pays a fixed 1% protocol fee to tonkfun.fun.\nThe Docs have the details.";
+    const text = `${label}\n${body}`;
+    const earlier = groupMessage(text, { message_id: 4_001, from: BOT, entities: [{ type: "italic", offset: 0, length: label.length }] });
+    const m = groupMessage("and is it the same on Solana?", { reply_to_message: earlier });
+    await h.send(m);
+    await settle();
+    const messages = h.calls.find((c) => c.kind === "answer")?.params.messages ?? [];
+    expect(messages).toContainEqual({ role: "assistant", content: body });
   });
 
   it("answers /ask in reply to another member's question, but not to a remark", async () => {

@@ -110,12 +110,14 @@ describe("answer links", () => {
 });
 
 describe("answer text", () => {
-  it("puts the italic label first and the italic footer last, in every language", () => {
+  it("puts the italic label first and no footer (the owner removed it, 26 Nov 2026), in every language", () => {
     for (const { code } of LOCALES) {
       const words = wordsFor(code);
       const text = view(gated("On fees: every trade pays a 1% protocol fee."), { lang: code, scoreLine: SCORE, dmWarning: true, extra: "escalated" }, words).text;
       expect(lines(text)[0]).toBe(`<i>${words.answer.label}</i>`);
-      expect(lines(text).at(-1)).toBe(`<i>${words.answer.footer}</i>`);
+      expect(lines(text).at(-1)).toBe(words.answer.escalated);
+      expect(text).not.toContain(words.answer.footer);
+      expect(text.match(/<\/?i>/g)).toEqual(["<i>", "</i>"]);
     }
   });
 
@@ -128,8 +130,6 @@ describe("answer text", () => {
       SCORE,
       testWords.safety.dmWarning,
       testWords.answer.escalated,
-      "",
-      `<i>${testWords.answer.footer}</i>`,
     ]);
   });
 
@@ -142,7 +142,7 @@ describe("answer text", () => {
     const v = view(gated(`${"&".repeat(1_000)}${"<".repeat(1_000)}`), { scoreLine: SCORE, dmWarning: true, extra: "flaw" });
     expect(v.text.length).toBeLessThanOrEqual(4_096);
     expect(lines(v.text)[0]).toBe(`<i>${testWords.answer.label}</i>`);
-    expect(lines(v.text).at(-1)).toBe(`<i>${testWords.answer.footer}</i>`);
+    expect(lines(v.text).at(-1)).toBe(testWords.answer.flaw);
     expect(v.text).toContain("&amp;&amp;…");
   });
 
@@ -156,7 +156,7 @@ describe("answer text", () => {
 describe("fallbacks and the crisis reply", () => {
   it("shows a blocked answer as the unsure answer with a Docs button", () => {
     const v = view(gated("Guaranteed 10x.", ["swap"], { blocked: "claim" }), { lang: "es" });
-    expect(lines(v.text)).toEqual([`<i>${testWords.answer.label}</i>`, testWords.answer.unsure, "", `<i>${testWords.answer.footer}</i>`]);
+    expect(lines(v.text)).toEqual([`<i>${testWords.answer.label}</i>`, testWords.answer.unsure]);
     expect(urls(v)).toEqual([`${SITE}/es/docs`]);
   });
 
@@ -174,7 +174,7 @@ describe("fallbacks and the crisis reply", () => {
   it("adds the DM warning, written by code, to any fallback when asked, and can send it alone", () => {
     const warning = testWords.safety.dmWarning;
     expect(lines(fallbackView("unsure", testWords, SITE, { shared: true, lang: "en", dmWarning: true }).text)).toEqual([
-      `<i>${testWords.answer.label}</i>`, testWords.answer.unsure, "", warning, "", `<i>${testWords.answer.footer}</i>`,
+      `<i>${testWords.answer.label}</i>`, testWords.answer.unsure, "", warning,
     ]);
     for (const kind of ["busy", "paused", "cooldown", "textOnly", "tooLong"] as const) {
       expect(fallbackView(kind, testWords, SITE, { shared: true, lang: "en", dmWarning: true }).text).toBe(`${testWords.answer[kind]}\n\n${warning}`);
