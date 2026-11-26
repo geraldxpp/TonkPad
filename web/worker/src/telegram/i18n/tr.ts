@@ -5,6 +5,9 @@ export const tr: BotDictionary = {
     short: "Satın almadan önce yeni token’ları kontrol edin ve tonkfun.fun, Pons ve Pump.fun lansmanlarını takip edin.",
     description:
       "Bir token adresi yapıştırın; görev puanını, kilitlerini ve temel rakamlarını görün. En yeni tonkfun.fun, Pons ve Pump.fun lansmanlarını takip edin, davet bağlantınızı oluşturun ve herhangi bir token’ı tonkfun.fun’da açın.\n\nBu bot anahtarlarınızı asla istemez ve asla işlem göndermez.",
+    shortAi: "tonkfun.fun hakkında her şeyi sorun, satın almadan önce token’ları kontrol edin ve yeni lansmanları takip edin.",
+    descriptionAi:
+      "tonkfun.fun hakkında bana her şeyi sorabilirsiniz: lansmanlar, ücretler, kilitler, Ekip Ödülleri ve daha fazlası. Yanıtlarımı, tonkfun.fun belgelerine ve canlı verilere dayanarak bir yapay zekâ (Anthropic’in geliştirdiği Claude) yazar. Yanlış olabilirler ve asla yatırım tavsiyesi değildirler.\n\nGörev puanını görmek için bir token adresi yapıştırın ya da tonkfun.fun, Pons ve Pump.fun’daki en yeni lansmanları takip edin. Anahtarlarınızı asla istemem ve asla işlem göndermem.",
   },
   commands: {
     start: "Ana sayfa",
@@ -16,6 +19,7 @@ export const tr: BotDictionary = {
   home: {
     body: "Satın almadan önce yeni token’ları kontrol edin ve her lansmanı takip edin.",
     hint: "Bir token adresi yapıştırın ya da aşağıdan seçin.",
+    ask: "Soru sor",
     check: "Token kontrol et",
     launches: "Son lansmanlar",
     referral: "Davet bağlantısı",

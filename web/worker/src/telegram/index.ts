@@ -2,19 +2,24 @@ import { type Fetch, redactor } from "../alerts/deliver";
 import type { TokenStore } from "../store";
 import type { TonkEvent } from "../tonk/events";
 import type { TonkToken } from "../tonk/launch";
-import { buysLast15m, toToken } from "../tokens";
-import { HOT_BUYS, listView } from "../views/list";
-import { findTrackedToken } from "../views/token";
+import { toToken } from "../tokens";
 import { botApi, TelegramError } from "./api";
 import { ChannelPoster } from "./channel";
+import type { ClaudeClient } from "./claude/types";
+import { createOnce } from "./community/hold";
+import { watchFailures } from "./community/setup-status";
 import { loadTelegramConfig } from "./config";
-import { Poller } from "./poller";
-import { syncProfile } from "./profile";
+import { botHealth } from "./index-health";
+import { senderOut, storeData } from "./index-out";
+import { createProfileSync } from "./index-profile";
 import { Limiter } from "./limiter";
-import { type BotContext, type BotData, handleUpdate, type Out } from "./router";
-import { GROUP_GAP, PRIVATE_GAP, Sender } from "./sender";
+import { Poller } from "./poller";
+import type { BotSelf } from "./context";
+import { type BotContext, handleUpdate } from "./router";
+import { Sender } from "./sender";
 import { loadBotState, saveBotState } from "./state";
-import type { TgChat, TgUser } from "./types";
+import type { TgUser } from "./types";
+import { profileOptions, selfOf, startingChats, wireCommunity } from "./wire";
 
 /** What the worker holds: the feed's events in, a poll's end, /health, and a save on shutdown. */
 export interface TelegramBot {
@@ -34,45 +39,32 @@ export interface TelegramDeps {
   log: (line: string) => void;
   fetchFn?: Fetch;
   now?: () => number;
+  /** The worker's ETH price in dollars, for the community agent's launchpad figures; null without one. */
+  ethUsd?: () => number | null;
+  /** Tests pass a fake Claude client: nothing then reaches Anthropic. */
+  claude?: ClaudeClient;
 }
 
-const EDIT_GAP = 250;
-const isPrivate = (chat?: TgChat) => chat?.type === "private";
-/**
- * A reply to a person: at most 10 waiting in a private chat, 3 in a group
- * (a group drains 20 a minute, so a busy one drops extras instead of holding
- * the bot up), sent within 20 s or dropped, each request 10 s at most. With
- * the 5 s sweep below, no chat or user ID stays in memory past a minute.
- */
-const replyLimits = (chat?: TgChat) => ({ maxQueued: isPrivate(chat) ? 10 : 3, maxWaitMs: 20_000, timeoutMs: 10_000 });
-
-/** The worker's tokens as the bot reads them: never marking one opened, so no Helius credits are spent. */
-function storeData(store: TokenStore, now: () => number): BotData {
-  return {
-    ready: () => store.size > 0,
-    token: (address) => {
-      const t = findTrackedToken(store.all(), address);
-      return t ? toToken(t, now(), buysLast15m(t, now()) >= HOT_BUYS) : null;
-    },
-    latest: (pad, limit) =>
-      store.all().filter((t) => t.launchpad === pad).sort((a, b) => b.createdAt - a.createdAt).slice(0, limit).map((t) => toToken(t, now())),
-    trending: (limit) => listView(store.all(), { chain: "all", pad: "all", tab: "trending", tf: "24h", q: "", limit }, now()).rows,
-  };
-}
+/** A press that posts a new message in a group: once per message and button in this long. */
+const GROUP_POST_MS = 10 * 60_000;
 
 /**
  * Starts tonkfun.fun's Telegram bot inside the worker when TELEGRAM_BOT_TOKEN
  * is set (telegram/config.ts), or returns null. It reads the worker's data and
- * answers; it holds no wallet key and never sends a transaction.
+ * answers; it holds no wallet key and never sends a transaction. Once getMe
+ * has answered, the community agent and moderator (module 15) starts beside
+ * it when its settings are in the environment (telegram/wire.ts).
  */
 export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | null> {
   const { config, note } = loadTelegramConfig(deps.env, deps.snapshotPath);
   deps.log(note);
   if (!config) return null;
-  const redact = redactor([config.token]);
+  // No secret reaches the logs: the bot token, and Anthropic's key when one is set.
+  const redact = redactor([config.token, deps.env.ANTHROPIC_API_KEY?.trim() ?? ""].filter((secret) => secret !== ""));
   const log = (line: string) => deps.log(redact(line));
   const now = deps.now ?? Date.now;
-  const api = botApi(config.token, deps.fetchFn ?? fetch);
+  // The community's setup checks see what Telegram answers when a read fails (a 400 or 403 is certain; a 5xx isn't): community/setup-status.ts.
+  const { api, watch: failures } = watchFailures(botApi(config.token, deps.fetchFn ?? fetch));
   const sender = new Sender(api, log, now);
   const state = await loadBotState(config.statePath);
   let saving: ReturnType<typeof setTimeout> | null = null;
@@ -86,45 +78,29 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
   };
 
   let username: string | null = null;
+  let self: BotSelf | null = null;
   let inlineOn = false;
   /** Privacy mode (on by default): in groups Telegram shows the bot only its commands and replies to it. */
   let privacyMode = true;
   let refused = false;
-  const out: Out = {
-    async send(chat, view, replyTo) {
-      await sender.toChat(String(chat.id), isPrivate(chat) ? PRIVATE_GAP : GROUP_GAP, "sendMessage", {
-        chat_id: chat.id,
-        text: view.text,
-        parse_mode: "HTML",
-        link_preview_options: { is_disabled: true },
-        reply_markup: view.forceReply ?? view.keyboard,
-        ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}),
-      }, replyLimits(chat));
-    },
-    async edit(target, view, chat) {
-      const where = "inlineId" in target ? { inline_message_id: target.inlineId } : { chat_id: target.chatId, message_id: target.messageId };
-      const key = "inlineId" in target ? `inline:${target.inlineId}` : String(target.chatId);
-      const gap = chat && !isPrivate(chat) ? GROUP_GAP : EDIT_GAP;
-      await sender.toChat(key, gap, "editMessageText", { ...where, text: view.text, parse_mode: "HTML", link_preview_options: { is_disabled: true }, reply_markup: view.keyboard }, replyLimits(chat));
-    },
-    async answer(id, text) {
-      return (await sender.direct("answerCallbackQuery", { callback_query_id: id, ...(text ? { text } : {}) })) !== null;
-    },
-    async inline(id, results, button) {
-      // Personal: each card is in the asker's own language, so Telegram mustn't hand one person's answer to another.
-      await sender.direct("answerInlineQuery", { inline_query_id: id, results, cache_time: 10, is_personal: true, button: { text: button, start_parameter: "help" } });
-    },
-  };
+  let stopped = false;
   const ctx: BotContext = {
-    data: storeData(deps.store, now), out, site: config.site, bot: () => username, inline: () => inlineOn, now,
+    data: storeData(deps.store, now), out: senderOut(sender), site: config.site, now, log,
+    bot: () => username, me: () => self, inline: () => inlineOn,
     // Inline: 5 per person in 10 s (pasting an address takes 2 or 3), so a few accounts can't use up the shared 10 a second.
     limiter: new Limiter(8, 10_000), inlineLimiter: new Limiter(5, 10_000), inlineAll: new Limiter(10, 1_000), pressAll: new Limiter(5, 1_000),
+    groupPosts: createOnce(GROUP_POST_MS),
   };
-  const poller = new Poller(api, (update) => handleUpdate(update, ctx), log);
-  // Every 5 s, forget the chat and user IDs the rate limits held: none is kept past a minute (the privacy page says so).
+  // When busy, the community groups' updates wait for a slot instead of being dropped: moderation must see them.
+  // While the community agent starts, theirs (and the admin chat's) wait for it, 2 minutes at most; everything else is answered at once.
+  const hold = startingChats(deps.env, deps.snapshotPath);
+  const poller = new Poller(api, (update) => handleUpdate(update, ctx), log, undefined, undefined, { priority: (u) => ctx.community?.priority(u) === true, ...(hold ? { hold } : {}) });
+  // Every 5 s, forget the chat and user IDs module 14's rate limits held: none past a minute. The privacy page's
+  // keeps.memory line covers the community agent's own: user IDs, names, usernames and message text for 10 minutes at most.
   const sweep = setInterval(() => {
     const at = Date.now();
     for (const limiter of [ctx.limiter, ctx.inlineLimiter]) limiter.prune(at);
+    ctx.groupPosts.prune(at);
     sender.forget(at);
   }, 5_000);
   sweep.unref?.();
@@ -144,17 +120,18 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
     : null;
   if (config.channelId && !deps.tonkFeed) log("channel off: the worker doesn't follow tonkfun.fun's launchpad here");
 
-  // Who the bot is, then polling, with its profile set beside it; a network failure retries, a refused token stops.
+  // Who the bot is, then polling at once beside the community agent's start, then the profile; a network failure retries, a refused token stops.
   void (async () => {
-    let botId = 0;
-    for (let wait = 5_000; !refused; wait = Math.min(300_000, wait * 2)) {
+    for (let wait = 5_000; !refused && !stopped; wait = Math.min(300_000, wait * 2)) {
       try {
         const me = await api.call<TgUser>("getMe", {});
-        username = me.username ?? null;
+        // A reply without the bot's own ID can't be used: asked again, like a failed call.
+        if (!Number.isSafeInteger(me?.id)) throw new TypeError("getMe gave no ID");
         inlineOn = me.supports_inline_queries === true;
         privacyMode = me.can_read_all_group_messages !== true;
         if (!privacyMode) log("privacy mode is off: in groups Telegram shows the bot every message (turn it back on with /setprivacy in @BotFather)");
-        botId = me.id;
+        username = me.username ?? null;
+        self = selfOf(me);
         log(`signed in as @${username ?? "?"}${inlineOn ? "" : " (inline mode is off: /setinline in @BotFather)"}`);
         break;
       } catch (error) {
@@ -167,38 +144,49 @@ export async function startTelegram(deps: TelegramDeps): Promise<TelegramBot | n
         await new Promise((resolve) => setTimeout(resolve, wait));
       }
     }
-    void syncProfile(sender, state.profileHash, log, botId).then((hash) => {
-      if (!hash) return;
-      state.profileHash = hash;
-      persist();
+    if (!self || stopped) return;
+    const botId = self.id;
+    // Module 14 answers at once, however long the community's setup reads take when Telegram is slow.
+    const polling = poller.run();
+    // Set once the agent is in place: a change it hears of before then is covered by the first sync.
+    let profile: ReturnType<typeof createProfileSync> | null = null;
+    const community = await wireCommunity({
+      env: deps.env, snapshotPath: deps.snapshotPath, sender, site: config.site, store: deps.store, ethUsd: deps.ethUsd ?? (() => null),
+      me: ctx.me, channel: config.channelId, brandCreators: config.brandCreators, log, now, fetchFn: deps.fetchFn, client: deps.claude, failures,
+      // A group dropped, the admin chat passed or community mode off after start: the menus and profile follow.
+      onChange: () => profile?.run(),
     });
-    await poller.run();
-  })();
+    if (stopped) {
+      // Stopped while it started: its timers stop too (polling was stopped with the bot).
+      community?.stop();
+      await polling;
+      return;
+    }
+    if (community) ctx.community = community;
+    // What waited for it goes on now: to the agent, or to module 14 for a group it doesn't run (or with community mode off).
+    poller.release();
+    profile = createProfileSync({ sender, state, persist, log, botId, options: () => profileOptions(ctx.community ?? null, deps.env, deps.snapshotPath) });
+    profile.run();
+    await polling;
+  })().catch((error: unknown) => {
+    // A last resort: the worker keeps serving the screens even if the bot's loop fails.
+    log(`the bot stopped: ${error instanceof Error ? error.name : "error"}`);
+  });
 
   return {
     onFeedEvents: (events, timeOf) => channel?.onEvents(events, timeOf),
     afterTonkPoll: async (lag) => {
       await channel?.afterPoll(lag);
     },
-    health: () => ({
-      enabled: true,
-      polling: poller.health.state,
-      bot: username,
-      updates: poller.health.updates,
-      lastUpdateAt: poller.health.lastUpdateAt ? new Date(poller.health.lastUpdateAt).toISOString() : null,
-      calls: sender.stats.calls,
-      failed: sender.stats.failed,
-      dropped: { replies: sender.stats.dropped, updates: poller.health.dropped },
-      inline: inlineOn,
-      privacyMode,
-      channel: channel
-        ? { enabled: true, posted: channel.stats.posted, skipped: channel.stats.skipped, lastPostAt: channel.stats.lastPostAt ? new Date(channel.stats.lastPostAt).toISOString() : null }
-        : { enabled: false },
-    }),
-    save,
+    health: () => botHealth({ poller, sender, channel, community: ctx.community, username, inline: inlineOn, privacyMode }),
+    save: async () => {
+      await Promise.all([save(), ctx.community?.save().catch(() => log("community state not saved"))]);
+    },
     stop: () => {
+      stopped = true;
       clearInterval(sweep);
       poller.stop();
+      ctx.community?.stop();
     },
   };
 }

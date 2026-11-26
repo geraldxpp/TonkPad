@@ -1,14 +1,18 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { type MenuScope, readMenus } from "./profile-menus";
 
 /**
  * What the bot keeps between restarts, on the worker's volume. No user data:
- * only the channel's posted keys and progress, and the profile's hash (so the
- * commands and descriptions are set again only when they change).
+ * only the channel's posted keys and progress, the profile's hash (so the
+ * commands and descriptions are set again only when they change), and the
+ * chat-scoped menus set in the community's groups and admin chat (chat IDs
+ * only, so one no longer wanted is deleted).
  */
 export interface BotState {
   v: 1;
   profileHash: string;
+  menus: MenuScope[];
   channel: {
     /** Keys of posts already made ("launch:<token>", "m50:<token>", …), newest last. */
     keys: string[];
@@ -23,7 +27,7 @@ export interface BotState {
 
 export const KEYS_MAX = 1_000;
 
-export const emptyState = (): BotState => ({ v: 1, profileHash: "", channel: { keys: [], milestones: {}, lockEnds: {}, lockPostedAt: {} } });
+export const emptyState = (): BotState => ({ v: 1, profileHash: "", menus: [], channel: { keys: [], milestones: {}, lockEnds: {}, lockPostedAt: {} } });
 
 function numbers(value: unknown): Record<string, number> {
   if (!value || typeof value !== "object") return {};
@@ -38,6 +42,7 @@ export async function loadBotState(path: string): Promise<BotState> {
     return {
       v: 1,
       profileHash: typeof raw.profileHash === "string" ? raw.profileHash : "",
+      menus: readMenus(raw.menus),
       channel: { keys: keys.slice(-KEYS_MAX), milestones: numbers(raw.channel?.milestones), lockEnds: numbers(raw.channel?.lockEnds), lockPostedAt: numbers(raw.channel?.lockPostedAt) },
     };
   } catch {

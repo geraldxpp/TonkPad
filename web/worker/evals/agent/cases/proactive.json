@@ -1,0 +1,74 @@
+[
+  {
+    "id": "pro-locked-sell",
+    "question": "Does anyone know if the creator can sell their locked tokens early?",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": true, "escalate": "none" }
+  },
+  {
+    "id": "pro-protocol-fee",
+    "question": "how much is the protocol fee on curve trades?",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": true, "mustInclude": ["(?<![\\d.,])1 ?%"], "escalate": "none" }
+  },
+  {
+    "id": "pro-graduate-es",
+    "question": "¿Alguien sabe cuántos tokens tiene que vender la curva para que un token se gradúe?",
+    "lang": "es", "chat": "group", "mode": "proactive",
+    "expect": { "answered": true, "mustInclude": ["800"], "escalate": "none" }
+  },
+  {
+    "id": "pro-paused-ru",
+    "question": "Кто-нибудь знает, можно ли продавать токены, когда лаунчпад на паузе?",
+    "lang": "ru", "chat": "group", "mode": "proactive",
+    "expect": { "answered": true, "escalate": "none" }
+  },
+  {
+    "id": "pro-liquidity",
+    "question": "Is the pool liquidity locked after graduation or can the dev pull it?",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": true, "escalate": "none" }
+  },
+  {
+    "id": "pro-crew-pt",
+    "question": "Alguém sabe se as recompensas Crew são pagas em ETH?",
+    "lang": "pt", "chat": "group", "mode": "proactive",
+    "expect": { "answered": true, "mustInclude": ["ETH"], "escalate": "none" }
+  },
+  {
+    "id": "pro-eth-price",
+    "question": "anyone think ETH hits 5k this month?",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": false }
+  },
+  {
+    "id": "pro-ama",
+    "question": "what time is the AMA today?",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": false }
+  },
+  {
+    "id": "pro-buying",
+    "question": "which token are you all buying today?",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": false }
+  },
+  {
+    "id": "pro-solana-down",
+    "question": "is the Solana network down right now? my wallet won't load",
+    "lang": "en", "chat": "group", "mode": "proactive",
+    "expect": { "answered": false }
+  },
+  {
+    "id": "pro-wallet-ru",
+    "question": "Кто знает хороший кошелёк для Solana?",
+    "lang": "ru", "chat": "group", "mode": "proactive",
+    "expect": { "answered": false }
+  },
+  {
+    "id": "pro-admin-zh",
+    "question": "这个群有中文管理员吗？",
+    "lang": "zh", "chat": "group", "mode": "proactive",
+    "expect": { "answered": false }
+  }
+]

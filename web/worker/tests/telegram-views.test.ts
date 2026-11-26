@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { COMMUNITY_DICTIONARIES } from "../src/telegram/i18n/community";
+import { en } from "../src/telegram/i18n/en";
 import { launchesView } from "../src/telegram/lists";
 import { ethText, launchPost, lockDate, lockLine, lockPost, milestonePost, pctText, shieldPost } from "../src/telegram/posts";
-import { cardView, helpView, homeView, notFoundView, referralView } from "../src/telegram/views";
+import { cardView, helpView, homeView, idView, notFoundView, referralView } from "../src/telegram/views";
 import { callbacks, SITE, SOL_MINT, token, urls, WALLET, WHOA } from "./telegram-fixtures";
+
+const community = COMMUNITY_DICTIONARIES.en;
 
 describe("token card", () => {
   it("shows who it is, its score and badges, its figures and its address", () => {
@@ -74,11 +78,41 @@ describe("menus", () => {
   });
 
   it("help in a group is short, and in a private chat names the inline mode", () => {
-    expect(helpView("en", SITE, { group: true, bot: "tonkfun_bot" }).text).not.toContain("/referral");
-    const full = helpView("en", SITE, { group: false, bot: "tonkfun_bot" });
+    expect(helpView("en", SITE, { group: true, bot: "tonkfun_bot", ai: false }).text).not.toContain("/referral");
+    const full = helpView("en", SITE, { group: false, bot: "tonkfun_bot", ai: false });
     expect(full.text).toContain("@tonkfun_bot");
+    expect(full.text).not.toContain(community.help.ai);
     expect(callbacks(full)).toEqual(["home"]);
     expect(urls(full)).toEqual([`${SITE}/docs`, `${SITE}/`]);
+  });
+
+  it("home opens with Ask a question while AI answers are on", () => {
+    const view = homeView("en", SITE, { ai: true });
+    expect(callbacks(view)).toEqual(["askp", "check", "l:tonk", "ref", "help"]);
+    expect(view.keyboard?.inline_keyboard[0]).toEqual([{ text: en.home.ask, callback_data: "askp" }]);
+    expect(homeView("en", SITE, { ai: false })).toEqual(homeView("en", SITE));
+  });
+
+  it("help says how to ask, that answers are AI's and can be wrong, and links the privacy policy, while AI answers are on", () => {
+    const full = helpView("de", SITE, { group: false, bot: "tonkfun_bot", ai: true });
+    const de = COMMUNITY_DICTIONARIES.de;
+    expect(full.text).toContain(`• ${de.help.ask}`);
+    expect(full.text).toContain(de.help.ai);
+    expect(full.text).not.toContain(de.help.groupAsk);
+    expect(urls(full)).toEqual([`${SITE}/de/docs`, `${SITE}/de/privacy/telegram`, `${SITE}/de`]);
+    expect(callbacks(full)).toEqual(["home"]);
+    const group = helpView("en", SITE, { group: true, bot: "tonkfun_bot", ai: true });
+    expect(group.text).toContain(community.help.groupAsk);
+    expect(group.text).toContain(community.help.ai);
+    expect(group.text).not.toContain(community.help.ask);
+    expect(urls(group)).toEqual([`${SITE}/`, `${SITE}/privacy/telegram`]);
+    expect(group.keyboard?.inline_keyboard.flat().map((b) => b.text)).toContain(community.help.privacy);
+  });
+
+  it("tells a person their own Telegram ID, and nothing else", () => {
+    expect(idView("en", 123_456_789)).toEqual({ text: `${community.id.yours} <code>123456789</code>` });
+    expect(idView("ja", 42).text).toBe(`${COMMUNITY_DICTIONARIES.ja.id.yours} <code>42</code>`);
+    expect(idView("en", Number.NaN).text).toContain("<code>?</code>");
   });
 
   it("lists the latest launches with a segmented switch and a button per token", () => {

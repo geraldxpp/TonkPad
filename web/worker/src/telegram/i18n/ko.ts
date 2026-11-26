@@ -5,6 +5,9 @@ export const ko: BotDictionary = {
     short: "매수 전에 새 토큰을 확인하고, tonkfun.fun, Pons, Pump.fun의 런칭을 지켜보세요.",
     description:
       "토큰 주소를 붙여넣으면 미션 점수, 잠금 현황, 주요 수치를 확인할 수 있습니다. tonkfun.fun, Pons, Pump.fun의 최신 런칭을 지켜보고, 추천 링크를 만들고, tonkfun.fun에서 원하는 토큰을 열어 볼 수도 있습니다.\n\n이 봇은 개인 키를 절대 요청하지 않으며, 트랜잭션을 보내는 일도 없습니다.",
+    shortAi: "tonkfun.fun에 대해 무엇이든 물어보고, 매수 전에 토큰을 확인하고, 새 런칭을 지켜보세요.",
+    descriptionAi:
+      "tonkfun.fun에 대해 무엇이든 물어보세요. 런칭, 수수료, 잠금, 크루 보상 등 다양한 질문에 답합니다. 답변은 tonkfun.fun 문서와 실시간 데이터를 바탕으로 AI(Anthropic의 Claude)가 작성합니다. 틀릴 수 있으며 투자 조언이 아닙니다.\n\n토큰 주소를 붙여넣으면 미션 점수를 확인할 수 있고, tonkfun.fun, Pons, Pump.fun의 최신 런칭도 지켜볼 수 있습니다. 개인 키를 요청하거나 트랜잭션을 보내는 일은 절대 없습니다.",
   },
   commands: {
     start: "홈",
@@ -16,6 +19,7 @@ export const ko: BotDictionary = {
   home: {
     body: "매수 전에 새 토큰을 확인하고, 모든 런칭을 지켜보세요.",
     hint: "토큰 주소를 붙여넣거나 아래에서 선택하세요.",
+    ask: "질문하기",
     check: "토큰 확인",
     launches: "최신 런칭",
     referral: "추천 링크",

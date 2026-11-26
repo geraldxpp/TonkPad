@@ -5,6 +5,9 @@ export const pt: BotDictionary = {
     short: "Confira os tokens novos antes de comprar e acompanhe os lançamentos do tonkfun.fun, Pons e Pump.fun.",
     description:
       "Cole o endereço de um token para ver a pontuação da missão, os bloqueios e os principais números. Acompanhe os lançamentos mais recentes do tonkfun.fun, Pons e Pump.fun, crie seu link de indicação e abra qualquer token no tonkfun.fun.\n\nEste bot nunca pede suas chaves nem envia transações.",
+    shortAi: "Pergunte o que quiser sobre o tonkfun.fun, confira tokens antes de comprar e acompanhe novos lançamentos.",
+    descriptionAi:
+      "Pergunte o que quiser sobre o tonkfun.fun: lançamentos, taxas, bloqueios, recompensas da crew e mais. Minhas respostas são escritas por IA (Claude, criada pela Anthropic) com base na documentação do tonkfun.fun e em dados ao vivo. Elas podem estar erradas e nunca são aconselhamento financeiro.\n\nCole o endereço de um token para ver a pontuação da missão ou acompanhe os lançamentos mais recentes do tonkfun.fun, Pons e Pump.fun. Nunca peço suas chaves nem envio transações.",
   },
   commands: {
     start: "Início",
@@ -16,6 +19,7 @@ export const pt: BotDictionary = {
   home: {
     body: "Confira os tokens novos antes de comprar e acompanhe todos os lançamentos.",
     hint: "Cole o endereço de um token ou escolha uma opção abaixo.",
+    ask: "Fazer uma pergunta",
     check: "Conferir um token",
     launches: "Últimos lançamentos",
     referral: "Link de indicação",

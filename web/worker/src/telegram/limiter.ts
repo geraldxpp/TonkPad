@@ -12,7 +12,11 @@ export class Limiter {
     return ok;
   }
 
-  /** Forgets every key with nothing in the window: the privacy page promises IDs aren't held longer than a minute. */
+  /**
+   * Forgets every key with nothing in the window, so module 14's own limits
+   * hold no ID past a minute; the privacy page's keeps.memory line (10
+   * minutes at most) also covers the community agent's windows.
+   */
   prune(now: number): void {
     for (const [key, times] of this.hits) if (times.every((at) => now - at >= this.windowMs)) this.hits.delete(key);
   }

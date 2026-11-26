@@ -5,6 +5,9 @@ export const id: BotDictionary = {
     short: "Cek token baru sebelum membeli, dan pantau peluncuran di tonkfun.fun, Pons, dan Pump.fun.",
     description:
       "Tempel alamat token untuk melihat skor misi, status penguncian, dan angka-angka utamanya. Pantau peluncuran terbaru di tonkfun.fun, Pons, dan Pump.fun, buat tautan referal Anda, dan buka token apa pun di tonkfun.fun.\n\nBot ini tidak pernah meminta kunci privat Anda dan tidak pernah mengirim transaksi.",
+    shortAi: "Tanyakan apa saja tentang tonkfun.fun, cek token sebelum membeli, dan pantau peluncuran baru.",
+    descriptionAi:
+      "Tanyakan apa saja tentang tonkfun.fun: peluncuran, biaya, penguncian, Hadiah Crew, dan lainnya. Jawaban saya ditulis oleh AI (Claude, buatan Anthropic) berdasarkan Dokumen tonkfun.fun dan data live. Jawaban itu bisa salah dan bukan nasihat keuangan.\n\nTempel alamat token untuk melihat skor misinya, atau pantau peluncuran terbaru di tonkfun.fun, Pons, dan Pump.fun. Saya tidak pernah meminta kunci Anda dan tidak pernah mengirim transaksi.",
   },
   commands: {
     start: "Beranda",
@@ -16,6 +19,7 @@ export const id: BotDictionary = {
   home: {
     body: "Cek token baru sebelum membeli, dan pantau setiap peluncuran.",
     hint: "Tempel alamat token atau pilih salah satu di bawah.",
+    ask: "Ajukan pertanyaan",
     check: "Cek token",
     launches: "Peluncuran terbaru",
     referral: "Tautan referal",

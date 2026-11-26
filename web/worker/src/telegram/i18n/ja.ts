@@ -5,6 +5,9 @@ export const ja: BotDictionary = {
     short: "購入前に、新しいトークンをチェックできます。tonkfun.fun、Pons、Pump.fun のローンチも追いかけられます。",
     description:
       "トークンのアドレスを貼り付けると、ミッションスコア、ロック状況、主な数値を確認できます。tonkfun.fun、Pons、Pump.fun の最新のローンチを追いかけたり、紹介リンクを作ったり、tonkfun.fun で好きなトークンを開いたりすることもできます。\n\nこのボットが秘密鍵を求めたり、トランザクションを送信したりすることは決してありません。",
+    shortAi: "tonkfun.fun について何でも質問できます。購入前のトークンのチェックや、新しいローンチの追跡も。",
+    descriptionAi:
+      "tonkfun.fun について、何でも聞いてください。ローンチ、手数料、ロック、クルー報酬など、さまざまな質問に答えます。回答は、tonkfun.fun のガイドとライブデータをもとに AI（Anthropic の Claude）が作成します。誤りがある場合があり、投資助言ではありません。\n\nトークンのアドレスを貼り付けるとミッションスコアを確認でき、tonkfun.fun、Pons、Pump.fun の最新のローンチも追いかけられます。秘密鍵を求めたり、トランザクションを送信したりすることは決してありません。",
   },
   commands: {
     start: "ホーム",
@@ -16,6 +19,7 @@ export const ja: BotDictionary = {
   home: {
     body: "購入前に、新しいトークンをチェックできます。すべてのローンチも追いかけられます。",
     hint: "トークンのアドレスを貼り付けるか、下から選んでください。",
+    ask: "質問する",
     check: "トークンをチェック",
     launches: "最新のローンチ",
     referral: "紹介リンク",

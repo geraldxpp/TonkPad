@@ -5,6 +5,9 @@ export const zh: BotDictionary = {
     short: "买入新代币前先查一查，并关注 tonkfun.fun、Pons 和 Pump.fun 上的发射。",
     description:
       "粘贴代币地址，即可查看它的任务评分、锁定情况和关键数据。你还可以关注 tonkfun.fun、Pons 和 Pump.fun 上的最新发射，生成推荐链接，或在 tonkfun.fun 上打开任意代币。\n\n本机器人从不索要你的私钥，也从不发送交易。",
+    shortAi: "关于 tonkfun.fun 的问题尽管问，买入前先查代币，并关注最新发射。",
+    descriptionAi:
+      "关于 tonkfun.fun 的任何问题都可以问我：发射、费用、锁定、船员奖励等等。我的回答由 AI（Anthropic 开发的 Claude）根据 tonkfun.fun 的文档和实时数据生成，可能出错，也绝不构成投资建议。\n\n粘贴代币地址即可查看它的任务评分，你也可以关注 tonkfun.fun、Pons 和 Pump.fun 上的最新发射。我从不索要你的私钥，也从不发送交易。",
   },
   commands: {
     start: "首页",
@@ -16,6 +19,7 @@ export const zh: BotDictionary = {
   home: {
     body: "买入新代币前先查一查，并关注每一次发射。",
     hint: "粘贴代币地址，或在下方选择。",
+    ask: "提个问题",
     check: "查询代币",
     launches: "最新发射",
     referral: "推荐链接",

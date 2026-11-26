@@ -5,6 +5,9 @@ export const vi: BotDictionary = {
     short: "Kiểm tra token mới trước khi mua và theo dõi các token ra mắt trên tonkfun.fun, Pons và Pump.fun.",
     description:
       "Dán địa chỉ token để xem điểm nhiệm vụ, tình trạng khóa và các chỉ số chính. Theo dõi các token vừa ra mắt trên tonkfun.fun, Pons và Pump.fun, tạo liên kết giới thiệu của bạn và mở bất kỳ token nào trên tonkfun.fun.\n\nBot này không bao giờ yêu cầu khóa riêng tư của bạn và không bao giờ gửi giao dịch.",
+    shortAi: "Hỏi mọi điều về tonkfun.fun, kiểm tra token trước khi mua và theo dõi các token mới ra mắt.",
+    descriptionAi:
+      "Hãy hỏi tôi mọi điều về tonkfun.fun: ra mắt token, phí, khóa, thưởng crew và nhiều hơn nữa. Câu trả lời của tôi do AI (Claude, do Anthropic phát triển) viết dựa trên tài liệu của tonkfun.fun và dữ liệu trực tiếp. Chúng có thể sai và không bao giờ là lời khuyên tài chính.\n\nDán địa chỉ token để xem điểm nhiệm vụ, hoặc theo dõi các token mới ra mắt trên tonkfun.fun, Pons và Pump.fun. Tôi không bao giờ yêu cầu khóa riêng tư của bạn và không bao giờ gửi giao dịch.",
   },
   commands: {
     start: "Trang chủ",
@@ -16,6 +19,7 @@ export const vi: BotDictionary = {
   home: {
     body: "Kiểm tra token mới trước khi mua và theo dõi mọi token ra mắt.",
     hint: "Dán địa chỉ token hoặc chọn một mục bên dưới.",
+    ask: "Đặt câu hỏi",
     check: "Kiểm tra token",
     launches: "Token mới ra mắt",
     referral: "Liên kết giới thiệu",

@@ -53,6 +53,7 @@ Delete `.env.development.local` to go back to mock data. Production builds
 | `npm run test:e2e:testnet` | The testnet site (Launch, Explore's placeholder and the token page): a production build in `testnet` mode on port 3102, reading a local stand-in for the chain's RPC |
 | `npm run worker:dev` | The live-data worker with `.env.local`, restarting on changes |
 | `npm run worker` | The worker as it runs in production (env vars from the host) |
+| `npm run eval:agent` | The Telegram bot's community agent eval: real Claude calls with the owner's key, about $1.80 a run with answers on Sonnet 5.5, never more than $5 (see *Telegram bot*) |
 
 ## Layout
 
@@ -1079,7 +1080,8 @@ two in step.
   `/launches` lists the newest launches on tonkfun.fun, Pons and Pump.fun,
   and what's trending;
   `/referral` makes a wallet's `?ref=` link; `/help` explains it all.
-- **In a group:** `/check <address>` only (privacy mode stays on).
+- **In any other group:** `/check <address>` only (privacy mode stays on).
+  The official community group is below.
 - **Inline:** `@<bot> <address>` in any chat, once inline mode is on.
 - **The official channel** (optional): tonkfun.fun's launches, 50% and 90% of
   the curve, graduations, extended locks (only a lock that earns the Locked
@@ -1091,15 +1093,16 @@ two in step.
   Telegram.
 - It replies in the Telegram app's language (the site's 12), sets its own
   commands, descriptions and menu button in all 12, keeps to Telegram's rate
-  limits, and stores no user data: its state file holds only the channel's
-  posted items and the profile's hash.
+  limits, and, outside the official community group, stores no user data:
+  its state file (`telegram.json`) holds only the channel's posted items and
+  the profile's hash. The community agent's records are below.
 
 | Variable | Use |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | Turns the bot on. Secret: Railway's variables only, never logged |
 | `TELEGRAM_CHANNEL_ID` | Optional: the channel, `@name` or its `-100…` id |
 | `TELEGRAM_CHANNEL_LANG` | Default `en`: the channel's language |
-| `TELEGRAM_SITE_URL` | Default `https://www.tonkfun.fun` |
+| `TELEGRAM_SITE_URL` | Default `https://www.tonkfun.fun`; the community agent reads its `/api/bot/site` |
 | `TELEGRAM_STATE_PATH` | Default: beside `SNAPSHOT_PATH` (`/data/telegram.json` on Railway) |
 | `TELEGRAM_BRAND_CREATORS` | Optional: creator wallets (comma-separated) whose tokens may use the brand in the channel, e.g. the owner's wallet for tonkfun.fun's own coin |
 | `TELEGRAM_CHANNEL_SKIP` | Optional: token addresses (comma-separated) the channel never posts |
@@ -1120,6 +1123,519 @@ two in step.
 The bot uses long polling, so it needs no public URL; it removes a webhook if
 one is set. Only one process may poll a bot: run a second copy (a local
 worker) with its own test bot.
+
+### Community agent and moderator
+
+Module 15 (`prompts/15-community-agent.md`) gives the same bot two more jobs,
+on the same worker and token. It answers questions about tonkfun.fun with
+Claude Sonnet 5.5 (`claude-sonnet-5-5`; `TELEGRAM_AI_ANSWER_MODEL` can pick
+Claude Opus 5.5 or Claude Haiku 5.5 instead) and runs its moderation checks
+on Claude Haiku 5.5 (`claude-haiku-5-5`), through Anthropic's Messages API,
+called from the worker and billed per token by Anthropic, apart from any
+Claude plan. And in the official community group(s), where it is an admin,
+it moderates: it removes spam and scams, checks that new members are human,
+slows raids and tells the team when a case needs a person. The code is in
+`worker/src/telegram/`: `community/` (each group's pipeline, the admin chat,
+controls and records), `agent/` (answers), `mod/` (moderation) and `claude/`
+(the one Anthropic client, the daily budget and the limits). Until its
+variables are set (below) it is off, and the bot is module 14 alone.
+
+**Where it answers.**
+
+| Where | It answers when |
+|---|---|
+| A community group (`TELEGRAM_COMMUNITY_CHATS`) | someone mentions it, replies to one of its answers or cards, or sends `/ask <question>`; or, unprompted, a message is clearly an unanswered question about tonkfun.fun |
+| A private chat | `/ask <question>`, a reply to its Ask prompt, or a tap on Ask under other text. A bare address still gets its card, and nothing goes to Anthropic until the person asks |
+| The admin chat (`TELEGRAM_ADMIN_CHAT_ID`) | never: admin commands and alerts only, and nothing there goes to Anthropic |
+| Any other group, inline mode, the channel | never: they work as before (`/help` there is module 14's, with no AI lines or Privacy button) and send nothing to Anthropic |
+
+Each answer starts with the label "AI answer", ends with "AI · can be wrong ·
+not financial advice", and comes in the asker's language. The model knows
+tonkfun.fun only from the knowledge pack (`src/shared/bot/knowledge.ts`: the
+English of the Docs, Security and privacy pages, reviewed feature lines, the
+contracts and the code's facts, with a glossary per language), which the
+worker builds from its own checkout, and from two read-only tools:
+`get_token` (a token the asker sent or replied to, read without marking it
+opened) and `launchpad_figures` (the figures the Docs page shows). Before an
+answer is sent, code checks every address, number, claim and link: links are
+only buttons, and the Mission score line is written by code, never by the
+model. It gives no financial advice and makes no promises for the team. An
+unprompted answer waits 90 seconds for someone else to answer, comes at most
+once every 3 minutes and 30 times a day per group, and only when the pack or
+a tool answers the question; in observe mode it is a preview in the admin
+chat instead. A reply to a message about DMs, support or a seed phrase, or
+one Haiku's check flags as a DM scam, carries the fixed warning that the
+team never DMs first; sent on its own, that warning goes out at most once
+every 2 minutes per group. A group gets at most 2 answers at once with
+answers on Sonnet 5.5 or Opus 5.5 (1 on Haiku 5.5), and an answer dropped
+after waiting in the queue gets the busy note, at most once per 10 minutes
+per asker (with the warning when it needs one).
+
+**Moderation.** Rules act first, in code, and punish with certainty only an
+unambiguous scam: anything borderline gets at most a protective delete of
+the risky link, and goes to Haiku's check and the admins. The rules cover
+seed phrases and private keys (deleted at once and sent nowhere), look-alike
+and drainer links (bait in the name of a suspicious host or handle, or an
+order or a "your" beside the link, such as "claim your…", "connect your
+wallet" or "enter your phrase"; never a question or the writer's own
+trouble, such as "how do I connect my wallet?", and a bare "airdrop", or
+bait only in an ordinary site's path, leaves it an unknown link), fake
+support and "DM me" (never "don't DM me", someone else's words quoted or
+reported, or a member asking the team for help, such as "admins, DM me" or
+"my launch is stuck, can someone DM me", which stays up with the DM warning
+for Haiku's check to pass on; rule-certain only as the author's own offer
+of support, or beside bait such as "DM me to claim your airdrop", which
+bans a new member; an e-mail address offered for help or support by a
+member who isn't trusted, or at a domain posing as a brand, counts too,
+never with certainty), invite links, impersonating names (never another
+launchpad's name, TON's ("TON Pad") or an ordinary word one letter off the
+brand ("Tank Fun"); a given name that is also a role word, such as Dev or
+the Korean 지원, reads as a name before the brand or inside a Korean name
+such as 김지원, and as a role only right after it, as in "Tonkfun Dev"),
+new members' links and forwards, unknown links, phone numbers and e-mail
+addresses, programs and archives, floods, link raids, flaw reports (pointed
+to the Security page's contact), slurs and threats, and bots. A flood counts
+messages, an album or one member's burst of forwards as one for every 5 and
+an edit never as a new one; more than twice the limit within 10 seconds, or
+four times within a minute, is a flood however they are grouped, the rest of
+a flooding burst is deleted as it arrives, and more than 10 edits by one
+member in 10 seconds is a flood too. A bot added by a member is banned;
+another bot's messages, unless the group made it an admin or
+`TELEGRAM_ALLOWED_BOTS` names it (those are never moderated), get the
+certain rules alone, and a hit bans it. Haiku checks only what the rules
+can't settle (questions; messages with handles, wallet or token addresses,
+or links not on the allow-list, kept or removed; help, scam or report words
+and mentions of DMs; weaker signs of distress; new members' messages of 3
+words or more), with a few flags (new or trusted, app language, edited or
+forwarded, link domains), and e-mail addresses and phone numbers masked in
+the formats it recognises: what Telegram marks as a phone number or an
+e-mail address is hidden by its marks; without a mark, e-mail addresses,
+numbers starting with +, WhatsApp links, mobile numbers with a leading 0,
+numbers with an area code in brackets, and any run of 7 to 15 digits (with
+spaces or hyphens) right after a phone word in the 12 languages, with a
+second number joined to it by "or". A bare run of digits with no phone word
+and no mark is sent as written, so the privacy page promises only the
+formats it recognises. A question to the bot goes through that check first,
+and is answered only after its verdict, if its message still stands; when
+the check can't run at all, it is answered only if it holds no link, handle
+or address, and otherwise gets the busy note. Each member gets at most 3
+checks a minute (another waits for a free one, within the minute's
+deadline); an edit is checked again only when it changed, and an edit made
+within a minute of its last check is checked once, in its latest version,
+when that minute ends. A check that still can't run leaves the rules'
+decision, and holds a new member's message with a link, handle or address
+(deleted, with no offence). Plain chat never leaves the worker. Only relaxed
+mode lets Haiku's check keep a link up (below); in the other modes the rules
+decide every link. Offences climb a ladder (warnings, mutes, then a ban),
+counted until 7 days after the last. A ban comes only from a case the rules
+are certain of, the ladder after such an offence, or an admin, never from
+the model's verdict alone. Admins are never moderated, but an administrator
+with a title only (no right to delete or restrict) is moderated as a trusted
+member. Until a group's admin list has been read (with retries at start,
+then every 30 seconds), the group is moderated as in observe mode:
+protective deletes (secrets, look-alike and drainer links) keep their
+notices, everything else is reported, and there are no offences, mutes, bans
+or new-member checks: joiners are only marked new, and a bot someone adds is
+reported, not banned. Public notices never print a name, are deleted after
+60 seconds and carry "Why? Ask for a review". Members who report a scam, or
+ask whether something is one, are never punished: a message that carries a
+risky link or handle with a question about whether it is real, legit,
+official, safe or a scam (in the 12 languages, after a mention, a command or
+a greeting too) is a report wherever it stands. Its link is deleted so it
+doesn't spread, the fixed warning goes out, nobody is punished, and a
+question to the bot is still answered. Report words never excuse bait,
+"claim", or a statement that the link is legit, official, safe or no scam,
+and asking to be messaged privately yourself never counts as a report.
+Someone who writes a strong self-harm phrase is never punished either
+("dying of laughter" never counts as one), but scam links, files and floods
+in the message are still removed.
+
+| Strictness | observe (default) | relaxed | normal | strict |
+|---|---|---|---|---|
+| Acts | protective deletes only (secrets, look-alike and drainer links); the rest is reported | yes | yes | yes |
+| New-member days | 3 (marked at join, reported) | 1 | 3 | 7 |
+| The check | not enforced | 1 button, 10 minutes | 1 button, 5 minutes | 4 buttons, 3 minutes |
+| Unknown links from members | reported | stay unless Haiku says spam or scam; held when it can't check (and in a raid) | deleted with a note, the team told; Haiku decides only the offence | deleted; an offence from the second |
+| Unprompted answers | previews in the admin chat | on | on | on |
+
+- **New members**, outside observe mode, are restricted the moment they
+  join (no Telegram read comes first) and can't post until they tap the
+  check's button in time (joins within 20 seconds share one check, and each
+  newcomer's time starts when the check is posted; it never links anywhere
+  and never asks for a wallet). Passing lets them send text only for their
+  first days, which Telegram lifts by itself; not passing in time removes
+  them, and they can rejoin. Someone who rejoins under a longer restriction
+  (the bot's, an admin's or another bot's) gets it back as it was: no
+  check, only marked new. If the check can't be posted, they stay muted
+  while the bot tries again every 15 seconds, for up to 30 minutes in all;
+  only then do they get text only for their first days, never every
+  permission, and the team hears of it. A newcomer's record is written as
+  soon as they are restricted, so a restart loses nobody, and the check is
+  deleted once its last newcomer has passed, left or been removed, after a
+  restart too. Presses past a person's limit get no answer, and
+  restrictions and removals never wait behind button answers.
+- **Raid mode** starts when 10 or more people join within a minute, the rules
+  act 8 or more times within a minute, or many accounts post the same link
+  (3 accounts, the same risky link by host and path, never a handle, a token
+  address or a bot command) or text (8 accounts), and lasts 30 minutes,
+  extended while it goes on: the hard check (4 buttons, 3 minutes), no
+  unprompted answers, and notices summed up every 5 minutes. A link raid
+  bans only new members, each with an alert of their own, and only once 3
+  of them have sent the same link of a risky kind beyond an unknown site (a
+  look-alike, a drainer, an obfuscated host or an invite that isn't
+  official), a copy that vouches for the link included; members' and
+  trusted members' copies count toward raid mode only and are only deleted,
+  with no offence, so a raid can never be aimed at a member. A raid of
+  ordinary unknown links (a chart, a post on X, a DEX page) bans nobody:
+  each copy gets the new-member or unknown-link rule. Admins with Ban users
+  start or end it with `/raid`.
+
+**Human attention.** The admin chat gets an alert for lost funds, a stuck
+transaction, a bug or a flaw, a scam and every `/report`; legal, press,
+listing and partnership questions; an upset member, or a member at risk
+(urgent, and the member gets a fixed, human-written reply with a helpline
+button); answers it couldn't give and checks it was unsure of (a case
+Haiku's check flags is alerted once even when the answer to it ends in a
+note or a fallback); every moderation action, every removal included (in
+observe mode, what it would have done), and review request; and raid mode,
+the budget, AI stopping, a lost admin right, a change in the admin chat's
+members or its auto-delete, a stale knowledge pack and every control change,
+with who made it. An alert shows the case and the group, the member's name,
+username and ID, a short cleaned excerpt (never a secret or a flaw's
+details), what the bot did (in its own words only: a reporter's reason has a
+line of its own) and, labelled, the AI's guess, and ends "Reply in the
+group. Never DM first." Its buttons (Open message, Undo, Unmute or Unban,
+Ban, Trust this member, Delete and Mute 1 h on reports, Handled) each check
+the presser's own right in that group. Undo, Unmute, Unban and Trust act
+once and leave the alert, and stay used even if the alert's edit is lost
+(the used alerts' message IDs, no user IDs, are kept in memory for 47
+hours); Unmute and Trust also take back the alert's offence. Telegram won't
+restrict or ban an administrator, so Trust, Ban, Unmute or Mute 1 h on an
+alert about one answers that the account is an admin, whose rights must
+change in Telegram first. More than 6 alerts a minute become one summary a
+minute, except alerts with Undo, Unmute or Unban and the raid alert, which
+keep their buttons and go out at their own pace; routine removals with
+nothing to undo (an unknown link, a raided link's copy) and newcomer notes
+come in a digest within 9 minutes 30 seconds of its oldest item, counted
+from when each alert was made (one that waited for the admin chat's checks
+and would pass 10 minutes goes out at once in a digest, or is dropped). The
+same member and case alert once per 10 minutes, but reports, unsure checks
+and escalations about different messages each alert, and a repeated action
+with Undo goes to the digest. Routine alerts are deleted after 47 hours;
+those that need a person stay for the chat's one-week auto-delete. From a
+private chat nothing reaches the team unless the member taps Share with the
+team or sends `/report`.
+
+The crisis reply is paced so a phrase pasted under spam can't flood the
+group or the admin chat: each member once per 10 minutes; in a group the
+public reply at most once every 5 minutes, and past that the reply goes to
+the poster alone (an ephemeral message, best effort) with its own urgent
+alert; more than 3 urgent crisis alerts a minute in a group are summed up in
+one.
+
+**Admin controls.** In a community group a control command is deleted at
+once and confirmed in the admin chat with who sent it; without the right
+nothing happens, and anonymous admins are refused. Owners are each group's
+creator and the IDs in `TELEGRAM_OWNER_IDS`.
+
+| Command | Where | Who |
+|---|---|---|
+| `/status`: today's numbers (below), sent to the admin chat | group, admin chat | any admin |
+| `/mod`: the same controls as buttons, in the admin chat | group, admin chat | any admin |
+| `/pause`, `/resume`: AI answers in that group (moderation keeps running) | group | owners |
+| `/proactive on` or `off`: unprompted answers | group | owners |
+| `/strict observe`, `relaxed`, `normal` or `strict` | group | owners |
+| `/raid on` or `off` | group | admins with Ban users |
+| `/trust`, `/untrust` (as a reply); `/trusted` (the list, to the admin chat) | group | admins with Ban users |
+| `/forget` (as a reply, or with an ID): deletes that member's records | group; `/forget <id>` in the admin chat | owners |
+| `/ai on` or `off`: every model call, saved across restarts | admin chat | owners |
+
+Members see `/ask`, `/check`, `/rules`, `/report` and `/help`; the admin
+commands show only in admins' menus, and the menus of a group or admin chat
+the bot no longer runs are deleted at the next sync. Trusted members, and
+administrators with a title only, skip the new-member and link rules, but
+the secret, scam and phishing rules and Haiku's scam check still apply to
+them (title-only admins are read for fake support too). A member replies to
+a message with `/report` to send it to the admins, any reason after it on a
+line of its own (3 per person per 10 minutes; a report never acts on its
+own); without a reply it only says how. A report on an administrator with a
+title only reaches the team too; reports on real admins (the creator, or
+one with Delete messages or Ban users) are ignored. While the admin chat's
+checks wait, `/report` and Share answer that reports aren't set up yet, and
+so does a private `/report` after community mode turns off. `/id`,
+unlisted, tells a person their own Telegram ID in a private chat.
+
+**Reviews.** "Why? Ask for a review" on a notice opens the bot's private
+chat (`/start appeal`), which shows the member's standing in each community
+group and the reason recorded, with "Ask a person to review": one review
+alert with the Undo button that fits, once per member per group per day,
+and only from someone with something to review (a mute or ban Telegram
+shows, or an offence on record; a new member's text-only days don't
+count); anyone else is told they can post as usual, and nothing is sent.
+A removal with no offence (an unknown link in normal mode, contact
+details, a new member's first link) leaves nothing to review, and the
+privacy page offers a review only to someone muted, banned or warned.
+
+**Settings** (Railway's variables, read at start):
+
+| Variable | Use |
+|---|---|
+| `ANTHROPIC_API_KEY` | Turns AI on. Secret: a service-account key scoped to the bot's own workspace, pasted by the owner into Railway only, never logged. Without it moderation runs on the rules alone; without community groups it gives AI in private chats only |
+| `TELEGRAM_COMMUNITY_CHATS` | The allow-list: comma-separated `-100…` IDs of the official community supergroups. Empty: no moderation and no AI in groups. Ignored without `TELEGRAM_ADMIN_CHAT_ID` and `TELEGRAM_OWNER_IDS` |
+| `TELEGRAM_ADMIN_CHAT_ID` | The team's private admin group, by its ID. Community groups need it, and it must not be one of them |
+| `TELEGRAM_OWNER_IDS` | The owners' Telegram user IDs, comma-separated (from `/id`). Community groups need at least one, checked at start |
+| `TELEGRAM_ADMIN_LANG` | Default `en`: alerts, `/status` and the panel |
+| `TELEGRAM_COMMUNITY_LANG` | Default `en`: what the whole group reads (notices, the new-member check, raid mode, `/rules`) |
+| `TELEGRAM_COMMUNITY_MODE` | Default `observe`: the strictness a group starts in (`observe`, `relaxed`, `normal` or `strict`) |
+| `TELEGRAM_AI_BUDGET_USD` | Default `3`: the day's AI cap in dollars (0 to 1000). `0` turns off every model call, and so does a value it can't read |
+| `TELEGRAM_AI_ANSWER_MODEL` | Default `claude-sonnet-5-5`: the model answers run on; or `claude-opus-5-5` or `claude-haiku-5-5` (any case; any other value is ignored with a note, and answers stay on Sonnet 5.5). Moderation checks always run on `claude-haiku-5-5` |
+| `TELEGRAM_AI_PRIVATE` | Default `on`: AI answers in private chats |
+| `TELEGRAM_AI_USER_CODE` | Default `on`: each request's `metadata.user_id`, a code made from the Telegram ID that changes monthly, keyed from the bot token (no new secret) |
+| `TELEGRAM_OFFICIAL_X` | Optional: the official X handle(s) members may link to (their own paths only) |
+| `TELEGRAM_ALLOWED_DOMAINS` | Optional: more domains members may link to, beside tonkfun.fun, tonk-pad.vercel.app, robinhoodchain.blockscout.com, solscan.io and explorer.solana.com |
+| `TELEGRAM_ALLOWED_BOTS` | Optional: bot usernames non-admins may add; their messages are never moderated |
+| `TELEGRAM_HELPLINE_URL` | Optional, https only: the crisis reply's helpline button. Default `https://findahelpline.com` |
+| `TELEGRAM_COMMUNITY_STATE_PATH` | Default: `community.json` beside `SNAPSHOT_PATH` (`/data/community.json` on Railway) |
+
+A value it can't use is ignored, the AI switches failing closed, and one log
+line at start says what runs and what was ignored (counts, never an ID or a
+key). Never set `ANTHROPIC_LOG` or another `ANTHROPIC_*` credential on
+Railway. The agent also reads `TELEGRAM_CHANNEL_ID`,
+`TELEGRAM_BRAND_CREATORS`, and the site at `TELEGRAM_SITE_URL`: its
+`/api/bot/site` (the site's knowledge hash, whether Launch is invite-only,
+and the Security page's contact), at start and every 30 minutes.
+
+**At start** it checks that an owner is the creator, or an admin with Ban
+users, of each community group and a member of the admin chat; that the
+admin chat has no public username; that the bot holds Delete messages and
+Ban users; and that the site names a Security contact. It also reads the
+admin chat's auto-delete: off or longer than a week is alerted, and nothing
+else. A read that fails with a network error, a 429 or a 5xx is tried again
+after 1 and 2 seconds; a check it still can't answer runs as unsure (the
+group runs, the admin chat's alerts wait) and is asked again from the tick,
+after 30 seconds and then less often, up to every 10 minutes. Only a
+definite answer acts. A group that fails is dropped: its pending checks end
+without punishment (their records dropped, the check deleted and the
+restriction lifted where the bot still can), its raid watch ends, and if the
+bot is no longer in it, its records are forgotten. A failing admin chat (a
+400 "chat not found" or "upgraded to a supergroup", whose log line says how
+to find the new ID, or a 403), an admin chat still unanswered after an hour,
+or no contact turns community mode off; its scheduled deletes still run.
+Each problem is logged and, where it can be, alerted. The admin lists are
+read with the same retries, and a group whose list hasn't come is read again
+every 30 seconds. Module 14 starts polling at once: the community groups'
+updates wait, up to 2 minutes, until the agent is ready (one that waits
+longer is dropped), and a message over 5 minutes old is then handled as
+stale. When the bot is busy, a community group's update waits up to 5
+minutes for its turn, and a stop drops whatever waits. Afterwards the admin
+chat's members are read every 10 minutes and its auto-delete every hour, and
+a change is alerted. Records of a group no longer in
+`TELEGRAM_COMMUNITY_CHATS` are dropped at start, and a start without
+community mode keeps no member's records (only each group's settings, the AI
+switch and today's spend).
+
+**Set it up.**
+1. **Anthropic Console** (platform.claude.com), billed apart from the Claude
+   plan. Buy prepaid credits (for example $100: at the $3 daily cap a 31-day
+   month is at most $93) with auto-reload off, and check in the data
+   settings that nothing opts the organization into training or feedback
+   sharing. Create a workspace used only by the bot,
+   with a monthly spend limit of at least 31 times the daily cap (for example
+   $100 at $3 a day). Create a service account in that workspace and its API
+   key scoped to it (expiry Never; rotate it if a teammate leaves or it may
+   have leaked). You paste it into Railway yourself in step 6, never into a
+   chat; if it leaks, disable it in the Console.
+2. **Merge, then deploy.** Vercel deploys the privacy page and
+   `/api/bot/site`; Railway redeploys the worker, with community mode still
+   off. Check `/privacy/telegram`: it must be live, and reviewed by counsel,
+   before AI is switched on in a group. Make sure the Security page shows a
+   contact (`NEXT_PUBLIC_SECURITY_CONTACT` on Vercel): community mode won't
+   start without one.
+3. **The groups.** The community group must be a supergroup (any public
+   group is). Create a private admin group with the team only, no public
+   link, and set its auto-delete to one week. In the community group, if
+   Telegram offers them, hide the member list, turn on aggressive anti-spam
+   and turn off members editing their own tag; if the official channel has a
+   linked discussion group, require joining before commenting. Send `/id` to
+   the bot in a private chat for your Telegram ID. Add the bot to both
+   groups: Railway's log shows `added to group <id> (supergroup)` (or
+   `(group)`) for each; copy both IDs.
+4. **Admin rights.** Make the bot an admin of the community group with
+   exactly two rights, Delete messages and Ban users (mutes and the check use
+   Ban users too); leave every other right off, above all adding new admins.
+   Make it an admin of the admin chat with no rights, so it sees commands
+   there.
+5. **@BotFather:** keep Group Privacy on, Allow Groups on and inline mode as
+   it is; leave bot-to-bot communication and guest mode off. The privacy
+   policy link stays `/privacy/telegram`; the bot sets its own commands and
+   descriptions.
+6. **Railway:** set `ANTHROPIC_API_KEY`, `TELEGRAM_COMMUNITY_CHATS`,
+   `TELEGRAM_ADMIN_CHAT_ID` and `TELEGRAM_OWNER_IDS`, and if you like
+   `TELEGRAM_OFFICIAL_X`, `TELEGRAM_AI_BUDGET_USD` and
+   `TELEGRAM_AI_ANSWER_MODEL` (answers stay on Sonnet 5.5 without it). Add
+   `web/src/shared/**` to the worker's watch paths: the knowledge pack is
+   built from the site's text there, so a Docs change then redeploys the
+   worker. The worker redeploys.
+7. **Check** `/status` in the admin chat: AI on, answers on the model you
+   chose, the knowledge matching the site, the contact set, both rights,
+   mode observe.
+8. **Tell members** (Telegram's terms ask bots to announce a change of
+   scope): post and pin this, in the group's languages, and put the policy
+   link in the group's description too:
+   > Our bot @TonkfunBot now helps here. It answers questions with AI
+   > (Claude, made by Anthropic): mention it, reply to it or use /ask. It
+   > also removes spam and scams and checks that new members are human; to
+   > do this it reads messages here and sends some of them to Anthropic.
+   > What it keeps, and for how long: www.tonkfun.fun/privacy/telegram. The
+   > team never DMs first.
+9. **Test** with a second account: ask a question, mention the bot, try
+   `/report` and a review.
+10. After a day or two in observe mode, send `/strict normal` in the group.
+11. Optional: register look-alike bot usernames such as TonkfunSupportBot,
+    and report impersonators to @NoToScam.
+12. Run the eval (below) once before go-live.
+
+If the log says `the admin chat can't be read`, Telegram may have turned the
+admin group into a supergroup while you set it up, which gives it a new ID
+(starting `-100`): remove the bot from it, add it again (an admin with no
+rights) and copy the ID from the new log line.
+
+**`/status`** in the admin chat shows, for each group: today's answers,
+refusals and cases sent to the team; what moderation removed, warned, muted
+and banned, and the reports and reviews; the new-member checks; the AI
+budget by lane against each cap, whether AI is on and why not (a pause
+with when it ends, a ramp limit's wait included), and the models answers and
+checks run on; the mode, raid mode and
+unprompted answers; the knowledge pack's hash in the worker and on the site,
+and the Security contact; the bot's two rights; and the queues. The public
+`/health` shows only `telegram.community.enabled`, so nobody outside can
+watch for a weak moment.
+
+**What it costs.** Anthropic's prices per million tokens (read 25 Nov 2026;
+`worker/src/telegram/claude/prices.ts`):
+
+| Model | Input | Cache write, 5 min / 1 h | Cache read | Output |
+|---|---|---|---|---|
+| Claude Sonnet 5.5: answers, by default | $2 | $2.50 / $4 | $0.10 | $10 |
+| Claude Opus 5.5: answers, if chosen | $4 | $5 / $8 | $0.20 | $20 |
+| Claude Haiku 5.5: checks always, answers if chosen | $0.10 | $0.125 / $0.20 | $0.01 | $0.50 |
+
+Sonnet 5.5 and Opus 5.5 have one price at any prompt length; Haiku 5.5's
+prices rise past 100K-token prompts ($0.50, $0.625 / $1, $0.05 and $2.50),
+far above any request here. Estimated cost of the answers, their checks and the
+day's cache writes, a day and a month (30 days):
+
+| Answers a day | Sonnet 5.5 (default) | Opus 5.5 | Haiku 5.5 |
+|---|---|---|---|
+| Small group: 10 | $0.55–0.66 a day, $17–20 a month | $1.10–1.32 a day, $33–40 a month | $0.04 a day, $1.15–1.32 a month |
+| Quiet: 50 | $1.23–1.79 a day, $37–54 a month | $2.41–3.53 a day, $72–106 a month\* | $0.12–0.14 a day, $3.45–4.29 a month |
+| Busy: 200 | $3.76–6.00 a day, $113–180 a month\* | $7.32–11.80 a day, $220–354 a month\* | $0.40–0.51 a day, $12–15 a month |
+
+\* All or part of the range is more than the $3 default cap allows: the lanes
+stop answers first and the cap stops every call, so such a day costs at most
+$3.
+
+These are estimates, not measurements. They take an answer as 1.4 requests,
+each reading about 17,500 cached tokens, sending about 1,300 new ones and
+getting 700 to 1,500 back (thinking included; that gives each range); about
+8 one-hour cache writes a day of about 12,000 tokens; and about 10 checks per
+answer, on Haiku 5.5 at about $0.0001 each. Whatever the real figures are,
+the daily cap (`TELEGRAM_AI_BUDGET_USD`, $3 by default) and the Console's
+monthly limit on the bot's workspace stop the spending in any case: at $3 a
+day, a 31-day month is at most $93. The lanes bind first: at $3, group
+answers get $1.35 a day, which after the day's cache writes is roughly 30 to
+55 answers on Sonnet 5.5, 6 to 10 on Opus 5.5 and 900 to 1,400 on Haiku 5.5,
+with private ($0.90) and unprompted ($0.45) answers on top. More answers
+take a higher cap, with the monthly limit and credits at least 31 times it.
+`/status` shows the real spend by lane, and the eval prints real usage.
+
+**The budget and the kill switches.** `TELEGRAM_AI_BUDGET_USD` (default $3
+a UTC day) is split in lanes, so asking questions can't switch moderation
+off: checks keep 10% and may use whatever is left of the day; group answers
+take at most 45%, unprompted answers 15% and private answers 30%. At 80% of
+the day private and unprompted answers stop; at the cap every model call
+stops until 00:00 UTC, and moderation runs on the rules alone. Each request
+first reserves its worst case on its model (one token per 2 characters,
+rounded up, plus the 286 tokens of the tool prompt for an answer, written
+to the 1-hour cache, plus `max_tokens` of output: about $0.13 on Sonnet 5.5
+and $0.26 on Opus 5.5 for a typical answer request) and is charged its real
+cost from Anthropic's usage; one that never left the worker (a failed DNS
+lookup, connection or TLS handshake) is released, not charged. A request
+that doesn't fit is only refused: a lane, the 80% mark and the cap close for
+the day only once the money really spent reaches them, never on a worst case
+alone, and the admins hear as each closes. The day's spend and the AI switch
+survive restarts.
+Failures stop AI by themselves, and checks and answers have separate
+breakers, so failing answers never pause moderation checks: 5 timeouts,
+network errors, rate limits or overloads of one kind within 5 minutes pause
+that kind for 10, and a bad request pauses its kind for 15, with an alert; a
+ramp limit waits Anthropic's retry-after. Each kind's pause or bad request
+is announced on its own, once per streak, in that kind's words ("Moderation
+checks are paused for a few minutes after repeated errors. The rules keep
+running, and links that relaxed mode would keep are held." or "AI answers
+are paused…"), even while the other kind's streak is open; a kind's return
+("Moderation checks are back on." or "AI answers are back on.") is said
+after its first success while the other kind is still out. A refused or
+unscoped key stops every call for an hour, with an alert of its own saying
+to check the key on Railway; a billing problem, or a missing model or
+workspace, stops them until an owner sends `/ai on`, with one alert saying
+what to fix. "AI is back on" is said only after a call succeeds, once
+nothing is paused and each kind that stopped has replied. To stop it
+yourself:
+- `/ai off` in the admin chat (owners): every model call, until `/ai on`;
+- `/pause` in a group (owners): that group's answers, while moderation runs;
+- on Railway, `TELEGRAM_AI_BUDGET_USD=0`, or no `ANTHROPIC_API_KEY`: every
+  model call, and moderation runs on the rules alone.
+
+The Console's prepaid credits (no auto-reload) and the workspace's monthly
+limit are the backstops.
+
+**The offline eval** (`worker/evals/agent/`) sends its cases
+(`cases/*.json`: questions, moderation messages and unprompted candidates)
+through the bot's real answer loop, output gate and check, grades each reply
+by code and prints every answer for a person to read, with usage, cost,
+latency and thinking tokens. The owner runs it with a key for the bot's
+workspace in the shell (it reads no `.env` file):
+
+```bash
+read -rs ANTHROPIC_API_KEY && export ANTHROPIC_API_KEY   # paste the key: not shown, not kept in history
+npm run eval:agent                       # the plan and its estimated cost; nothing is sent
+npm run eval:agent -- --yes              # the run, answers on Sonnet 5.5: about $1.80, never more than $5
+npm run eval:agent -- --yes --lang ru    # then the answers again in Russian (or es): about $3.20 in all
+unset ANTHROPIC_API_KEY
+```
+
+Answers run on Sonnet 5.5 unless `--model` (or `TELEGRAM_AI_ANSWER_MODEL` in
+the shell) picks `claude-opus-5-5` (about $3.60 a run, capped at $10) or
+`claude-haiku-5-5` (about $0.26, capped at $1); checks always run on Haiku
+5.5. `--effort low` or `high` reruns the answers at that effort to compare
+(any level but their model's own: medium on Sonnet 5.5 and Opus 5.5, high
+on Haiku 5.5), `--only <ids>` picks cases, and `--count-tokens` counts the
+knowledge pack's tokens instead. It exits 0 when every case passes. It never runs under
+Vitest: `npm test` fakes the client and never reaches Anthropic.
+
+**Privacy.** The bot's privacy page (`/privacy/telegram`:
+`src/modules/privacy/` and the `privacy.*` keys in all 12 languages) says
+what it reads, what goes to Anthropic, what it keeps and for how long, what
+the admin chat sees, and who receives it (Anthropic, Telegram and Railway,
+which hosts the worker and its records and logs). In the official group its
+records in `community.json` are warnings (until 7 days after the last), new
+members (their first 1 to 7 days), a check in progress (15 minutes, or 45
+when posting the check was delayed: its joiners stay muted while it waits,
+30 minutes at most), trusted members (until an admin removes them or they
+leave), reviews (a day) and the IDs of messages still to delete, its own and
+members' messages it removed (until Telegram confirms the delete, 2 days at
+most); user IDs, names, usernames and message text stay in memory for at
+most 10 minutes. What goes to Anthropic has e-mail addresses and phone
+numbers hidden in the formats the bot recognises (Moderation, above), which
+is all the page promises: a bare run of digits with no phone word and no
+Telegram mark is sent as written. Records of a group taken off
+`TELEGRAM_COMMUNITY_CHATS`, and every member's record when community mode is
+off, are dropped at the next start; those of a group the bot is no longer
+in, as soon as setup finds it. The page and the bot change together:
+anything that changes what the bot reads, sends or keeps updates the page in
+the same change, with its date (`UPDATED` in
+`src/modules/privacy/lib/bot.ts`).
 
 ## Deploy on Vercel
 

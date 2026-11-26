@@ -1,8 +1,10 @@
-import type { Locale } from "@/shared/i18n/config";
+import { type Locale, localizePath } from "@/shared/i18n/config";
 import { LAUNCHPADS } from "@/shared/config/launchpads";
 import { formatChange, formatInteger, formatUsdCompact } from "@/shared/lib/format";
 import type { Token } from "@/shared/types/token";
+import { LINK_PATHS } from "./agent/render";
 import { words } from "./i18n";
+import { communityWords } from "./i18n/community";
 import { docsUrl, homeUrl, refUrl, shareUrl, tokenUrl } from "./links";
 import { escapeHtml as esc, fill, isEvm, plainText, safeText } from "./text";
 import type { Button, View } from "./types";
@@ -84,11 +86,16 @@ const homeRows = (lang: Locale): Button[][] => {
   return [[act(d.check, "check"), act(d.launches, "l:tonk")], [act(d.referral, "ref"), act(d.help, "help")]];
 };
 
-export function homeView(lang: Locale, site: string): View {
+/** The bot's privacy policy (/privacy/telegram), in the visitor's language. */
+const privacyUrl = (site: string, lang: Locale) => `${site}${localizePath(lang, LINK_PATHS.privacy)}`;
+
+/** The private chat's menu; with AI answers on (module 15) it opens with Ask a question, which shows the Ask prompt. */
+export function homeView(lang: Locale, site: string, options: { ai: boolean } = { ai: false }): View {
   const d = words(lang).home;
+  const ask: Button[][] = options.ai ? [[act(d.ask, "askp")]] : [];
   return {
     text: `<b>tonkfun.fun</b>\n${esc(d.body)}\n\n${esc(d.hint)}`,
-    keyboard: { inline_keyboard: [...homeRows(lang), [link(d.open, homeUrl(site, lang))]] },
+    keyboard: { inline_keyboard: [...ask, ...homeRows(lang), [link(d.open, homeUrl(site, lang))]] },
   };
 }
 
@@ -98,16 +105,41 @@ export function notAddressView(lang: Locale): View {
   return { text: `<b>${esc(d.notAddress)}</b>\n${esc(d.notAddressBody)}`, keyboard: { inline_keyboard: homeRows(lang) } };
 }
 
-export function helpView(lang: Locale, site: string, options: { group: boolean; bot: string | null }): View {
+/**
+ * How the bot works. With AI answers on (module 15) it says how to ask (in
+ * a group: mention it, reply to it or /ask in the community group), that
+ * the answers are written by AI and can be wrong, and links the privacy policy.
+ */
+export function helpView(lang: Locale, site: string, options: { group: boolean; bot: string | null; ai: boolean }): View {
   const d = words(lang).help;
-  const bullets = options.group ? [d.groups] : [d.paste, d.launches, d.referral, d.groups];
+  const c = communityWords(lang).help;
+  const ask = options.ai ? [options.group ? c.groupAsk : c.ask] : [];
+  const bullets = options.group ? [...ask, d.groups] : [...ask, d.paste, d.launches, d.referral, d.groups];
   const lines = bullets.map((line) => `• ${esc(line)}`);
   if (!options.group && options.bot) lines.push(`• ${fill(d.inline, { bot: esc(options.bot) })}`);
-  const text = [`<b>${esc(d.title)}</b>`, "", ...lines, "", esc(d.score), "", esc(d.safety)].join("\n");
+  const ai = options.ai ? [esc(c.ai), ""] : [];
+  const text = [`<b>${esc(d.title)}</b>`, "", ...lines, "", ...ai, esc(d.score), "", esc(d.safety)].join("\n");
   const site_ = link(words(lang).home.open, homeUrl(site, lang));
-  const rows = options.group ? [[site_]] : [[link(d.docs, docsUrl(site, lang)), site_], [act(`‹ ${words(lang).common.back}`, "home")]];
+  const privacy = link(c.privacy, privacyUrl(site, lang));
+  const docs = link(d.docs, docsUrl(site, lang));
+  const back = [act(`‹ ${words(lang).common.back}`, "home")];
+  const rows = options.group
+    ? [options.ai ? [site_, privacy] : [site_]]
+    : options.ai ? [[docs, privacy], [site_], back] : [[docs, site_], back];
   return { text, keyboard: { inline_keyboard: rows } };
 }
+
+/** /id (private, unlisted): the person's own Telegram ID, for the owner's setup (TELEGRAM_OWNER_IDS). Nothing is kept. */
+export function idView(lang: Locale, userId: number): View {
+  const id = Number.isSafeInteger(userId) ? String(userId) : "?";
+  return { text: `${esc(communityWords(lang).id.yours)} <code>${id}</code>` };
+}
+
+/** A private /report with nothing after it: how to use it there (write what happened after it); a group's own line says to reply to the message. */
+export const reportUsageView = (lang: Locale): View => ({ text: esc(communityWords(lang).report.usagePrivate) });
+
+/** A private /report with words that can't reach the team now (community mode turned off): the Security page's contact instead. */
+export const reportClosedView = (lang: Locale): View => ({ text: esc(communityWords(lang).report.noAdminChat) });
 
 export function checkPrompt(lang: Locale): View {
   const d = words(lang).check;

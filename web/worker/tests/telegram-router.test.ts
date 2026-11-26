@@ -15,9 +15,12 @@ function message(text: string | undefined, chat: TgChat = ME, extra: Partial<TgM
   return { update_id: id, message: { message_id: id, date: NOW / 1000, chat, from: { id: 7, language_code: "en" }, text, ...extra } };
 }
 
-function press(data: string, chat: TgChat = ME, options: { id?: string; lang?: string; user?: number } = {}): TgUpdate {
+/** A press on a bot message that really shows that button (`shown` overrides what the message shows: a forged press). */
+function press(data: string, chat: TgChat = ME, options: { id?: string; lang?: string; user?: number; shown?: string } = {}): TgUpdate {
   const id = nextId++;
-  return { update_id: id, callback_query: { id: options.id ?? `cb${id}`, from: { id: options.user ?? 7, language_code: options.lang }, data, message: { message_id: 99, date: NOW / 1000, chat } } };
+  const button = options.shown ?? data;
+  const message: TgMessage = { message_id: 99, date: NOW / 1000, chat, reply_markup: { inline_keyboard: [[{ text: button, callback_data: button }]] } };
+  return { update_id: id, callback_query: { id: options.id ?? `cb${id}`, from: { id: options.user ?? 7, language_code: options.lang }, data, message } };
 }
 
 describe("commands", () => {
@@ -202,6 +205,18 @@ describe("buttons", () => {
     const { ctx, got } = context();
     for (let i = 0; i < 9; i++) await handleUpdate(press("home"), ctx);
     expect(got.answers.at(-1)?.text).toBe(en.common.slowDown);
+  });
+
+  it("does nothing for a forged press, or one on a message too old to show its buttons, beyond a silent answer", async () => {
+    const { ctx, got } = context();
+    await handleUpdate(press(`c:${WHOA}`, ME, { shown: "home" }), ctx);
+    await handleUpdate(press("home", GROUP, { shown: "help" }), ctx);
+    const old = press("help");
+    delete old.callback_query?.message?.reply_markup;
+    await handleUpdate(old, ctx);
+    expect(got.sent).toHaveLength(0);
+    expect(got.edits).toHaveLength(0);
+    expect(got.answers.map((a) => a.text)).toEqual([undefined, undefined, undefined]);
   });
 });
 

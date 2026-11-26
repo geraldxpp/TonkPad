@@ -10,6 +10,9 @@ export const en = {
     short: "Check new tokens before you buy, and follow launches on tonkfun.fun, Pons and Pump.fun.",
     description:
       "Paste a token address to see its Mission score, locks and key numbers. Follow the newest launches on tonkfun.fun, Pons and Pump.fun, make your referral link, and open any token on tonkfun.fun.\n\nThis bot never asks for your keys and never sends a transaction.",
+    shortAi: "Ask anything about tonkfun.fun, check tokens before you buy, and follow new launches.",
+    descriptionAi:
+      "Ask me anything about tonkfun.fun: launches, fees, locks, Crew Rewards and more. My answers are written by AI (Claude, made by Anthropic) from tonkfun.fun's Docs and live data. They can be wrong and are never financial advice.\n\nPaste a token address to see its Mission score, or follow the newest launches on tonkfun.fun, Pons and Pump.fun. I never ask for your keys and never send a transaction.",
   },
   commands: {
     start: "Home",
@@ -21,6 +24,7 @@ export const en = {
   home: {
     body: "Check new tokens before you buy, and follow every launch.",
     hint: "Paste a token address, or choose below.",
+    ask: "Ask a question",
     check: "Check a token",
     launches: "Latest launches",
     referral: "Referral link",

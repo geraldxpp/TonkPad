@@ -207,13 +207,13 @@ async function start(): Promise<void> {
     log("alerts", `not started: ${error instanceof Error ? error.name : "error"}`);
     return null;
   });
-  // The bot answers from the worker's own data; if it can't start, the worker still serves the screens.
-  telegram = await startTelegram({ store, env: process.env, snapshotPath: config.snapshotPath, tonkFeed: tonk !== null, log: (line) => log("telegram", line) }).catch(
-    (error: unknown) => {
-      log("telegram", `not started: ${error instanceof Error ? error.name : "error"}`);
-      return null;
-    },
-  );
+  // The bot answers from the worker's own data (and its ETH price, for the community agent's figures); if it can't start, the worker still serves the screens.
+  telegram = await startTelegram({
+    store, env: process.env, snapshotPath: config.snapshotPath, tonkFeed: tonk !== null, log: (line) => log("telegram", line), ethUsd: () => status.ethUsd,
+  }).catch((error: unknown) => {
+    log("telegram", `not started: ${error instanceof Error ? error.name : "error"}`);
+    return null;
+  });
   await refreshStatus();
   connectPumpPortal({
     onLaunch: (event) => {

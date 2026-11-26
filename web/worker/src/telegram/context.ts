@@ -1,5 +1,7 @@
 import type { LaunchpadId } from "@/shared/types/launchpad";
 import type { Token } from "@/shared/types/token";
+import type { Once } from "./community/hold";
+import type { CommunityHooks } from "./community/types";
 import type { Limiter } from "./limiter";
 import type { InlineKeyboard, TgChat, View } from "./types";
 
@@ -25,11 +27,18 @@ export interface InlineArticle {
 
 /** Where answers go (index.ts sends them through the Sender; tests record them). */
 export interface Out {
-  send(chat: TgChat, view: View, replyTo?: number): Promise<void>;
+  /** `thread`: the forum topic of the message it answers, so the reply lands in that topic. */
+  send(chat: TgChat, view: View, replyTo?: number, thread?: number): Promise<void>;
   edit(target: Target, view: View, chat?: TgChat): Promise<void>;
   /** Answers a button press (a toast when `text` is given); false when Telegram refused it, e.g. a press too old to answer. */
   answer(callbackId: string, text?: string): Promise<boolean>;
   inline(queryId: string, results: InlineArticle[], button: string): Promise<void>;
+}
+
+/** The bot as getMe describes it: its ID and every username it answers to (active_usernames included). */
+export interface BotSelf {
+  id: number;
+  usernames: string[];
 }
 
 export interface BotContext {
@@ -38,6 +47,8 @@ export interface BotContext {
   site: string;
   /** The bot's @username once getMe has answered. */
   bot: () => string | null;
+  /** The bot's ID and usernames once getMe has answered. */
+  me: () => BotSelf | null;
   /** Inline mode is switched on in @BotFather (getMe's supports_inline_queries). */
   inline: () => boolean;
   now: () => number;
@@ -47,4 +58,19 @@ export interface BotContext {
   /** Shared by everyone (key 0): inline answers, and "slow down" toasts for presses past a person's limit. */
   inlineAll: Limiter;
   pressAll: Limiter;
+  /**
+   * Presses in a group that post a new message there (a token's card, or the
+   * launches list under an AI answer): once per message and button in 10
+   * minutes, so nobody can make the bot flood a group. Keys hold a group's ID
+   * and the bot's own message ID, never a user ID.
+   */
+  groupPosts: Once;
+  /**
+   * The community agent and moderator (module 15), once it has started; absent
+   * when it is off. Only allow-listed groups, the admin chat and private chats
+   * reach it, each through its own call.
+   */
+  community?: CommunityHooks;
+  /** Notes for the worker's log: group IDs at most, never a user ID or a message's text. */
+  log?: (line: string) => void;
 }

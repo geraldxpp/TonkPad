@@ -1,0 +1,232 @@
+[
+  {
+    "id": "mod-spam-volume-en",
+    "input": { "text": "Best volume bot on Robinhood Chain, 50% off today only. Message @volumeking_bot for packages.", "standing": "new" },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-spam-volume-zh",
+    "input": { "text": "低价出售刷量服务，各条链都支持，需要的私聊我", "standing": "new", "appLang": "zh" },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-spam-signals-es",
+    "input": { "text": "Gana 500 USDT al día con mis señales, únete a mi canal t.me/senales_pro_vip", "standing": "new", "appLang": "es" },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo", "link_spam", "invite_link"] }
+  },
+  {
+    "id": "mod-spam-calls-pt",
+    "input": { "text": "Galera, sigam meu canal de calls, 100x garantido toda semana", "standing": "new", "appLang": "pt" },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo"] }
+  },
+  {
+    "id": "mod-spam-presale-tr",
+    "input": { "text": "Yeni projemiz yarın listeleniyor, ön satış için profilime bakın", "standing": "new", "appLang": "tr" },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo"] }
+  },
+  {
+    "id": "mod-spam-promo-ru",
+    "input": { "text": "Продвижение токенов: накрутка холдеров и объёма, недорого, пишите в личку", "standing": "new", "appLang": "ru" },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-spam-forward-pt",
+    "input": { "text": "Promoção: compre seguidores e membros para o seu grupo, chame no privado", "standing": "member", "appLang": "pt", "forwarded": true },
+    "expect": { "verdict": ["spam", "scam"], "category": ["promo", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-scam-airdrop-en",
+    "input": { "text": "Tonkfun airdrop is live! Connect your wallet at tonkfun-rewards.app to claim before it ends", "standing": "new" },
+    "expect": { "verdict": ["scam"], "category": ["phishing"] }
+  },
+  {
+    "id": "mod-scam-migrate-ru",
+    "input": { "text": "Срочно: все токены переносят на новый контракт, подключите кошелёк здесь: tonk-migrate.io", "standing": "member", "appLang": "ru" },
+    "expect": { "verdict": ["scam"], "category": ["phishing"] }
+  },
+  {
+    "id": "mod-scam-claim-zh",
+    "input": { "text": "官方空投开始了，前往 tonkfun-claim.com 连接钱包领取", "standing": "new", "appLang": "zh" },
+    "expect": { "verdict": ["scam"], "category": ["phishing"] }
+  },
+  {
+    "id": "mod-scam-sync-pt",
+    "input": { "text": "Valide sua carteira em tonkfun-sync.net para continuar recebendo as recompensas Crew", "standing": "new", "appLang": "pt" },
+    "expect": { "verdict": ["scam"], "category": ["phishing"] }
+  },
+  {
+    "id": "mod-scam-seedform-tr",
+    "input": { "text": "Cüzdanınızı senkronize etmek için kurtarma kelimelerinizi bu forma girin: forms-tonk.xyz", "standing": "new", "appLang": "tr" },
+    "expect": { "verdict": ["scam"], "category": ["seed_phrase", "phishing"] }
+  },
+  {
+    "id": "mod-scam-doubler-es",
+    "input": { "text": "Mándame 0.1 ETH y te devuelvo 0.3 en una hora, garantizado", "standing": "member", "appLang": "es" },
+    "expect": { "verdict": ["scam"], "category": ["other", "promo", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-fake-support-en",
+    "input": { "text": "Hi, I'm from the tonkfun.fun support team. If your transaction is stuck, message me directly and I'll fix it.", "standing": "new" },
+    "expect": { "verdict": ["scam"], "category": ["fake_support", "impersonation", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-fake-mod-es",
+    "input": { "text": "Soy moderador oficial de tonkfun. Escríbeme por privado para verificar tu cuenta.", "standing": "new", "appLang": "es" },
+    "expect": { "verdict": ["scam"], "category": ["fake_support", "impersonation", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-fake-admin-ru",
+    "input": { "text": "Админ tonkfun на связи. Проблемы с покупкой? Пишите мне в личку", "standing": "new", "appLang": "ru" },
+    "expect": { "verdict": ["scam"], "category": ["fake_support", "impersonation", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-fake-support-zh",
+    "input": { "text": "我是tonkfun的客服，交易有问题请私信我，我帮你处理", "standing": "member", "appLang": "zh" },
+    "expect": { "verdict": ["scam"], "category": ["fake_support", "impersonation", "dm_solicitation"] }
+  },
+  {
+    "id": "mod-lookalike-en",
+    "input": { "text": "The official site moved to tonkfun.fun-app.com, use that one from now on", "standing": "new" },
+    "expect": { "verdict": ["scam"], "category": ["phishing", "impersonation"] }
+  },
+  {
+    "id": "mod-lookalike-tr",
+    "input": { "text": "Resmi site artık tonkfuun.fun, eski site kapandı", "standing": "new", "appLang": "tr" },
+    "expect": { "verdict": ["scam"], "category": ["phishing", "impersonation"] }
+  },
+  {
+    "id": "mod-lookalike-pt",
+    "input": { "text": "O launchpad novo é tonkpad-fun.xyz, o antigo foi hackeado", "standing": "member", "appLang": "pt" },
+    "expect": { "verdict": ["scam"], "category": ["phishing", "impersonation"] }
+  },
+  {
+    "id": "mod-report-dm-en",
+    "input": { "text": "Heads up: someone is DMing people as Tonkfun Support and asking for seed phrases. Don't answer them." },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "scam_report", "notPunished": true }
+  },
+  {
+    "id": "mod-report-link-es",
+    "input": { "text": "¿Este enlace tonkfun-claim.com que me mandaron es real o es estafa?", "appLang": "es" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "scam_report", "notPunished": true }
+  },
+  {
+    "id": "mod-report-admin-ru",
+    "input": { "text": "Мне в личку написал какой-то «админ» и просит сид-фразу. Это же скам, да?", "appLang": "ru" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "scam_report", "notPunished": true }
+  },
+  {
+    "id": "mod-report-support-zh",
+    "input": { "text": "有人私信我说是官方客服，让我验证钱包，这是骗子吧？", "appLang": "zh" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "scam_report", "notPunished": true }
+  },
+  {
+    "id": "mod-report-warn-pt",
+    "input": { "text": "Cuidado galera, o site tonkfun-airdrop.xyz é golpe, não conectem a carteira", "appLang": "pt" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "scam_report", "notPunished": true }
+  },
+  {
+    "id": "mod-report-invite-tr",
+    "input": { "text": "Biri bana tonkfun destek grubunun linkini attı, t.me/+Xyz123AbC, güvenilir mi?", "appLang": "tr" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "scam_report", "notPunished": true }
+  },
+  {
+    "id": "mod-q-locked-en",
+    "input": { "text": "How long does a lock have to run for the Locked badge?" },
+    "expect": { "verdict": ["ok"], "question": "tonkfun", "needs_human": "none" }
+  },
+  {
+    "id": "mod-q-fee-es",
+    "input": { "text": "¿Cuánto cuesta lanzar un token en tonkfun.fun?", "appLang": "es" },
+    "expect": { "verdict": ["ok"], "question": "tonkfun", "needs_human": "none" }
+  },
+  {
+    "id": "mod-q-liquidity-ru",
+    "input": { "text": "Что происходит с ликвидностью после выпуска токена на Uniswap?", "appLang": "ru" },
+    "expect": { "verdict": ["ok"], "question": "tonkfun", "needs_human": "none" }
+  },
+  {
+    "id": "mod-q-crew-zh",
+    "input": { "text": "Crew奖励是怎么分配的？", "appLang": "zh" },
+    "expect": { "verdict": ["ok"], "question": "tonkfun", "needs_human": "none" }
+  },
+  {
+    "id": "mod-q-paused-pt",
+    "input": { "text": "Alguém sabe se dá pra vender enquanto o launchpad está pausado?", "appLang": "pt" },
+    "expect": { "verdict": ["ok"], "question": "tonkfun", "needs_human": "none" }
+  },
+  {
+    "id": "mod-q-bridge-tr",
+    "input": { "text": "Ethereum'dan Robinhood Chain'e ETH nasıl köprülenir?", "appLang": "tr" },
+    "expect": { "verdict": ["ok"], "needs_human": "none" }
+  },
+  {
+    "id": "mod-q-other-en",
+    "input": { "text": "What's everyone's take on ETH this week?" },
+    "expect": { "verdict": ["ok"], "question": "other", "needs_human": "none" }
+  },
+  {
+    "id": "mod-chat-gm-en",
+    "input": { "text": "gm everyone, good vibes in here today" },
+    "expect": { "verdict": ["ok"], "question": "none", "needs_human": "none" }
+  },
+  {
+    "id": "mod-chat-hello-ru",
+    "input": { "text": "Всем привет, я тут новенький", "standing": "new", "appLang": "ru" },
+    "expect": { "verdict": ["ok"], "question": "none", "needs_human": "none" }
+  },
+  {
+    "id": "mod-chat-evening-zh",
+    "input": { "text": "今天行情不错啊，大家晚上好", "appLang": "zh" },
+    "expect": { "verdict": ["ok"], "question": "none", "needs_human": "none" }
+  },
+  {
+    "id": "mod-trusted-link-en",
+    "input": { "text": "Good explainer on bonding curves for anyone new: curves-explained.example/guide", "standing": "trusted" },
+    "expect": { "verdict": ["ok"], "notPunished": true }
+  },
+  {
+    "id": "mod-lost-en",
+    "input": { "text": "Sold my tokens an hour ago and the ETH never showed up in my wallet" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "lost_funds", "notPunished": true }
+  },
+  {
+    "id": "mod-stuck-tr",
+    "input": { "text": "Satışım 30 dakikadır beklemede, hâlâ onaylanmadı", "appLang": "tr" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "stuck_tx", "notPunished": true }
+  },
+  {
+    "id": "mod-bug-es",
+    "input": { "text": "El botón de vender no funciona en la página del token, me sale un error", "appLang": "es" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "bug", "notPunished": true }
+  },
+  {
+    "id": "mod-press-en",
+    "input": { "text": "Hi, I'm a journalist at a crypto news site writing about Robinhood Chain launchpads. Who can I talk to for a comment?" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "press", "notPunished": true }
+  },
+  {
+    "id": "mod-listing-pt",
+    "input": { "text": "Somos uma exchange e queremos listar tokens lançados no tonkfun, com quem falo?", "appLang": "pt" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "listing", "notPunished": true }
+  },
+  {
+    "id": "mod-anger-ru",
+    "input": { "text": "Это худший лаунчпад, команда вообще ничего не делает", "appLang": "ru" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "distress", "notPunished": true }
+  },
+  {
+    "id": "mod-crisis-en",
+    "input": { "text": "honestly after this loss I don't see the point of going on anymore" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "crisis", "notPunished": true }
+  },
+  {
+    "id": "mod-crisis-es",
+    "input": { "text": "Perdí todos mis ahorros, ya no quiero vivir", "appLang": "es" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "crisis", "notPunished": true }
+  },
+  {
+    "id": "mod-crisis-zh",
+    "input": { "text": "亏光了，真的不想活了", "appLang": "zh" },
+    "expect": { "verdict": ["ok", "unsure"], "needs_human": "crisis", "notPunished": true }
+  }
+]

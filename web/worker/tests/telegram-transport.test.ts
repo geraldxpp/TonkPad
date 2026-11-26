@@ -157,4 +157,11 @@ describe("Poller", () => {
     await poller.run();
     expect(waits).toEqual([1_000, 2_000]);
   });
+
+  it("asks Telegram for edits and membership changes too", async () => {
+    const api = scripted([new TelegramError(401, "Unauthorized", null)]);
+    await new Poller(api, async () => {}, () => {}, async () => {}).run();
+    expect(api.calls[0][1].allowed_updates).toEqual(["message", "edited_message", "callback_query", "inline_query", "chat_member", "my_chat_member"]);
+  });
 });
+

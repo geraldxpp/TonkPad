@@ -53,6 +53,8 @@ export const ALLOWANCES = {
   bridgeBuild: { burst: 8, perSecond: 0.15 },
   bridgeSend: { burst: 10, perSecond: 0.2 },
   bridgeStatus: { burst: 120, perSecond: 2 },
+  // The Telegram bot's worker reads its site facts at start and every 30 minutes (/api/bot/site); browsers never ask.
+  botSite: { burst: 10, perSecond: 0.2 },
 } as const satisfies Record<string, Allowance>;
 
 export type RouteGroup = keyof typeof ALLOWANCES;
