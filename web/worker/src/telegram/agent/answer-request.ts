@@ -53,12 +53,20 @@ const RETRYABLE: readonly ClaudeFailure[] = ["network", "overloaded", "server", 
 /** The pseudonymous code's shape (claude/user-code.ts): nothing else, such as a raw ID, is ever sent as metadata.user_id. */
 const USER_CODE = /^[0-9a-f]{32}$/;
 
-/** The request on `model`, at its settings: no thinking field, sampling parameters, tool_choice, prefill or fallbacks. */
+/**
+ * The request on `model`, at its settings: no thinking field, sampling
+ * parameters, prefill or fallbacks. Once a tool round has run (`toolsDone`),
+ * tool_choice is none, so the reply is the answer: Sonnet 5.5 once called
+ * launchpad_figures again after its result, three times, until the loop ran
+ * out of requests (26 Nov 2026). The tools stay in the request, and a
+ * tool_choice change keeps the cached tools and system prompt.
+ */
 export function answerParams(
   system: Anthropic.TextBlockParam[],
   messages: readonly Anthropic.MessageParam[],
   userCode: string | null,
   model: AnswerModel,
+  toolsDone = false,
 ): Anthropic.MessageCreateParamsNonStreaming {
   const settings = ANSWER_SETTINGS[model];
   return {
@@ -66,6 +74,7 @@ export function answerParams(
     max_tokens: settings.maxTokens,
     output_config: { effort: settings.effort, format: { type: "json_schema", schema: ANSWER_SCHEMA } },
     tools: ANSWER_TOOLS,
+    ...(toolsDone ? { tool_choice: { type: "none" } } : {}),
     system,
     messages: [...messages],
     ...(typeof userCode === "string" && USER_CODE.test(userCode) ? { metadata: { user_id: userCode } } : {}),

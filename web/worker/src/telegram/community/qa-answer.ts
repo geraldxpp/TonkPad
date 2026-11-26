@@ -122,6 +122,10 @@ async function show(a: Ask, result: Answered, ctx: QaCtx): Promise<boolean> {
   const gated = gateAnswer({
     output, facts: result.facts, allowedAddresses: allowed, chat: a.where, placeholder: w.answer.unverifiedAddress, levelWords: LEVEL_WORDS, official: officialNames(ctx.official),
   });
+  // Which check held back an answer that would have been shown, as codes only: no text, no ID. An unprompted
+  // candidate the model declined (answered false, its reply often empty) was never going to be shown.
+  const offered = a.mode !== "proactive" || (output.answered === true && output.escalate === "none");
+  if (gated.blocked !== null && offered) ctx.log(`answer gate blocked (${laneOf(a)}): ${gated.blocked}`);
   if (a.mode === "proactive") {
     await unprompted(a, result, gated, lang, ctx);
     return false;
@@ -167,6 +171,8 @@ export async function answer(a: Ask, ctx: QaCtx): Promise<boolean> {
   const typing = { maxBeats: typingBeats(ANSWER_SETTINGS[model].deadlineMs) };
   const result = a.mode === "proactive" ? await work() : await withTyping(ctx.out, a.chat.id, a.thread, work, typing);
   if (result.kind === "answer") return show(a, result, ctx);
+  // Why there is no answer, as codes only.
+  ctx.log(`answer not shown (${laneOf(a)}): ${result.kind} (${result.reason})`);
   if (a.mode === "proactive") return false;
   if (result.kind === "declined") await (result.reason === "invalid" ? standIn(a, "unsure", ctx) : stopped(a, result.reason, ctx));
   else if (result.reason === "too_long") await standIn(a, "unsure", ctx);

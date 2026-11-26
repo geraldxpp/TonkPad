@@ -292,7 +292,7 @@ Rules act first, instantly, in code. Haiku decides only what the rules can't and
 | Effort | `output_config.effort`: `'medium'` on Sonnet 5.5 and Opus 5.5, `'high'` on Haiku 5.5 (decision 2) | `'low'` |
 | `max_tokens` | 2,500 on Sonnet 5.5 and Opus 5.5, 8,000 on Haiku 5.5 (thinking counts toward it; the eval tunes it) | 400 |
 | Output | `output_config.format`: JSON schema for the answer | JSON schema for the verdict |
-| Tools | 2 strict tools (`strict: true`, `additionalProperties: false`), sorted by name, `tool_choice` left at auto | none |
+| Tools | 2 strict tools (`strict: true`, `additionalProperties: false`), sorted by name; `tool_choice` left at auto until the one tool round has run, then `none`, so the next request answers (26 Nov 2026: Sonnet 5.5 called launchpad_figures again after its result until the loop ran out of requests; a `tool_choice` change keeps the cached tools and system prompt) | none |
 | Cache | `system`: the rules; then the English core with the site lines, 1-hour breakpoint; then the glossary, 1-hour breakpoint | `system`: rules and examples, 1-hour breakpoint |
 | Messages | the earlier answer as an assistant turn (follow-ups only), the question as the user turn, then a `role: 'system'` message with the date, language, chat kind, mode and length | the message data as JSON in the user turn |
 | Timeouts | on Sonnet 5.5 and Opus 5.5, each request min(40 s, what's left of the deadline) and 60 s per answer in all, with a 10 s send floor (no request is sent with less of the deadline left); on Haiku 5.5, min(20 s, what's left), 45 s and a 3 s floor | 10 s |

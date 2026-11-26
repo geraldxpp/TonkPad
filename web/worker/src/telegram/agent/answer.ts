@@ -21,8 +21,9 @@ export { ANSWER_SETTINGS, type AnswerSettings } from "./answer-request";
  * stop reason is read before anything else: a refusal or a max_tokens stop
  * is declined without reading the content; a tool round passes the
  * assistant's whole content back unchanged (thinking blocks included) and
- * every result in one user message; a finished reply is read by its first
- * text block. Nothing is logged here.
+ * every result in one user message; there is one tool round, and every
+ * request after it goes with tool_choice none, so it answers; a finished
+ * reply is read by its first text block. Nothing is logged here.
  */
 
 export interface AnswerDeps {
@@ -95,8 +96,9 @@ async function answerLoop(req: AnswerRequest, deps: AnswerDeps): Promise<AnswerR
   const askable = new Set(askableOf(req));
   const runs: ToolRun[] = [];
   let retried = false;
+  let toolsDone = false;
   for (let sent = 0; sent < settings.maxRequests; sent += 1) {
-    const result = await attempt(answerParams(system, messages, req.userCode, deps.model), req.lane, deadline, deps);
+    const result = await attempt(answerParams(system, messages, req.userCode, deps.model, toolsDone), req.lane, deadline, deps);
     if (result.kind !== "sent") return { kind: "unavailable", reason: result.kind === "late" ? "timeout" : result.kind };
     const { outcome } = result;
     if (!outcome.ok) {
@@ -117,12 +119,13 @@ async function answerLoop(req: AnswerRequest, deps: AnswerDeps): Promise<AnswerR
     }
     if (message.stop_reason === "max_tokens") return { kind: "declined", reason: "max_tokens" };
     if (message.stop_reason === "end_turn") return finish(message, lang, pack, runs);
-    // Any other stop, or a tool call with no request left to answer it: no answer.
-    if (message.stop_reason !== "tool_use" || sent + 1 >= settings.maxRequests) return INVALID;
+    // Any other stop, a second tool round, or a tool call with no request left to answer it: no answer.
+    if (message.stop_reason !== "tool_use" || toolsDone || sent + 1 >= settings.maxRequests) return INVALID;
     const round = await toolRound(message, deps.data, askable);
     if (!round) return INVALID;
     runs.push(...round.runs);
     messages.push({ role: "assistant", content: message.content }, { role: "user", content: round.results });
+    toolsDone = true;
   }
   return INVALID;
 }
